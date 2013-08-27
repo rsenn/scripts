@@ -1,8 +1,5 @@
 #!/bin/sh
 
-set -- mp3 ogg flac mpc m4a m4b wma 
+EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff voc"
 
-#set -- "$@" rm
-#set -- "$@" wav voc aif aiff 
-
-exec grep -iE "\\.($(IFS='|'; echo "$*"))\$"
+exec grep -i -E "$@" "\\.($(IFS='| '; set -- $EXTS;  echo "$*"))\$" 
