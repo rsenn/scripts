@@ -10,6 +10,7 @@ SCRIPTS = aaview.sh \
 	aliases.sh \
 	any23gp.sh \
 	any2cdda.sh \
+	any2avi.sh \
 	any2divx.sh \
 	any2dvd.sh \
 	any2m4a.sh \
