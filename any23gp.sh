@@ -54,28 +54,28 @@ ACODEC="aac"
 #ACODEC=wmav2
 
 for ARG; do
-	(
-	BASE=${ARG##*/}
-	BASENAME=${BASE%.*}
+  (
+  BASE=${ARG##*/}
+  BASENAME=${BASE%.*}
 
   DIR=` dirname "$ARG"` 
 
         cd "$DIR"
 
-	#OUTPUT="${ARG%.*}.3gp"
-	OUTPUT="$BASENAME.3gp"
+  #OUTPUT="${ARG%.*}.3gp"
+  OUTPUT="$BASENAME.3gp"
 
-#	TMP=`mktemp "${BASE}XXXXXX.tmp"`
+#  TMP=`mktemp "${BASE}XXXXXX.tmp"`
 
         trap 'rm -vf "$TMP"' EXIT QUIT INT TERM
 
-#	(set -x; mplayer -really-quiet -noconsolecontrols -vo null -vc null -ao pcm:waveheader:file="$TMP" "$ARG") &&
-		(set -x; ffmpeg -strict -2 -y -i "$BASE" \
+#  (set -x; mplayer -really-quiet -noconsolecontrols -vo null -vc null -ao pcm:waveheader:file="$TMP" "$ARG") &&
+    (set -x; ffmpeg -strict -2 -y -i "$BASE" \
                         ${SIZE:+-s "$SIZE"} \
-			${VCODEC:+-vcodec "$VCODEC"} ${VBITRATE:+-b "$VBITRATE"} \
-			${ACODEC:+-acodec "$ACODEC"} ${ABITRATE:+-ab "$ABITRATE"} ${SAMPLERATE:+-ar "$SAMPLERATE"} ${CHANNELS:+-ac "$CHANNELS"} \
-		   "$OUTPUT")
+      ${VCODEC:+-vcodec "$VCODEC"} ${VBITRATE:+-b "$VBITRATE"} \
+      ${ACODEC:+-acodec "$ACODEC"} ${ABITRATE:+-ab "$ABITRATE"} ${SAMPLERATE:+-ar "$SAMPLERATE"} ${CHANNELS:+-ac "$CHANNELS"} \
+       "$OUTPUT")
 
-	)
+  )
 done
 )

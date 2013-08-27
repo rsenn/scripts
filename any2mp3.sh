@@ -11,10 +11,10 @@ REMOVE=false
 
 while :; do
     case "$1" in
-	 -r) REMOVE=true; shift ;;
-	 -b) ABR="$2"; shift 2 ;;
-	 -d) DIR="$2"; shift 2 ;;
-	 -s) FILESIZE="$2"; shift 2 ;;
+   -r) REMOVE=true; shift ;;
+   -b) ABR="$2"; shift 2 ;;
+   -d) DIR="$2"; shift 2 ;;
+   -s) FILESIZE="$2"; shift 2 ;;
      *) break ;;
 
     esac
@@ -58,7 +58,7 @@ for ARG; do
 
     OUTPUT="${ARG%.*}.mp3"
     if [ "$DIR" ]; then
-	OUTPUT="$DIR"/`basename "$OUTPUT"`
+  OUTPUT="$DIR"/`basename "$OUTPUT"`
 fi
 
     (set -x; 
