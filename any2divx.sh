@@ -95,7 +95,7 @@ var_dump VBR
 unset RESOLUTIONS
 pushv RESOLUTIONS 720x576
 pushv RESOLUTIONS 720x480
-#pushv RESOLUTIONS 720x405
+pushv RESOLUTIONS 720x405
 pushv RESOLUTIONS 640x480
 pushv RESOLUTIONS 640x360
 pushv RESOLUTIONS 512x288
@@ -140,7 +140,7 @@ fi
 
 
     (set -x; ffmpeg 2>&1 -y -i "$ARG" $A -vtag DX50 -r 29.97 -f avi -vcodec mpeg4 \
-         ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR+-b:v "$VBR"} -acodec libmp3lame  \
+         ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR:+-b:v "$VBR"} -acodec libmp3lame  \
    -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) ||
         break
 done
