@@ -136,11 +136,11 @@ fi
    echo "Calculated video bit rate to $VBR" 1>&2
 
      fi
+type avconv 2>/dev/null >/dev/null && FFMPEG=avconv
+: ${FFMPEG=ffmpeg}
 
-
-
-    (set -x; ffmpeg 2>&1 -y -i "$ARG" $A -r 29.97 -f avi -vcodec libxvid \
-         ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR:+-b:v "$VBR"} -acodec libmp3lame  \
+    (set -x; "$FFMPEG" 2>&1 -y -i "$ARG" $A -r 29.97 -f avi -vcodec libxvid \
+      ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR:+-b $((VBR + ABR))} -acodec libmp3lame  \
    -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) ||
         break
 done
