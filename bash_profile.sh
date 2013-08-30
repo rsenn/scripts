@@ -40,9 +40,10 @@ esac
 
 TERM=xterm-256color
 
+alias xargs='xargs -d "\n"'
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
 alias ls='ls --color=auto'
-
+alias grep='grep --line-buffered'
 #alias grep='grep --color=auto'
 alias cp='cp'
 alias mv='mv'

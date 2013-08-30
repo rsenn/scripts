@@ -4,6 +4,7 @@
 while :; do
 
   case "$1" in
+    -p | --print) PRINT=true; shift ;;
     -r | --recursive) RECURSIVE=true; shift ;;
     -d | --delete) DELETE=true; shift ;;
   *) break ;;
@@ -37,6 +38,12 @@ for SYMLINK in $SYMLINKS; do
 ( cd "$DIR"
   TARGET=` readlink "$BASE" `
 
+ if [ "$PRINT" = true ]; then
+   case "$TARGET" in
+       /*) echo "$TARGET" ;;
+     *) echo "$DIR/$TARGET" ;;
+   esac
+ fi
  if [ ! -e "$TARGET" ]; then
    if [ "$DELETE" = true ]; then 
      rm -vf "$BASE"
