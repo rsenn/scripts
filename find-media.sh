@@ -44,7 +44,9 @@ while :; do
   	-d|--debug) DEBUG=true; shift ;;
   	-e|--exist*) EXIST_FILE=true; shift ;;
   	-f) WANT_FILE=true; shift ;;
-  	-i) add_dir INCLUDE_DIRS "$2" ; shift 2 ;;
+  -i| --ignore*case) IGNORE_CASE=true ; shift  ;;
+  	-I=*| --include=*) add_dir INCLUDE_DIRS "${1#*=}" ; shift  ;;
+  	-I | --include) add_dir INCLUDE_DIRS "$2" ; shift 2 ;;
   	-e|-x) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;;
 	*) break ;;
 	esac
@@ -67,7 +69,9 @@ done
 EXPR="$EXPR)"
 
 MOUNT_OUTPUT=`mount`
-GREP_ARGS="-i"
+
+[ "$IGNORE_CASE" = true ] && GREP_ARGS="${GREP_ARGS:+$GREP_ARGS
+}-i"
 
 
 case "$OS" in
