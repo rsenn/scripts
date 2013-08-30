@@ -5,6 +5,7 @@ while :; do
 
   case "$1" in
     -r | --recursive) RECURSIVE=true; shift ;;
+    -d | --delete) DELETE=true; shift ;;
   *) break ;;
   esac
 
@@ -36,7 +37,14 @@ for SYMLINK in $SYMLINKS; do
 ( cd "$DIR"
   TARGET=` readlink "$BASE" `
 
- test -e "$TARGET"  || echo "Target '$TARGET' of symlink "$SYMLINK" not found!" 1>&2
+ if [ ! -e "$TARGET" ]; then
+   if [ "$DELETE" = true ]; then 
+     rm -vf "$BASE"
+   else
+   echo "Target '$TARGET' of symlink "$SYMLINK" not found!" 1>&2
+ fi
+
+ fi
   )
 done
 
