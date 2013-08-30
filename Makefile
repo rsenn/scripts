@@ -4,8 +4,19 @@ bindir = ${prefix}/bin
 INSTALL = install
 
 
+all:
+install: $(SCRIPTS)
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL) -m 755 $(SCRIPTS) $(DESTDIR)$(bindir)
 
 
+slackpkg: prefix=/usr/local
+slackpkg: $(SCRIPTS) 
+	@set -x; distdir="_inst"; rm -rf $$distdir; mkdir -p $$distdir/$(bindir) $$distdir/root; \
+		$(INSTALL) -m 755 $(SCRIPTS) $$distdir/$(bindir); \
+		bash cp-bash-scripts.bash $$distdir/root/; \
+		tar -cJf scripts-`date +%Y%m%d`-slackware.txz -C $$distdir .; \
+		rm -rf $$distdir
 SCRIPTS =  \
   aaview.sh \
   aliases.sh \
@@ -24,6 +35,8 @@ SCRIPTS =  \
   arp-scan.sh \
   autogen.sh \
   avi2vob.sh \
+  bash_functions.sh \
+  bash_profile.sh \
   bcmm-dump.sh \
   bridge-setup.sh \
   browser-history.sh \
@@ -39,7 +52,6 @@ SCRIPTS =  \
   colorgrep.sh \
   colors.sh \
   colortable16.sh \
-  colortable256.pl \
   conf.sh \
   cpio2tar.sh \
   curl-upload.sh \
@@ -64,8 +76,6 @@ SCRIPTS =  \
   eth-adhoc-vinylz.sh \
   eth-colobern.sh \
   extract-urls.sh \
-  exts.txt \
-  fastroll.pl \
   fetch-urls.sh \
   file-hoster-urls.sh \
   filecrop.sh \
@@ -93,7 +103,6 @@ SCRIPTS =  \
   find-videos.sh \
   flush-iptables.sh \
   fnsed.sh \
-  foldertable.txt \
   functions-assemble.sh \
   functions-dump.sh \
   functions.sh \
@@ -116,13 +125,9 @@ SCRIPTS =  \
   grep-sources.sh \
   grep-videos.sh \
   grub-files-find.sh \
-  grubcfg.lst \
   hashstash.sh \
-  hfsprescue.log \
   hhv-search.sh \
-  histogram.awk \
   home-cleanup.sh \
-  install.log \
   isodate.sh \
   isotime.sh \
   jadmaker.sh \
@@ -145,7 +150,6 @@ SCRIPTS =  \
   locate-sources.sh \
   locate-videos.sh \
   locks.sh \
-  locks.sh.in \
   logrun.sh \
   lsof.sh \
   lvm-mount-all.sh \
@@ -172,7 +176,6 @@ SCRIPTS =  \
   mysql-example.sh \
   mysql-functions.sh \
   newfile.sh \
-  otf2ttf.fontforge \
   otf2ttf.sh \
   pack-dir.sh \
   program-paths.sh \
@@ -228,20 +231,10 @@ SCRIPTS =  \
   wlan-vinylz.sh \
   x11.sh \
   x2x-ssh-fuse.sh \
-  xterm-256color.sh
-
-
-
-all:
-install: $(SCRIPTS)
-	$(INSTALL) -d $(DESTDIR)$(bindir)
-	$(INSTALL) -m 755 $(SCRIPTS) $(DESTDIR)$(bindir)
-
-
-slackpkg: prefix=/usr/local
-slackpkg: $(SCRIPTS) 
-	@set -x; distdir="_inst"; rm -rf $$distdir; mkdir -p $$distdir/$(bindir) $$distdir/root; \
-		$(INSTALL) -m 755 $(SCRIPTS) $$distdir/$(bindir); \
-		bash cp-bash-scripts.bash $$distdir/root/; \
-		tar -cJf scripts-`date +%Y%m%d`-slackware.txz -C $$distdir .; \
-		rm -rf $$distdir
+  xterm-256color.sh \
+  histogram.awk \
+  otf2ttf.fontforge \
+  cp-bash-scripts.bash \
+  git-config.bash \
+  colortable256.pl \
+  fastroll.pl
