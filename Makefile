@@ -17,6 +17,7 @@ slackpkg: $(SCRIPTS)
 		bash cp-bash-scripts.bash $$distdir/root/; \
 		tar -cJf scripts-`date +%Y%m%d`-slackware.txz -C $$distdir .; \
 		rm -rf $$distdir
+
 SCRIPTS =  \
   aaview.sh \
   aliases.sh \
