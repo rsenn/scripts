@@ -1,0 +1,4 @@
+warn()
+{ 
+    msg "WARNING: $@"
+}
