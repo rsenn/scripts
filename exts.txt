@@ -1,0 +1,8 @@
+archives EXTS="7z rar tar.bz2 tar.gz tar.xz tbz2 tgz txz zip"
+audio EXTS="aif aiff flac m4a m4b mp2 mp3 mpc ogg raw rm wav wma"
+images EXTS="bmp cin cod dcx djvu emf fig gif ico im1 im24 im8 jin jpeg jpg lss miff opc pbm pcx pgm pgx png pnm ppm psd rle rmp sgi shx svg tga tif tiff wim xcf xpm xwd"
+incomplete EXTS="*.!?? *.part [/\\]INCOMPL[^/\\]*\$ \\.!??\$ \\.part\$ INCOMPL*"
+music EXTS="flac m4a m4b mp3 mpc ogg rm wma"
+software EXTS="*.msi *install*.exe *setup*.exe .msi install*.exe setup*.exe"
+sources EXTS="c cpp cxx h hpp hxx"
+videos EXTS="3gp avi f4v flv m2v mkv mov mp4 mpeg mpg ogm wmv"
