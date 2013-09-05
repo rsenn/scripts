@@ -1,7 +1,7 @@
 canonicalize()
 {
   (IFS="
-"
+ -"
    while :; do
    case "$1" in
      -l|--lowercase) LOWERCASE=true; shift ;;
