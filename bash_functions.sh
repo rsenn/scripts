@@ -68,13 +68,12 @@ aspect()
 
 autorun-shell()
 { 
-   EXEC="$1";
-    shift;
-    [ $# -le 0 ] && set -- $(echo "$EXEC" |sed 's,Start,Start , ; s,\.exe,,g');
-    echo "Shell\\Option${N:=1}=$*
-Shell\\Option${N:=1}\\Command=$EXEC
-" 
-   [ -n "$N" -a "$N" -gt 0 ] 2>/dev/null && N=`expr "$N" + 1`
+   (EXEC="$1"
+     shift
+     [ $# -le 0 ] && set -- $(echo "$EXEC" |sed 's,Start,Start , ; s,\.exe,,g')
+    echo "Shell\\Option1=$*
+Shell\\Option1\\Command=$EXEC
+")
 }
 
 awkp()
@@ -145,6 +144,41 @@ bpm()
     done )
 }
 
+canonicalize()
+{
+  (IFS="
+"
+   while :; do
+   case "$1" in
+     -l|--lowercase) LOWERCASE=true; shift ;;
+     -m=|--maxlen=) MAXLEN="${1#*=}"; shift ;;
+     -m|--maxlen) MAXLEN="$2"; shift 2 ;;
+     *) break ;;
+     esac
+   done
+     : ${MAXLEN:=4095}
+ 
+   CMD="sed 's,[^A-Za-z0-9],-,g'|sed 's,-\+,-,g ;; s,^-\+,, ;; s,-\+\$,,'"
+   [ "$LOWERCASE" = true ] && CMD="$CMD|tr [:{upper,lower}:]"
+   #[ $# -gt 0 ] && CMD='set -- \$(IFS=" "; echo "$*"|'$CMD')'
+   
+   set -- $(echo "$*"|eval "$CMD")
+   
+   unset OUT
+   
+   while [ $# -gt 0 ]; do
+      [ -z "$1" ] && continue
+     NEWOUT="${OUT:+$OUT-}$1"
+     [ ${#NEWOUT} -gt ${MAXLEN} ] && break
+     OUT="$NEWOUT"
+     shift
+   done
+   
+   echo "$OUT"  
+   
+   )
+}
+
 check-link()
 {
   (TARGET=$(readshortcut "$1")
@@ -191,6 +225,34 @@ clamp()
 command-exists()
 { 
     type "$1" 2> /dev/null > /dev/null
+}
+
+convert-boot-entries()
+{
+  ([ -z "$FORMAT" ] && FORMAT="$1"
+  	
+    for FILE; do
+      convert-boot-file "$FILE" "$FORMAT"
+    done
+  )
+}
+
+convert-boot-file()
+{
+  (if [ -e "$1" ]; then
+     exec <"$1"
+     shift
+   fi
+   
+   [ -z "$FORMAT" ] && FORMAT="$1"
+   
+   while parse-boot-entry; do
+     output-boot-entry "$FORMAT"
+   done
+   
+   
+   
+   )
 }
 
 count-in-dir()
@@ -305,11 +367,6 @@ debug()
     msg "DEBUG: $@"
 }
 
-dec_to_hex()
-{ 
-    printf "%08x\n" "$1"
-}
-
 decompress()
 { 
     local mime="$(file -bi "$1")";
@@ -324,6 +381,11 @@ decompress()
             cat "$1"
         ;;
     esac
+}
+
+dec_to_hex()
+{ 
+    printf "%08x\n" "$1"
 }
 
 detect-filesystem()
@@ -547,6 +609,16 @@ each()
     done;
     unset __
 }
+each()
+{ 
+    __=$1;
+    test "`type -t "$__"`" = function && __="$__ \"\$@\"";
+    while shift;
+    [ "$#" -gt 0 ]; do
+        eval "$__";
+    done;
+    unset __
+}
 
 enable-some-swap()
 { 
@@ -690,26 +762,6 @@ filter-cmd()
     done )
 }
 
-filter_files_list()
-{ 
-    sed -u "s|/files\.list:|/|"
-}
-
-filter_out()
-{ 
-    ( while read -r LINE; do
-        for PATTERN in "$@";
-        do
-            case "$LINE" in 
-                $PATTERN)
-                    continue 2
-                ;;
-            esac;
-        done;
-        echo "$LINE";
-    done )
-}
-
 filter-quoted-name()
 {
   sed -n "s|.*\`\([^']\+\)'.*|\1|p"
@@ -771,9 +823,24 @@ filter()
     done )
 }
 
-find_media()
+filter_files_list()
 { 
-    grep --color=auto --color=auto -iE "$(grep-e-expr "$@")" /{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/files.list 2> /dev/null | filter_files_list | filter-test -e
+    sed -u "s|/files\.list:|/|"
+}
+
+filter_out()
+{ 
+    ( while read -r LINE; do
+        for PATTERN in "$@";
+        do
+            case "$LINE" in 
+                $PATTERN)
+                    continue 2
+                ;;
+            esac;
+        done;
+        echo "$LINE";
+    done )
 }
 
 findstring()
@@ -787,6 +854,11 @@ findstring()
         fi;
     done;
     exit 1 )
+}
+
+find_media()
+{ 
+    grep --color=auto --color=auto -iE "$(grep-e-expr "$@")" /{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/files.list 2> /dev/null | filter_files_list | filter-test -e
 }
 
 first-char()
@@ -835,17 +907,6 @@ for-each-partition()
     done )
 }
 
-for_each()
-{ 
-    __=$1;
-    test "`type -t "$__"`" = function && __="$__ \"\$@\"";
-    while shift;
-    [ "$#" -gt 0 ]; do
-        eval "$__";
-    done;
-    unset __
-}
-
 foreach-mount()
 { 
     local old_IFS="$IFS";
@@ -872,6 +933,17 @@ foreach-partition()
         done
     };
     IFS="$old_IFS"
+}
+
+for_each()
+{ 
+    __=$1;
+    test "`type -t "$__"`" = function && __="$__ \"\$@\"";
+    while shift;
+    [ "$#" -gt 0 ]; do
+        eval "$__";
+    done;
+    unset __
 }
 
 fstab-line()
@@ -954,13 +1026,6 @@ get-dotfiles()
     done )
 }
 
-get_ext()
-{ 
-    set -- $( ( (set -- $(grep EXT.*= {find,locate,grep}-$1.sh -h 2>/dev/null |sed "s,EXTS=[\"']\?\(.*\)[\"']\?,\1," ); IFS="$nl"; echo "$*")|sed 's,[^[:alnum:]]\+,\n,g; s,^\s*,, ; s,\s*$,,';) |sort -fu);
-    ( IFS=" ";
-    echo "$*" )
-}
-
 get-property()
 { 
     sed -n "/$1=/ {
@@ -990,10 +1055,17 @@ getuuid()
     blkid "$@" | sed -n "/UUID=/ { s,.*UUID=\"\?,,; s,\".*,,; s,-,,g ; p}"
 }
 
+get_ext()
+{ 
+    set -- $( ( (set -- $(grep EXT.*= {find,locate,grep}-$1.sh -h 2>/dev/null |sed "s,EXTS=[\"']\?\(.*\)[\"']\?,\1," ); IFS="$nl"; echo "$*")|sed 's,[^[:alnum:]]\+,\n,g; s,^\s*,, ; s,\s*$,,';) |sort -fu);
+    ( IFS=" ";
+    echo "$*" )
+}
+
 grep-e-expr()
 { 
     echo "($(IFS="|
-";  set -- $*; echo "$*" |sed 's,[()],.,g ; s,\[,\\[,g ; s,\],\\],g ; s,\.,\\.,g'))"  
+";  set -- $*; echo "$*" |sed 's,[()],.,g ; s,\[,\\[,g ; s,\],\\],g'))"  
 }
 
 grep-e()
@@ -1022,9 +1094,7 @@ grep-e()
     grep --color=auto --color=auto --color=auto -E $ARGS "$(grep-e-expr "$@")" ${LAST:+"$LAST"} )
 }
 
-# perl java base data common tools generic ruby pae cil utils bin virtual server ocaml client examples gtk plugins plugin mysql source theme gui quantal core php gnome cross test manual pgsql gnueabihf gnueabi ldap python lowlatency jni gcj mode cli kde themes config all text sqlite multilib dkms daemon console manager clients bundled postgresql lib eng runtime web misc demo activity settings scripts fonts applet schema libs gfortran util tcl sdl odbc modules module html gst desktop cgi x src mincho contrib apps admin wallpapers progs music monitor full agent support static ssl proxy nox mpi mobile installer help headers driver deu alsa addons service run mail latex jack icons heimdal gothic fuse dbus classic artwork
-
-grep-v-optpkgs () 
+grep-v-optpkgs()
 { 
     grep --color=auto -v -E '\-(doc|dev|dbg|extra|lite|prof|extra|manual|data|examples|source|theme|manual|demo|help|artwork|contrib)'
 }
@@ -1147,6 +1217,38 @@ grub2-search-for-device()
     echo "${2}search --no-floppy --fs-uuid --set" $UUID )
 }
 
+hex2chr()
+{ 
+    echo "puts -nonewline [format \"%c\" 0x$1]" | tclsh
+}
+
+hexdump_printfable()
+{ 
+    . require str;
+    hexdump -C -v < "$1" | sed "s,^\([0-9a-f]\+\)\s\+\(.*\),\2 #0x\1, ; #s,0x0000,0x," | sed "s,|[^|]*|,, ; s,^, ," | sed "s,\s\+\([0-9a-f][0-9a-f]\), 0x\\1,g" | sed "s,^,printf \"$(str_repeat 16 %c)\\\n\" ,"
+}
+
+hexnums-dash()
+{ 
+    sed "s,[0-9A-Fa-f][0-9A-Fa-f],&-\\\\?,g"
+}
+
+hexnums_to_bin()
+{ 
+    ( require str;
+    unset NL;
+    case $1 in 
+        -l)
+            shift;
+            NL="
+"
+        ;;
+    esac;
+    IFS=" ";
+    OUT=` echo "puts -nonewline \"[format $(str_repeat $#  %c) $* ]\""|tclsh `;
+    echo -n "$OUT$NL" )
+}
+
 hex_to_bin()
 { 
     local chars=`str_to_list "$1"`;
@@ -1210,38 +1312,6 @@ hex_to_bin()
 hex_to_dec()
 { 
     eval 'echo $((0x'${1%% *}'))'
-}
-
-hex2chr()
-{ 
-    echo "puts -nonewline [format \"%c\" 0x$1]" | tclsh
-}
-
-hexdump_printfable()
-{ 
-    . require str;
-    hexdump -C -v < "$1" | sed "s,^\([0-9a-f]\+\)\s\+\(.*\),\2 #0x\1, ; #s,0x0000,0x," | sed "s,|[^|]*|,, ; s,^, ," | sed "s,\s\+\([0-9a-f][0-9a-f]\), 0x\\1,g" | sed "s,^,printf \"$(str_repeat 16 %c)\\\n\" ,"
-}
-
-hexnums-dash()
-{ 
-    sed "s,[0-9A-Fa-f][0-9A-Fa-f],&-\\\\?,g"
-}
-
-hexnums_to_bin()
-{ 
-    ( require str;
-    unset NL;
-    case $1 in 
-        -l)
-            shift;
-            NL="
-"
-        ;;
-    esac;
-    IFS=" ";
-    OUT=` echo "puts -nonewline \"[format $(str_repeat $#  %c) $* ]\""|tclsh `;
-    echo -n "$OUT$NL" )
 }
 
 hsl()
@@ -1393,16 +1463,6 @@ importlibs()
     done
 }
 
-in_path()
-{ 
-    local dir IFS=:;
-    for dir in $PATH;
-    do
-        ( cd "$dir" 2> /dev/null && set -- $1 && test -e "$1" ) && return 0;
-    done;
-    return 127
-}
-
 inc()
 { 
     expr "$1" + "${2-1}"
@@ -1420,25 +1480,18 @@ index-dir()
     do
         ( cd "$ARG";
         echo "Indexing directory $PWD ..." 1>&2;
-        (list-r || list-recursive) > .files.list.tmp;
+        list-recursive > .files.list.tmp;
         mv -f .files.list.tmp files.list;
         wc -l "$PWD/files.list" 1>&2 );
     done )
 }
 
-index_of()
+index-of()
 { 
-    ( needle="$1";
-    index=0;
-    while [ "$#" -gt 1 ]; do
-        shift;
-        if [ "$needle" = "$1" ]; then
-            echo "$index";
-            exit 0;
-        fi;
-        index=`expr "$index" + 1`;
-    done;
-    exit 1 )
+    io="$1";
+    shift;
+    s="$*";
+    for-each-char 'if [ "$io" = "$c" ]; then echo "$i"; return 0; fi' "$s"
 }
 
 index-tar()
@@ -1478,6 +1531,21 @@ indexarg()
     eval echo "\${@:$I:1}" )
 }
 
+index_of()
+{ 
+    ( needle="$1";
+    index=0;
+    while [ "$#" -gt 1 ]; do
+        shift;
+        if [ "$needle" = "$1" ]; then
+            echo "$index";
+            exit 0;
+        fi;
+        index=`expr "$index" + 1`;
+    done;
+    exit 1 )
+}
+
 inputf()
 { 
     local __line__ __cmds__;
@@ -1511,7 +1579,7 @@ inst-slackpkg()
     INSTALLED=;
     EXPR="$(grep-e-expr "$@")";
     [ "$FILE" = true ] && EXPR="/$EXPR[^/]*\$";
-    PKGS=` grep --color=auto -H -E "$EXPR" $([ "$PWD" = "$HOME" ] && ls -d slackpkg*.list)  ~/slackpkg*.list | sed 's,.*:/,/, ; s,/slackpkg[^./]*\.list:,/,'`;
+    PKGS=` grep --color=auto -H -E "$EXPR" $([ "$PWD" = "$HOME" ] && ls -d slackpkg*)  ~/slackpkg* | sed 's,.*:/,/, ; s,/slackpkg[^./]*\.list:,/,'`;
     if [ -z "$PKGS" ]; then
         echo "No such package $EXPR" 1>&2;
         exit 2;
@@ -1540,9 +1608,63 @@ $IFS";
     done )
 }
 
+in_path()
+{ 
+    local dir IFS=:;
+    for dir in $PATH;
+    do
+        ( cd "$dir" 2> /dev/null && set -- $1 && test -e "$1" ) && return 0;
+    done;
+    return 127
+}
+
 is-absolute()
 { 
     ! is-relative "$@"
+}
+
+is-mounted()
+{ 
+    isin "$1" $(mounted-devices)
+}
+
+is-relative()
+{ 
+    case "$1" in 
+        /*)
+            return 1
+        ;;
+        *)
+            return 0
+        ;;
+    esac
+}
+
+is-upx-packed()
+{ 
+    list-upx "$1" | grep --color=auto --color=auto --color=auto -q "\->.*$1"
+}
+
+isin()
+{ 
+    ( needle="$1";
+    while [ "$#" -gt 1 ]; do
+        shift;
+        test "$needle" = "$1" && exit 0;
+    done;
+    exit 1 )
+}
+
+iso-extract()
+{ 
+    ( NAME=`basename "$1" .iso`;
+    DEST=${2:-"$NAME"};
+    7z x -o"$DEST" "$1" )
+}
+
+isodate()
+{ 
+    date +%Y%m%d
 }
 
 is_binary()
@@ -1560,11 +1682,6 @@ is_binary()
 is_interactive()
 { 
     test -n "$PS1"
-}
-
-is-mounted()
-{ 
-    isin "$1" $(mounted-devices)
 }
 
 is_object()
@@ -1589,18 +1706,6 @@ is_pattern()
     return 1
 }
 
-is-relative()
-{ 
-    case "$1" in 
-        /*)
-            return 1
-        ;;
-        *)
-            return 0
-        ;;
-    esac
-}
-
 is_true()
 { 
     case "$*" in 
@@ -1609,11 +1714,6 @@ is_true()
         ;;
     esac;
     return 1
-}
-
-is-upx-packed()
-{ 
-    list-upx "$1" | grep --color=auto --color=auto --color=auto -q "\->.*$1"
 }
 
 is_url()
@@ -1636,28 +1736,6 @@ is_var()
         ;;
     esac;
     return 0
-}
-
-isin()
-{ 
-    ( needle="$1";
-    while [ "$#" -gt 1 ]; do
-        shift;
-        test "$needle" = "$1" && exit 0;
-    done;
-    exit 1 )
-}
-
-iso-extract()
-{ 
-    ( NAME=`basename "$1" .iso`;
-    DEST=${2:-"$NAME"};
-    7z x -o"$DEST" "$1" )
-}
-
-isodate()
-{ 
-    date +%Y%m%d
 }
 
 killall-w32()
@@ -1832,54 +1910,50 @@ list()
         msg $choices;
     fi
 }
-
-#list()
-#{ 
-#    local indent='  ' IFS="
-#";
-#    while [ "$1" != "${1#-}" ]; do
-#        case $1 in 
-#            -i)
-#                indent=$2 && shift 2
-#            ;;
-#            -i*)
-#                indent=${2#-i} && shift
-#            ;;
-#        esac;
-#    done;
-#    if test -z "$*" || test "$*" = -; then
-#        cat;
-#    else
-#        echo "$*";
-#    fi | while read item; do
-#        echo " \\";
-#        echo -n "$indent$item";
-#    done
-#}
-#list()
-#{ 
-#    local indent='  ' IFS="
-#";
-#    while [ "$1" != "${1#-}" ]; do
-#        case $1 in 
-#            -i)
-#                indent=$2 && shift 2
-#            ;;
-#            -i*)
-#                indent=${2#-i} && shift
-#            ;;
-#        esac;
-#    done;
-#    if test -z "$*" || test "$*" = -; then
-#        cat;
-#    else
-#        echo "$*";
-#    fi | while read item; do
-#        echo " \\";
-#        echo -n "$indent$item";
-#    done
-#}
-#
+list()
+{ 
+    sed -u "s|/files\.list:|/|"
+}
+list()
+{ 
+    local n=$1 count=0 choices='';
+    shift;
+    for choice in "$@";
+    do
+        choices="$choices $choice";
+        count=$((count + 1));
+        if $((count)) -eq $((n)); then
+            count=0;
+            choices='';
+        fi;
+    done;
+    if [ -n "${choices# }" ]; then
+        msg $choices;
+    fi
+}
+list()
+{ 
+    local indent='  ' IFS="
+";
+    while [ "$1" != "${1#-}" ]; do
+        case $1 in 
+            -i)
+                indent=$2 && shift 2
+            ;;
+            -i*)
+                indent=${2#-i} && shift
+            ;;
+        esac;
+    done;
+    if test -z "$*" || test "$*" = -; then
+        cat;
+    else
+        echo "$*";
+    fi | while read item; do
+        echo " \\";
+        echo -n "$indent$item";
+    done
+}
 
 locate-filename()
 { 
@@ -1999,11 +2073,6 @@ ls-l()
     xargs -d "$IFS" ls -l -d --time-style="+%s" $ARGS -- )
 }
 
-make_arith()
-{ 
-    echo '$(('"$@"'))'
-}
-
 make-slackpkg()
 { 
     : ${DESTDIR="$PWD"};
@@ -2015,6 +2084,11 @@ make-slackpkg()
         echo + "$cmd" 1>&2;
         eval "$cmd";
     done
+}
+
+make_arith()
+{ 
+    echo '$(('"$@"'))'
 }
 
 map()
@@ -2041,17 +2115,6 @@ match-mounted()
     ( EXPR="$*";
     foreach-mount 'case $DEV:$MNT:$TYPE:$OPTS in
 $EXPR:*:*:* | *:$EXPR:*:* | *:*:$EXPR:* | *:*:*:$EXPR) echo "$DEV $MNT $TYPE $OPTS $A $B" ;; esac' )
-}
-
-match_some()
-{ 
-    eval "while shift
-  do
-  case \"\$1\" in
-    $1 ) return 0 ;;
-  esac
-  done
-  return 1"
 }
 
 match()
@@ -2101,6 +2164,17 @@ matchany()
         esac;
     done;
     exit 1 )
+}
+
+match_some()
+{ 
+    eval "while shift
+  do
+  case \"\$1\" in
+    $1 ) return 0 ;;
+  esac
+  done
+  return 1"
 }
 
 max()
@@ -2439,6 +2513,60 @@ msyspath()
       echo "$ARG" );
   done )
 }
+msyspath()
+{ 
+  ( MODE=msys;
+  while :; do
+      case "$1" in 
+          -w)
+              MODE=win32;
+              shift
+          ;;
+          -m)
+              MODE=mixed;
+              shift
+          ;;
+          *)
+              break
+          ;;
+      esac;
+  done;
+  for ARG in "$@";
+  do
+      ( case "$MODE:$ARG" in 
+          *:[A-Za-z]:[/\\]* | *:[/\\]?/*)
+
+          ;;
+          win32:* | mixed:*)
+              ARG=$(mount | sed -n '1 { s, .*,,p }')"$ARG"
+          ;;
+      esac;
+      case "$MODE:$ARG" in 
+          mixed:/?/* | win32:/?/*)
+              DRIVE=${ARG#/};
+              DRIVE=${DRIVE%%/*};
+              ARG="$DRIVE:${ARG#/$DRIVE}"
+          ;;
+          msys:?:*)
+              DRIVE=${ARG%%:*};
+              ARG="/$DRIVE${ARG#$DRIVE:}"
+          ;;
+      esac;
+      IFS="/\\";
+      set -- $ARG;
+      case "$MODE:$ARG" in 
+          mixed:* | msys:*)
+              IFS="/";
+              ARG="$*"
+          ;;
+          win32:*)
+              IFS="\\";
+              ARG="$*"
+          ;;
+      esac;
+      echo "$ARG" );
+  done )
+}
 
 multiline_list()
 { 
@@ -2539,6 +2667,34 @@ ntfs-get-uuid()
     echo "${*:2:8}" )
 }
 
+output-boot-entry()
+{
+ (
+  [ -z "$FORMAT" ] && FORMAT="$1"
+  case "$FORMAT" in
+    grub4dos) 
+       echo "title $TITLE"
+       echo "kernel $KERNEL"
+       echo "initrd $INITRD"
+    ;;
+    grub2)
+       echo "menuentry \"$TITLE\" {"
+       echo "  linux $KERNEL"
+       echo "  initrd $INITRD"
+       echo "}"
+    ;;
+    syslinux|isolinux)
+       echo "label $LABEL"
+       echo "  menu label $TITLE"
+       echo "  kernel ${KERNEL%%' '*}"
+       echo "  append initrd=$INITRD ${KERNEL#*' '}"
+       
+     ;;
+  esac
+  echo
+ )
+}
+
 packed-upx-files()
 { 
     upx -l "$@" 2>&1 | sed -n '$ { \,files\s*\]$,d } ;; $! { \,->, s,.*->\s\+[0-9]\+\s\+[.0-9]\+%\s\+[^ ]\+\s\+\(.*\),\1,p }'
@@ -2554,9 +2710,10 @@ parse-boot-entry()
 	    case "$LINE" in
 	      *menuentry*{*) TYPE=grub; TITLE=${LINE#*\"}; TITLE=${TITLE%\"*\{} ;;
 	      *title\ *) TYPE=oldgrub; TITLE=${LINE#title\ *} ;;
-	      *menu*label* | *MENU*LABEL*) TYPE=syslinux; TITLE=${LINE#*MENU}; TITLE=${TITLE#*LABEL}; TITLE=${TITLE#*label} ;;
+	      *menu*label* | *MENU*LABEL*) TYPE=syslinux; TITLE=${LINE#*MENU}; TITLE=${TITLE#*LABEL}; TITLE=${TITLE#*label}; TITLE=${TITLE/^/} ;;
 	      *) continue ;; 
 	    esac
+	    TITLE=${TITLE#' '}
       else
         case "$TYPE" in
            syslinux)
@@ -2710,6 +2867,11 @@ prof()
     esac
 }
 
+pushv()
+{ 
+    eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
+}
+
 pushv_unique()
 { 
     local v=$1 s IFS=${IFS%${IFS#?}};
@@ -2722,11 +2884,6 @@ pushv_unique()
             return 1;
         fi;
     done
-}
-
-pushv()
-{ 
-    eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
 }
 
 quiet()
@@ -2859,11 +3016,6 @@ reload()
     source "$shlibdir/$script"
 }
 
-remove_emptylines()
-{ 
-    sed -e '/^\s*$/d' "$@"
-}
-
 removeprefix()
 { 
     ( PREFIX=$1;
@@ -2876,6 +3028,11 @@ removesuffix()
     ( SUFFIX=$1;
     shift;
     echo "${*%%$SUFFIX}" )
+}
+
+remove_emptylines()
+{ 
+    sed -e '/^\s*$/d' "$@"
 }
 
 require()
@@ -3046,6 +3203,11 @@ rgb()
     esac )
 }
 
+rmv()
+{ 
+    "${COMMAND-command}" rsync -r --remove-source-files -v --partial --size-only --inplace -D --links "$@"
+}
+
 rm_arch()
 { 
     ( IFS="
@@ -3060,11 +3222,6 @@ rm_ver()
 ";
     [ $# -gt 0 ] && exec <<< "$*";
     sed -u 's,-[^-]*$,,' )
-}
-
-rmv()
-{ 
-    "${COMMAND-command}" rsync -r --remove-source-files -v --partial --size-only --inplace -D --links "$@"
 }
 
 scriptdir()
@@ -3094,6 +3251,26 @@ shell-functions()
     declare -f | script_fnlist )
 }
 
+some()
+{ 
+    eval "while shift
+  do
+  case \"\`str_tolower \"\$1\"\`\" in
+    $(str_tolower "$1") ) return 0 ;;
+  esac
+  done
+  return 1"
+}
+some()
+{ 
+    eval "while shift
+  do
+  case \"\$1\" in
+    $1 ) return 0 ;;
+  esac
+  done
+  return 1"
+}
 some()
 { 
     eval "while shift

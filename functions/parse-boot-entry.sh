@@ -8,9 +8,10 @@ parse-boot-entry()
 	    case "$LINE" in
 	      *menuentry*{*) TYPE=grub; TITLE=${LINE#*\"}; TITLE=${TITLE%\"*\{} ;;
 	      *title\ *) TYPE=oldgrub; TITLE=${LINE#title\ *} ;;
-	      *menu*label* | *MENU*LABEL*) TYPE=syslinux; TITLE=${LINE#*MENU}; TITLE=${TITLE#*LABEL}; TITLE=${TITLE#*label} ;;
+	      *menu*label* | *MENU*LABEL*) TYPE=syslinux; TITLE=${LINE#*MENU}; TITLE=${TITLE#*LABEL}; TITLE=${TITLE#*label}; TITLE=${TITLE/^/} ;;
 	      *) continue ;; 
 	    esac
+	    TITLE=${TITLE#' '}
       else
         case "$TYPE" in
            syslinux)
