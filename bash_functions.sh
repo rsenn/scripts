@@ -1052,6 +1052,30 @@ get_ext()
     echo "$*" )
 }
 
+git-get-remote()
+{
+  git remote -v | sed "s,\s\+, ,g ; s,\s*([^)]*),," |uniq
+}
+
+git-set-remote()
+{
+  (while [ $# -gt 0 ]; do
+  
+    case "$1" in
+      *\ *) BRANCH=${1%%" "*} ;;
+      *) BRANCH="$1"; REMOTE="$2"; shift ;;
+    esac
+     git remote rm "$BRANCH" >&/dev/null
+     
+     git remote add "$BRANCH" "$REMOTE"
+ 
+#   for BRANCH in $(git-get-remote | awkp ); do :; done
+
+  
+    shift
+  done)
+}
+
 grep-e-expr()
 { 
     echo "($(IFS="|
