@@ -1821,6 +1821,11 @@ list-nolastitem()
     sed '$d'
 }
 
+list-path()
+{
+				(IFS=":"; find $PATH -maxdepth 1 -mindepth 1 -not -type d)
+}
+
 list-recursive()
 { 
     ( NL="
