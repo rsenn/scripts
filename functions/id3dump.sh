@@ -15,5 +15,6 @@ id3dump()
             ;;
         esac;
     done;
-    id3v2 $FLAGS --list-rfc822 "$@" | sed -u -n 's,^\([^ ]\+\) ([^:]\+): \(.*\),\1=\2,p' )
+		id3v2 $FLAGS -R "$@" | sed -u -n 's,^\([[:upper:][:digit:]]\+\):,\1:,p'
+		)
 }

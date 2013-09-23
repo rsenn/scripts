@@ -1,4 +1,4 @@
 id3get()
 { 
-    ( id3dump "$1" | grep --color=auto --color=auto --color=auto "^$2" | sed 's,^[^=]*=,,' )
+    ( id3dump "$1" 2>&1 | grep "^$2" | sed 's,^[^:=]*[:=]\s*,,' )
 }

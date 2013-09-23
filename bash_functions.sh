@@ -1396,12 +1396,13 @@ id3dump()
             ;;
         esac;
     done;
-    id3v2 $FLAGS --list-rfc822 "$@" | sed -u -n 's,^\([^ ]\+\) ([^:]\+): \(.*\),\1=\2,p' )
+		id3v2 $FLAGS -R "$@" | sed -u -n 's,^\([[:upper:][:digit:]]\+\):,\1:,p'
+		)
 }
 
 id3get()
 { 
-    ( id3dump "$1" | grep --color=auto --color=auto --color=auto "^$2" | sed 's,^[^=]*=,,' )
+    ( id3dump "$1" 2>&1 | grep "^$2" | sed 's,^[^:=]*[:=]\s*,,' )
 }
 
 imagedate()
@@ -3345,6 +3346,14 @@ tgz2txz()
     do
         zcat "$ARG" | ( xz -9 -v -f -c > "${ARG%.tgz}.txz" && rm -vf "$ARG" );
     done )
+}
+
+title()
+{
+				(
+id3get "$1" 'TIT[0-9]'				
+				)
+
 }
 
 umount-all()
