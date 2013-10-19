@@ -45,7 +45,14 @@ eval "$CMD"
 			TRACKS=
     fi
     shift
-  done | while read -r URL; do echo "http://soundcloud.com$URL"; done
+  done | while read -r URL; do 
+	case "$URL" in
+					 *\?* | *=* | *\&* | /*/*/?*) ;;
+					  /*/*/ | /*/*) echo "http://soundcloud.com$URL" ;;
+		esac
+		done
+
+
     
 
 #http://soundcloud.com/tracks/search?q%5Bfulltext%5D=$n\\&page={"`seq -s , 1 16`"}"; 
