@@ -11,6 +11,12 @@ if [ -e cookies.txt ]; then
 cookies.txt"
 fi
 
+
+http_get()
+{
+#curl -s $ARGS "$@"
+wget -q -O - "$@"
+}
 extract_urls()
 {
   sed \
@@ -20,6 +26,7 @@ extract_urls()
     -e "s,http://,\n&,g" \
     -e "s,https://,\n&,g" \
     -e "s,ftp://,\n&,g" \
+    -e "s|href=\\([\"']\?\\)/|href=\\1\\n$URLBASE/|g" \
     | \
   sed -n \
     -e "/^[-+0-9A-Za-z]\+:\/\// {
@@ -27,15 +34,19 @@ extract_urls()
          p
        }"
 }
-
 if [ "$#" = 0 ]; then
   extract_urls
 else
+  
   while [ "$#" -gt 0 ]; do
-    case $1 in
-      *://*) ( curl -s $ARGS "$1") ;;
-      *) cat "$1" ;;
+  case "$1" in
+    *://*) URL="$1" ; URLHOST=${URL#*://}; URLPROTO=${URL%%://*}; URLHOST=${URL#$URLPROTO://}; URLHOST=${URLHOST%%/*}; URLBASE="$URLPROTO://$URLHOST" ;;
+    *) URL= ;;
     esac
+    case $1 in
+      *://*) ( http_get "$1") ;;
+      *) cat "$1" ;;
+    esac| extract_urls
     shift
-  done | extract_urls
+  done 
 fi
