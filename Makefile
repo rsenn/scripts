@@ -22,8 +22,6 @@ SCRIPTS = aaview.sh \
 	arp-scan.sh \
 	autogen.sh \
 	avi2vob.sh \
-	bash_functions.sh \
-	bash_profile.sh \
 	bcmm-dump.sh \
 	bridge-setup.sh \
 	browser-history.sh \
