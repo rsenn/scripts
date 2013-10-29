@@ -61,7 +61,6 @@ SCRIPTS = aaview.sh \
 	eth-adhoc-vinylz.sh \
 	eth-colobern.sh \
 	extract-urls.sh \
-	exts.txt \
 	fastroll.pl \
 	fetch-urls.sh \
 	file-hoster-urls.sh \
@@ -88,7 +87,6 @@ SCRIPTS = aaview.sh \
 	find-videos.sh \
 	flush-iptables.sh \
 	fnsed.sh \
-	foldertable.txt \
 	functions-assemble.sh \
 	functions-dump.sh \
 	functions.sh \
@@ -112,9 +110,7 @@ SCRIPTS = aaview.sh \
 	grep-sources.sh \
 	grep-videos.sh \
 	grub-files-find.sh \
-	grubcfg.lst \
 	hashstash.sh \
-	hfsprescue.log \
 	hhv-search.sh \
 	histogram.awk \
 	home-cleanup.sh \
