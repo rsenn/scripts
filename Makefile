@@ -41,7 +41,6 @@ SCRIPTS = aaview.sh \
 	colortable16.sh \
 	colortable256.pl \
 	conf.sh \
-	cp-bash-scripts.bash \
 	cpio2tar.sh \
 	curl-upload.sh \
 	cyginst.sh \
