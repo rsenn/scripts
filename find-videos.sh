@@ -15,7 +15,7 @@ find_videos()
 {
 	(IFS="
 	 "
-		EXTS="avi mpg mpeg vob mp4 wmv mkv ogm flv 3gp m2v f4v"
+		EXTS="avi mpg mpeg vob mp4 wmv mkv ogm flv 3gp m2v f4v mov"
 
 		[ "$#" -le 0 ] && set -- *
 
