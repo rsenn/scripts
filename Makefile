@@ -191,7 +191,6 @@ SCRIPTS =  \
   rsync.sh \
   rxvt.sh \
   scan-open-wlans.sh \
-  scripts-20130827-slackware.txz \
   search-files.sh \
   search-fileshare.sh \
   search-sc.sh \
