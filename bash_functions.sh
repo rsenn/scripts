@@ -537,6 +537,16 @@ divide-resolution()
     echo $((WIDTH / $2))${MULT_CHAR-x}$((HEIGHT / $2)) )
 }
 
+dl-slackpkg()
+{
+  (: ${DIR=/tmp}
+   for PKG; do
+     BASE=${PKG##*/}
+   
+wget -P "$DIR" -c "$PKG" && installpkg "$DIR/$BASE"|| break
+  done)
+}
+
 dospath()
 { 
     ( case "$1" in 
