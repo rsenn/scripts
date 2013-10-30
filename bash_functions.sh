@@ -3655,7 +3655,7 @@ _cygpath()
 _msyspath()
 {
  (case $MODE in
-    win32|mixed) SCRIPT="${SCRIPT:+$SCRIPT ;; }s|^[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
+    win32|mixed) SCRIPT="${SCRIPT:+$SCRIPT ;; }s|^/sysdrive||; s|^[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
     *) SCRIPT="${SCRIPT:+$SCRIPT ;; }s|^\([A-Za-z0-9]\):|/\\1|" ;;
   esac
   case $MODE in
