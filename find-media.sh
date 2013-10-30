@@ -84,6 +84,7 @@ esac
 
 case "$OS" in
   Cygwin) DRIVEPREFIX="/cygdrive" ;;
+*) test -d "/sysdrive"  && DRIVEPREFIX="/sysdrive" ;;
 esac
 
 while read C1 C2 C3 C4 C5 C6; do
@@ -97,7 +98,7 @@ while read C1 C2 C3 C4 C5 C6; do
   fi
 done <<<"$MOUNT_OUTPUT"
 
-if [ "$OS" = Cygwin ]; then
+if [ "$OS" = Cygwin -o -n "$DRIVEPREFIX" ]; then
         INDEXES=`for x in a b c d e f g h i j k l m n o p q r s t u v w x y z; do test -e $DRIVEPREFIX/$x/files.list && echo $DRIVEPREFIX/$x/files.list; done`
 fi
 
