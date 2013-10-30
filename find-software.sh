@@ -21,26 +21,20 @@ find_music()
 		for EXT in $EXTS; do
 			 if [ "$CONDITIONS" ]; then
 				 CONDITIONS="$CONDITIONS
-	-or"
+-or"
 			 fi
 			 CONDITIONS="$CONDITIONS
-	-iname
-	*.$EXT${S}"
+-iname
+*.$EXT${S}"
 		done
+set -f
 
-		CONDITIONS="$CONDITIONS
-	-and -type f -and -size +3M" 
+		set "$@" -type f -and "(" $CONDITIONS ")" 
 
-		set "$@" "(" $CONDITIONS ")" 
-
-		"$@" 2>/dev/null  |sed -u 's,^\.\/,,' |while read -r P; do
-		( 
-			${CYGPATH:+$CYGPATH -m "$P"}
-		)
-		done
+		"$@" 2>/dev/null  |sed -u 's,^\.\/,,' 
 	)
 	}
 
-for S in '' '*.part' '.!ut'; do
+for S in '' ; do
   S="$S" find_music "$@"
 done

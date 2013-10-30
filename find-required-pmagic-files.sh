@@ -5,6 +5,7 @@ MYDIR=`dirname "$0"`
 while :; do
 case "$1" in
   -i | --invert*) INVERT=true; shift ;;
+  -P | --no*pkgs*) NO_PKGS=true; shift ;;
   *) break ;;
   esac
   done
@@ -13,7 +14,9 @@ case "$1" in
 
 cd "$MYDIR"
 
-EXPR='(^bzImage|initramfs[^/]*$|initrd[^/]*$|initrd[^.]*\.img|pmodules/[^/]*\.SQFS$|pmodules/[^/]*\.t.z$|pmodules/z[^/]*\.xz$)'
+[ "$NO_PKGS" != true ]  && PKG_EXPR="pmodules/[^/]*\.t.z\$|pmodules/z[^/]*\.xz\$"
+EXPR="(^bzImage|initramfs[^/]*\$|initrd[^/]*\$|initrd[^.]*\.img|pmodules/[^/]*\.SQFS\${PKG_EXPR:+|$PKG_EXPR})"
+
 (
   find . -type f
 ) |

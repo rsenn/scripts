@@ -537,6 +537,16 @@ divide-resolution()
     echo $((WIDTH / $2))${MULT_CHAR-x}$((HEIGHT / $2)) )
 }
 
+dl-slackpkg()
+{
+  (: ${DIR=/tmp}
+   for PKG; do
+     BASE=${PKG##*/}
+   
+wget -P "$DIR" -c "$PKG" && installpkg "$DIR/$BASE"|| break
+  done)
+}
+
 dospath()
 { 
     ( case "$1" in 
@@ -766,12 +776,15 @@ filter-test()
         case "$1" in 
             -a | -b | -c | -d | -e | -f | -g | -h | -k | -L | -N | -O | -p | -r | -s | -u | -w | -x)
                 ARGS="${ARGS:+$ARGS
-  }${NEG:+$NEG }$1";
+}"${NEG:+'!
+'}"$1";
+
                 shift;
                 NEG=""
             ;;
             '!')
-                NEG="$1";
+                [ "${NEG:-false}" = false ] && NEG='!' ||
+                NEG=
                 shift
             ;;
             *)
@@ -786,14 +799,15 @@ filter-test()
     set -- $ARGS;
     ARGN=$#;
     ARGS="$*";
-    IFS=" ";
+    IFS="
+"
     while read -r LINE; do
-        set -- $LINE;
-        if [ $ARGN = 1 ]; then
+ set -- $LINE;
+        #if [ $ARGN = 1 ]; then
             test $ARGS "$LINE" || continue 2;
-        else
-            eval "test $ARGS" || continue 2;
-        fi;
+        #else
+        #    eval "test $ARGS \"\$LINE\"" || continue 2;
+        #fi;
         echo "$LINE";
     done )
 }

@@ -1,8 +1,6 @@
 IFS="
  "
 
-#ARGS="edd=off keymap=sg-latin1 livemedia load_ramdisk=1 loglevel=9 lowram max_loop=256 noacpid nobluetooth nodmeventd noeject nofstabdaemon nogpm nohal nolvm nonfs nontpd nosmart nosound nosshd nowicd prompt_ramdisk=0 rw vga=normal vmalloc=288MiB de_CH xvesa"
-
 DONE=''
 ARGS="edd=off
 load_ramdisk=1
@@ -13,6 +11,7 @@ nogpm
 nonfs
 nontpd
 nosshd
+nocupsd
 keymap=sg-latin1
 de_CH
 "
