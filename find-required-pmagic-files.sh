@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 MYBASE=`basename "$0" .sh`
 MYDIR=`dirname "$0"`
 
