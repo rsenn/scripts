@@ -984,11 +984,11 @@ fstab-line()
     : ${MNT="/mnt"};
     for DEV in "$@";
     do
-        ( unset DEVNAME LABEL MNTDIR FSTYPE;
+        ( unset DEVNAME LABEL MNTDIR #FSTYPE;
         DEVNAME=${DEV##*/};
         LABEL=$(disk-label "$DEV");
         [ -z "$MNTDIR" ] && MNTDIR="$MNT/${LABEL:-$DEVNAME}";
-        FSTYPE=$(filesystem-for-device "$DEV");
+        : ${FSTYPE=$(filesystem-for-device "$DEV")}
         UUID=$(getuuid "$DEV");
         set -- $(proc-mount "$DEV");
         [ -n "$4" ] && : ${OPTS:="$4"};
@@ -1068,7 +1068,7 @@ get-shortcut()
 
 getuuid()
 { 
-    blkid "$@" | sed -n "/UUID=/ { s,.*UUID=\"\?,,; s,\".*,,; s,-,,g ; p}"
+    blkid "$@" | sed -n "/UUID=/ { s,.*UUID=\"\?,, ;; s,\".*,, ;; p }"
 }
 
 get_ext()
@@ -1080,7 +1080,15 @@ get_ext()
 
 git-get-remote()
 {
-  git remote -v | sed "s,\s\+, ,g ; s,\s*([^)]*),," |uniq
+
+  ([ $# -lt 1 ] && set -- .
+  CMD='REMOTE=`git remote -v 2>/dev/null | sed "s|\s\+| |g ;; s|\s*([^)]*)||" |uniq`;'
+  [ $# -gt 1 ] && CMD=$CMD'echo "$DIR: $REMOTE"' || CMD=$CMD'echo "$REMOTE"'
+  for DIR; do
+					
+					(cd "$DIR";	eval "$CMD")
+		done)
+
 }
 
 git-set-remote()

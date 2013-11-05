@@ -20,11 +20,11 @@ fstab-line()
     : ${MNT="/mnt"};
     for DEV in "$@";
     do
-        ( unset DEVNAME LABEL MNTDIR FSTYPE;
+        ( unset DEVNAME LABEL MNTDIR #FSTYPE;
         DEVNAME=${DEV##*/};
         LABEL=$(disk-label "$DEV");
         [ -z "$MNTDIR" ] && MNTDIR="$MNT/${LABEL:-$DEVNAME}";
-        FSTYPE=$(filesystem-for-device "$DEV");
+        : ${FSTYPE=$(filesystem-for-device "$DEV")}
         UUID=$(getuuid "$DEV");
         set -- $(proc-mount "$DEV");
         [ -n "$4" ] && : ${OPTS:="$4"};

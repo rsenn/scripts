@@ -1,6 +1,8 @@
 IFS="
  "
 
+#ARGS="edd=off keymap=sg-latin1 livemedia load_ramdisk=1 loglevel=9 lowram max_loop=256 noacpid nobluetooth nodmeventd noeject nofstabdaemon nogpm nohal nolvm nonfs nontpd nosmart nosound nosshd nowicd prompt_ramdisk=0 rw vga=normal vmalloc=288MiB de_CH xvesa"
+
 DONE=''
 ARGS="edd=off
 load_ramdisk=1
@@ -11,12 +13,11 @@ nogpm
 nonfs
 nontpd
 nosshd
-nocupsd
 keymap=sg-latin1
 de_CH
 "
 
-THISDIR=` dirname "$0"` 
+THISDIR=${1:-` dirname "$0"`}
 KERN_IMGS=` ls -d bzImage*` 
 
 var_s=" "
@@ -131,23 +132,30 @@ for KERN_IMG in $KERN_IMGS; do
   VER=${VER%64-*}
   
   test -n "$VER" || { skip "$KERN_IMG (1)"; continue; }
-  
- INITRD_IMGS=` ls -d initr*$VER*{.img,} 2>/dev/null`
+ 
+ INITRD_IMG_MASK="${ARCH:+initr*$VER*${ARCH//[-_]/*}*
+}initr*$VER*"
 
+
+ INITRD_IMGS=`set -f; set -- $INITRD_IMG_MASK; for MASK; do set +f; ls  -1 -d -- $MASK && break; done  2>/dev/null |sort -r`
+
+ echo INITRD_IMGS=$INITRD_IMGS 1>&2
  set -- $INITRD_IMGS
- test -e "$1" || { skip "$KERN_IMG (2)"; continue; }
+ test -e "$1" || { skip "Initial ramdisk for $KERN_IMG not found [Mask: $INITRD_IMG_MASK] (2)"; continue; }
 
  while :; do
  INITRD_IMG="$1"
  INITRD_NAME="${INITRD_IMG%.img}"
 
    INITRD_ARCH=`get_arch $INITRD_NAME`
-   
-    test -z "$INITRD_IMG" -o "$ARCH" = "$INITRD_ARCH" && break
- shift
+#   
+    test -n "$INITRD_IMG" -o "$ARCH" = "$INITRD_ARCH" && break
+   shift
  done
 #  var_dump ARCH VER KERN_IMG INITRD_IMG 1>&2
+test -n "$INITRD_IMG" || { skip "No initrd image (Mask was $INITRD_IMG_MASK) (3)" ; continue; }
 #  test -e "$INITRD_IMG" || { skip "$INITRD_IMG (3)" ; continue; }
+
 
  KEY="${VER}${ARCH:+-$ARCH}"
 
