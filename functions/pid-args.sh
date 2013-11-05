@@ -1,7 +1,18 @@
 pid-args()
 { 
+  pid-of "$@" | sed -n  "/^[0-9]\+$/ s,^,-p\n,p"
+}
+
+pid-of()
+{
     ( for ARG in "$@";
     do
-        ( pgrep -f "$ARG" | sed 's,^,-p,' );
+        ( 
+        if type pgrep 2>/dev/null >/dev/null; then
+          pgrep -f "$ARG" 
+        else
+          ps -aW |grep "$ARG" | awkp
+        fi | sed -n "/^[0-9]\+$/p"
+        )
     done )
 }

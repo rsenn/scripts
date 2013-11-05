@@ -14,7 +14,7 @@ drives_lower=$'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\
 
 ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]' ansi_yellow='\[\033[1;33m\]' ansi_blue='\[\033[1;34m\]' ansi_magenta='\[\033[1;35m\]' ansi_gray='\[\033[0;37m\]' ansi_bold='\[\033[1m\]' ansi_none='\[\033[0m\]'
 
-PATH="/sbin:/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/libexec:/usr/local/libexec"
+#PATH="/sbin:/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/libexec:/usr/local/libexec"
 LC_ALL=C
 #LOCALE=C
 #LANG=C
@@ -90,7 +90,7 @@ case "${OS=`uname -o`}" in
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-   PS1='\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]$USERNAME@$HOSTNAME \[\e[33m\]\w\[\e[0m\]\n\$ '
+   PS1='\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@$HOSTNAME \[\e[33m\]\w\[\e[0m\]\n\$ '
   ;;
 *) 
   MEDIAPATH="/m*/*/"
