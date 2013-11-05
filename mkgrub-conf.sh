@@ -133,11 +133,13 @@ for KERN_IMG in $KERN_IMGS; do
   
   test -n "$VER" || { skip "$KERN_IMG (1)"; continue; }
  
- INITRD_IMG_MASK="initr*$VER"${ARCH:+"{"}\*${ARCH:+"${ARCH//_/*}*,*}"}
+ INITRD_IMG_MASK="${ARCH:+initr*$VER*${ARCH//[-_]/*}*
+}initr*$VER*"
 
 
- INITRD_IMGS=`eval "ls  -1 -d -- $INITRD_IMG_MASK"  2>/dev/null ` 
+ INITRD_IMGS=`set -f; set -- $INITRD_IMG_MASK; for MASK; do set +f; ls  -1 -d -- $MASK && break; done  2>/dev/null |sort -r`
 
+ echo INITRD_IMGS=$INITRD_IMGS 1>&2
  set -- $INITRD_IMGS
  test -e "$1" || { skip "Initial ramdisk for $KERN_IMG not found [Mask: $INITRD_IMG_MASK] (2)"; continue; }
 
