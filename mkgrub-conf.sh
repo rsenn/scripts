@@ -17,7 +17,7 @@ keymap=sg-latin1
 de_CH
 "
 
-THISDIR=` dirname "$0"` 
+THISDIR=${1:-` dirname "$0"`}
 KERN_IMGS=` ls -d bzImage*` 
 
 var_s=" "
@@ -133,13 +133,13 @@ for KERN_IMG in $KERN_IMGS; do
   
   test -n "$VER" || { skip "$KERN_IMG (1)"; continue; }
  
- INITRD_IMG_MASK="initr*$VER*"
+ INITRD_IMG_MASK="initr*$VER"${ARCH:+"{"}\*${ARCH:+"${ARCH//_/*}*,*}"}
 
 
- INITRD_IMGS=`eval "ls -d $INITRD_IMG_MASK"  2>/dev/null`
+ INITRD_IMGS=`eval "ls  -1 -d -- $INITRD_IMG_MASK"  2>/dev/null ` 
 
  set -- $INITRD_IMGS
- test -e "$1" || { skip "$KERN_IMG (2)"; continue; }
+ test -e "$1" || { skip "Initial ramdisk for $KERN_IMG not found [Mask: $INITRD_IMG_MASK] (2)"; continue; }
 
  while :; do
  INITRD_IMG="$1"
