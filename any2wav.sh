@@ -9,8 +9,13 @@ unset DIR FILESIZE
 
 while :; do
     case "$1" in
-	 -d) DIR="$2"; shift 2 ;;
-	 -s) FILESIZE="$2"; shift 2 ;;
+   -p=* |--pcm=*) PCM="${1#*=}"; shift  ;;
+ -p |--pcm) PCM="${2}"; shift  2 ;;
+   -d) DIR="$2"; shift 2 ;;
+   -s) FILESIZE="$2"; shift 2 ;;
+   -r) SRATE="$2"; shift 2 ;;
+#   -b) BITRATE="$2"; shift 2 ;;
+   -c) CHANNELS="$2"; shift 2 ;;
      *) break ;;
 
     esac
@@ -52,11 +57,15 @@ for ARG; do
 
     WAV="${ARG%.*}.wav"
     if [ "$DIR" ]; then
-	WAV="$DIR"/`basename "$WAV"`
+  WAV="$DIR"/`basename "$WAV"`
 fi
 
     (set -x; 
 trap 'R=$?; rm -f "$WAV"; exit $R' EXIT QUIT INT TERM
-mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"  2>/dev/null)
-done
+#mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"  2>/dev/null||
+   ffmpeg -y -i "$ARG"  -acodec pcm_${PCM:-s16le} ${SRATE:+-ar "$SRATE"}  ${CHANNELS:+-ac "$CHANNELS"} "$WAV"   || exit $?
+trap '' EXIT QUIT INT TERM
+
+  ) || break
+done #2>&1|sed -u '1d;2d;3d;/^\s\+lib/d'
 

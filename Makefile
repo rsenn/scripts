@@ -4,13 +4,27 @@ bindir = ${prefix}/bin
 INSTALL = install
 
 
+all:
+install: $(SCRIPTS)
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL) -m 755 $(SCRIPTS) $(DESTDIR)$(bindir)
 
 
-SCRIPTS = aaview.sh \
+slackpkg: prefix=/usr/local
+slackpkg: $(SCRIPTS) 
+	@set -x; distdir="_inst"; rm -rf $$distdir; mkdir -p $$distdir/$(bindir) $$distdir/root; \
+		$(INSTALL) -m 755 $(SCRIPTS) $$distdir/$(bindir); \
+		bash cp-bash-scripts.bash $$distdir/root/; \
+		tar -cJf scripts-`date +%Y%m%d`-slackware.txz -C $$distdir .; \
+		rm -rf $$distdir
+
+SCRIPTS =  \
+ \
+	aaview.sh \
 	aliases.sh \
 	any23gp.sh \
-	any2cdda.sh \
 	any2avi.sh \
+	any2cdda.sh \
 	any2divx.sh \
 	any2dvd.sh \
 	any2m4a.sh \
@@ -23,11 +37,14 @@ SCRIPTS = aaview.sh \
 	arp-scan.sh \
 	autogen.sh \
 	avi2vob.sh \
+	bash_functions.sh \
+	bash_profile.sh \
 	bcmm-dump.sh \
 	bridge-setup.sh \
 	browser-history.sh \
 	cdhook.sh \
 	cerberus-dump.sh \
+	check-symlinks.sh \
 	checkpassword-test.sh \
 	chroot.sh \
 	clear-all-svlogd-logs.sh \
@@ -40,11 +57,13 @@ SCRIPTS = aaview.sh \
 	colortable16.sh \
 	colortable256.pl \
 	conf.sh \
+	cp-bash-scripts.bash \
 	cpio2tar.sh \
 	curl-upload.sh \
 	cyginst.sh \
 	cygpath.sh \
 	daemontools-conf.sh \
+	decode-ls-lR.sh \
 	dir-stats.sh \
 	distcc-discover.sh \
 	dlynx.sh \
@@ -80,8 +99,10 @@ SCRIPTS = aaview.sh \
 	find-incomplete.sh \
 	find-media.sh \
 	find-music.sh \
+	find-not-pmagic-files.sh \
 	find-nvidia-kernel.sh \
 	find-packages.sh \
+	find-required-pmagic-files.sh \
 	find-scripts.sh \
 	find-software.sh \
 	find-sources.sh \
@@ -137,7 +158,6 @@ SCRIPTS = aaview.sh \
 	locate-sources.sh \
 	locate-videos.sh \
 	locks.sh \
-	locks.sh.in \
 	logrun.sh \
 	lsof.sh \
 	lvm-mount-all.sh \
@@ -149,6 +169,7 @@ SCRIPTS = aaview.sh \
 	mingwvars.sh \
 	mkcrt.sh \
 	mkcsr.sh \
+	mkgrub-conf.sh \
 	mkkeys.sh \
 	mkloglinks.sh \
 	mkrunlinks.sh \
@@ -182,6 +203,7 @@ SCRIPTS = aaview.sh \
 	rsync.sh \
 	rxvt.sh \
 	scan-open-wlans.sh \
+	scriptlist.sh \
 	search-files.sh \
 	search-fileshare.sh \
 	search-sc.sh \
@@ -220,18 +242,3 @@ SCRIPTS = aaview.sh \
 	x11.sh \
 	x2x-ssh-fuse.sh \
 	xterm-256color.sh
-
-
-all:
-install: $(SCRIPTS)
-	$(INSTALL) -d $(DESTDIR)$(bindir)
-	$(INSTALL) -m 755 $(SCRIPTS) $(DESTDIR)$(bindir)
-
-
-slackpkg: prefix=/usr/local
-slackpkg: $(SCRIPTS) 
-	@set -x; distdir="_inst"; rm -rf $$distdir; mkdir -p $$distdir/$(bindir) $$distdir/root; \
-		$(INSTALL) -m 755 $(SCRIPTS) $$distdir/$(bindir); \
-		bash cp-bash-scripts.bash $$distdir/root/; \
-		tar -cJf scripts-`date +%Y%m%d`-slackware.txz -C $$distdir .; \
-		rm -rf $$distdir
