@@ -1,6 +1,8 @@
 IFS="
  "
 
+#ARGS="edd=off keymap=sg-latin1 livemedia load_ramdisk=1 loglevel=9 lowram max_loop=256 noacpid nobluetooth nodmeventd noeject nofstabdaemon nogpm nohal nolvm nonfs nontpd nosmart nosound nosshd nowicd prompt_ramdisk=0 rw vga=normal vmalloc=288MiB de_CH xvesa"
+
 DONE=''
 ARGS="edd=off
 load_ramdisk=1
@@ -11,7 +13,6 @@ nogpm
 nonfs
 nontpd
 nosshd
-nocupsd
 keymap=sg-latin1
 de_CH
 "
@@ -131,8 +132,11 @@ for KERN_IMG in $KERN_IMGS; do
   VER=${VER%64-*}
   
   test -n "$VER" || { skip "$KERN_IMG (1)"; continue; }
-  
- INITRD_IMGS=` ls -d initr*$VER*{.img,} 2>/dev/null`
+ 
+ INITRD_IMG_MASK="initr*$VER*"
+
+
+ INITRD_IMGS=`eval "ls -d $INITRD_IMG_MASK"  2>/dev/null`
 
  set -- $INITRD_IMGS
  test -e "$1" || { skip "$KERN_IMG (2)"; continue; }
@@ -142,12 +146,14 @@ for KERN_IMG in $KERN_IMGS; do
  INITRD_NAME="${INITRD_IMG%.img}"
 
    INITRD_ARCH=`get_arch $INITRD_NAME`
-   
-    test -z "$INITRD_IMG" -o "$ARCH" = "$INITRD_ARCH" && break
- shift
+#   
+    test -n "$INITRD_IMG" -o "$ARCH" = "$INITRD_ARCH" && break
+   shift
  done
 #  var_dump ARCH VER KERN_IMG INITRD_IMG 1>&2
+test -n "$INITRD_IMG" || { skip "No initrd image (Mask was $INITRD_IMG_MASK) (3)" ; continue; }
 #  test -e "$INITRD_IMG" || { skip "$INITRD_IMG (3)" ; continue; }
+
 
  KEY="${VER}${ARCH:+-$ARCH}"
 
