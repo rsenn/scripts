@@ -46,7 +46,7 @@ dir-contents()
 set -f
 case "$ARCHIVE" in
   *.7z) CMD='${SEVENZIP:-7z} a -mx=$(( $LEVEL * 5 / 9 )) "$ARCHIVE" '$(create-list '-x!' $EXCLUDE)' "$DIR"' ;;
-  *.zip) CMD='zip -${LEVEL} -r "$ARCHIVE" "$DIR" '$(create-list '-x' $EXCLUDE)'' ;;
+  *.zip) CMD='zip -${LEVEL} -r "$ARCHIVE" "$DIR" '$(create-list '-x ' $EXCLUDE)' ' ;;
   *.rar) CMD='rar a -m$(($LEVEL * 5 / 9)) -r '$(create-list '-x' $EXCLUDE)' "$ARCHIVE" "$DIR"' ;;
 	*.txz|*.tar.xz) CMD='tar -cvJf "$ARCHIVE" '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR")' ;;
   *.tgz|*.tar.gz) CMD='tar -cvzf "$ARCHIVE" '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR")' ;;

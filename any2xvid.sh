@@ -24,6 +24,7 @@ case $FILESIZE in
     *[Kk]) FILESIZE=$(( ${FILESIZE%[Kk]} * 1024)) ;;
 esac
 
+
 type avconv 2>/dev/null >/dev/null && FFMPEG=avconv
 : ${FFMPEG=ffmpeg}
 
@@ -95,16 +96,16 @@ esac
 var_dump VBR
 
 unset RESOLUTIONS
-pushv RESOLUTIONS 720x576
-pushv RESOLUTIONS 720x480
-pushv RESOLUTIONS 720x405
+#pushv RESOLUTIONS 720x576
+#pushv RESOLUTIONS 720x480
+#pushv RESOLUTIONS 720x405
 pushv RESOLUTIONS 640x480
 pushv RESOLUTIONS 640x360
 pushv RESOLUTIONS 512x288
 pushv RESOLUTIONS 352x288
 
 for ARG; do
-    OUTPUT="${ARG%.*}.divx.avi"
+    OUTPUT="${ARG%.*}.xvid.avi"
     if [ "$DIR" ]; then
   OUTPUT="$DIR"/`basename "$OUTPUT"`
 fi
@@ -139,10 +140,8 @@ fi
 
      fi
 
-
-
-    (set -x; "$FFMPEG" 2>&1 -y -i "$ARG" $A -vtag DX50 -r 29.97 -f avi -vcodec mpeg4 \
-      ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR:+-b $((VBR + ABR)) } -acodec libmp3lame  \
+    (set -x; "$FFMPEG" 2>&1 -y -i "$ARG" $A -r 29.97 -f avi -vcodec libxvid \
+      ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR:+-b $((VBR + ABR))} -acodec libmp3lame  \
    -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) ||
         break
 done
