@@ -14,7 +14,7 @@ fi
 
 http_get()
 {
-				(set -x; curl ${USER_AGENT+--user-agent
+				(set -x; curl $NO_CURLRC $VERBOSE_ARGS ${USER_AGENT+--user-agent
 "$USER_AGENT"} ${PROXY+--proxy
 "$PROXY"} --location -o - $ARGS "$@")
 #wget -q -O - "$@"
@@ -37,10 +37,16 @@ extract_urls()
        }"
 }
 
+VERBOSE_ARGS="-s"
+NO_CURLRC="-q"
+
 while :; do 
 				case "$1" in
+								-r | --raw) RAW=true; shift ;;
 								-p | --proxy) PROXY="$2"; shift 2 ;; --proxy=* | -p=*) PROXY="${1#*=}"; shift  ;; -p*) PROXY="${1#-p}"; shift  ;;
 								-A | --user-agent) USER_AGENT="$2"; shift 2 ;; --user-agent=* | -A=*) USER_AGENT="${1#*=}"; shift  ;; -A*) USER_AGENT="${1#-A}"; shift  ;;
+				#-q | --nocurlrc ) NO_CURLRC="-q"; shift ;; 
+								-[vs] | --verbose | --silent ) VERBOSE_ARGS="$1"; shift ;;
 				*) break ;;
 esac
 done
@@ -53,10 +59,19 @@ esac
 
 fi
 
+read_source()
+{
+    case $1 in
+      *://*) ( http_get "$1") ;;
+      *) cat "$1" ;;
+    esac \
+}
+CMD='read_source "$1"'
+[ "$RAW" != true ] && CMD="$CMD | extract_urls"
+
 if [ "$#" = 0 ]; then
   extract_urls
 else
-  
   while [ "$#" -gt 0 ]; do
   case "$1" in
     *://*) URL="$1" ; URLHOST=${URL#*://}; URLPROTO=${URL%%://*}; URLHOST=${URL#$URLPROTO://}; URLHOST=${URLHOST%%/*}; URLBASE="$URLPROTO://$URLHOST" ;;
@@ -64,10 +79,7 @@ else
 		: ${URLBASE="http://0.0.0.0"}
 						URL= ;;
     esac
-    case $1 in
-      *://*) ( http_get "$1") ;;
-      *) cat "$1" ;;
-    esac| extract_urls
+eval "$CMD"
     shift
   done 
 fi
