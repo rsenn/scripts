@@ -23,7 +23,8 @@ case "$METHOD" in
 "$PROXY"} --location -o - $ARGS "$@"' ;;
   wget) CMD=${PROXY+'http_proxy="$PROXY" '}'wget -q ${USER_AGENT+-U
 "$USER_AGENT"} --content-disposition -O - $ARGS "$@"' ;;
-  lynx) CMD=${PROXY+'http_proxy="$PROXY" '}'lynx -source  ${USER_AGENT+-useragent="$USER_AGENT"}   $ARGS "$@"' ;;
+  lynx) CMD=${PROXY+'http_proxy="$PROXY" '}'lynx -source  ${USER_AGENT+-useragent="$USER_AGENT"}   $ARGS "$@" 2>/dev/null' ;;
+  w3m) CMD=${PROXY+'http_proxy="$PROXY" '}${USER_AGENT+'user_agent="$USER_AGENT" '}'w3m -dump_source $ARGS "$@" 2>/dev/null | zcat -f' ;;
 	links) CMD='links  -source  ${PROXY+-${PROXY%%://*}-proxy
 "${PROXY#*://}"} ${USER_AGENT+-http.fake-user-agent
 "$USER_AGENT"}   $ARGS "$@" |zcat -f' ;;
