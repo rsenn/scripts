@@ -36,6 +36,23 @@ extract_urls()
          p
        }"
 }
+
+while :; do 
+				case "$1" in
+								-p | --proxy) PROXY="$2"; shift 2 ;; --proxy=* | -p=*) PROXY="${1#*=}"; shift  ;; -p*) PROXY="${1#-p}"; shift  ;;
+								-A | --user-agent) USER_AGENT="$2"; shift 2 ;; --user-agent=* | -A=*) USER_AGENT="${1#*=}"; shift  ;; -A*) USER_AGENT="${1#-A}"; shift  ;;
+				*) break ;;
+esac
+done
+
+if [ -n "$PROXY" ] ; then
+				case "$PROXY" in 
+								*://*) ;;
+				*) PROXY="http://$PROXY" ;;
+esac
+
+fi
+
 if [ "$#" = 0 ]; then
   extract_urls
 else
