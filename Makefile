@@ -26,13 +26,13 @@ SCRIPTS =  \
 	any2avi.sh \
 	any2cdda.sh \
 	any2divx.sh \
-	any2xvid.sh \
 	any2dvd.sh \
 	any2m4a.sh \
 	any2mp3.sh \
 	any2mp4.sh \
 	any2vcd.sh \
 	any2wav.sh \
+	any2xvid.sh \
 	any2yuv.sh \
 	ape2wav.sh \
 	arp-scan.sh \
@@ -232,14 +232,9 @@ SCRIPTS =  \
 	vzlist-dummy.sh \
 	warn-auto.sh \
 	wlan-digitall.sh \
-	wlan-hotel-flora.sh \
 	wlan-linksys.sh \
-	wlan-neversil.sh \
-	wlan-polygonstr.sh \
-	wlan-projekt-mbs.sh \
 	wlan-restart.sh \
 	wlan-tmwnet.sh \
-	wlan-vinylz.sh \
 	x11.sh \
 	x2x-ssh-fuse.sh \
 	xterm-256color.sh

@@ -14,8 +14,8 @@ fi
 
 http_get()
 {
-#curl -s $ARGS "$@"
-wget -q -O - "$@"
+curl -s $ARGS "$@"
+#wget -q -O - "$@"
 }
 extract_urls()
 {
@@ -41,7 +41,9 @@ else
   while [ "$#" -gt 0 ]; do
   case "$1" in
     *://*) URL="$1" ; URLHOST=${URL#*://}; URLPROTO=${URL%%://*}; URLHOST=${URL#$URLPROTO://}; URLHOST=${URLHOST%%/*}; URLBASE="$URLPROTO://$URLHOST" ;;
-    *) URL= ;;
+    *) 
+		: ${URLBASE="http://0.0.0.0"}
+						URL= ;;
     esac
     case $1 in
       *://*) ( http_get "$1") ;;
