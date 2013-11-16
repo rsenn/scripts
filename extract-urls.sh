@@ -16,9 +16,20 @@ fi
 
 http_get()
 {
-				(set -x; curl $NO_CURLRC $VERBOSE_ARGS ${USER_AGENT+--user-agent
+				(
+case "$METHOD" in
+  curl)	CMD='curl $NO_CURLRC $VERBOSE_ARGS ${USER_AGENT+--user-agent
 "$USER_AGENT"} ${PROXY+--proxy
-"$PROXY"} --location -o - $ARGS "$@"
+"$PROXY"} --location -o - $ARGS "$@"' ;;
+  wget) CMD=${PROXY+'http_proxy="$PROXY" '}'wget -q ${USER_AGENT+-U
+"$USER_AGENT"} --content-disposition -O - $ARGS "$@"' ;;
+  lynx) CMD=${PROXY+'http_proxy="$PROXY" '}'lynx -source  ${USER_AGENT+-useragent="$USER_AGENT"}   $ARGS "$@"' ;;
+	links) CMD='links  -source  ${PROXY+-${PROXY%%://*}-proxy
+"${PROXY#*://}"} ${USER_AGENT+-http.fake-user-agent
+"$USER_AGENT"}   $ARGS "$@" |zcat -f' ;;
+esac
+				
+				eval "set -x; $CMD"
 )
 #wget -q -O - "$@"
 }
@@ -42,10 +53,12 @@ extract_urls()
 
 VERBOSE_ARGS="-s"
 NO_CURLRC="-q"
+METHOD="curl" 
 
 while :; do 
 				case "$1" in
 								-r | --raw) RAW=true; shift ;;
+								-m | --method) METHOD="$2"; shift 2 ;; --method=* | -m=*) METHOD="${1#*=}"; shift  ;; -m*) METHOD="${1#-m}"; shift  ;;
 								-p | --proxy) PROXY="$2"; shift 2 ;; --proxy=* | -p=*) PROXY="${1#*=}"; shift  ;; -p*) PROXY="${1#-p}"; shift  ;;
 								-A | --user-agent) USER_AGENT="$2"; shift 2 ;; --user-agent=* | -A=*) USER_AGENT="${1#*=}"; shift  ;; -A*) USER_AGENT="${1#-A}"; shift  ;;
 				#-q | --nocurlrc ) NO_CURLRC="-q"; shift ;; 
