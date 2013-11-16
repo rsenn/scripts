@@ -20,15 +20,19 @@ fi
 
 if type kill.exe 2>/dev/null >/dev/null; then
 				KILL="kill.exe"
-				KILLARGS="-f"
+				KILLARGS="$KILLARGS
+-f"
 fi
 
-PIDS=`ps $PSARGS | grep -iE "($*)" | sed -n "s,^[^0-9]*\([0-9]\+\).*,\1,p"`
+PSOUT=`ps $PSARGS`
+PSMATCH=` echo "$PSOUT" | grep -iE "($*)" `
+PIDS=` echo "$PSMATCH" | sed -n "/${0##*/}/! s,^[^0-9]*\([0-9]\+\).*,\1,p"`
 
 if [ -z "$PIDS" ]; then
   echo "No matching process ($@)" 1>&2
   exit 2
 fi
+echo "$PSMATCH"
 set -x
 exec "${KILL:-kill}" $KILLARGS  $PIDS
 

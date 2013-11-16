@@ -12,7 +12,7 @@ drives_upper=$'A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\nO\nP\nQ\nR\nS\nT\nU\nV\
 drives_lower=$'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
 
 
-ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]' ansi_yellow='\[\033[1;33m\]' ansi_blue='\[\033[1;34m\]' ansi_magenta='\[\033[1;35m\]' ansi_gray='\[\033[0;37m\]' ansi_bold='\[\033[1m\]' ansi_none='\[\033[0m\]'
+ansi_cyan='\[\033[1;36m\]' ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]' ansi_yellow='\[\033[1;33m\]' ansi_blue='\[\033[1;34m\]' ansi_magenta='\[\033[1;35m\]' ansi_gray='\[\033[0;37m\]' ansi_bold='\[\033[1m\]' ansi_none='\[\033[0m\]'
 
 #PATH="/sbin:/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/libexec:/usr/local/libexec"
 LC_ALL=C
@@ -84,17 +84,27 @@ if [ "$PS1" = '\s-\v\$ ' ]; then
   unset PS1
 fi
 
+set-prompt()
+{
+	if [ -r "$HOME/.bash_prompt" ]; then
+				 eval "PS1=\"$(<$HOME/.bash_prompt)\""
+	else
+				PS1="$*"
+	fi
+}
+
 case "${OS=`uname -o`}" in
    msys* | Msys* |MSys* | MSYS*)
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-   PS1='\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@$HOSTNAME \[\e[33m\]\w\[\e[0m\]\n\$ '
+   set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@$HOSTNAME \[\e[33m\]\w\[\e[0m\]\n\$ '
   ;;
 *) 
   MEDIAPATH="/m*/*/"
-  PS1="${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%%.*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
+  
+	set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%%.*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
  ;;
 esac
 
