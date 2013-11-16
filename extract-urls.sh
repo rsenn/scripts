@@ -14,7 +14,9 @@ fi
 
 http_get()
 {
-curl -s $ARGS "$@"
+				(set -x; curl ${USER_AGENT+--user-agent
+"$USER_AGENT"} ${PROXY+--proxy
+"$PROXY"} --location -o - $ARGS "$@")
 #wget -q -O - "$@"
 }
 extract_urls()
