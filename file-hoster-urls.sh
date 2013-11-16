@@ -134,5 +134,7 @@ pattern "http://crypt.to/fid,$ALNUM"
 pattern "http://freakshare.com/files/$ALNUM/$FILENAME.html"
 pattern "http://uploaded.net/file/$ALNUM"
 pattern "http://www.hoerbuch.in/protection/folder_$ALNUM.html"
+pattern "http://oron.com/$ALNUM$ALNUM$ALNUM$ALNUM$ALNUM$ALNUM$ALNUM$ALNUM$ALNUM$ALNUM$ALNUM$ALNUM"
+
 
 exec egrep "^($PATTERNS)\$" "$@"
