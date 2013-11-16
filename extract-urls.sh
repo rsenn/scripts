@@ -1,6 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 IFS="
+"
+NL="
 "
 
 ARGS=""
@@ -16,7 +18,8 @@ http_get()
 {
 				(set -x; curl $NO_CURLRC $VERBOSE_ARGS ${USER_AGENT+--user-agent
 "$USER_AGENT"} ${PROXY+--proxy
-"$PROXY"} --location -o - $ARGS "$@")
+"$PROXY"} --location -o - $ARGS "$@"
+)
 #wget -q -O - "$@"
 }
 extract_urls()
