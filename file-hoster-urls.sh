@@ -147,4 +147,7 @@ pattern "http://rapidgator.net/file/$HEXNUM"
 pattern "http://www.secureupload.eu/$ALNUM"
 pattern "http://www.hulkshare.com/$ALNUM"
 pattern "http://filesflash.com/$ALNUM"
+pattern "http://putlocker.com/file/$HEXNUM"
+pattern "http://www.sockshare.com/file/$HEXNUM"
+
 exec egrep "^($PATTERNS)\$" "$@"
