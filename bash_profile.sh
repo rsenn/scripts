@@ -84,17 +84,27 @@ if [ "$PS1" = '\s-\v\$ ' ]; then
   unset PS1
 fi
 
+set-prompt()
+{
+	if [ -r "$HOME/.bash_prompt" ]; then
+				 eval "PS1=\"$(<$HOME/.bash_prompt)\""
+	else
+				PS1="$*"
+	fi
+}
+
 case "${OS=`uname -o`}" in
    msys* | Msys* |MSys* | MSYS*)
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-   PS1='\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@$HOSTNAME \[\e[33m\]\w\[\e[0m\]\n\$ '
+   set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@$HOSTNAME \[\e[33m\]\w\[\e[0m\]\n\$ '
   ;;
 *) 
   MEDIAPATH="/m*/*/"
-  PS1="${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%%.*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
+  
+	set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%%.*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
  ;;
 esac
 
