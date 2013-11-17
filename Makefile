@@ -23,6 +23,7 @@ SCRIPTS =  \
 	aaview.sh \
 	aliases.sh \
 	any23gp.sh \
+	any2x264.sh \
 	any2avi.sh \
 	any2cdda.sh \
 	any2divx.sh \
