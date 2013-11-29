@@ -3,8 +3,8 @@
 BITRATE=96
 SAMPLERATE=44100
 CHANNELS=2
-ACODEC="libvorbis"
-FMT="ogg"
+ACODEC="wmav2"
+#FMT="wma"
 
 for ARG; do
   (
@@ -15,16 +15,15 @@ for ARG; do
 
         cd "$DIR"
 
-  #OUTPUT="${ARG%.*}.ogg"
-  OUTPUT="$BASE.ogg"
+  #OUTPUT="${ARG%.*}.wma"
+  OUTPUT="$BASE.wma"
 
   WAV=`mktemp "${BASE}XXXXXX.wav"`
 
         trap 'rm -vf "$WAV"' EXIT QUIT INT TERM
 
   (set -x; mplayer  -really-quiet -noconsolecontrols -vo null -vc null ${SAMPLERATE+-af resample=$SAMPLERATE} -ao pcm:waveheader:file="$WAV" "$ARG") &&
-					(set -x; oggenc  ${BITRATE:+-b "$BITRATE"}  -o "$OUTPUT" "$WAV") 
-#	    (set -x; ffmpeg -y -strict -2 -i "$WAV" ${FMT+-f "$FMT"} ${ACODEC:+-acodec "$ACODEC"}   ${BITRATE+-ab "${BITRATE}k"} ${SAMPLERATE:+-ar "$SAMPLERATE"} ${CHANNELS:+-ac "$CHANNELS"} "$OUTPUT")
+	    (set -x; ffmpeg -y -strict -2 -i "$WAV" ${FMT+-f "$FMT"} ${ACODEC:+-acodec "$ACODEC"}   ${BITRATE+-ab "${BITRATE}k"} ${SAMPLERATE:+-ar "$SAMPLERATE"} ${CHANNELS:+-ac "$CHANNELS"} "$OUTPUT")
 
   )
 done
