@@ -31,6 +31,7 @@ SCRIPTS =  \
 	any2ogg.sh \
 	any2wma.sh \
 	any2mp2.sh \
+	any2flac.sh \
 	any2amr-wb.sh \
 	any2mp3.sh \
 	any2mp4.sh \
