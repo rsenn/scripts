@@ -21,7 +21,7 @@ for ARG; do
 
         trap 'rm -vf "$WAV"' EXIT QUIT INT TERM
 
-  (set -x; mplayer -really-quiet -noconsolecontrols -vo null -vc null -ao pcm:waveheader:file="$WAV" "$ARG") &&
+  (set -x; mplayer -really-quiet -strict -2 -noconsolecontrols -vo null -vc null -ao pcm:waveheader:file="$WAV" "$ARG") &&
     (set -x; ffmpeg -y -i "$WAV" ${ACODEC:+-acodec "$ACODEC"}  -ab "$BITRATE" ${SAMPLERATE:+-ar "$SAMPLERATE"} ${CHANNELS:+-ac "$CHANNELS"} "$OUTPUT")
 
   )
