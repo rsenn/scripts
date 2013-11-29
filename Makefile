@@ -28,6 +28,7 @@ SCRIPTS =  \
 	any2divx.sh \
 	any2dvd.sh \
 	any2m4a.sh \
+	any2ogg.sh \
 	any2mp3.sh \
 	any2mp4.sh \
 	any2vcd.sh \
