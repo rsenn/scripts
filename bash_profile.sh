@@ -42,9 +42,22 @@ TERM=xterm-256color
 
 alias xargs='xargs -d "\n"'
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
-alias ls='ls --color=auto --time-style="+%Y%m%d-%H:%M:%S"'
-alias grep='grep --line-buffered'
-#alias grep='grep --color=auto'
+
+if ls --help 2>&1 |grep -q '\--color'; then
+				LS_ARGS="$LS_ARGS --color=auto"
+fi
+if ls --help 2>&1 |grep -q '\--time-style'; then
+				LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
+fi
+alias ls="ls $LS_ARGS"
+
+if grep --help 2>&1 |grep -q '\--color'; then
+				GREP_ARGS="$GREP_ARGS --color=auto"
+fi
+if grep --help 2>&1 |grep -q '\--line-buffered'; then
+				GREP_ARGS="$GREP_ARGS --line-buffered"
+fi
+alias grep="grep $GREP_ARGS"
 alias cp='cp'
 alias mv='mv'
 alias rm='rm'
