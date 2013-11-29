@@ -311,6 +311,11 @@ ctime()
     ls --color=auto --color=auto --color=auto -l -n -d --time=ctime --time-style="${TS}" "$@" | sed "s/$E/$R/" )
 }
 
+cut-arch()
+{ 
+    sed -u 's,^\([^ ]*\)\.[^ .]*\( - \)\?\(.*\)$,\1\2\3,'
+}
+
 cut-basename()
 { 
     sed -u 's,/[^/]*/\?$,,'
