@@ -1459,7 +1459,7 @@ id3dump()
             ;;
         esac;
     done;
-		id3v2 $FLAGS -R "$@" | sed -u -n 's,^\([[:upper:][:digit:]]\+\):,\1:,p'
+		id3v2 $FLAGS  -l "$@" | sed -u -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
 		)
 }
 

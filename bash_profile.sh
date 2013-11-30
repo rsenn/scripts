@@ -67,6 +67,7 @@ unalias mv  2>/dev/null
 unalias rm 2>/dev/null
 
 type yum 2>/dev/null >/dev/null && alias yum='sudo yum -y'
+type smart 2>/dev/null >/dev/null && alias yum='sudo smart -y'
 type apt-get 2>/dev/null >/dev/null && alias apt-get='sudo apt-get -y'
 type aptitude 2>/dev/null >/dev/null && alias aptitude='sudo aptitude -y'
 
@@ -113,12 +114,12 @@ case "${OS=`uname -o`}" in
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-   set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@$HOSTNAME \[\e[33m\]\w\[\e[0m\]\n\$ '
+   set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]\w\[\e[0m\]\n\$ '
   ;;
 *) 
   MEDIAPATH="/m*/*/"
   
-	set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%%.*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
+	set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
  ;;
 esac
 
