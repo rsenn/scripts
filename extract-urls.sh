@@ -80,8 +80,10 @@ read_source()
 {
     case $1 in
       *://*) ( http_get "$1") ;;
+			-) ( while read -r LINE; do
+							http_get "$LINE"; done ;;
       *) cat "$1" ;;
-    esac \
+    esac 
 }
 CMD='read_source "$1"'
 [ "$RAW" != true ] && CMD="$CMD | extract_urls"
