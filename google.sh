@@ -46,7 +46,7 @@ while [ "$I" -lt "$END" ]; do
   I=$((I + RESULTS))
 done
 
-#echo "URL is $URL" 1>&2
+echo "URLS are" $URLS 1>&2
 
 dlynx.sh $URLS  |sed -n 's,^http.*://.*url?q=,,p' | sed 's,\&.*,, ; s,%26,\&,g ; s,%2B,+,g ; s,%3F,/,g ; s,%3D,=,g ; s,%25,%,g' 
 
