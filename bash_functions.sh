@@ -311,6 +311,11 @@ ctime()
     ls --color=auto --color=auto --color=auto -l -n -d --time=ctime --time-style="${TS}" "$@" | sed "s/$E/$R/" )
 }
 
+cut-arch()
+{ 
+    sed -u 's,^\([^ ]*\)\.[^ .]*\( - \)\?\(.*\)$,\1\2\3,'
+}
+
 cut-basename()
 { 
     sed -u 's,/[^/]*/\?$,,'
@@ -1454,7 +1459,7 @@ id3dump()
             ;;
         esac;
     done;
-		id3v2 $FLAGS -R "$@" | sed -u -n 's,^\([[:upper:][:digit:]]\+\):,\1:,p'
+		id3v2 $FLAGS  -l "$@" | sed -u -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
 		)
 }
 

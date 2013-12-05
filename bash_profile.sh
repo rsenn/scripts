@@ -42,9 +42,22 @@ TERM=xterm-256color
 
 alias xargs='xargs -d "\n"'
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
-alias ls='ls --color=auto --time-style="+%Y%m%d-%H:%M:%S"'
-alias grep='grep --line-buffered'
-#alias grep='grep --color=auto'
+
+if ls --help 2>&1 |grep -q '\--color'; then
+				LS_ARGS="$LS_ARGS --color=auto"
+fi
+if ls --help 2>&1 |grep -q '\--time-style'; then
+				LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
+fi
+alias ls="ls $LS_ARGS"
+
+if grep --help 2>&1 |grep -q '\--color'; then
+				GREP_ARGS="$GREP_ARGS --color=auto"
+fi
+if grep --help 2>&1 |grep -q '\--line-buffered'; then
+				GREP_ARGS="$GREP_ARGS --line-buffered"
+fi
+alias grep="grep $GREP_ARGS"
 alias cp='cp'
 alias mv='mv'
 alias rm='rm'
@@ -53,6 +66,8 @@ unalias cp  2>/dev/null
 unalias mv  2>/dev/null
 unalias rm 2>/dev/null
 
+type yum 2>/dev/null >/dev/null && alias yum='sudo yum -y'
+type smart 2>/dev/null >/dev/null && alias smart='sudo smart -y'
 type apt-get 2>/dev/null >/dev/null && alias apt-get='sudo apt-get -y'
 type aptitude 2>/dev/null >/dev/null && alias aptitude='sudo aptitude -y'
 
@@ -99,12 +114,12 @@ case "${OS=`uname -o`}" in
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-   set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@$HOSTNAME \[\e[33m\]\w\[\e[0m\]\n\$ '
+   set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]\w\[\e[0m\]\n\$ '
   ;;
 *) 
   MEDIAPATH="/m*/*/"
   
-	set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%%.*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
+	set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
  ;;
 esac
 

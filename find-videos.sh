@@ -44,6 +44,7 @@ IFS="
 while :; do
   case "$1" in
     -c|--completed) COMPLETED="true"; shift ;;
+    -C|--incomplete) INCOMPLETE="true"; shift ;;
     -x|-d|--debug) DEBUG="true"; shift ;;
     *) break ;;
   esac
@@ -51,9 +52,13 @@ done
 
 ARGS="$*"
 
-set -- ''
+if [ "$INCOMPLETE" = true ]; then
+	set -- 
+else
+  set -- ''
+fi
 
-if ! ${COMPLETED-false}; then
+if [ "$COMPLETED" != true ]; then
   set -- "$@" '*.part' '.!??'
 fi
 
