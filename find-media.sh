@@ -41,9 +41,9 @@ unset INCLUDE_DIRS
 
 while :; do
 	case "$1" in
-  	-d|--debug) DEBUG=true; shift ;;
-  	-e|--exist*) EXIST_FILE=true; shift ;;
-  	-c|--class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
+  	-d | --debug) DEBUG=true; shift ;;
+  	-e | --exist*) EXIST_FILE=true; shift ;;
+  	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
   	-f) WANT_FILE=true; shift ;;
   	-i) add_dir INCLUDE_DIRS "$2" ; shift 2 ;;
   	-e|-x) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;;
@@ -72,17 +72,17 @@ else
 fi
 
 case "$CLASS" in
-  archive*) EXPR="$EXPR\.(7z|rar|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz|zip)" ;;
-  audio*) EXPR="$EXPR\.(aif|aiff|flac|m4a|m4b|mp2|mp3|mpc|ogg|raw|rm|wav|wma)" ;;
-  fonts*) EXPR="$EXPR\.(bdf|flac|fon|m4a|m4b|mp3|mpc|ogg|otf|pcf|rm|ttf|wma)" ;;
-  image*) EXPR="$EXPR\.(bmp|cin|cod|dcx|djvu|emf|fig|gif|ico|im1|im24|im8|jin|jpeg|jpg|lss|miff|opc|pbm|pcx|pgm|pgx|png|pnm|ppm|psd|rle|rmp|sgi|shx|svg|tga|tif|tiff|wim|xcf|xpm|xwd)" ;;
-  incompl*|part*) EXPR="$EXPR\.(\*\.!??|\*\.part|INCOMPL\*|\[/\\\]INCOMPL\[^/\\\]\*\$|\\\.!??\$|\\\.part\$)" ;;
-  music*) EXPR="$EXPR\.(aif|aiff|flac|m4a|m4b|mp3|mpc|ogg|rm|voc|wav|wma)" ;;
-  package*|pkg*) EXPR="$EXPR\.(deb|rpm|tgz|txz)" ;;
-  script*) EXPR="$EXPR\.(bat|cmd|py|rb|sh)" ;;
-  software*) EXPR="$EXPR\.(\*\.msi|\*install\*\.exe|\*setup\*\.exe|\.msi|7z|deb|exe|install\*\.exe|msi|rar|rpm|setup\*\.exe|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz|zip)" ;;
-  source*) EXPR="$EXPR\.(c|cpp|cxx|h|hpp|hxx)" ;;
-  video*) EXPR="$EXPR\.(3gp|avi|f4v|flv|m2v|mkv|mov|mp4|mpeg|mpg|ogm|vob|wmv)" ;;
+  archive*) EXPR="$EXPR.*\.(7z|rar|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz|zip)\$" ;;
+  audio*) EXPR="$EXPR.*\.(aif|aiff|flac|m4a|m4b|mp2|mp3|mpc|ogg|raw|rm|wav|wma)\$" ;;
+  fonts*) EXPR="$EXPR.*\.(bdf|flac|fon|m4a|m4b|mp3|mpc|ogg|otf|pcf|rm|ttf|wma)\$" ;;
+  image*) EXPR="$EXPR.*\.(bmp|cin|cod|dcx|djvu|emf|fig|gif|ico|im1|im24|im8|jin|jpeg|jpg|lss|miff|opc|pbm|pcx|pgm|pgx|png|pnm|ppm|psd|rle|rmp|sgi|shx|svg|tga|tif|tiff|wim|xcf|xpm|xwd)\$" ;;
+  incompl*|part*) EXPR="$EXPR.*\.(\*\.!??|\*\.part|INCOMPL\*|\[/\\\]INCOMPL\[^/\\\]\*\$|\\\.!??\$|\\\.part\$)\$" ;;
+  music*) EXPR="$EXPR.*\.(aif|aiff|flac|m4a|m4b|mp3|mpc|ogg|rm|voc|wav|wma)\$" ;;
+  package*|pkg*) EXPR="$EXPR.*\.(deb|rpm|tgz|txz)\$" ;;
+  script*) EXPR="$EXPR.*\.(bat|cmd|py|rb|sh)\$" ;;
+  software*) EXPR="$EXPR.*\.(\*\.msi|\*install\*\.exe|\*setup\*\.exe|\.msi|7z|deb|exe|install\*\.exe|msi|rar|rpm|setup\*\.exe|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz|zip)\$" ;;
+  source*) EXPR="$EXPR.*\.(c|cpp|cxx|h|hpp|hxx)\$" ;;
+  video*) EXPR="$EXPR.*\.(3gp|avi|f4v|flv|m2v|mkv|mov|mp4|mpeg|mpg|ogm|vob|wmv)\$" ;;
 	*) echo "No such class '$CLASS'." 1>&2; exit 2 ;;
 esac
 
