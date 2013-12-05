@@ -17,7 +17,7 @@ ansi_cyan='\[\033[1;36m\]' ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]'
 #PATH="/sbin:/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/libexec:/usr/local/libexec"
 LC_ALL=C
 #LOCALE=C
-#LANG=C
+LANG=C
 HISTSIZE=32768
 HISTFILESIZE=16777216
 

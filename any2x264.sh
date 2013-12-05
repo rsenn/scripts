@@ -95,16 +95,31 @@ esac
 var_dump VBR
 
 unset RESOLUTIONS
-pushv RESOLUTIONS 720x576
-pushv RESOLUTIONS 720x480
-pushv RESOLUTIONS 720x405
-pushv RESOLUTIONS 640x480
+pushv RESOLUTIONS 1920x1080
+pushv RESOLUTIONS 1280x720
+pushv RESOLUTIONS 1000x564
+pushv RESOLUTIONS 960x540
+pushv RESOLUTIONS 950x536
+pushv RESOLUTIONS 854x480
+pushv RESOLUTIONS 852x480
+pushv RESOLUTIONS 850x480
+pushv RESOLUTIONS 768x432
+pushv RESOLUTIONS 750x420
+pushv RESOLUTIONS 704x394
 pushv RESOLUTIONS 640x360
-pushv RESOLUTIONS 512x288
-pushv RESOLUTIONS 352x288
+pushv RESOLUTIONS 608x336
+pushv RESOLUTIONS 576x320
+
+#pushv RESOLUTIONS 720x576
+#pushv RESOLUTIONS 720x480
+##pushv RESOLUTIONS 720x405
+#pushv RESOLUTIONS 640x480
+#pushv RESOLUTIONS 640x360
+#pushv RESOLUTIONS 512x288
+#pushv RESOLUTIONS 352x288
 
 for ARG; do
-    OUTPUT="${ARG%.*}.divx.avi"
+    OUTPUT="${ARG%.*}.mp4"
     if [ "$DIR" ]; then
   OUTPUT="$DIR"/`basename "$OUTPUT"`
 fi
@@ -141,8 +156,8 @@ fi
 
 
 RATE=29.97
-    (set -x; "$FFMPEG" 2>&1 -y -i "$ARG" $A -vtag x264 ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 \
-      ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR:+-b $((VBR + ABR)) } -abcodec aac  \
+    (set -x; "$FFMPEG" 2>&1 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 \
+      ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR:+-b $((VBR + ABR)) } -acodec libvo_aacenc \
    -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) ||
         break
 done
