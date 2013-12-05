@@ -11,6 +11,7 @@ while :; do
     case "$1" in
    -b) VBR="$2"; shift 2 ;;
    -d) DIR="$2"; shift 2 ;;
+   -r) REMOVE=true; shift ;;
    -s) FILESIZE="$2"; shift 2 ;;
   -a) A="$2"; shift 2 ;;
   -c) A="${A:+-vf crop=$2}" shift 2 ;;
@@ -95,9 +96,10 @@ esac
 var_dump VBR
 
 unset RESOLUTIONS
-pushv RESOLUTIONS 1920x1080
+#pushv RESOLUTIONS 1920x1080
 pushv RESOLUTIONS 1280x720
-pushv RESOLUTIONS 1000x564
+pushv RESOLUTIONS 1024x576
+#pushv RESOLUTIONS 1000x564
 pushv RESOLUTIONS 960x540
 pushv RESOLUTIONS 950x536
 pushv RESOLUTIONS 854x480
@@ -154,11 +156,25 @@ fi
 
      fi
 
+		 unset BITRATE_ARG
+
+		 if [ "$VBR" ]; then
+					if  ffmpeg -help 2>&1 |grep  -q '\-b:v'; then
+								BITRATE_ARG="-b:v
+$VBR
+-b:a
+$ABR"
+					 else
+								BITRATE_ARG="-b
+$((VBR + ABR))"
+					fi
+			fi
+
 
 RATE=29.97
-    (set -x; "$FFMPEG" 2>&1 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 \
-      ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR:+-b $((VBR + ABR)) } -acodec libvo_aacenc \
-   -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) ||
+    (set -x; "$FFMPEG" 2>&1 -strict -2 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 \
+      ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  $BITRATE_ARG -acodec mp2 \
+   -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) && rm -f "$ARG" ||
         break
 done
 
