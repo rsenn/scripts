@@ -83,7 +83,8 @@ case "$CLASS" in
   software*) EXPR="$EXPR.*\.(\*\.msi|\*install\*\.exe|\*setup\*\.exe|\.msi|7z|deb|exe|install\*\.exe|msi|rar|rpm|setup\*\.exe|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz|zip)\$" ;;
   source*) EXPR="$EXPR.*\.(c|cpp|cxx|h|hpp|hxx)\$" ;;
   video*) EXPR="$EXPR.*\.(3gp|avi|f4v|flv|m2v|mkv|mov|mp4|mpeg|mpg|ogm|vob|wmv)\$" ;;
-	*) echo "No such class '$CLASS'." 1>&2; exit 2 ;;
+	'') ;;
+  *) echo "No such class '$CLASS'." 1>&2; exit 2 ;;
 esac
 
 MOUNT_OUTPUT=`mount`
