@@ -1152,6 +1152,13 @@ grep-v-optpkgs()
     grep --color=auto -v -E '\-(doc|dev|dbg|extra|lite|prof|extra|manual|data|examples|source|theme|manual|demo|help|artwork|contrib)'
 }
 
+grep-v-unneeded-pkgs()
+{
+ (set -- common data debuginfo devel doc docs el examples fonts javadoc plugin static theme tests extras demo manual test  help info support demos 
+
+ grep -v -E "\-$(grep-e-expr "$@")\$")
+}
+
 grephexnums()
 { 
     ( IFS="|";
