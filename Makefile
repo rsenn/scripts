@@ -18,26 +18,25 @@ slackpkg: $(SCRIPTS)
 		tar -cJf scripts-`date +%Y%m%d`-slackware.txz -C $$distdir .; \
 		rm -rf $$distdir
 
-SCRIPTS =  \
- \
+SCRIPTS = \
 	aaview.sh \
 	aliases.sh \
 	any23gp.sh \
-	any2x264.sh \
+	any2amr-wb.sh \
 	any2avi.sh \
 	any2cdda.sh \
 	any2divx.sh \
 	any2dvd.sh \
-	any2m4a.sh \
-	any2ogg.sh \
-	any2wma.sh \
-	any2mp2.sh \
 	any2flac.sh \
-	any2amr-wb.sh \
+	any2m4a.sh \
+	any2mp2.sh \
 	any2mp3.sh \
 	any2mp4.sh \
+	any2ogg.sh \
 	any2vcd.sh \
 	any2wav.sh \
+	any2wma.sh \
+	any2x264.sh \
 	any2xvid.sh \
 	any2yuv.sh \
 	ape2wav.sh \
@@ -143,6 +142,7 @@ SCRIPTS =  \
 	hhv-search.sh \
 	histogram.awk \
 	home-cleanup.sh \
+	image-anim.rb \
 	isodate.sh \
 	isotime.sh \
 	jadmaker.sh \
