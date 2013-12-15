@@ -11,8 +11,8 @@ srate()
     #echo "EXPR='$EXPR'" 1>&2
 
     test -n "$SRATE" && echo "$SRATE" || (
-      #mminfo "$ARG" | sed -u -n "/Sampling rate[^=]*=/ { s,Hz,,; s,[Kk],000, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }" | tail -n1
-      SRATE=$(mminfo "$ARG" | sed -u -n "/Sampling rate[^=]*=/ { s,.*[:=],,; s,Hz,,; s,\.[0-9]*\$,, ; s|^|$ARG:|;  p }" | tail -n1)
+      #mminfo "$ARG" | sed -n "/Sampling rate[^=]*=/ { s,Hz,,; s,[Kk],000, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }" | tail -n1
+      SRATE=$(mminfo "$ARG" | sed -n "/Sampling rate[^=]*=/ { s,.*[:=],,; s,Hz,,; s,\.[0-9]*\$,, ; s|^|$ARG:|;  p }" | tail -n1)
       SRATE=${SRATE##*:}
       case "$SRATE" in
           *[Kk]) 

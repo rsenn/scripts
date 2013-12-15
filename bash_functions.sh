@@ -111,7 +111,7 @@ bitrate()
 
     test -n "$KBPS" && echo "$KBPS" || (
     R=0
-    set -- $(mminfo "$ARG" | sed -u -n "/Bit rate=/ { s,\s*Kbps\$,, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }")
+    set -- $(mminfo "$ARG" | sed -n "/Bit rate=/ { s,\s*Kbps\$,, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }")
    #echo "$*" 1>&2 
     for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
     [ "$N" -gt 1 ] && R="$ARG:$R"
@@ -313,22 +313,22 @@ ctime()
 
 cut-arch()
 { 
-    sed -u 's,^\([^ ]*\)\.[^ .]*\( - \)\?\(.*\)$,\1\2\3,'
+    sed 's,^\([^ ]*\)\.[^ .]*\( - \)\?\(.*\)$,\1\2\3,'
 }
 
 cut-basename()
 { 
-    sed -u 's,/[^/]*/\?$,,'
+    sed 's,/[^/]*/\?$,,'
 }
 
 cut-dirname()
 { 
-    sed -u "s,\\(.*\\)/\\([^/]\\+/\\?\\)${1//./\\.}\$,\2,"
+    sed "s,\\(.*\\)/\\([^/]\\+/\\?\\)${1//./\\.}\$,\2,"
 }
 
 cut-ext()
 { 
-    sed -u 's,\.[^./]\+$,,' "$@"
+    sed 's,\.[^./]\+$,,' "$@"
 
 }
 
@@ -355,12 +355,12 @@ cut-lsof()
 
 cut-num()
 { 
-    sed -u 's,^\s*[0-9]\+\s*,,' "$@"
+    sed 's,^\s*[0-9]\+\s*,,' "$@"
 }
 
 cut-ver()
 { 
-    sed -u 's,[-_][.0-9]\+.*,, ; s,[-_][[:alnum:]]*[.0-9]\+.*,,' "$@"
+    sed 's,[-_][.0-9]\+.*,, ; s,[-_][[:alnum:]]*[.0-9]\+.*,,' "$@"
 
 }
 
@@ -846,7 +846,7 @@ filter()
 
 filter_files_list()
 { 
-    sed -u "s|/files\.list:|/|"
+    sed "s|/files\.list:|/|"
 }
 
 filter_out()
@@ -1436,10 +1436,10 @@ http_head()
 
 id3()
 { 
-    $ID3V2 -l "$@" | sed -u "
+    $ID3V2 -l "$@" | sed "
 	s,^\([^ ]\+\) ([^:]*):\s\?\(.*\),\1=\2, 
 	 s,.* info for s\?,, 
-	/:$/! { /^[0-9A-Z]\+=/! { s/ *\([^ ]\+\) *: */\n\1=/g; s,\s*\n\s*,\n,g; s,^\n,,; s,\n$,,; s,\n\n,,g; }; }" | sed -u "/:$/ { p; n; :lp; N; /:\$/! { s,\n, ,g;  b lp; }; P }"
+	/:$/! { /^[0-9A-Z]\+=/! { s/ *\([^ ]\+\) *: */\n\1=/g; s,\s*\n\s*,\n,g; s,^\n,,; s,\n$,,; s,\n\n,,g; }; }" | sed "/:$/ { p; n; :lp; N; /:\$/! { s,\n, ,g;  b lp; }; P }"
 }
 
 id3dump()
@@ -1459,7 +1459,7 @@ id3dump()
             ;;
         esac;
     done;
-		id3v2 $FLAGS  -l "$@" | sed -u -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
+		id3v2 $FLAGS  -l "$@" | sed -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
 		)
 }
 
@@ -1864,7 +1864,7 @@ list-files()
     [ $# = 0 ] && set .;
     NL="
 ";
-    FILTER="xargs -d \"\$NL\" file | sed -u \"s|^\.\/|| ;; s|:\s\+|: |\" ${OUTPUT}\"\${OUTFILE}\"";
+    FILTER="xargs -d \"\$NL\" file | sed \"s|^\.\/|| ;; s|:\s\+|: |\" ${OUTPUT}\"\${OUTFILE}\"";
     for ARG in "$@";
     do
         ( cd "$ARG";
@@ -1933,7 +1933,7 @@ list-recursive()
     for ARG in "$@";
     do
         ( cd "$ARG";
-        CMD='find . $ARGS -xdev  | while read -r FILE; do test -d "$FILE" && echo "$FILE/" || echo "$FILE"; done | sed -u "s|^\.\/||"';
+        CMD='find . $ARGS -xdev  | while read -r FILE; do test -d "$FILE" && echo "$FILE/" || echo "$FILE"; done | sed "s|^\.\/||"';
         [ "$SAVE" = true ] && CMD="$CMD | { tee .${FILENAME:-files}.${TMPEXT:-tmp}; mv -f .${FILENAME:-files}.${TMPEXT:-tmp} ${FILENAME:-files}.${EXT:-list}; echo \"Created \$PWD/${FILENAME:-files}.${EXT:-list}\" 1>&2; }";
         eval "$CMD" );
     done )
@@ -1945,12 +1945,12 @@ list-slackpkgs()
     for ARG in "$@";
     do
         find "$ARG" -type f -name "*.t?z";
-    done | sed -u 's,^\./,,' )
+    done | sed 's,^\./,,' )
 }
 
 list-subdirs()
 { 
-    ( find ${@-.} -mindepth 1 -maxdepth 1 -type d | sed -u "s|^\./||" )
+    ( find ${@-.} -mindepth 1 -maxdepth 1 -type d | sed "s|^\./||" )
 }
 
 list-tolower()
@@ -2078,7 +2078,7 @@ ls-dirs()
     for ARG in "$@";
     do
         ls --color=auto -d "$ARG"/*/;
-    done ) | sed -u 's,^\./,,; s,/$,,'
+    done ) | sed 's,^\./,,; s,/$,,'
 }
 
 ls-files()
@@ -2087,7 +2087,7 @@ ls-files()
     for ARG in "$@";
     do
         ls --color=auto -d "$ARG"/*;
-    done ) | filter-test -f| sed -u 's,^\./,,; s,/$,,'
+    done ) | filter-test -f| sed 's,^\./,,; s,/$,,'
 }
 
 ls-l()
@@ -2260,7 +2260,7 @@ min()
 
 minfo()
 { 
-    timeout ${TIMEOUT:-10} mediainfo "$@" 2>&1 | sed -u 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g'
+    timeout ${TIMEOUT:-10} mediainfo "$@" 2>&1 | sed 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g'
 }
 
 mktempdata()
@@ -2318,7 +2318,7 @@ mminfo()
 { 
     ( for ARG in "$@";
     do
-        minfo "$ARG" | sed -u -n "s,\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
+        minfo "$ARG" | sed -n "s,\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
     done )
 }
 
@@ -3271,7 +3271,7 @@ rm_arch()
     ( IFS="
 ";
     [ $# -gt 0 ] && exec <<< "$*";
-    sed -u 's,\.[^\.]*$,,' )
+    sed 's,\.[^\.]*$,,' )
 }
 
 rm_ver()
@@ -3279,7 +3279,7 @@ rm_ver()
     ( IFS="
 ";
     [ $# -gt 0 ] && exec <<< "$*";
-    sed -u 's,-[^-]*$,,' )
+    sed 's,-[^-]*$,,' )
 }
 
 scriptdir()
@@ -3343,8 +3343,8 @@ srate()
     #echo "EXPR='$EXPR'" 1>&2
 
     test -n "$SRATE" && echo "$SRATE" || (
-      #mminfo "$ARG" | sed -u -n "/Sampling rate[^=]*=/ { s,Hz,,; s,[Kk],000, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }" | tail -n1
-      SRATE=$(mminfo "$ARG" | sed -u -n "/Sampling rate[^=]*=/ { s,.*[:=],,; s,Hz,,; s,\.[0-9]*\$,, ; s|^|$ARG:|;  p }" | tail -n1)
+      #mminfo "$ARG" | sed -n "/Sampling rate[^=]*=/ { s,Hz,,; s,[Kk],000, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }" | tail -n1
+      SRATE=$(mminfo "$ARG" | sed -n "/Sampling rate[^=]*=/ { s,.*[:=],,; s,Hz,,; s,\.[0-9]*\$,, ; s|^|$ARG:|;  p }" | tail -n1)
       SRATE=${SRATE##*:}
       case "$SRATE" in
           *[Kk]) 
@@ -3687,7 +3687,7 @@ _cygpath()
             vappend EXPR 's,/,\\,g'
         ;;
     esac;
-    FLTR="sed -u -e \"\${EXPR}\"";
+    FLTR="sed -e \"\${EXPR}\"";
     if [ $# -le 0 ]; then
         PRNT="";
     else
@@ -3720,7 +3720,7 @@ _msyspath()
     win*)  SCRIPT="${SCRIPT:+$SCRIPT ;; }s|^a:|A:|;;s|^b:|B:|;;s|^c:|C:|;;s|^d:|D:|;;s|^e:|E:|;;s|^f:|F:|;;s|^g:|G:|;;s|^h:|H:|;;s|^i:|I:|;;s|^j:|J:|;;s|^k:|K:|;;s|^l:|L:|;;s|^m:|M:|;;s|^n:|N:|;;s|^o:|O:|;;s|^p:|P:|;;s|^q:|Q:|;;s|^r:|R:|;;s|^s:|S:|;;s|^t:|T:|;;s|^u:|U:|;;s|^v:|V:|;;s|^w:|W:|;;s|^x:|X:|;;s|^y:|Y:|;;s|^z:|Z:|" ;;
     esac
   (#set -x; 
-   sed -u "$SCRIPT" "$@")
+   sed "$SCRIPT" "$@")
    )
  
  
