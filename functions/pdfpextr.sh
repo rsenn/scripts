@@ -11,4 +11,5 @@ pdfpextr()
        -dLastPage="$LAST" \
        -sOutputFile=${3%.[Pp][Dd][Ff]}_p"$FIRST"-p"$LAST".pdf \
        "${3}"
+    )
 }
