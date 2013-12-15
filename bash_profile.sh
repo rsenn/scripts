@@ -14,6 +14,8 @@ drives_lower=$'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\
 
 ansi_cyan='\[\033[1;36m\]' ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]' ansi_yellow='\[\033[1;33m\]' ansi_blue='\[\033[1;34m\]' ansi_magenta='\[\033[1;35m\]' ansi_gray='\[\033[0;37m\]' ansi_bold='\[\033[1m\]' ansi_none='\[\033[0m\]'
 
+[ -d /usr/local/gnubin  ] && PATH="/usr/local/gnubin:$PATH"
+
 #PATH="/sbin:/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/libexec:/usr/local/libexec"
 LC_ALL=C
 #LOCALE=C
@@ -44,13 +46,20 @@ TERM=xterm-256color
 alias xargs='xargs -d "\n"'
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
 
-if ls --help 2>&1 |grep -q '\--color'; then
+
+if type gls 2>/dev/null 1>/dev/null; then
+  LS=gls
+else
+  LS=ls
+fi
+
+if $LS --help 2>&1 |grep -q '\--color'; then
 				LS_ARGS="$LS_ARGS --color=auto"
 fi
-if ls --help 2>&1 |grep -q '\--time-style'; then
+if $LS --help 2>&1 |grep -q '\--time-style'; then
 				LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
 fi
-alias ls="ls $LS_ARGS"
+alias ls="$LS $LS_ARGS"
 
 if grep --help 2>&1 |grep -q '\--color'; then
 				GREP_ARGS="$GREP_ARGS --color=auto"
