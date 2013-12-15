@@ -1152,6 +1152,13 @@ grep-v-optpkgs()
     grep --color=auto -v -E '\-(doc|dev|dbg|extra|lite|prof|extra|manual|data|examples|source|theme|manual|demo|help|artwork|contrib)'
 }
 
+grep-v-unneeded-pkgs()
+{
+ (set -- common data debuginfo devel doc docs el examples fonts javadoc plugin static theme tests extras demo manual test  help info support demos 
+
+ grep -v -E "\-$(grep-e-expr "$@")\$")
+}
+
 grephexnums()
 { 
     ( IFS="|";
@@ -2838,6 +2845,22 @@ pathmunge()
             PATH="$1:$PATH";
         fi;
     fi
+}
+
+pdfpextr()
+{
+(FIRST=$(($1)) LAST=$(($2))
+    # this function uses 3 arguments:
+    #     $1 is the first page of the range to extract
+    #     $2 is the last page of the range to extract
+    #     $3 is the input file
+    #     output file will be named "inputfile_pXX-pYY.pdf"
+    gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER \
+       -dFirstPage="$FIRST" \
+       -dLastPage="$LAST" \
+       -sOutputFile=${3%.[Pp][Dd][Ff]}_p"$FIRST"-p"$LAST".pdf \
+       "${3}"
+    )
 }
 
 pid-args()
