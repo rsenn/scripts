@@ -21,6 +21,7 @@ LANG=C
 HISTSIZE=32768
 HISTFILESIZE=16777216
 XLIB_SKIP_ARGB_VISUALS=1
+LESS="-R"
 
 unalias cp mv rm  2>/dev/null
 
@@ -29,7 +30,7 @@ unalias cp mv rm  2>/dev/null
 #  LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:*.wav=00;36:'
 #fi
 
-export PATH LC_ALL LOCALE LANG HISTSIZE HISTFILESIZE LS_COLORS
+export PATH LC_ALL LOCALE LANG HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS
 
 case "$TERM" in
 	  xterm*) TERM=rxvt ;;

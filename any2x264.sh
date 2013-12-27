@@ -97,9 +97,11 @@ var_dump VBR
 
 unset RESOLUTIONS
 #pushv RESOLUTIONS 1920x1080
+pushv RESOLUTIONS 1440x1080
 pushv RESOLUTIONS 1280x720
 pushv RESOLUTIONS 1024x576
 #pushv RESOLUTIONS 1000x564
+pushv RESOLUTIONS 960x720
 pushv RESOLUTIONS 960x540
 pushv RESOLUTIONS 950x536
 pushv RESOLUTIONS 854x480
@@ -107,10 +109,13 @@ pushv RESOLUTIONS 852x480
 pushv RESOLUTIONS 850x480
 pushv RESOLUTIONS 768x432
 pushv RESOLUTIONS 750x420
+pushv RESOLUTIONS 720x540
 pushv RESOLUTIONS 704x394
+pushv RESOLUTIONS 640x480
 pushv RESOLUTIONS 640x360
 pushv RESOLUTIONS 608x336
 pushv RESOLUTIONS 576x320
+pushv RESOLUTIONS 480x360
 
 #pushv RESOLUTIONS 720x576
 #pushv RESOLUTIONS 720x480
@@ -174,7 +179,7 @@ $((VBR + ABR))"
 RATE=29.97
     (set -x; "$FFMPEG" 2>&1 -strict -2 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 \
       ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  $BITRATE_ARG -acodec mp2 \
-   -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) && rm -f "$ARG" ||
+      -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) && ([ "$REMOVE" = true ] && rm -vf "$ARG") ||
         break
 done
 
