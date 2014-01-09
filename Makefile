@@ -210,7 +210,6 @@ SCRIPTS = \
 	rsync.sh \
 	rxvt.sh \
 	scan-open-wlans.sh \
-	scriptlist.sh \
 	search-files.sh \
 	search-fileshare.sh \
 	search-sc.sh \
