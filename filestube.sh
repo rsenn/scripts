@@ -15,7 +15,8 @@ HTTP_PROXY="127.0.0.1:8123"
 DLCMD="curl -q -s --location -A '$USER_AGENT' ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"}"
 #DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }wget -q -O - -U '$USER_AGENT'"
 #DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent '$USER_AGENT' 2>/dev/null"
-DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }links -source"
+#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }links -source"
+#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null"
 
 SEQ=$(set -- `seq -s , 1 $N`; IFS=","; echo "${*%,}")
 #echo "CMD='$CMD' SEQ='$SEQ'" 1>&2
