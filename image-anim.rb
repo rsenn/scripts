@@ -4,8 +4,18 @@ require 'rubygems'
 require 'RMagick'
 require 'pp'
 
+
 INPUTFILE = ARGV[0]
-OUTPUTFILE = File.basename INPUTFILE.gsub(/\.[^.]*$/, ".gif")
+
+if ARGV.length > 1 then 
+  OUTPUTFILE = ARGV[1]
+else 
+  OUTPUTFILE = File.basename INPUTFILE.gsub(/\.[^.]*$/, ".gif")
+end
+
+OUTPUTEXT = File.extname OUTPUTFILE
+
+puts "Test: #{OUTPUTEXT}"
 
 TILE_COLS = 4
 TILE_ROWS = 4
@@ -13,7 +23,19 @@ TILE_ROWS = 4
 img = Magick::Image.read(INPUTFILE)[0]
 pp img
 
-img = img.quantize(number_colors=256, colorspace=Magick::RGBColorspace, dither=Magick::RiemersmaDitherMethod, tree_depth=0)
+COMP = case OUTPUTEXT
+  when /(jpg|jpeg)$/i
+    Magick::LosslessJPEGCompression
+  else when /(png|mng)$/i
+    Magick::ZipCompression
+  else
+    nil
+end
+
+if OUTPUTEXT.casecmp ".gif" then
+  img = img.quantize(number_colors=256, colorspace=Magick::RGBColorspace, dither=Magick::RiemersmaDitherMethod, tree_depth=0)
+end
+
 TILE_WIDTH = img.columns/TILE_COLS
 TILE_HEIGHT = img.rows/TILE_ROWS
 
@@ -37,6 +59,8 @@ pp tiles
 
 #tiles.animate(20)
 tiles.delay = 20
-tiles.write(OUTPUTFILE)
+tiles.write(OUTPUTFILE) do
+  self.compression = COMP
+end
 
 #new_img.write("
