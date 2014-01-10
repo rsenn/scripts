@@ -2113,7 +2113,7 @@ ls-l()
             ;;
         esac;
     done;
-    exec <<< "$*";
+    [ $# -ge 1 ] && exec <<< "$*"
     xargs -d "$IFS" ls -l -d --time-style="+%s" $ARGS -- )
 }
 
