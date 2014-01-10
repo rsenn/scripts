@@ -24,13 +24,13 @@ img = Magick::Image.read(INPUTFILE)[0]
 pp img
 
 COMP = case OUTPUTEXT
-  when /(jpg|jpeg)$/i
-    Magick::LosslessJPEGCompression
-  else when /(png|mng)$/i
-    Magick::ZipCompression
-  else
-    nil
-end
+         when /jpg$|jpeg$/i
+           Magick::LosslessJPEGCompression
+         when /png$|mng$/i
+           Magick::ZipCompression
+         else
+           nil
+       end
 
 if OUTPUTEXT.casecmp ".gif" then
   img = img.quantize(number_colors=256, colorspace=Magick::RGBColorspace, dither=Magick::RiemersmaDitherMethod, tree_depth=0)
