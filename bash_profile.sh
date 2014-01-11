@@ -157,7 +157,7 @@ add-mediapath()
   for ARG; do
     set -- $(eval "list-mediapath $ARG"); while [ "$1" ]; do 
 	      D="${1%/}"; [ -d "$D" ] || D=${D%/*}; 
-		  [ -d "$D" ] && PATH="$PATH:$D"
+		  [ -d "$D" ] && PATH="$D:$PATH"
 		  shift
 		  done
   done
@@ -183,6 +183,13 @@ add-mediapath Tools/
 #[ -d "$CYGDRIVE/x/I386" ] && PATH="$PATH:$CYGDRIVE/x/I386:$CYGDRIVE/x/I386/system32"
 #[ -d "$CYGDRIVE/c/cygwin/bin" ] && PATH="$PATH:$CYGDRIVE/c/cygwin/bin"
 #
+
+FNS="$HOME/.bash_functions"
+
+[ -r "$FNS" -a -s "$FNS" ] && . "$FNS"
+
+[ -d "$USERPROFILE" ] && CDPATH=".:$(msyspath "$USERPROFILE")"
+
 #CDPATH=".:$CYGDRIVE/c/Users/rsenn"
 #
 #mediapath()
@@ -197,7 +204,6 @@ add-mediapath Tools/
 #    echo "$MEDIAPATH"
 #}
 #
-FNS="$HOME/.bash_functions"
 
 [ -d "x:/Windows" ] && : ${SystemRoot='x:\Windows'}
 [ -d "x:/I386" ] && : ${SystemRoot='x:\I386'}
@@ -229,7 +235,6 @@ msiexec()
     cmd /c "msiexec.exe $ARGS $p" ) )
 }
 
-[ -r "$FNS" -a -s "$FNS" ] && . "$FNS"
 
 
 
