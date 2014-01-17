@@ -15,7 +15,7 @@ find_videos()
 {
 	(IFS="
 	 "
-		EXTS="avi mpg mpeg vob mp4 wmv mkv ogm flv 3gp m2v f4v mov"
+		EXTS="3gp avi f4v flv m2v mkv mov mp4 mpeg mpg ogm vob webm wmv"
 
 		[ "$#" -le 0 ] && set -- *
 
@@ -29,11 +29,12 @@ find_videos()
        append CONDITIONS -iname "*.$EXT${S}"
 		done
 
-		CONDITIONS="-type${NL}f${NL}-and${NL}-size${NL}+3M${NL}(${NL}${CONDITIONS}${NL})" 
+		CONDITIONS="-type${NL}f${NL}(${NL}${CONDITIONS}${NL})" 
 		set "$@"  $CONDITIONS 
 
     ${DEBUG-false} && echo "+ $@" 1>&2
 
+    
 		("$@" 2>/dev/null)  |sed -u 's,^\.\/,,'
 	)
 }
