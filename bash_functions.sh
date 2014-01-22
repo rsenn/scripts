@@ -476,20 +476,28 @@ disk-devices()
 
 disk-label()
 { 
-    ( DEV=${1};
+    (ESCAPE_ARGS="-e"
+    while :; do
+       case "$1" in
+         -E | --no-escape) ESCAPE_ARGS=; shift ;;
+       *) break ;;
+     esac
+   done 
+    DEV=${1};
     test -L "$DEV" && DEV=` myrealpath "$DEV"`;
     cd /dev/disk/by-label;
     find . -type l | while read -r LINK; do
         TARGET=`readlink "$LINK"`;
         if [ "${DEV##*/}" = "${TARGET##*/}" ]; then
             NAME=${LINK##*/};
+            NAME=${NAME//'\x20'/'\040'}
             case "$NAME" in 
                 *[[:lower:]]*)
                     LOWER=true
                 ;;
             esac;
             if [ "$LOWER" = true -o ! -r "$LINK" ]; then
-                echo -e "$NAME";
+                echo $ESCAPE_ARGS "$NAME";
             else
                 FS=` filesystem-for-device "$DEV"`;
                 case "$FS" in 
@@ -500,7 +508,7 @@ disk-label()
                         test $# = 1 && echo "$1"
                     ;;
                     *)
-                        echo -e "$NAME"
+                        echo $ESCAPE_ARGS "$NAME"
                     ;;
                 esac;
             fi;
@@ -996,7 +1004,7 @@ fstab-line()
     do
         ( unset DEVNAME LABEL MNTDIR #FSTYPE;
         DEVNAME=${DEV##*/};
-        LABEL=$(disk-label "$DEV");
+        LABEL=$(disk-label -E "$DEV");
         [ -z "$MNTDIR" ] && MNTDIR="$MNT/${LABEL:-$DEVNAME}";
         : ${FSTYPE=$(filesystem-for-device "$DEV")}
         UUID=$(getuuid "$DEV");
@@ -1012,7 +1020,9 @@ fstab-line()
                 : ${OPTS:=sw}
             ;;
         esac;
-        printf "%-40s %-14s %-6s %-6s %6d %6d\n" "$DEV" "$MNTDIR" "${FSTYPE:-auto}" "${OPTS:-auto}" "${DUMP:-0}" "${PASS:-0}" );
+        [ -z "$OPTS" ] && OPTS="$DEFOPTS"
+        [ -n "$ADDOPTS" ] && OPTS="${OPTS:+$OPTS,}$ADDOPTS"
+        printf "%-40s %-24s %-6s %-6s %6d %6d\n" "$DEV" "$MNTDIR" "${FSTYPE:-auto}" "${OPTS:-auto}" "${DUMP:-0}" "${PASS:-0}" );
     done )
 }
 
