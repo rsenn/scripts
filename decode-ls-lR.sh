@@ -23,7 +23,7 @@ decode_ls_lR()
 						"") continue ;;
 			*:)
 				DIR="${LINE%:}"
-				echo "New directory $DIR" 1>&2
+				#echo "New directory $DIR" 1>&2
 				continue
 				;;
 			"file "* | "dir "* | "link "*)

@@ -4,5 +4,5 @@ list-slackpkgs()
     for ARG in "$@";
     do
         find "$ARG" -type f -name "*.t?z";
-    done | sed -u 's,^\./,,' )
+    done | sed 's,^\./,,' )
 }

@@ -12,14 +12,16 @@ drives_upper=$'A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\nO\nP\nQ\nR\nS\nT\nU\nV\
 drives_lower=$'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
 
 
-ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]' ansi_yellow='\[\033[1;33m\]' ansi_blue='\[\033[1;34m\]' ansi_magenta='\[\033[1;35m\]' ansi_gray='\[\033[0;37m\]' ansi_bold='\[\033[1m\]' ansi_none='\[\033[0m\]'
+ansi_cyan='\[\033[1;36m\]' ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]' ansi_yellow='\[\033[1;33m\]' ansi_blue='\[\033[1;34m\]' ansi_magenta='\[\033[1;35m\]' ansi_gray='\[\033[0;37m\]' ansi_bold='\[\033[1m\]' ansi_none='\[\033[0m\]'
 
 #PATH="/sbin:/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/libexec:/usr/local/libexec"
 LC_ALL=C
 #LOCALE=C
-#LANG=C
+LANG=C
 HISTSIZE=32768
 HISTFILESIZE=16777216
+XLIB_SKIP_ARGB_VISUALS=1
+LESS="-R"
 
 unalias cp mv rm  2>/dev/null
 
@@ -28,7 +30,7 @@ unalias cp mv rm  2>/dev/null
 #  LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:*.wav=00;36:'
 #fi
 
-export PATH LC_ALL LOCALE LANG HISTSIZE HISTFILESIZE LS_COLORS
+export PATH LC_ALL LOCALE LANG HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS
 
 case "$TERM" in
 	  xterm*) TERM=rxvt ;;
@@ -42,9 +44,22 @@ TERM=xterm-256color
 
 alias xargs='xargs -d "\n"'
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
-alias ls='ls --color=auto'
-alias grep='grep --line-buffered'
-#alias grep='grep --color=auto'
+
+if ls --help 2>&1 |grep -q '\--color'; then
+				LS_ARGS="$LS_ARGS --color=auto"
+fi
+if ls --help 2>&1 |grep -q '\--time-style'; then
+				LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
+fi
+alias ls="ls $LS_ARGS"
+
+if grep --help 2>&1 |grep -q '\--color'; then
+				GREP_ARGS="$GREP_ARGS --color=auto"
+fi
+if grep --help 2>&1 |grep -q '\--line-buffered'; then
+				GREP_ARGS="$GREP_ARGS --line-buffered"
+fi
+alias grep="grep $GREP_ARGS"
 alias cp='cp'
 alias mv='mv'
 alias rm='rm'
@@ -53,6 +68,8 @@ unalias cp  2>/dev/null
 unalias mv  2>/dev/null
 unalias rm 2>/dev/null
 
+type yum 2>/dev/null >/dev/null && alias yum='sudo yum -y'
+type smart 2>/dev/null >/dev/null && alias smart='sudo smart -y'
 type apt-get 2>/dev/null >/dev/null && alias apt-get='sudo apt-get -y'
 type aptitude 2>/dev/null >/dev/null && alias aptitude='sudo aptitude -y'
 
@@ -84,17 +101,27 @@ if [ "$PS1" = '\s-\v\$ ' ]; then
   unset PS1
 fi
 
+set-prompt()
+{
+	if [ -r "$HOME/.bash_prompt" ]; then
+				 eval "PS1=\"$(<$HOME/.bash_prompt)\""
+	else
+				PS1="$*"
+	fi
+}
+
 case "${OS=`uname -o`}" in
    msys* | Msys* |MSys* | MSYS*)
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-   PS1='\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@$HOSTNAME \[\e[33m\]\w\[\e[0m\]\n\$ '
+   set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]\w\[\e[0m\]\n\$ '
   ;;
 *) 
   MEDIAPATH="/m*/*/"
-  PS1="${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%%.*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
+  
+	set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
  ;;
 esac
 

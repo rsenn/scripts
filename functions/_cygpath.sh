@@ -35,7 +35,7 @@ _cygpath()
             vappend EXPR 's,/,\\,g'
         ;;
     esac;
-    FLTR="sed -u -e \"\${EXPR}\"";
+    FLTR="sed -e \"\${EXPR}\"";
     if [ $# -le 0 ]; then
         PRNT="";
     else

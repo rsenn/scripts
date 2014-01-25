@@ -111,7 +111,7 @@ bitrate()
 
     test -n "$KBPS" && echo "$KBPS" || (
     R=0
-    set -- $(mminfo "$ARG" | sed -u -n "/Bit rate=/ { s,\s*Kbps\$,, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }")
+    set -- $(mminfo "$ARG" | sed -n "/Bit rate=/ { s,\s*Kbps\$,, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }")
    #echo "$*" 1>&2 
     for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
     [ "$N" -gt 1 ] && R="$ARG:$R"
@@ -263,6 +263,17 @@ count-in-dir()
  done)
 }
 
+count-lines()
+{ 
+    ( [ $# -le 0 ] && set -- -;
+    N=$#;
+    for ARG in "$@";
+    do
+        ( set -- $( (xzcat "$ARG" 2>/dev/null ||zcat "$ARG" 2>/dev/null || bzcat "$ARG" 2>/dev/null || cat "$ARG") | wc -l);
+        [ "$N" -le 1 ] && echo "$1" || printf "%10d %s\n" "$1" "$ARG" );
+    done )
+}
+
 count()
 { 
     local IFS="$newline";
@@ -311,19 +322,24 @@ ctime()
     ls --color=auto --color=auto --color=auto -l -n -d --time=ctime --time-style="${TS}" "$@" | sed "s/$E/$R/" )
 }
 
+cut-arch()
+{ 
+    sed 's,^\([^ ]*\)\.[^ .]*\( - \)\?\(.*\)$,\1\2\3,'
+}
+
 cut-basename()
 { 
-    sed -u 's,/[^/]*/\?$,,'
+    sed 's,/[^/]*/\?$,,'
 }
 
 cut-dirname()
 { 
-    sed -u "s,\\(.*\\)/\\([^/]\\+/\\?\\)${1//./\\.}\$,\2,"
+    sed "s,\\(.*\\)/\\([^/]\\+/\\?\\)${1//./\\.}\$,\2,"
 }
 
 cut-ext()
 { 
-    sed -u 's,\.[^./]\+$,,' "$@"
+    sed 's,\.[^./]\+$,,' "$@"
 
 }
 
@@ -350,13 +366,38 @@ cut-lsof()
 
 cut-num()
 { 
-    sed -u 's,^\s*[0-9]\+\s*,,' "$@"
+  sed 's,^\s*[0-9]\+\s*,,' "$@"
+}
+
+cut-hexnum()
+{ 
+  sed 's,^\s*[0-9a-fA-F]\+\s*,,' "$@"
 }
 
 cut-ver()
 { 
-    sed -u 's,[-_][.0-9]\+.*,, ; s,[-_][[:alnum:]]*[.0-9]\+.*,,' "$@"
+  cat "$@" | cut-trailver |
+  sed 's,[-.]rc[[:alnum:]][^-.]*,,g ;; s,[-.]b[[:alnum:]][^-.]*,,g ;; s,[-.]git[_[:alnum:]][^-.]*,,g ;; s,[-.]svn[_[:alnum:]][^-.]*,,g ;; s,[-.]linux[^-.]*,,g ;; s,[-.]v[[:alnum:]][^-.]*,,g ;; s,[-.]beta[_[:alnum:]][^-.]*,,g ;; s,[-.]alpha[_[:alnum:]][^-.]*,,g ;; s,[-.]a[_[:alnum:]][^-.]*,,g ;; s,[-.]trunk[^-.]*,,g ;; s,[-.]release[_[:alnum:]][^-.]*,,g ;; s,[-.]GIT[^-.]*,,g ;; s,[-.]SVN[^-.]*,,g ;; s,[-.]r[_[:alnum:]][^-.]*,,g ;; s,[-.]dnh[_[:alnum:]][^-.]*,,g' |
+  sed 's,[^-.]*git[_0-9][^.].,,g ;; s,[^-.]*svn[_0-9][^.].,,g ;; s,[^-.]*GIT[^.].,,g ;; s,[^-.]*SVN[^.].,,g' |
+  sed 's,\.\(P\)\?[0-9][_+[:digit:]]*\.,.,g' |
+  sed 's,[.-][0-9][_+[:alnum:]]*$,,g ;; s,[.-][0-9][_+[:alnum:]]*\([-.]\),\1,g'|
+  sed 's,[-_.][0-9]*\(svn\)\?\(git\)\?\(P\)\?\(rc\)\?[0-9][_+[:digit:]]*\(-.\),\5,g' | 
+  sed 's,-[0-9][._+[:digit:]]*$,, ;;  s,-[0-9][._+[:digit:]]*$,,'  |
+  sed 's,[.-][0-9][_+[:alnum:]]*$,,g ;; s,[.-][0-9]*\(rc[0-9]\)\?\(b[0-9]\)\?\(git[_0-9]\)\?\(svn[_0-9]\)\?\(linux\)\?\(v[0-9]\)\?\(beta[_0-9]\)\?\(alpha[_0-9]\)\?\(a[_0-9]\)\?\(trunk\)\?\(release[_0-9]\)\?\(GIT\)\?\(SVN\)\?\(r[_0-9]\)\?\(dnh[_0-9]\)\?[0-9][_+[:alnum:]]*\.,.,g' |
+  sed 's,\.[0-9][^.]*\.,.,g'
 
+}
+cut-pkgver()
+{
+    cat "$@" |sed 's,-[0-9]\+$,,g'
+}
+cut-trailver()
+{
+    cat "$@" |sed 's,-[0-9][^-.]*\(\.[0-9][^-.]*\)*$,,'
+}
+cut-distver()
+{
+  cat "$@" | sed 's,\.fc[0-9]\+\(\.\)\?,\1,g'
 }
 
 d()
@@ -466,20 +507,28 @@ disk-devices()
 
 disk-label()
 { 
-    ( DEV=${1};
+    (ESCAPE_ARGS="-e"
+    while :; do
+       case "$1" in
+         -E | --no-escape) ESCAPE_ARGS=; shift ;;
+       *) break ;;
+     esac
+   done 
+    DEV=${1};
     test -L "$DEV" && DEV=` myrealpath "$DEV"`;
     cd /dev/disk/by-label;
     find . -type l | while read -r LINK; do
         TARGET=`readlink "$LINK"`;
         if [ "${DEV##*/}" = "${TARGET##*/}" ]; then
             NAME=${LINK##*/};
+            NAME=${NAME//'\x20'/'\040'}
             case "$NAME" in 
                 *[[:lower:]]*)
                     LOWER=true
                 ;;
             esac;
             if [ "$LOWER" = true -o ! -r "$LINK" ]; then
-                echo -e "$NAME";
+                echo $ESCAPE_ARGS "$NAME";
             else
                 FS=` filesystem-for-device "$DEV"`;
                 case "$FS" in 
@@ -490,7 +539,7 @@ disk-label()
                         test $# = 1 && echo "$1"
                     ;;
                     *)
-                        echo -e "$NAME"
+                        echo $ESCAPE_ARGS "$NAME"
                     ;;
                 esac;
             fi;
@@ -725,25 +774,25 @@ extract_version()
 
 filesystem-for-device()
 { 
-    ( DEV="$1";
-    set -- $(grep "^$DEV " /proc/mounts |awkp 3 );
-    case "$1" in 
-        fuse*)
-            TYPE=$(file -<"$DEV");
-            case "$TYPE" in 
-                *"NTFS "*)
-                    set -- ntfs
-                ;;
-                *"FAT (32"*)
-                    set -- vfat
-                ;;
-                *"FAT "*)
-                    set -- fat
-                ;;
-            esac
-        ;;
-    esac;
-    echo "$1" )
+ (DEV="$1";
+  set -- $(grep "^$DEV " /proc/mounts |awkp 3)
+  case "$1" in 
+    fuse*)
+      TYPE=$(file -<"$DEV");
+      case "$TYPE" in 
+        *"NTFS "*) set -- ntfs ;;
+        *"FAT (32"*) set -- vfat ;;
+        *"FAT "*) set -- fat ;;
+      esac
+    ;;
+    "")
+      TYPE=$(file -<"$DEV");
+      case "$TYPE" in 
+        *"swap "*) set -- swap ;;
+      esac
+    ;;
+  esac
+  echo "$1")
 }
 
 filter-cmd()
@@ -841,7 +890,7 @@ filter()
 
 filter_files_list()
 { 
-    sed -u "s|/files\.list:|/|"
+    sed "s|/files\.list:|/|"
 }
 
 filter_out()
@@ -986,7 +1035,7 @@ fstab-line()
     do
         ( unset DEVNAME LABEL MNTDIR #FSTYPE;
         DEVNAME=${DEV##*/};
-        LABEL=$(disk-label "$DEV");
+        LABEL=$(disk-label -E "$DEV");
         [ -z "$MNTDIR" ] && MNTDIR="$MNT/${LABEL:-$DEVNAME}";
         : ${FSTYPE=$(filesystem-for-device "$DEV")}
         UUID=$(getuuid "$DEV");
@@ -1002,7 +1051,9 @@ fstab-line()
                 : ${OPTS:=sw}
             ;;
         esac;
-        printf "%-40s %-14s %-6s %-6s %6d %6d\n" "$DEV" "$MNTDIR" "${FSTYPE:-auto}" "${OPTS:-auto}" "${DUMP:-0}" "${PASS:-0}" );
+        [ -z "$OPTS" ] && OPTS="$DEFOPTS"
+        [ -n "$ADDOPTS" ] && OPTS="${OPTS:+$OPTS,}$ADDOPTS"
+        printf "%-40s %-24s %-6s %-6s %6d %6d\n" "$DEV" "$MNTDIR" "${FSTYPE:-auto}" "${OPTS:-auto}" "${DUMP:-0}" "${PASS:-0}" );
     done )
 }
 
@@ -1082,8 +1133,9 @@ git-get-remote()
 {
 
   ([ $# -lt 1 ] && set -- .
-  CMD='REMOTE=`git remote -v 2>/dev/null | sed "s|\s\+| |g ;; s|\s*([^)]*)||" |uniq`;'
-  [ $# -gt 1 ] && CMD=$CMD'echo "$DIR: $REMOTE"' || CMD=$CMD'echo "$REMOTE"'
+  [ $# -gt 1 ] && FILTER="sed \"s|^|\$DIR: |\"" || FILTER=
+  CMD="REMOTE=\`git remote -v 2>/dev/null | sed \"s|\\s\\+| |g ;; s|\\s*([^)]*)||\" |uniq ${FILTER:+|$FILTER}\`;"
+  CMD=$CMD'echo "$REMOTE"'
   for DIR; do
 					
 					(cd "$DIR";	eval "$CMD")
@@ -1145,6 +1197,13 @@ grep-e()
 grep-v-optpkgs()
 { 
     grep --color=auto -v -E '\-(doc|dev|dbg|extra|lite|prof|extra|manual|data|examples|source|theme|manual|demo|help|artwork|contrib)'
+}
+
+grep-v-unneeded-pkgs()
+{
+ (set -- common data debuginfo devel doc docs el examples fonts javadoc plugin static theme tests extras demo manual test  help info support demos 
+
+ grep -v -E "\-$(grep-e-expr "$@")(\$|\\s)")
 }
 
 grephexnums()
@@ -1431,10 +1490,10 @@ http_head()
 
 id3()
 { 
-    $ID3V2 -l "$@" | sed -u "
+    $ID3V2 -l "$@" | sed "
 	s,^\([^ ]\+\) ([^:]*):\s\?\(.*\),\1=\2, 
 	 s,.* info for s\?,, 
-	/:$/! { /^[0-9A-Z]\+=/! { s/ *\([^ ]\+\) *: */\n\1=/g; s,\s*\n\s*,\n,g; s,^\n,,; s,\n$,,; s,\n\n,,g; }; }" | sed -u "/:$/ { p; n; :lp; N; /:\$/! { s,\n, ,g;  b lp; }; P }"
+	/:$/! { /^[0-9A-Z]\+=/! { s/ *\([^ ]\+\) *: */\n\1=/g; s,\s*\n\s*,\n,g; s,^\n,,; s,\n$,,; s,\n\n,,g; }; }" | sed "/:$/ { p; n; :lp; N; /:\$/! { s,\n, ,g;  b lp; }; P }"
 }
 
 id3dump()
@@ -1454,7 +1513,7 @@ id3dump()
             ;;
         esac;
     done;
-		id3v2 $FLAGS -R "$@" | sed -u -n 's,^\([[:upper:][:digit:]]\+\):,\1:,p'
+		id3v2 $FLAGS  -l "$@" | sed -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
 		)
 }
 
@@ -1859,7 +1918,7 @@ list-files()
     [ $# = 0 ] && set .;
     NL="
 ";
-    FILTER="xargs -d \"\$NL\" file | sed -u \"s|^\.\/|| ;; s|:\s\+|: |\" ${OUTPUT}\"\${OUTFILE}\"";
+    FILTER="xargs -d \"\$NL\" file | sed \"s|^\.\/|| ;; s|:\s\+|: |\" ${OUTPUT}\"\${OUTFILE}\"";
     for ARG in "$@";
     do
         ( cd "$ARG";
@@ -1928,7 +1987,7 @@ list-recursive()
     for ARG in "$@";
     do
         ( cd "$ARG";
-        CMD='find . $ARGS -xdev  | while read -r FILE; do test -d "$FILE" && echo "$FILE/" || echo "$FILE"; done | sed -u "s|^\.\/||"';
+        CMD='find . $ARGS -xdev  | while read -r FILE; do test -d "$FILE" && echo "$FILE/" || echo "$FILE"; done | sed "s|^\.\/||"';
         [ "$SAVE" = true ] && CMD="$CMD | { tee .${FILENAME:-files}.${TMPEXT:-tmp}; mv -f .${FILENAME:-files}.${TMPEXT:-tmp} ${FILENAME:-files}.${EXT:-list}; echo \"Created \$PWD/${FILENAME:-files}.${EXT:-list}\" 1>&2; }";
         eval "$CMD" );
     done )
@@ -1940,12 +1999,12 @@ list-slackpkgs()
     for ARG in "$@";
     do
         find "$ARG" -type f -name "*.t?z";
-    done | sed -u 's,^\./,,' )
+    done | sed 's,^\./,,' )
 }
 
 list-subdirs()
 { 
-    ( find ${@-.} -mindepth 1 -maxdepth 1 -type d | sed -u "s|^\./||" )
+    ( find ${@-.} -mindepth 1 -maxdepth 1 -type d | sed "s|^\./||" )
 }
 
 list-tolower()
@@ -2073,7 +2132,7 @@ ls-dirs()
     for ARG in "$@";
     do
         ls --color=auto -d "$ARG"/*/;
-    done ) | sed -u 's,^\./,,; s,/$,,'
+    done ) | sed 's,^\./,,; s,/$,,'
 }
 
 ls-files()
@@ -2082,7 +2141,7 @@ ls-files()
     for ARG in "$@";
     do
         ls --color=auto -d "$ARG"/*;
-    done ) | filter-test -f| sed -u 's,^\./,,; s,/$,,'
+    done ) | filter-test -f| sed 's,^\./,,; s,/$,,'
 }
 
 ls-l()
@@ -2101,7 +2160,7 @@ ls-l()
             ;;
         esac;
     done;
-    exec <<< "$*";
+    [ $# -ge 1 ] && exec <<< "$*"
     xargs -d "$IFS" ls -l -d --time-style="+%s" $ARGS -- )
 }
 
@@ -2255,7 +2314,7 @@ min()
 
 minfo()
 { 
-    timeout ${TIMEOUT:-10} mediainfo "$@" 2>&1 | sed -u 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g'
+    timeout ${TIMEOUT:-10} mediainfo "$@" 2>&1 | sed 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g'
 }
 
 mktempdata()
@@ -2313,7 +2372,7 @@ mminfo()
 { 
     ( for ARG in "$@";
     do
-        minfo "$ARG" | sed -u -n "s,\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
+        minfo "$ARG" | sed -n "s,\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
     done )
 }
 
@@ -2835,6 +2894,22 @@ pathmunge()
     fi
 }
 
+pdfpextr()
+{
+(FIRST=$(($1)) LAST=$(($2))
+    # this function uses 3 arguments:
+    #     $1 is the first page of the range to extract
+    #     $2 is the last page of the range to extract
+    #     $3 is the input file
+    #     output file will be named "inputfile_pXX-pYY.pdf"
+    gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER \
+       -dFirstPage="$FIRST" \
+       -dLastPage="$LAST" \
+       -sOutputFile=${3%.[Pp][Dd][Ff]}_p"$FIRST"-p"$LAST".pdf \
+       "${3}"
+    )
+}
+
 pid-args()
 { 
   pid-of "$@" | sed -n  "/^[0-9]\+$/ s,^,-p\n,p"
@@ -3266,7 +3341,7 @@ rm_arch()
     ( IFS="
 ";
     [ $# -gt 0 ] && exec <<< "$*";
-    sed -u 's,\.[^\.]*$,,' )
+    sed 's,\.[^\.]*$,,' )
 }
 
 rm_ver()
@@ -3274,7 +3349,7 @@ rm_ver()
     ( IFS="
 ";
     [ $# -gt 0 ] && exec <<< "$*";
-    sed -u 's,-[^-]*$,,' )
+    sed 's,-[^-]*$,,' )
 }
 
 scriptdir()
@@ -3338,8 +3413,8 @@ srate()
     #echo "EXPR='$EXPR'" 1>&2
 
     test -n "$SRATE" && echo "$SRATE" || (
-      #mminfo "$ARG" | sed -u -n "/Sampling rate[^=]*=/ { s,Hz,,; s,[Kk],000, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }" | tail -n1
-      SRATE=$(mminfo "$ARG" | sed -u -n "/Sampling rate[^=]*=/ { s,.*[:=],,; s,Hz,,; s,\.[0-9]*\$,, ; s|^|$ARG:|;  p }" | tail -n1)
+      #mminfo "$ARG" | sed -n "/Sampling rate[^=]*=/ { s,Hz,,; s,[Kk],000, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }" | tail -n1
+      SRATE=$(mminfo "$ARG" | sed -n "/Sampling rate[^=]*=/ { s,.*[:=],,; s,Hz,,; s,\.[0-9]*\$,, ; s|^|$ARG:|;  p }" | tail -n1)
       SRATE=${SRATE##*:}
       case "$SRATE" in
           *[Kk]) 
@@ -3682,7 +3757,7 @@ _cygpath()
             vappend EXPR 's,/,\\,g'
         ;;
     esac;
-    FLTR="sed -u -e \"\${EXPR}\"";
+    FLTR="sed -e \"\${EXPR}\"";
     if [ $# -le 0 ]; then
         PRNT="";
     else
@@ -3715,7 +3790,7 @@ _msyspath()
     win*)  SCRIPT="${SCRIPT:+$SCRIPT ;; }s|^a:|A:|;;s|^b:|B:|;;s|^c:|C:|;;s|^d:|D:|;;s|^e:|E:|;;s|^f:|F:|;;s|^g:|G:|;;s|^h:|H:|;;s|^i:|I:|;;s|^j:|J:|;;s|^k:|K:|;;s|^l:|L:|;;s|^m:|M:|;;s|^n:|N:|;;s|^o:|O:|;;s|^p:|P:|;;s|^q:|Q:|;;s|^r:|R:|;;s|^s:|S:|;;s|^t:|T:|;;s|^u:|U:|;;s|^v:|V:|;;s|^w:|W:|;;s|^x:|X:|;;s|^y:|Y:|;;s|^z:|Z:|" ;;
     esac
   (#set -x; 
-   sed -u "$SCRIPT" "$@")
+   sed "$SCRIPT" "$@")
    )
  
  
