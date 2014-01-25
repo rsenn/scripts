@@ -14,6 +14,15 @@ urlescape()
 
 IFS="
 "
+USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0"
+#HTTP_PROXY="127.0.0.1:8123"
+
+DLCMD="curl -q -s --location -A '$USER_AGENT' ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"}"
+#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }wget -q -O - -U '$USER_AGENT'"
+#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent '$USER_AGENT' 2>/dev/null"
+#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }links -source"
+#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null"
+
 ARGS="$*"
 
 set -- 
@@ -48,16 +57,5 @@ done
 
 #echo "URL is $URL" 1>&2
 
-dlynx.sh $URLS  |sed -n 's,^http.*://.*url?q=,,p' | sed 's,\&.*,, ; s,%26,\&,g ; s,%2B,+,g ; s,%3F,/,g ; s,%3D,=,g ; s,%25,%,g' 
-
-  echo| sed "s,.*Search Results,," \
-  | tee raw.html \
-  | hxprintlinks \
-  | sed -n "s,^<li>\(.*\)</li>\$,\1,p" \
-  | sed \
-	-e "/^\//d" \
-	-e "/\.google/d" \
-	-e "/google\./d" \
-	-e "/:\/\//!d"
-
-
+eval "(set -x; $DLCMD \$URLS)"  |
+sed 's,<,\n&,g'| sed -n 's,^<a href="\([^"/:]\+://[^"]\+\)"[^>]\+.*,\1,p'

@@ -1,8 +1,13 @@
 #!/bin/sh
 
-set -- mp3 ogg flac mpc m4a m4b wma 
+PARTIAL_EXPR="(\.part|\.!..|)"
+while :; do
+  case "$1" in
+    -c | --complete) PARTIAL_EXPR="" ; shift ;;
+    *) break ;;
+  esac
+done
 
-#set -- "$@" rm
-#set -- "$@" wav voc aif aiff 
+EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff voc"
 
-exec grep -iE "\\.($(IFS='|'; echo "$*"))\$"
+exec grep -i -E "$@" "\\.($(IFS='| '; set -- $EXTS;  echo "$*"))${PARTIAL_EXPR}\$" 

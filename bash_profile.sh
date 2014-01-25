@@ -12,23 +12,25 @@ drives_upper=$'A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\nO\nP\nQ\nR\nS\nT\nU\nV\
 drives_lower=$'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
 
 
-ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]' ansi_yellow='\[\033[1;33m\]' ansi_blue='\[\033[1;34m\]' ansi_magenta='\[\033[1;35m\]' ansi_gray='\[\033[0;37m\]' ansi_bold='\[\033[1m\]' ansi_none='\[\033[0m\]'
+ansi_cyan='\[\033[1;36m\]' ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]' ansi_yellow='\[\033[1;33m\]' ansi_blue='\[\033[1;34m\]' ansi_magenta='\[\033[1;35m\]' ansi_gray='\[\033[0;37m\]' ansi_bold='\[\033[1m\]' ansi_none='\[\033[0m\]'
 
-PATH="/sbin:/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/libexec:/usr/local/libexec"
+#PATH="/sbin:/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/libexec:/usr/local/libexec"
 LC_ALL=C
 #LOCALE=C
-#LANG=C
+LANG=C
 HISTSIZE=32768
 HISTFILESIZE=16777216
+XLIB_SKIP_ARGB_VISUALS=1
+LESS="-R"
 
 unalias cp mv rm  2>/dev/null
 
 
-if [ -z "$COLORS" -o ! -e "$COLORS" ]; then
-  LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:*.wav=00;36:'
-fi
+#if [ -z "$COLORS" -o ! -e "$COLORS" ]; then
+#  LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:*.wav=00;36:'
+#fi
 
-export PATH LC_ALL LOCALE LANG HISTSIZE HISTFILESIZE LS_COLORS
+export PATH LC_ALL LOCALE LANG HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS
 
 case "$TERM" in
 	  xterm*) TERM=rxvt ;;
@@ -40,10 +42,24 @@ esac
 
 TERM=xterm-256color
 
+alias xargs='xargs -d "\n"'
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
-alias ls='ls --color=auto'
 
-#alias grep='grep --color=auto'
+if ls --help 2>&1 |grep -q '\--color'; then
+				LS_ARGS="$LS_ARGS --color=auto"
+fi
+if ls --help 2>&1 |grep -q '\--time-style'; then
+				LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
+fi
+alias ls="ls $LS_ARGS"
+
+if grep --help 2>&1 |grep -q '\--color'; then
+				GREP_ARGS="$GREP_ARGS --color=auto"
+fi
+if grep --help 2>&1 |grep -q '\--line-buffered'; then
+				GREP_ARGS="$GREP_ARGS --line-buffered"
+fi
+alias grep="grep $GREP_ARGS"
 alias cp='cp'
 alias mv='mv'
 alias rm='rm'
@@ -52,6 +68,8 @@ unalias cp  2>/dev/null
 unalias mv  2>/dev/null
 unalias rm 2>/dev/null
 
+type yum 2>/dev/null >/dev/null && alias yum='sudo yum -y'
+type smart 2>/dev/null >/dev/null && alias smart='sudo smart -y'
 type apt-get 2>/dev/null >/dev/null && alias apt-get='sudo apt-get -y'
 type aptitude 2>/dev/null >/dev/null && alias aptitude='sudo aptitude -y'
 
@@ -83,17 +101,27 @@ if [ "$PS1" = '\s-\v\$ ' ]; then
   unset PS1
 fi
 
+set-prompt()
+{
+	if [ -r "$HOME/.bash_prompt" ]; then
+				 eval "PS1=\"$(<$HOME/.bash_prompt)\""
+	else
+				PS1="$*"
+	fi
+}
+
 case "${OS=`uname -o`}" in
    msys* | Msys* |MSys* | MSYS*)
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-   PS1='\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]$USERNAME@$HOSTNAME \[\e[33m\]\w\[\e[0m\]\n\$ '
+   set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]\w\[\e[0m\]\n\$ '
   ;;
 *) 
   MEDIAPATH="/m*/*/"
-  PS1="${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%%.*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
+  
+	set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
  ;;
 esac
 
@@ -210,5 +238,6 @@ if [ -e /etc/bash_completion -a "${BASH_COMPLETION-unset}" = unset ]; then
 				 . /etc/bash_completion
  fi
 
-LS_COLORS='di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=33;01:cd=33;01:or=31;01:su=37:sg=30:tw=30:ow=34:st=37:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lz=01;31:*.xz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.rar=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.axa=00;36:*.oga=00;36:*.spx=00;36:*.xspf=00;36:';
+ 
+LS_COLORS='di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=33;01:cd=33;01:or=31;01:su=37:sg=30:tw=30:ow=34:st=37:ex=01;33:'
 export LS_COLORS

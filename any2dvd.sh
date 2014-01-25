@@ -9,8 +9,8 @@ unset DIR FILESIZE
 
 while :; do
     case "$1" in
-	 -d) DIR="$2"; shift 2 ;;
-	 -s) FILESIZE="$2"; shift 2 ;;
+   -d) DIR="$2"; shift 2 ;;
+   -s) FILESIZE="$2"; shift 2 ;;
      *) break ;;
 
     esac
@@ -61,7 +61,7 @@ size2ratio()
 
     R=`bci "($W / $H) * 100"`
     case "$R" in
-	17?) echo 177 ;;
+  17?) echo 177 ;;
      *) echo "$R" ;;
  esac
     )
@@ -87,7 +87,7 @@ pushv RESOLUTIONS 352x240
 for ARG; do
     OUTPUT="${ARG%.*}.dvd.mpg"
     if [ "$DIR" ]; then
-	OUTPUT="$DIR"/`basename "$OUTPUT"`
+  OUTPUT="$DIR"/`basename "$OUTPUT"`
 fi
     WIDTH=`minfo "$ARG" |info_get Width`
     HEIGHT=`minfo "$ARG" |info_get Height`
@@ -97,26 +97,26 @@ fi
     is16to9 $WIDTH $HEIGHT && ASPECT="16:9" || ASPECT="4:3"
 
     while read RES; do
-     	R2=`size2ratio "$RES"`
-   	echo "Check ratio $(bce "$R2 / 100")" 1>&2
+       R2=`size2ratio "$RES"`
+     echo "Check ratio $(bce "$R2 / 100")" 1>&2
         
-	if [ "$R" -eq "$R2" ]; then
-	    SIZE="$RES"
-	    break
-	fi
+  if [ "$R" -eq "$R2" ]; then
+      SIZE="$RES"
+      break
+  fi
     done <<<"$RESOLUTIONS"
 
     if [ "$SIZE" ]; then
-	 echo "Size is $SIZE" 1>&2
+   echo "Size is $SIZE" 1>&2
      else
-	 echo "WARNING: No appropriate size (ratio `bce "$R / 100"`) found!" 1>&2
+   echo "WARNING: No appropriate size (ratio `bce "$R / 100"`) found!" 1>&2
      fi
 
      if [ "$FILESIZE" ]; then
 
-	 VBR=$(bci "$FILESIZE / $(duration "$ARG") * 8 - $ABR - 3000")
+   VBR=$(bci "$FILESIZE / $(duration "$ARG") * 8 - $ABR - 3000")
 
-	 echo "Calculated video bit rate to $VBR" 1>&2
+   echo "Calculated video bit rate to $VBR" 1>&2
 
      fi
 
@@ -133,6 +133,6 @@ transcode --verbose 2   -i "$ARG" -y ffmpeg --export_prof dvd-pal --export_asr 3
 
 
 ) ||
-	      break
+        break
 done
 

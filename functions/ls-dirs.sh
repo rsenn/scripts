@@ -4,5 +4,5 @@ ls-dirs()
     for ARG in "$@";
     do
         ls --color=auto -d "$ARG"/*/;
-    done ) | sed -u 's,^\./,,; s,/$,,'
+    done ) | sed 's,^\./,,; s,/$,,'
 }

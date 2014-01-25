@@ -9,8 +9,8 @@ unset DIR FILESIZE
 
 while :; do
     case "$1" in
-	 -d) DIR="$2"; shift 2 ;;
-	 -s) FILESIZE="$2"; shift 2 ;;
+   -d) DIR="$2"; shift 2 ;;
+   -s) FILESIZE="$2"; shift 2 ;;
      *) break ;;
 
     esac
@@ -68,7 +68,7 @@ for ARG; do
 
     CDDA="${ARG%.*}.cdda"
     if [ "$DIR" ]; then
-	CDDA="$DIR"/`basename "$CDDA"`
+  CDDA="$DIR"/`basename "$CDDA"`
 fi
 
     (set -x; 
