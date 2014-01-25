@@ -28,12 +28,9 @@ case "${OS=`uname -o`}" in
 	URL="http://soundcloud.com/search?$(url_encode_args "q%5Bfulltext%5D=$ARG")"
 	echo "URL is $URL" 1>&2
 	
-<<<<<<< HEAD
-  LINKS=`(http_get "$URL") | sed "s|>\\s*<|>\\n<|g" `
-  echo LINKS = "$LINKS" 1>&2
-=======
+  #LINKS=`(http_get "$URL") | sed "s|>\\s*<|>\\n<|g" `
+  #echo LINKS = "$LINKS" 1>&2
   LINKS=`(set -x; curl --location  "$URL") | grep --line-buffered -E '<(h3|div class="pagination")>'  | xml_get a href`
->>>>>>> 0ac9eca4ed4931a1f4966ae9ff85ce9e7836a93d
 	TRACKS=`echo "$LINKS" | grep -v page=`
 	NAV=`echo "$LINKS" | sed -n 's,.*page=\([0-9]\+\).*,\1,p'`
 	BROWSE=`echo "$LINKS" | sed -n "/page=/ { s,^,http://soundcloud.com, ; s,\\&amp;,\\\\\\\\\\&,g ; s,page=[0-9]\+,page=\\\${PAGE}, ; p ; q ; }"`
