@@ -37,6 +37,7 @@ add_dir()
 }
 
 unset INCLUDE_DIRS
+GREP_ARGS=""
 
 
 while :; do
@@ -45,8 +46,10 @@ while :; do
   	-e | --exist*) EXIST_FILE=true; shift ;;
   	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
   	-f) WANT_FILE=true; shift ;;
-  	-i) add_dir INCLUDE_DIRS "$2" ; shift 2 ;;
-  	-e|-x) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;;
+    -i | --case-insensitive) GREP_ARGS="${GREP_ARGS:+$IFS}-i"; shift ;;
+    --color) GREP_ARGS="${GREP_ARGS:+$IFS}--color"; shift ;;
+  	-I | --include) add_dir INCLUDE_DIRS "$2" ; shift 2 ;;
+  	-[EeXx]) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;;
 	*) break ;;
 	esac
 done
@@ -88,7 +91,6 @@ case "$CLASS" in
 esac
 
 MOUNT_OUTPUT=`mount`
-GREP_ARGS="-i"
 
 
 case "$OS" in
