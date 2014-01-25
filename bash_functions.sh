@@ -337,6 +337,11 @@ cut-dirname()
     sed "s,\\(.*\\)/\\([^/]\\+/\\?\\)${1//./\\.}\$,\2,"
 }
 
+cut-distver()
+{
+  cat "$@" | sed 's,\.fc[0-9]\+\(\.\)\?,\1,g'
+}
+
 cut-ext()
 { 
     sed 's,\.[^./]\+$,,' "$@"
@@ -374,6 +379,16 @@ cut-num()
   sed 's,^\s*[0-9]\+\s*,,' "$@"
 }
 
+cut-pkgver()
+{
+    cat "$@" |sed 's,-[0-9]\+$,,g'
+}
+
+cut-trailver()
+{
+    cat "$@" |sed 's,-[0-9][^-.]*\(\.[0-9][^-.]*\)*$,,'
+}
+
 cut-ver()
 { 
   cat "$@" | cut-trailver |
@@ -386,18 +401,6 @@ cut-ver()
   sed 's,[.-][0-9][_+[:alnum:]]*$,,g ;; s,[.-][0-9]*\(rc[0-9]\)\?\(b[0-9]\)\?\(git[_0-9]\)\?\(svn[_0-9]\)\?\(linux\)\?\(v[0-9]\)\?\(beta[_0-9]\)\?\(alpha[_0-9]\)\?\(a[_0-9]\)\?\(trunk\)\?\(release[_0-9]\)\?\(GIT\)\?\(SVN\)\?\(r[_0-9]\)\?\(dnh[_0-9]\)\?[0-9][_+[:alnum:]]*\.,.,g' |
   sed 's,\.[0-9][^.]*\.,.,g'
 
-}
-cut-pkgver()
-{
-    cat "$@" |sed 's,-[0-9]\+$,,g'
-}
-cut-trailver()
-{
-    cat "$@" |sed 's,-[0-9][^-.]*\(\.[0-9][^-.]*\)*$,,'
-}
-cut-distver()
-{
-  cat "$@" | sed 's,\.fc[0-9]\+\(\.\)\?,\1,g'
 }
 
 d()
@@ -670,6 +673,16 @@ duration()
     done )
 }
 
+each()
+{ 
+    __=$1;
+    test "`type -t "$__"`" = function && __="$__ \"\$@\"";
+    while shift;
+    [ "$#" -gt 0 ]; do
+        eval "$__";
+    done;
+    unset __
+}
 each()
 { 
     __=$1;
@@ -2055,6 +2068,50 @@ list()
 }
 list()
 { 
+    local n=$1 count=0 choices='';
+    shift;
+    for choice in "$@";
+    do
+        choices="$choices $choice";
+        count=$((count + 1));
+        if $((count)) -eq $((n)); then
+            count=0;
+            choices='';
+        fi;
+    done;
+    if [ -n "${choices# }" ]; then
+        msg $choices;
+    fi
+}
+list()
+{ 
+    sed "s|/files\.list:|/|"
+}
+list()
+{ 
+    local indent='  ' IFS="
+";
+    while [ "$1" != "${1#-}" ]; do
+        case $1 in 
+            -i)
+                indent=$2 && shift 2
+            ;;
+            -i*)
+                indent=${2#-i} && shift
+            ;;
+        esac;
+    done;
+    if test -z "$*" || test "$*" = -; then
+        cat;
+    else
+        echo "$*";
+    fi | while read item; do
+        echo " \\";
+        echo -n "$indent$item";
+    done
+}
+list()
+{ 
     local indent='  ' IFS="
 ";
     while [ "$1" != "${1#-}" ]; do
@@ -2636,10 +2693,10 @@ msleep()
 }
 
 msyspath()
-{ 
+{
  (MODE=msys
   while :; do
-    case "$1" in 
+    case "$1" in
       -w) MODE=win32; shift ;;
       -m) MODE=mixed; shift ;;
       *) break ;;
@@ -2651,31 +2708,6 @@ msyspath()
   fi
   eval "$CMD"
   exit $?)
-}
-msyspath()
-{
- (add_to_script() { while [ "$1" ]; do SCRIPT="${SCRIPT:+$SCRIPT ;; }$1"; shift; done; }
- 
-  case $MODE in
-    win*|mix*) add_to_script "s|^/sysdrive||" "s|^[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
-    *) add_to_script "s|^\([A-Za-z0-9]\):|/\\1|" ;;
-  esac
-  case $MODE in
-    win*|mix*)
-       ROOT=$(mount | sed -n 's,\\,\\\\,g ;; s|\s\+on\s\+/\s\+.*||p')
-      add_to_script "/^.:/!  s|^|$ROOT|"
-    ;;
-  esac
-  case "$MODE" in
-    win32) add_to_script "s|/|\\\\|g" ;;
-    *) add_to_script "s|\\\\|/|g" ;;
-  esac
-  case "$MODE" in
-    msys*) add_to_script "s|^/A/|/a/|" "s|^/B/|/b/|" "s|^/C/|/c/|" "s|^/D/|/d/|" "s|^/E/|/e/|" "s|^/F/|/f/|" "s|^/G/|/g/|" "s|^/H/|/h/|" "s|^/I/|/i/|" "s|^/J/|/j/|" "s|^/K/|/k/|" "s|^/L/|/l/|" "s|^/M/|/m/|" "s|^/N/|/n/|" "s|^/O/|/o/|" "s|^/P/|/p/|" "s|^/Q/|/q/|" "s|^/R/|/r/|" "s|^/S/|/s/|" "s|^/T/|/t/|" "s|^/U/|/u/|" "s|^/V/|/v/|" "s|^/W/|/w/|" "s|^/X/|/x/|" "s|^/Y/|/y/|" "s|^/Z/|/z/|" ;;
-    win*)  add_to_script "s|^a:|A:|" "s|^b:|B:|" "s|^c:|C:|" "s|^d:|D:|" "s|^e:|E:|" "s|^f:|F:|" "s|^g:|G:|" "s|^h:|H:|" "s|^i:|I:|" "s|^j:|J:|" "s|^k:|K:|" "s|^l:|L:|" "s|^m:|M:|" "s|^n:|N:|" "s|^o:|O:|" "s|^p:|P:|" "s|^q:|Q:|" "s|^r:|R:|" "s|^s:|S:|" "s|^t:|T:|" "s|^u:|U:|" "s|^v:|V:|" "s|^w:|W:|" "s|^x:|X:|" "s|^y:|Y:|" "s|^z:|Z:|" ;;
-  esac
- (sed "$SCRIPT" "$@")
- )
 }
 
 multiline_list()
@@ -2959,23 +2991,30 @@ path-executables()
 }
 
 pathmunge()
-{ 
-    local IFS=":";
-    : ${OS=`uname -o`};
-    case "$OS:$1" in 
-        [Mm]sys:*[:\\]*)
-            tmp="$1";
-            shift;
-            set -- `msyspath "$tmp"` "$@"
-        ;;
-    esac;
-    if ! echo "$PATH" | egrep -q "(^|:)$1($|:)"; then
-        if test "$2" = "after"; then
-            PATH="$PATH:$1";
-        else
-            PATH="$1:$PATH";
-        fi;
-    fi
+{
+  while :; do
+    case "$1" in
+      -v) PATHVAR="$2"; shift 2 ;;
+      *) break ;;
+    esac
+  done
+  : ${PATHVAR="PATH"}
+  local IFS=":";
+  : ${OS=`uname -o`};
+  case "$OS:$1" in
+      [Mm]sys:*[:\\]*)
+          tmp="$1";
+          shift;
+          set -- `${PATHTOOL:-msyspath} "$tmp"` "$@"
+      ;;
+  esac;
+  if ! eval "echo \"\${$PATHVAR}\"" | egrep -q "(^|:)$1($|:)"; then
+      if test "$2" = "after"; then
+          eval "$PATHVAR=\"\${$PATHVAR}:\$1\"";
+      else
+          eval "$PATHVAR=\"\$1:\${$PATHVAR}\"";
+      fi;
+  fi
 }
 
 pdfpextr()
@@ -3499,6 +3538,26 @@ some()
 { 
     eval "while shift
   do
+  case \"\`str_tolower \"\$1\"\`\" in
+    $(str_tolower "$1") ) return 0 ;;
+  esac
+  done
+  return 1"
+}
+some()
+{ 
+    eval "while shift
+  do
+  case \"\$1\" in
+    $1 ) return 0 ;;
+  esac
+  done
+  return 1"
+}
+some()
+{ 
+    eval "while shift
+  do
   case \"\$1\" in
     $1 ) return 0 ;;
   esac
@@ -3890,8 +3949,8 @@ _msyspath()
  (add_to_script() { while [ "$1" ]; do SCRIPT="${SCRIPT:+$SCRIPT ;; }$1"; shift; done; }
  
   case $MODE in
-    win*|mix*) add_to_script "s|^/sysdrive||" "s|^[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
-    *) add_to_script "s|^\([A-Za-z0-9]\):|/\\1|" ;;
+    win*|mix*) add_to_script "s|^${SYSDRIVE}||" "s|^[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
+    *) add_to_script "s|^\([A-Za-z0-9]\):|${SYSDRIVE}/\\1|" ;;
   esac
   case $MODE in
     win*|mix*)
@@ -3904,7 +3963,7 @@ _msyspath()
     *) add_to_script "s|\\\\|/|g" ;;
   esac
   case "$MODE" in
-    msys*) add_to_script "s|^/A/|/a/|" "s|^/B/|/b/|" "s|^/C/|/c/|" "s|^/D/|/d/|" "s|^/E/|/e/|" "s|^/F/|/f/|" "s|^/G/|/g/|" "s|^/H/|/h/|" "s|^/I/|/i/|" "s|^/J/|/j/|" "s|^/K/|/k/|" "s|^/L/|/l/|" "s|^/M/|/m/|" "s|^/N/|/n/|" "s|^/O/|/o/|" "s|^/P/|/p/|" "s|^/Q/|/q/|" "s|^/R/|/r/|" "s|^/S/|/s/|" "s|^/T/|/t/|" "s|^/U/|/u/|" "s|^/V/|/v/|" "s|^/W/|/w/|" "s|^/X/|/x/|" "s|^/Y/|/y/|" "s|^/Z/|/z/|" ;;
+    msys*) add_to_script "s|^${SYSDRIVE}/A/|${SYSDRIVE}/a/|" "s|^${SYSDRIVE}/B/|${SYSDRIVE}/b/|" "s|^${SYSDRIVE}/C/|${SYSDRIVE}/c/|" "s|^${SYSDRIVE}/D/|${SYSDRIVE}/d/|" "s|^${SYSDRIVE}/E/|${SYSDRIVE}/e/|" "s|^${SYSDRIVE}/F/|${SYSDRIVE}/f/|" "s|^${SYSDRIVE}/G/|${SYSDRIVE}/g/|" "s|^${SYSDRIVE}/H/|${SYSDRIVE}/h/|" "s|^${SYSDRIVE}/I/|${SYSDRIVE}/i/|" "s|^${SYSDRIVE}/J/|${SYSDRIVE}/j/|" "s|^${SYSDRIVE}/K/|${SYSDRIVE}/k/|" "s|^${SYSDRIVE}/L/|${SYSDRIVE}/l/|" "s|^${SYSDRIVE}/M/|${SYSDRIVE}/m/|" "s|^${SYSDRIVE}/N/|${SYSDRIVE}/n/|" "s|^${SYSDRIVE}/O/|${SYSDRIVE}/o/|" "s|^${SYSDRIVE}/P/|${SYSDRIVE}/p/|" "s|^${SYSDRIVE}/Q/|${SYSDRIVE}/q/|" "s|^${SYSDRIVE}/R/|${SYSDRIVE}/r/|" "s|^${SYSDRIVE}/S/|${SYSDRIVE}/s/|" "s|^${SYSDRIVE}/T/|${SYSDRIVE}/t/|" "s|^${SYSDRIVE}/U/|${SYSDRIVE}/u/|" "s|^${SYSDRIVE}/V/|${SYSDRIVE}/v/|" "s|^${SYSDRIVE}/W/|${SYSDRIVE}/w/|" "s|^${SYSDRIVE}/X/|${SYSDRIVE}/x/|" "s|^${SYSDRIVE}/Y/|${SYSDRIVE}/y/|" "s|^${SYSDRIVE}/Z/|${SYSDRIVE}/z/|" ;;
     win*)  add_to_script "s|^a:|A:|" "s|^b:|B:|" "s|^c:|C:|" "s|^d:|D:|" "s|^e:|E:|" "s|^f:|F:|" "s|^g:|G:|" "s|^h:|H:|" "s|^i:|I:|" "s|^j:|J:|" "s|^k:|K:|" "s|^l:|L:|" "s|^m:|M:|" "s|^n:|N:|" "s|^o:|O:|" "s|^p:|P:|" "s|^q:|Q:|" "s|^r:|R:|" "s|^s:|S:|" "s|^t:|T:|" "s|^u:|U:|" "s|^v:|V:|" "s|^w:|W:|" "s|^x:|X:|" "s|^y:|Y:|" "s|^z:|Z:|" ;;
   esac
  (sed "$SCRIPT" "$@")
