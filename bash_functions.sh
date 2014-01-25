@@ -376,8 +376,28 @@ cut-hexnum()
 
 cut-ver()
 { 
-    sed 's,[-_][.0-9]\+[^-_]*,, ; s,[-][[:alnum:]]*[.0-9]\+[^-_]*,,' "$@"
+  cat "$@" | cut-trailver |
+  sed 's,[-.]rc[[:alnum:]][^-.]*,,g ;; s,[-.]b[[:alnum:]][^-.]*,,g ;; s,[-.]git[_[:alnum:]][^-.]*,,g ;; s,[-.]svn[_[:alnum:]][^-.]*,,g ;; s,[-.]linux[^-.]*,,g ;; s,[-.]v[[:alnum:]][^-.]*,,g ;; s,[-.]beta[_[:alnum:]][^-.]*,,g ;; s,[-.]alpha[_[:alnum:]][^-.]*,,g ;; s,[-.]a[_[:alnum:]][^-.]*,,g ;; s,[-.]trunk[^-.]*,,g ;; s,[-.]release[_[:alnum:]][^-.]*,,g ;; s,[-.]GIT[^-.]*,,g ;; s,[-.]SVN[^-.]*,,g ;; s,[-.]r[_[:alnum:]][^-.]*,,g ;; s,[-.]dnh[_[:alnum:]][^-.]*,,g' |
+  sed 's,[^-.]*git[_0-9][^.].,,g ;; s,[^-.]*svn[_0-9][^.].,,g ;; s,[^-.]*GIT[^.].,,g ;; s,[^-.]*SVN[^.].,,g' |
+  sed 's,\.\(P\)\?[0-9][_+[:digit:]]*\.,.,g' |
+  sed 's,[.-][0-9][_+[:alnum:]]*$,,g ;; s,[.-][0-9][_+[:alnum:]]*\([-.]\),\1,g'|
+  sed 's,[-_.][0-9]*\(svn\)\?\(git\)\?\(P\)\?\(rc\)\?[0-9][_+[:digit:]]*\(-.\),\5,g' | 
+  sed 's,-[0-9][._+[:digit:]]*$,, ;;  s,-[0-9][._+[:digit:]]*$,,'  |
+  sed 's,[.-][0-9][_+[:alnum:]]*$,,g ;; s,[.-][0-9]*\(rc[0-9]\)\?\(b[0-9]\)\?\(git[_0-9]\)\?\(svn[_0-9]\)\?\(linux\)\?\(v[0-9]\)\?\(beta[_0-9]\)\?\(alpha[_0-9]\)\?\(a[_0-9]\)\?\(trunk\)\?\(release[_0-9]\)\?\(GIT\)\?\(SVN\)\?\(r[_0-9]\)\?\(dnh[_0-9]\)\?[0-9][_+[:alnum:]]*\.,.,g' |
+  sed 's,\.[0-9][^.]*\.,.,g'
 
+}
+cut-pkgver()
+{
+    cat "$@" |sed 's,-[0-9]\+$,,g'
+}
+cut-trailver()
+{
+    cat "$@" |sed 's,-[0-9][^-.]*\(\.[0-9][^-.]*\)*$,,'
+}
+cut-distver()
+{
+  cat "$@" | sed 's,\.fc[0-9]\+\(\.\)\?,\1,g'
 }
 
 d()
@@ -1113,8 +1133,9 @@ git-get-remote()
 {
 
   ([ $# -lt 1 ] && set -- .
-  CMD='REMOTE=`git remote -v 2>/dev/null | sed "s|\s\+| |g ;; s|\s*([^)]*)||" |uniq`;'
-  [ $# -gt 1 ] && CMD=$CMD'echo "$DIR: $REMOTE"' || CMD=$CMD'echo "$REMOTE"'
+  [ $# -gt 1 ] && FILTER="sed \"s|^|\$DIR: |\"" || FILTER=
+  CMD="REMOTE=\`git remote -v 2>/dev/null | sed \"s|\\s\\+| |g ;; s|\\s*([^)]*)||\" |uniq ${FILTER:+|$FILTER}\`;"
+  CMD=$CMD'echo "$REMOTE"'
   for DIR; do
 					
 					(cd "$DIR";	eval "$CMD")

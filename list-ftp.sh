@@ -66,7 +66,7 @@ decode_ls_lR()
     esac
   
   #var_dump PREFIX DIR FILE
-       echo "${PREFIX:+$PREFIX/}${DIR:+$DIR/}$FILE"
+       echo "${PREFIX:+${PREFIX%/}/}${DIR:+${DIR%/}/}$FILE"
   done)
 }
   
