@@ -1,10 +1,21 @@
 _msyspath()
 {
+<<<<<<< HEAD
  (add_to_script() { while [ "$1" ]; do SCRIPT="${SCRIPT:+$SCRIPT ;; }$1"; shift; done; }
  
   case $MODE in
     win*|mix*) add_to_script "s|^/sysdrive||" "s|^[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
     *) add_to_script "s|^\([A-Za-z0-9]\):|/\\1|" ;;
+=======
+ (case $MODE in
+<<<<<<< HEAD
+    win32|mixed) SCRIPT="${SCRIPT:+$SCRIPT ;; }s|^[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
+    *) SCRIPT="${SCRIPT:+$SCRIPT ;; }s|^\([A-Za-z0-9]\):|${CYGDRIVE}/\\1|" ;;
+=======
+    win32|mixed) SCRIPT="${SCRIPT:+$SCRIPT ;; }s|^/sysdrive||; s|^[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
+    *) SCRIPT="${SCRIPT:+$SCRIPT ;; }s|^\([A-Za-z0-9]\):|/\\1|" ;;
+>>>>>>> 0ac9eca4ed4931a1f4966ae9ff85ce9e7836a93d
+>>>>>>> cba325e4c6ff976e1000c2dea0ee781231ca46d3
   esac
   case $MODE in
     win*|mix*)
