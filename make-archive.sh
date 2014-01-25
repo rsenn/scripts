@@ -1,12 +1,15 @@
+
 #!/bin/bash
 
 LEVEL=3
-EXCLUDE="*.git* *~ *.stackdump"
+: ${EXCLUDE="*.git* *~ *.stackdump"}
 
 while :; do
   case "$1" in
     -[0-9]) LEVEL=${1#-}; shift ;;
     -t) TYPE=$2; shift 2 ;;
+    -E) EXCLUDE="$2"; shift 2 ;; -E=*) EXCLUDE="${1#*=}"; shift ;;
+    -e | --exclude) EXCLUDE="${EXCLUDE:+$EXCLUDE }$2"; shift 2 ;; -e=* | --exclude=*) EXCLUDE="${EXCLUDE:+$EXCLUDE }${1#*=}"; shift ;;
     *) break ;;
   esac
 done
