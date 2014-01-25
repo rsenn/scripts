@@ -2637,6 +2637,7 @@ msleep()
 
 msyspath()
 { 
+<<<<<<< HEAD
  (MODE=msys
   while :; do
     case "$1" in 
@@ -2651,6 +2652,22 @@ msyspath()
   fi
   eval "$CMD"
   exit $?)
+=======
+ (MODE=msys;
+	while :; do
+			case "$1" in 
+					-w) MODE=win32; shift ;;
+					-m) MODE=mixed; shift ;;
+					*) break ;;
+			esac;
+	done;
+	CMD='_msyspath';
+	if [ "$1" != "-" -a "$#" -gt 0 ]; then
+			CMD="echo \"\$*\" |$CMD";
+	fi;
+	eval "$CMD";
+	exit $?)
+>>>>>>> 95a565c087814e15ca8098f026155e5bb11b2ae8
 }
 
 multiline_list()

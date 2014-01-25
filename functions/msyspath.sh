@@ -1,4 +1,4 @@
-msyspath()
+msyspath() 
 { 
  (MODE=msys
   while :; do
