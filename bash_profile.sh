@@ -94,7 +94,7 @@ export TERM LC_ALL
 alias lsof='lsof 2>/dev/null'
 
 [ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; OS="Cygwin"; }
-[ -d /sysdrive ]  && CYGDRIVE="/sysdrive"
+[ -d /sysdrive ]  && SYSDRIVE="/sysdrive" || SYSDRIVE=
 
 
 if [ "$PS1" = '\s-\v\$ ' ]; then
@@ -244,6 +244,15 @@ msiexec()
 if [ -e /etc/bash_completion -a "${BASH_COMPLETION-unset}" = unset ]; then
 				 . /etc/bash_completion
  fi
+
+if [ -n "$USERPROFILE" ]; then
+  USERPROFILE=`msyspath -m "$USERPROFILE"`
+  if [ -d "$USERPROFILE" ]; then
+     CDPATH=${CDPATH:-.}:`msyspath "$USERPROFILE"`
+  
+    DESKTOP="$USERPROFILE/Desktop"
+  fi
+fi
 
  
 LS_COLORS='di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=33;01:cd=33;01:or=31;01:su=37:sg=30:tw=30:ow=34:st=37:ex=01;33:'
