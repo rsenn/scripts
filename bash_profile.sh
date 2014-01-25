@@ -113,10 +113,12 @@ set-prompt()
 case "${OS=`uname -o`}" in
    msys* | Msys* |MSys* | MSYS*)
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
+    
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
    set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]\w\[\e[0m\]\n\$ '
+   PATHTOOL=cygpath
   ;;
 *) 
   MEDIAPATH="/m*/*/"
@@ -129,20 +131,27 @@ esac
 
 pathmunge()
 {
+  while :; do
+    case "$1" in
+      -v) PATHVAR="$2"; shift 2 ;;
+      *) break ;;
+    esac
+  done
+  : ${PATHVAR="PATH"}
   local IFS=":";
   : ${OS=`uname -o`};
   case "$OS:$1" in
       [Mm]sys:*[:\\]*)
           tmp="$1";
           shift;
-          set -- `msyspath "$tmp"` "$@"
+          set -- `${PATHTOOL:-msyspath} "$tmp"` "$@"
       ;;
   esac;
-  if ! echo "$PATH" | egrep -q "(^|:)$1($|:)"; then
+  if ! eval "echo \"\${$PATHVAR}\"" | egrep -q "(^|:)$1($|:)"; then
       if test "$2" = "after"; then
-          PATH="$PATH:$1";
+          eval "$PATHVAR=\"\${$PATHVAR}:\$1\"";
       else
-          PATH="$1:$PATH";
+          eval "$PATHVAR=\"\$1:\${$PATHVAR}\"";
       fi;
   fi
 }
@@ -190,7 +199,7 @@ FNS="$HOME/.bash_functions"
 
 [ -r "$FNS" -a -s "$FNS" ] && . "$FNS"
 
-[ -d "$USERPROFILE" ] && CDPATH=".:$(msyspath "$USERPROFILE")"
+[ -d "$USERPROFILE" ] && CDPATH=".:$(${PATHTOOL:-msyspath} "$USERPROFILE")"
 
 #CDPATH=".:$CYGDRIVE/c/Users/rsenn"
 #
@@ -215,7 +224,7 @@ explore()
     ( r=$(realpath "$1");
     r=${r%/.};
     r=${r#./};
-    p=$(msyspath -w "$r");
+    p=$(${PATHTOOL:-msyspath} -w "$r");
     ( set -x;
     cmd /c "${SystemRoot:+$SystemRoot\\}explorer.exe /n,/e,$p" ) )
 }
@@ -232,7 +241,7 @@ msiexec()
     r=$(realpath "$1");
     r=${r%/.};
     r=${r#./};
-    p=$(msyspath -w "$r");
+    p=$(${PATHTOOL:-msyspath} -w "$r");
     ( set -x;
     cmd /c "msiexec.exe $ARGS $p" ) )
 }
@@ -244,11 +253,13 @@ msiexec()
 if [ -e /etc/bash_completion -a "${BASH_COMPLETION-unset}" = unset ]; then
 				 . /etc/bash_completion
  fi
+ 
+CDPATH="."
 
 if [ -n "$USERPROFILE" ]; then
-  USERPROFILE=`msyspath -m "$USERPROFILE"`
+  USERPROFILE=`${PATHTOOL:-msyspath} -m "$USERPROFILE"`
   if [ -d "$USERPROFILE" ]; then
-     CDPATH=${CDPATH:-.}:`msyspath "$USERPROFILE"`
+     pathmunge -v CDPATH "$(${PATHTOOL:-msyspath} "$USERPROFILE")" after
   
     DESKTOP="$USERPROFILE/Desktop"
   fi
