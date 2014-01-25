@@ -1,4 +1,4 @@
-count-lines() 
+count-lines()
 { 
     ( [ $# -le 0 ] && set -- -;
     N=$#;
@@ -8,4 +8,3 @@ count-lines()
         [ "$N" -le 1 ] && echo "$1" || printf "%10d %s\n" "$1" "$ARG" );
     done )
 }
-
