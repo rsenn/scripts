@@ -18,21 +18,26 @@ slackpkg: $(SCRIPTS)
 		tar -cJf scripts-`date +%Y%m%d`-slackware.txz -C $$distdir .; \
 		rm -rf $$distdir
 
-SCRIPTS =  \
- \
+SCRIPTS = \
 	aaview.sh \
 	aliases.sh \
 	any23gp.sh \
+	any2amr-wb.sh \
 	any2avi.sh \
 	any2cdda.sh \
 	any2divx.sh \
-	any2xvid.sh \
 	any2dvd.sh \
+	any2flac.sh \
 	any2m4a.sh \
+	any2mp2.sh \
 	any2mp3.sh \
 	any2mp4.sh \
+	any2ogg.sh \
 	any2vcd.sh \
 	any2wav.sh \
+	any2wma.sh \
+	any2x264.sh \
+	any2xvid.sh \
 	any2yuv.sh \
 	ape2wav.sh \
 	arp-scan.sh \
@@ -137,6 +142,7 @@ SCRIPTS =  \
 	hhv-search.sh \
 	histogram.awk \
 	home-cleanup.sh \
+	image-anim.rb \
 	isodate.sh \
 	isotime.sh \
 	jadmaker.sh \
@@ -224,6 +230,7 @@ SCRIPTS =  \
 	torrent-finder.sh \
 	total-uninst-decode.sh \
 	ttf2otf.sh \
+	udiff.sh \
 	unpack-and-remove.sh \
 	unpack-each-in-own-folder.sh \
 	urlcoding.sh \
@@ -232,14 +239,9 @@ SCRIPTS =  \
 	vzlist-dummy.sh \
 	warn-auto.sh \
 	wlan-digitall.sh \
-	wlan-hotel-flora.sh \
 	wlan-linksys.sh \
-	wlan-neversil.sh \
-	wlan-polygonstr.sh \
-	wlan-projekt-mbs.sh \
 	wlan-restart.sh \
 	wlan-tmwnet.sh \
-	wlan-vinylz.sh \
 	x11.sh \
 	x2x-ssh-fuse.sh \
 	xterm-256color.sh

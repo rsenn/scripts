@@ -14,6 +14,6 @@ list()
     done)
 }
 
-set -- *.{sh,awk,fontforge,bash,pl}                                
+set -- *.{sh,awk,fontforge,bash,pl,py,rb,el}
 
 list ` echo "$*" | sort -u` 
