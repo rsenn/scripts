@@ -230,6 +230,7 @@ SCRIPTS = \
 	torrent-finder.sh \
 	total-uninst-decode.sh \
 	ttf2otf.sh \
+	udiff.sh \
 	unpack-and-remove.sh \
 	unpack-each-in-own-folder.sh \
 	urlcoding.sh \

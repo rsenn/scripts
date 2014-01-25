@@ -3,7 +3,7 @@
 locate_videos()
 {
     (IFS="
- "; EXTS="avi flv wmv mpg mpeg mp4 mkv mov 3gp"
+ "; EXTS="3gp avi f4v flv m2v mkv mov mp4 mpeg mpg ogm vob webm wmv"
  
   while :; do
     case "$1" in
