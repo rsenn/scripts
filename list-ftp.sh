@@ -98,8 +98,8 @@ list_ftp_ftpls()
    done
 }
 
-: ${LFTP=`type lftp >/dev/null && echo lftp`}
-: ${FTPLS=`type ftpls >/dev/null && echo ftpls`}
+: ${LFTP=`type lftp 2>/dev/null >/dev/null && echo lftp`}
+: ${FTPLS=`type ftpls 2>/dev/null >/dev/null && echo ftpls`}
 
 while :; do
   case "$1"  in
