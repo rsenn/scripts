@@ -157,7 +157,9 @@ add-mediapath()
   for ARG; do
     set -- $(eval "list-mediapath $ARG"); while [ "$1" ]; do 
 	      D="${1%/}"; [ -d "$D" ] || D=${D%/*}; 
-		  [ -d "$D" ] && PATH="$D:$PATH"
+		  if [ -d "$D" ]; then
+		     [ "$ADD" = before ] && PATH="$D:$PATH" || PATH="$PATH:$D"
+		  fi
 		  shift
 		  done
   done
