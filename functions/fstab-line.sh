@@ -22,7 +22,7 @@ fstab-line()
     do
         ( unset DEVNAME LABEL MNTDIR #FSTYPE;
         DEVNAME=${DEV##*/};
-        LABEL=$(disk-label "$DEV");
+        LABEL=$(disk-label -E "$DEV");
         [ -z "$MNTDIR" ] && MNTDIR="$MNT/${LABEL:-$DEVNAME}";
         : ${FSTYPE=$(filesystem-for-device "$DEV")}
         UUID=$(getuuid "$DEV");
@@ -38,6 +38,8 @@ fstab-line()
                 : ${OPTS:=sw}
             ;;
         esac;
-        printf "%-40s %-14s %-6s %-6s %6d %6d\n" "$DEV" "$MNTDIR" "${FSTYPE:-auto}" "${OPTS:-auto}" "${DUMP:-0}" "${PASS:-0}" );
+        [ -z "$OPTS" ] && OPTS="$DEFOPTS"
+        [ -n "$ADDOPTS" ] && OPTS="${OPTS:+$OPTS,}$ADDOPTS"
+        printf "%-40s %-24s %-6s %-6s %6d %6d\n" "$DEV" "$MNTDIR" "${FSTYPE:-auto}" "${OPTS:-auto}" "${DUMP:-0}" "${PASS:-0}" );
     done )
 }

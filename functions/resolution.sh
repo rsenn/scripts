@@ -1,5 +1,17 @@
 resolution()
 { 
+    ( WIDTH=${1%%${MULT_CHAR-x}*};
+    HEIGHT=${1#*${MULT_CHAR-x}};
+    echo $((WIDTH / $2))${MULT_CHAR-x}$((HEIGHT / $2)) )
+}
+resolution()
+{ 
+    ( WIDTH=${1%%x*};
+    HEIGHT=${1#*x};
+    echo $((WIDTH * $2))x$((HEIGHT * $2)) )
+}
+resolution()
+{ 
     ( IFS=" $IFS";
     while :; do
         case "$1" in 

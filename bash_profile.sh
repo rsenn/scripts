@@ -21,6 +21,7 @@ LANG=C
 HISTSIZE=32768
 HISTFILESIZE=16777216
 XLIB_SKIP_ARGB_VISUALS=1
+LESS="-R"
 
 unalias cp mv rm  2>/dev/null
 
@@ -29,7 +30,7 @@ unalias cp mv rm  2>/dev/null
 #  LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:*.wav=00;36:'
 #fi
 
-export PATH LC_ALL LOCALE LANG HISTSIZE HISTFILESIZE LS_COLORS
+export PATH LC_ALL LOCALE LANG HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS
 
 case "$TERM" in
 	  xterm*) TERM=rxvt ;;
@@ -156,7 +157,9 @@ add-mediapath()
   for ARG; do
     set -- $(eval "list-mediapath $ARG"); while [ "$1" ]; do 
 	      D="${1%/}"; [ -d "$D" ] || D=${D%/*}; 
-		  [ -d "$D" ] && PATH="$PATH:$D"
+		  if [ -d "$D" ]; then
+		     [ "$ADD" = before ] && PATH="$D:$PATH" || PATH="$PATH:$D"
+		  fi
 		  shift
 		  done
   done
@@ -182,6 +185,13 @@ add-mediapath Tools/
 #[ -d "$CYGDRIVE/x/I386" ] && PATH="$PATH:$CYGDRIVE/x/I386:$CYGDRIVE/x/I386/system32"
 #[ -d "$CYGDRIVE/c/cygwin/bin" ] && PATH="$PATH:$CYGDRIVE/c/cygwin/bin"
 #
+
+FNS="$HOME/.bash_functions"
+
+[ -r "$FNS" -a -s "$FNS" ] && . "$FNS"
+
+[ -d "$USERPROFILE" ] && CDPATH=".:$(msyspath "$USERPROFILE")"
+
 #CDPATH=".:$CYGDRIVE/c/Users/rsenn"
 #
 #mediapath()
@@ -196,7 +206,6 @@ add-mediapath Tools/
 #    echo "$MEDIAPATH"
 #}
 #
-FNS="$HOME/.bash_functions"
 
 [ -d "x:/Windows" ] && : ${SystemRoot='x:\Windows'}
 [ -d "x:/I386" ] && : ${SystemRoot='x:\I386'}
@@ -228,7 +237,6 @@ msiexec()
     cmd /c "msiexec.exe $ARGS $p" ) )
 }
 
-[ -r "$FNS" -a -s "$FNS" ] && . "$FNS"
 
 
 

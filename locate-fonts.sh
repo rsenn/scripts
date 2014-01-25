@@ -3,6 +3,7 @@
 MYNAME=`basename "$0" .sh`
 MYDIR=`dirname "$0"`
 
+EXTS="afm bdf fon gsf otf pcf pfa pfb pfm ttc ttf"
 
 CYGPATH=` which cygpath 2>/dev/null` 
 : ${CYGPATH:=true}
@@ -12,7 +13,6 @@ find_fonts()
 	(
    IFS="
 	 "
-		EXTS="otf ttf fon bdf pcf"
 		
 		[ "$#" -le 0 ] && set -- *
 
@@ -56,8 +56,6 @@ done
 
 grep-fonts()
 {
-  EXTS="ttf otf bdf pcf fon"
-
   exec grep -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))[^/]*\$"  "$@"
 }
 
@@ -65,8 +63,7 @@ grep-fonts()
 locate-fonts()
 {
     (IFS="
- "; EXTS="mp3 ogg flac mpc m4a m4b wma rm"
-
+ ";
  locate -i -r '.*' |grep -iE "\.($(IFS='| '; set -- $EXTS; echo "$*"))\$"
  )
 }

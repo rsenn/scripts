@@ -1,5 +1,5 @@
 #!/bin/bash
-EXTS="mkv 3gp avi flv mp4 wmv mov mpg mpeg"
+EXTS="3gp avi f4v flv m2v mkv mov mp4 mpeg mpg ogm vob webm wmv"
 
 while :; do
         case "$1" in
