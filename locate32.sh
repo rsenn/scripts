@@ -1,21 +1,25 @@
 #!/bin/sh
 
-pathconv() { (IFS="/\\"; set -- $*; echo "$*"); }
-addopt() { OPTS="${OPTS:+$OPTS }$*"; }
+IFS="
+"
+
+pathconv() { (IFS="/\\"; S="${2-/}"; set -- $1; IFS="$S"; echo "$*"); }
+addopt() { for OPT; do OPTS="${OPTS:+$OPTS }${OPT}"; done; }
 
 LOCATE=$(pathconv "$PROGRAMFILES")/Locate32/locate.exe
 OPTS=
 REGEX= NOCASE=
-LOOKDIR= LOOKFILE= LOOKWHOLE=
-SIZE=
+LOOKDIR= LOOKFILE= 
+WHOLE= SIZE=
 
 while :; do
   case "$1" in
+    -p | --path) LOOKPATH="$2"; shift ;;
     -r | --regex) REGEX=true ;;
     -i | --ignore-case) NOCASE=true ;;
     -f | --file) LOOKFILE=f ;;
     -d | --dir) LOOKDIR=d ;;
-    -w | --wholename) LOOKWHOLE=w ;;
+    -w | --wholename) WHOLE=true ;;
     -s | 	--size) SIZE="$2"; shift ;;
     *) break ;;
   esac
@@ -40,4 +44,9 @@ case "$SIZE" in
   -*) addopt -lM:"${SIZE#?}" ;;
 esac
 
-"$LOCATE" $OPTS -- "$@" | sed "s|\\\\|/|g"
+[ "$WHOLE" = true ] && addopt -w
+[ "$LOOKPATH" ] && addopt -p "$(pathconv "$LOOKPATH" "\\")"
+
+CMD="exec \"$LOCATE\" $OPTS -- \"$@\" | sed \"s|\\\\\\\\|/|g\""
+echo "+ $CMD" 1>&2
+eval "$CMD"
