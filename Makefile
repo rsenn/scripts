@@ -164,6 +164,7 @@ SCRIPTS = \
 	locate-software.sh \
 	locate-sources.sh \
 	locate-videos.sh \
+	locate32.sh \
 	locks.sh \
 	logrun.sh \
 	lsof.sh \
@@ -194,6 +195,7 @@ SCRIPTS = \
 	otf2ttf.fontforge \
 	otf2ttf.sh \
 	pack-dir.sh \
+	package-search.sh \
 	program-paths.sh \
 	prompt.sh \
 	proxy-list.sh \
@@ -210,6 +212,7 @@ SCRIPTS = \
 	rsync.sh \
 	rxvt.sh \
 	scan-open-wlans.sh \
+	scriptlist.sh \
 	search-files.sh \
 	search-fileshare.sh \
 	search-sc.sh \

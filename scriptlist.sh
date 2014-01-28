@@ -16,4 +16,4 @@ list()
 
 set -- *.{sh,awk,fontforge,bash,pl,py,rb,el}
 
-list ` echo "$*" | sort -u` 
+list `echo "$*" | sort -u | grep -v '^\*\.'` 
