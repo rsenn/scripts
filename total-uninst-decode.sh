@@ -50,6 +50,7 @@ while read -r LINE; do
        esac
        
        K=$(subst-keyroot "$KEY")
+       unset REGVAL
        
        case "$TYPE" in
          REG_SZ) 
@@ -66,17 +67,21 @@ while read -r LINE; do
            PREFIX="hex(7)"
            VALUE=${VALUE#\"}
            VALUE=${VALUE%\"}
+           REGVAL="/s , /v \"$VALUE\""
            VALUE=$(echo -n "${VALUE}" | iconv -f UTF-8 -t UTF-16  |hexdump -v -e '"" 1/1 "%02x" ","' | sed "s|,$||")
+           
          ;;
          REG_EXPAND_SZ)
            PREFIX="hex(2)"
            VALUE=${VALUE#\"}
            VALUE=${VALUE%\"}
+           REGVAL="/d \"${VALUE//"%"/"^%"}\""
            VALUE=$(echo -n "${VALUE}" | iconv -f UTF-8 -t UTF-16 |hexdump -v -e '"" 1/1 "%02x" ","' | sed "s|,$||")
          ;;
          REG_BINARY)
            PREFIX="hex"
            VALUE=$(echo -n "${VALUE}"  |hexdump -v -e '"" 1/1 "%02x" ","' | sed "s|,$||")
+           
          ;;
          *) 
           PREFIX= VALUE=
@@ -84,7 +89,13 @@ while read -r LINE; do
        esac
 [ "$DEBUG" = true ] && echo  "\"$K\" \"$NAME\" ($TYPE) = $VAL" 1>&2
        
-       echo "\"$NAME\"=${PREFIX:+$PREFIX:}$VALUE"
+#       echo "\"$NAME\"=${PREFIX:+$PREFIX:}$VALUE"
+        
+        [ "$NAME" = "@" ] && VALUEARG="/ve" ||
+        VALUEARG="/v \"$NAME\""
+
+       : ${REGVAL:="-d \"$VALUE\""}
+       echo "reg add \"$K\" $VALUEARG /t $TYPE $REGVAL /f"
     ;;
     esac
 done					

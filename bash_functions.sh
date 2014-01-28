@@ -1336,6 +1336,15 @@ hex2chr()
 { 
     echo "puts -nonewline [format \"%c\" 0x$1]" | tclsh
 }
+hex2chr () 
+{ 
+    ( S="";
+    for ARG in "$@";
+    do
+        S="$S\\x$ARG";
+    done;
+    echo -e "$S" )
+}
 
 hexdump_printfable()
 { 
@@ -1595,9 +1604,15 @@ index-dir()
     ( for ARG in "$@";
     do
         ( cd "$ARG";
+        if ! test -w "$PWD" ; then
+          echo "Cannot write to $PWD ..." 1>&2
+          exit
+        fi
         echo "Indexing directory $PWD ..." 1>&2;
-        list-recursive > .files.list.tmp;
-        mv -f .files.list.tmp files.list;
+        TEMP=`mktemp /tmp/"${PWD##*/}XXXXXX.list"`
+        trap 'rm -f "$TEMP"; unset TEMP' EXIT
+        list-recursive >"$TEMP";
+        mv -f "$TEMP" "$PWD/files.list";
         wc -l "$PWD/files.list" 1>&2 );
     done )
 }
