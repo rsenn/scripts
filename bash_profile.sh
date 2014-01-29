@@ -93,7 +93,9 @@ LC_ALL="C"
 export TERM LC_ALL
 alias lsof='lsof 2>/dev/null'
 
-[ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; OS="Cygwin"; }
+[ "$OSTYPE" ] && OS="$OSTYPE"
+
+[ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; : ${OS="Cygwin"}; }
 [ -d /sysdrive ]  && SYSDRIVE="/sysdrive" || SYSDRIVE=
 
 
@@ -110,7 +112,7 @@ set-prompt()
 	fi
 }
 
-case "${OS=`uname -o`}" in
+case "${OS=`uname -o |head -n1`}" in
    msys* | Msys* |MSys* | MSYS*)
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
     PATHTOOL=msyspath
@@ -139,7 +141,7 @@ pathmunge()
   done
   : ${PATHVAR="PATH"}
   local IFS=":";
-  : ${OS=`uname -o`};
+  : ${OS=`uname -o | head -n1`};
   case "$OS:$1" in
       [Mm]sys:*[:\\]*)
           tmp="$1";
