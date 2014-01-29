@@ -1,8 +1,8 @@
-msyspath() 
-{ 
+msyspath()
+{
  (MODE=msys
   while :; do
-    case "$1" in 
+    case "$1" in
       -w) MODE=win32; shift ;;
       -m) MODE=mixed; shift ;;
       *) break ;;
