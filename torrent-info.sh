@@ -8,16 +8,18 @@ while :; do
     -r | --rename | --*rename*) DO_RENAME=true; shift ;;
     -n | --derive-name | --*name*) DERIVE_NAME=true; shift ;;
     -p | --print-only | --*print*) PRINT_ONLY=true; shift ;;
+    -f | --force) FORCE=true; shift ;;
     *) break ;;
   esac
 done
 
 ctor_listfiles()
 {
- (DIR= FILE=
+ (DIR= FILE= O=
   set -- $CTOR
   while [ "$1" != "FILES INFO" ]; do
     shift
+    [ $# -eq 0 ] && exit 2
   done
   shift
   while [ $# -gt 0 ]; do
@@ -27,17 +29,20 @@ ctor_listfiles()
       "Directory: "*)
         DIR=${LINE#"Directory: "}
       ;;
-      "<"*">  "*" ["*"]"*)
+      "<"*">"*" ["*"]"*)
         N=${LINE#"<"}; N=${N%">"*}
-        LINE=${LINE#*">  "}
+        LINE=${LINE#*">"}
+        while [ "${LINE:0:1}" = " " ]; do LINE=${LINE#" "}; done
         FILE=${LINE%" ["*"]"*}
         LINE=${LINE##*" ["}
         SIZE=${LINE%"]"*}
 
-       eval "echo \"$OUTPUT\""
+       eval "O=\"\${O:+$O
+}${OUTPUT}\""
       ;;
     esac
-  done)
+  done
+  [ "$O" ] && echo "$O") || return $?
 }
 
 escape() 
@@ -63,17 +68,13 @@ fi
 fi
 
 
-
 for ARG in $ARGS; do
   CTOR=$(ctorrent -x "$ARG")
+  if ! [ "$CTOR" ] || ! eval "$CMD"; then
+    if [ "$FORCE" != true ]; then
+      echo "Failed reading torrent '$ARG'" 1>&2
+      exit $?
+    fi
+  fi
 
-  eval "$CMD"
 done
-escape_dquote () 
-{ 
-    local s="$1";
-    s=${s//"\\"/"\\\\"};
-    s=${s//'$'/"\\"'$'};
-    s=${s//'"'/'\"'};
-    echo "$s"
-}
