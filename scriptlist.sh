@@ -1,5 +1,6 @@
 #!/bin/bash
 
+EXCLUDE="bash_*.sh scriptlist.sh"
 IFS="
 "
 
@@ -14,6 +15,8 @@ list()
     done)
 }
 
+ex() { (IFS="| $IFS"; set -- $EXCLUDE; echo "($*)"); }
+
 set -- *.{sh,awk,fontforge,bash,pl,py,rb,el}
 
-list `echo "$*" | sort -u | grep -v '^\*\.'` 
+list `echo "$*" | sort -u | grep -v '^\*\.'` |grep -v -E "$(ex $EXCLUDE)"
