@@ -18,7 +18,7 @@ slackpkg: $(SCRIPTS)
 		tar -cJf scripts-`date +%Y%m%d`-slackware.txz -C $$distdir .; \
 		rm -rf $$distdir
 
-SCRIPTS = \
+SCRIPTS =  \
 	aaview.sh \
 	aliases.sh \
 	any23gp.sh \
@@ -43,8 +43,6 @@ SCRIPTS = \
 	arp-scan.sh \
 	autogen.sh \
 	avi2vob.sh \
-	bash_functions.sh \
-	bash_profile.sh \
 	bcmm-dump.sh \
 	bridge-setup.sh \
 	browser-history.sh \
@@ -139,6 +137,7 @@ SCRIPTS = \
 	grep-videos.sh \
 	grub-files-find.sh \
 	hashstash.sh \
+	hex2chr.sh \
 	hhv-search.sh \
 	histogram.awk \
 	home-cleanup.sh \
@@ -205,6 +204,7 @@ SCRIPTS = \
 	ptrace.sh \
 	putty-sessions.sh \
 	rcat.sh \
+	reg-export.sh \
 	reg-generic.sh \
 	require.sh \
 	rmsem.sh \
@@ -212,13 +212,11 @@ SCRIPTS = \
 	rsync.sh \
 	rxvt.sh \
 	scan-open-wlans.sh \
-	scriptlist.sh \
 	search-files.sh \
 	search-fileshare.sh \
 	search-sc.sh \
 	search-soundcloud.sh \
 	sets.sh \
-	setup.sh \
 	shopts.sh \
 	slackpkg-archive.sh \
 	ssh-agent-takeover.sh \
@@ -230,6 +228,7 @@ SCRIPTS = \
 	tokgrep.sh \
 	toksubst.sh \
 	torrent-finder.sh \
+	torrent-info.sh \
 	total-uninst-decode.sh \
 	ttf2otf.sh \
 	udiff.sh \
