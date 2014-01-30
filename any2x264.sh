@@ -135,7 +135,7 @@ fi
     R=`size2ratio "${WIDTH}x${HEIGHT}"`
     unset SIZE
 
-    is16to9 $WIDTH $HEIGHT && ASPECT="16:9" || ASPECT="4:3"
+    is16to9 $WIDTH $HEIGHT && ASPECT="16:9" #|| ASPECT="4:3"
 
     while read RES; do
   R2=`size2ratio "$RES"`

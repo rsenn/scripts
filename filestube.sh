@@ -7,10 +7,10 @@ require url
 : ${X="+x"}
 N=99
 Q=`url_encode_args q="$@"`
-USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0"
 IFS="
  "
-HTTP_PROXY="127.0.0.1:8123"
+USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0"
+#HTTP_PROXY="127.0.0.1:8123"
 
 DLCMD="curl -q -s --location -A '$USER_AGENT' ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"}"
 #DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }wget -q -O - -U '$USER_AGENT'"
