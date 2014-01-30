@@ -7,6 +7,7 @@ while :; do
   case "$1" in
     -[0-9]) LEVEL=${1#-}; shift ;;
     -t) TYPE=$2; shift 2 ;;
+    -x | --exclude) EXCLUDE="${EXCLUDE:+$EXCLUDE }$2"; shift 2 ;; -x=* | --exclude=*) EXCLUDE="${EXCLUDE:+$EXCLUDE }${1#*=}"; shift ;;
     *) break ;;
   esac
 done
