@@ -180,6 +180,7 @@ SCRIPTS =  \
 	ps2tiff.sh \
 	ptrace.sh \
 	rcat.sh \
+	require.sh \
 	rmsem.sh \
 	rsed.sh \
 	rxvt.sh \
