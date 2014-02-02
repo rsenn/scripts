@@ -5,7 +5,7 @@ NL="
 "
 IFS="${NL} "
 tokcharset="_A-Za-z0-9"
-tokexpr="[${tokcharset}]\\+"
+tokexpr="[${tokcharset}]"
 
 while :; do
    case "$1" in
@@ -18,18 +18,38 @@ while :; do
    esac
 done
 
+fnmatch2regexp()
+{
+  ARG="$*"
+  ARG=${ARG//"*"/"${tokexpr}*"}
+  ARG=${ARG//"?"/"${tokexpr}"}
+  ARG=${ARG//"."/"\\."}
+  
+  echo "$ARG"
+}
+
 FILTER="\\|^\$|d"
 SED_ARGS=""
 
-if ["$EXC" ]; then
+set -f
+
+if [ "$EXC" ]; then
   for X in $EXC; do
-    FILTER="${FILTER}${NL}\\|$X|d"
+    NOT=
+    case "$X" in
+      '!'*) X=${X#'!'}; NOT='!' ;;
+    esac
+    FILTER="${FILTER}${NL}\\|^$(fnmatch2regexp "$X")\$|${NOT}d"
   done
 fi
 
 if [ "$INC" ]; then
   for I in $INC; do
-    FILTER="${FILTER}${NL}\\|$I|p"
+    NOT=
+    case "$I" in
+      '!'*) I=${I#'!'}; NOT='!' ;;
+    esac
+    FILTER="${FILTER}${NL}\\|^$(fnmatch2regexp "$I")\$|${NOT}p"
   done
   SED_ARGS="-n"
 fi
