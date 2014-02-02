@@ -225,6 +225,7 @@ SCRIPTS =  \
 	svnpath.sh \
 	svtail.sh \
 	test.sh \
+	tokextract.sh \
 	tokgrep.sh \
 	toksubst.sh \
 	torrent-finder.sh \
