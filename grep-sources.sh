@@ -20,4 +20,4 @@ done
 
 : ${EXTS="c cc cpp cxx h hh hpp hxx"}
 
-exec grep -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))\$"  "$@"
+exec grep -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))(\$|:)"  "$@"
