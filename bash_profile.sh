@@ -33,11 +33,11 @@ unalias cp mv rm  2>/dev/null
 export PATH LC_ALL LOCALE LANG HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS
 
 case "$TERM" in
-	  xterm*) TERM=rxvt ;;
+    xterm*) TERM=rxvt ;;
 esac
 
 case "$TERM" in
-	xterm|rxvt|screen) TERM="$TERM-256color" ;;
+  xterm|rxvt|screen) TERM="$TERM-256color" ;;
 esac
 
 TERM=xterm-256color
@@ -46,18 +46,18 @@ alias xargs='xargs -d "\n"'
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
 
 if ls --help 2>&1 |grep -q '\--color'; then
-				LS_ARGS="$LS_ARGS --color=auto"
+        LS_ARGS="$LS_ARGS --color=auto"
 fi
 if ls --help 2>&1 |grep -q '\--time-style'; then
-				LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
+        LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
 fi
 alias ls="ls $LS_ARGS"
 
 if grep --help 2>&1 |grep -q '\--color'; then
-				GREP_ARGS="$GREP_ARGS --color=auto"
+        GREP_ARGS="$GREP_ARGS --color=auto"
 fi
 if grep --help 2>&1 |grep -q '\--line-buffered'; then
-				GREP_ARGS="$GREP_ARGS --line-buffered"
+        GREP_ARGS="$GREP_ARGS --line-buffered"
 fi
 alias grep="grep $GREP_ARGS"
 alias cp='cp'
@@ -96,7 +96,7 @@ alias lsof='lsof 2>/dev/null'
 [ "$OSTYPE" ] && OS="$OSTYPE"
 
 [ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; : ${OS="Cygwin"}; }
-[ -d /sysdrive ]  && SYSDRIVE="/sysdrive" || SYSDRIVE=
+[ -d /sysdrive ]  && SYSDRIVE="/sysdrive" || unset SYSDRIVE
 
 
 if [ "$PS1" = '\s-\v\$ ' ]; then
@@ -105,16 +105,16 @@ fi
 
 set-prompt()
 {
-	if [ -r "$HOME/.bash_prompt" ]; then
-				 eval "PS1=\"$(<$HOME/.bash_prompt)\""
-	else
-				PS1="$*"
-	fi
+  if [ -r "$HOME/.bash_prompt" ]; then
+         eval "PS1=\"$(<$HOME/.bash_prompt)\""
+  else
+        PS1="$*"
+  fi
 }
 
 case "${OS=`uname -o |head -n1`}" in
    msys* | Msys* |MSys* | MSYS*)
-    MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
+    MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
     PATHTOOL=msyspath
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
@@ -125,7 +125,7 @@ case "${OS=`uname -o |head -n1`}" in
 *) 
   MEDIAPATH="/m*/*/"
   
-	set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
+  set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
  ;;
 esac
 
@@ -167,12 +167,12 @@ add-mediapath()
 {
   for ARG; do
     set -- $(eval "list-mediapath $ARG"); while [ "$1" ]; do 
-	      D="${1%/}"; [ -d "$D" ] || D=${D%/*}; 
-		  if [ -d "$D" ]; then
-		     [ "$ADD" = before ] && PATH="$D:$PATH" || PATH="$PATH:$D"
-		  fi
-		  shift
-		  done
+        D="${1%/}"; [ -d "$D" ] || D=${D%/*}; 
+      if [ -d "$D" ]; then
+         [ "$ADD" = before ] && PATH="$D:$PATH" || PATH="$PATH:$D"
+      fi
+      shift
+      done
   done
 }
 
@@ -256,7 +256,7 @@ msiexec()
 
 #
 if [ -e /etc/bash_completion -a "${BASH_COMPLETION-unset}" = unset ]; then
-				 . /etc/bash_completion
+         . /etc/bash_completion
  fi
  
 CDPATH="."
