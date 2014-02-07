@@ -176,8 +176,11 @@ add-mediapath()
   done
 }
 
+is-cmd() { type "$1" >/dev/null 2>/dev/null; }
+
 #echo -n "Adding mediapaths ... " 1>&2; add-mediapath "I386/" "I386/system32/" "Windows/" "Tools/" "HBCD/" "Program*/{Notepad2,WinRAR,Notepad++,SDCC/bin,gputils/bin}/"; echo "done" 1>&2
-add-mediapath "Program Files/Notepad2"
+is-cmd "notepad2" || add-mediapath "Prog*/Notepad2"
+
 add-mediapath Tools/
 
 #for DIR in $(list-mediapath "Prog*"/{UniExtract,Notepad*,WinRAR,7-Zip,WinZip}/ "Tools/" "I386/" "Windows"/{,system32/} "*.lnk"); do
@@ -263,7 +266,10 @@ if [ -n "$USERPROFILE" ]; then
   if [ -d "$USERPROFILE" ]; then
      pathmunge -v CDPATH "$(${PATHTOOL:-msyspath} "$USERPROFILE")" after
   
-    DESKTOP="$USERPROFILE/Desktop"
+    DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos" MUSIC="$USERPROFILE/Music"
+    
+    pathmunge -v CDPATH "$(${PATHTOOL:-msyspath} "$DOCUMENTS")" after
+    pathmunge -v CDPATH "$(${PATHTOOL:-msyspath} "$DESKTOP")" after
   fi
 fi
 
