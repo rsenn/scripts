@@ -153,6 +153,7 @@ SCRIPTS =  \
 	lsof.sh \
 	lvm-mount-all.sh \
 	maildirfix.sh \
+	make-archive.sh \
 	make-wine-wrapper.sh \
 	media-mnt-find.sh \
 	mingwvars.sh \

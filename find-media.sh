@@ -68,7 +68,11 @@ else
 					EXPR="$EXPR$ARG"
 					case "$ARG" in
 							*\$) ;; 
-						*) [ "$WANT_FILE" = true ] && EXPR="$EXPR[^/]*\$" ;;
+						*) if [ "$WANT_FILE" = true ]; then
+						   EXPR=${EXPR//'.*'/'[^/]*'}
+						   EXPR="$EXPR[^/]*\$"
+
+						 fi ;;
 					esac
 				done
 				EXPR="$EXPR)"

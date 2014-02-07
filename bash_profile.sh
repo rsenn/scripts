@@ -266,7 +266,7 @@ if [ -n "$USERPROFILE" ]; then
   if [ -d "$USERPROFILE" ]; then
      pathmunge -v CDPATH "$(${PATHTOOL:-msyspath} "$USERPROFILE")" after
   
-    DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos" MUSIC="$USERPROFILE/Music"
+    DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" DOWNLOADS="$USERPROFILE/Downloads" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos" MUSIC="$USERPROFILE/Music"
     
     pathmunge -v CDPATH "$(${PATHTOOL:-msyspath} "$DOCUMENTS")" after
     pathmunge -v CDPATH "$(${PATHTOOL:-msyspath} "$DESKTOP")" after
