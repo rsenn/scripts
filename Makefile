@@ -201,6 +201,7 @@ SCRIPTS =  \
 	tokgrep.sh \
 	toksubst.sh \
 	torrent-finder.sh \
+	torrent-info.sh \
 	total-uninst-decode.sh \
 	ttf2otf.sh \
 	udiff.sh \

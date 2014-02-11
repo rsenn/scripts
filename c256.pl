@@ -1,0 +1,127 @@
+#!/usr/bin/perl
+use vars qw($APP $VERSION);
+$APP     = 'c256';
+$VERSION = '0.131';
+
+use strict;
+use Getopt::Long;
+use Data::Dumper;
+use Pod::Usage;
+use Term::ExtendedColor qw(fg bg);
+use Term::ExtendedColor::Xresources qw(get_xterm_color);
+use Data::Dumper;
+
+my $unicode = "░▒▓██▓▒░";
+my @colors = map { sprintf("%d", $_) } (0 .. 255);
+
+our($opt_sqsize) = (16);
+our($opt_hex_values);
+@ARGV or square($opt_sqsize);
+
+GetOptions(
+  'col:i'   => \$opt_sqsize,
+  'list'    => \&list,
+  'square'  => \&square,
+  'hex'     => sub { $opt_hex_values++; square(); },
+
+  'h|help'      => sub { print "$APP v$VERSION\n\n"; pod2usage(verbose => 1)},
+  'm|man'       => sub { pod2usage(verbose => 3)},
+  'v|version'   => sub { print "$APP v$VERSION\n" and exit 0; },
+);
+
+square($opt_sqsize);
+
+sub square {
+  my $col = shift;
+  $col = 16 if(!defined($col) or (!$col));
+
+  my $end = int( 256/$col );
+  my @colors = map { sprintf("%d", $_) } (0 .. 255);
+
+
+  if($opt_hex_values) {
+    my $rgb     = get_xterm_color({ index => [@colors] });
+    my $current = $rgb->{$rgb}->{rgb};
+
+    for my $index(sort(keys(%$rgb))) {
+      printf("%03d: %s\n", $index, fg(sprintf("%d", $index), $rgb->{$index}->{rgb}))
+        unless(!exists($rgb->{$index}->{rgb}));
+    }
+    exit;
+  }
+
+
+  for my $e(0 .. $end) {
+    my @o;
+    for( my $c = $e; $c < $colors[-1]; $c += $end + 1) {
+      my $esc;
+      if($opt_hex_values) {
+        my $rgb = get_xterm_color({ index => $c });
+        my $current_color = $rgb->{$c}->{rgb};
+
+        $esc = fg($c, $current_color);
+      }
+      else {
+        $esc = sprintf("\e[48;5;$colors[$c]m%3d\e[0m", $colors[$c]);
+      }
+      push(@o, $esc);
+    }
+    print "@o\n";
+  }
+
+  print "\n";
+  exit 0;
+}
+
+
+sub list {
+  for my $i(@colors) {
+#    printf("\e[38;5;%d%s %3d \e[48;5;$i%s %s %s %s \e[0m\n",  $i, 'm', $i,  $unicode, $i);
+ #   printf("\\\\e[38;5;%d%s %3d \\\\e[48;5;$i%s %s %s %s \\\e[0m\n",  $i, 'm', $i, 'm', $i);
+  }
+  exit 0;
+}
+
+=pod
+
+=head1 NAME
+
+c256 - print various tables in 256 colors
+
+=head1 USAGE
+
+  c256 [-c columns] [OPTIONS]
+
+=head1 DESCRIPTION
+
+c256 will tell you if your terminal supports 256 colors.
+It can also be used to list the actual hexadecimal RGB values of each mapped
+color.
+
+=head1 OPTIONS
+
+  -s,   --square  square format (default)
+  -l,   --list    list format
+  -c,   --col     n columns
+        --hex     show hexadecimal values of each color
+
+  -h    --help    help message
+  -m    --man     view manpage
+
+=head1 TRIVIA
+
+The background notation to use is <ESC>38;5 - \033[38;5;100m
+
+The foreground notation to use is <ESC>48;5 - \033[48;5;197m
+
+=head1 AUTHOR
+
+Written by Magnus Woldrich
+
+=head1 COPYRIGHT
+
+(C) Copyright 2010 Magnus Woldrich.
+
+License GPLv2.
+
+=cut

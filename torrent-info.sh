@@ -4,6 +4,7 @@ IFS="
 "
 while :; do
   case "$1" in
+    -h | --human-size | --*human*) HUMAN_SIZE=true SHOW_SIZE=true; shift ;;
     -s | --show-size | --*size*) SHOW_SIZE=true; shift ;;
     -r | --rename | --*rename*) DO_RENAME=true; shift ;;
     -n | --derive-name | --*name*) DERIVE_NAME=true; shift ;;
@@ -37,12 +38,23 @@ ctor_listfiles()
         LINE=${LINE##*" ["}
         SIZE=${LINE%"]"*}
 
-       eval "O=\"\${O:+$O
+       eval "O=\"\${O:+\$O
 }${OUTPUT}\""
       ;;
     esac
   done
   [ "$O" ] && echo "$O") || return $?
+}
+
+human_size()
+{
+  NUM="$1" 
+  set -- "" k M G T
+  while [ $# -gt 1 -a ${#NUM} -gt 3 ]; do
+    NUM=$((NUM / 1024))
+    shift
+  done
+  echo "${NUM}$1"
 }
 
 escape() 
@@ -53,11 +65,16 @@ escape()
   echo "$s"
 }
 ARGS="$*"
+ARGC="$#"
 OUTPUT='${DIR:+$DIR/}${FILE}'
 CMD='ctor_listfiles'
 
 
-[ "$SHOW_SIZE" = true ] && OUTPUT="$OUTPUT [\$SIZE]"
+if [ "$SHOW_SIZE" = true ];then 
+  [ "$HUMAN_SIZE" = true ] &&
+  OUTPUT="$OUTPUT [\$(human_size \$SIZE)]" ||
+  OUTPUT="$OUTPUT [\$SIZE]"
+fi
 
 if [ "$DERIVE_NAME" = true -o "$DO_RENAME" = true ]; then
   CMD="$CMD | sed s,/.*,, | uniq"
@@ -67,7 +84,7 @@ if [ "$DERIVE_NAME" = true -o "$DO_RENAME" = true ]; then
 fi
 fi
 
-
+[ "$ARGC" -gt 1 ] && OUTPUT="\$ARG: $OUTPUT"
 for ARG in $ARGS; do
   CTOR=$(ctorrent -x "$ARG")
   if ! [ "$CTOR" ] || ! eval "$CMD"; then

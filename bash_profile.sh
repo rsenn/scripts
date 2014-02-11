@@ -76,12 +76,14 @@ type aptitude 2>/dev/null >/dev/null && alias aptitude='sudo aptitude -y'
 #cd() { command cd "$(d "$1")"; }
 #pushd() { command pushd "$(d "$1")"; }
 
-. require.sh
+if type require.sh 2>/dev/null >/dev/null; then
+	. require.sh
 
-require util
-require algorithm
-require list
-require fs
+	require util
+	require algorithm
+	require list
+	require fs
+fi
 
 set -o vi
 
@@ -272,6 +274,8 @@ if [ -n "$USERPROFILE" ]; then
     pathmunge -v CDPATH "$(${PATHTOOL:-msyspath} "$DESKTOP")" after
   fi
 fi
+
+[ -d /mingw/bin ] && pathmunge /mingw/bin after
 
  
 LS_COLORS='di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=33;01:cd=33;01:or=31;01:su=37:sg=30:tw=30:ow=34:st=37:ex=01;33:'
