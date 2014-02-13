@@ -42,9 +42,11 @@ GREP_ARGS=""
 
 while :; do
 	case "$1" in
+  	-m | --mediapath) MEDIAPATH="$2"; shift 2 ;;
+  	-m=* | --mediapath=*) MEDIAPATH="${1#*=}"; shift ;;
   	-d | --debug) DEBUG=true; shift ;;
   	-e | --exist*) EXIST_FILE=true; shift ;;
-  	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
+#  	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
   	-f) WANT_FILE=true; shift ;;
     -i | --case-insensitive) GREP_ARGS="${GREP_ARGS:+$IFS}-i"; shift ;;
     --color) GREP_ARGS="${GREP_ARGS:+$IFS}--color"; shift ;;
@@ -95,9 +97,9 @@ MOUNT_OUTPUT=`mount`
 
 case "$OS" in
   Cygwin* | *cygwin*) CYGDRIVE="/cygdrive" 
-MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
+: ${MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"}
 ;;
-*Linux*|*linux*) MEDIAPATH="/m*/*/" ;;
+*Linux*|*linux*) : ${MEDIAPATH="/m*/*/"} ;;
 
 esac
 
