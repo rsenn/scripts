@@ -98,11 +98,15 @@ MOUNT_OUTPUT=`mount`
 
 
 case "$OS" in
+  M[Ss][Yy][Ss]*)
+  (set -- /sysdrive/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/; for DRIVE do test -d "$DRIVE" && exit 0; done; exit 1) && SYSDRIVE="/sysdrive" || unset SYSDRIVE 
+  MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
+ ;;
+
   Cygwin* | *cygwin*) CYGDRIVE="/cygdrive" 
 MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
 ;;
 *Linux*|*linux*) MEDIAPATH="/m*/*/" ;;
-
 esac
 
 case "$(command grep --help 2>&1)" in

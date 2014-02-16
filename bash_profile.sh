@@ -98,7 +98,7 @@ alias lsof='lsof 2>/dev/null'
 [ "$OSTYPE" ] && OS="$OSTYPE"
 
 [ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; : ${OS="Cygwin"}; }
-[ -d /sysdrive ]  && SYSDRIVE="/sysdrive" || unset SYSDRIVE
+(set -- /sysdrive/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/; for DRIVE do test -d "$DRIVE" && exit 0; done; exit 1) && SYSDRIVE="/sysdrive" || unset SYSDRIVE
 
 
 if [ "$PS1" = '\s-\v\$ ' ]; then
