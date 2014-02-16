@@ -1,4 +1,4 @@
-lines () 
+lines()
 { 
     for ARG in "$@";
     do

@@ -118,6 +118,7 @@ case "${OS=`uname -o |head -n1`}" in
    msys* | Msys* |MSys* | MSYS*)
     MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
     PATHTOOL=msyspath
+    set-prompt '\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
@@ -275,7 +276,9 @@ if [ -n "$USERPROFILE" ]; then
   fi
 fi
 
-[ -d /mingw/bin ] && pathmunge /mingw/bin after
+case "$MSYSTEM" in
+  *MINGW*) [ -d /mingw/bin ] && pathmunge /mingw/bin after ;;
+esac
 
  
 LS_COLORS='di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=33;01:cd=33;01:or=31;01:su=37:sg=30:tw=30:ow=34:st=37:ex=01;33:'

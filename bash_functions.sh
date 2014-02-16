@@ -144,6 +144,11 @@ bpm()
     done )
 }
 
+c2w()
+{ 
+    ch_conv UTF-8 UTF-16 "$@"
+}
+
 canonicalize()
 {
   (IFS="
@@ -226,6 +231,18 @@ choices_list()
 chr2hex()
 { 
     echo "set ascii [scan \"$1\" \"%c\"]; puts -nonewline [format \"${2-0x}%02x\" \${ascii}]" | tclsh
+}
+
+ch_conv()
+{ 
+    FROM="$1" TO="$2";
+    shift 2;
+    for ARG in "$@";
+    do
+        ( trap 'rm -f "$TMP"' EXIT;
+        TMP=$(mktemp);
+        iconv -f "$FROM" -t "$TO" <"$ARG" >"$TMP" && mv -vf "$TMP" "$ARG" );
+    done
 }
 
 clamp()
@@ -357,6 +374,11 @@ cut-dirname()
     sed "s,\\(.*\\)/\\([^/]\\+/\\?\\)${1//./\\.}\$,\2,"
 }
 
+cut-distver()
+{
+  cat "$@" | sed 's,\.fc[0-9]\+\(\.\)\?,\1,g'
+}
+
 cut-ext()
 { 
     sed 's,\.[^./]\+$,,' "$@"
@@ -394,6 +416,16 @@ cut-num()
   sed 's,^\s*[0-9]\+\s*,,' "$@"
 }
 
+cut-pkgver()
+{
+    cat "$@" |sed 's,-[0-9]\+$,,g'
+}
+
+cut-trailver()
+{
+    cat "$@" |sed 's,-[0-9][^-.]*\(\.[0-9][^-.]*\)*$,,'
+}
+
 cut-ver()
 { 
   cat "$@" | cut-trailver |
@@ -406,18 +438,6 @@ cut-ver()
   sed 's,[.-][0-9][_+[:alnum:]]*$,,g ;; s,[.-][0-9]*\(rc[0-9]\)\?\(b[0-9]\)\?\(git[_0-9]\)\?\(svn[_0-9]\)\?\(linux\)\?\(v[0-9]\)\?\(beta[_0-9]\)\?\(alpha[_0-9]\)\?\(a[_0-9]\)\?\(trunk\)\?\(release[_0-9]\)\?\(GIT\)\?\(SVN\)\?\(r[_0-9]\)\?\(dnh[_0-9]\)\?[0-9][_+[:alnum:]]*\.,.,g' |
   sed 's,\.[0-9][^.]*\.,.,g'
 
-}
-cut-pkgver()
-{
-    cat "$@" |sed 's,-[0-9]\+$,,g'
-}
-cut-trailver()
-{
-    cat "$@" |sed 's,-[0-9][^-.]*\(\.[0-9][^-.]*\)*$,,'
-}
-cut-distver()
-{
-  cat "$@" | sed 's,\.fc[0-9]\+\(\.\)\?,\1,g'
 }
 
 d()
@@ -690,26 +710,6 @@ duration()
     done )
 }
 
-each()
-{ 
-    __=$1;
-    test "`type -t "$__"`" = function && __="$__ \"\$@\"";
-    while shift;
-    [ "$#" -gt 0 ]; do
-        eval "$__";
-    done;
-    unset __
-}
-each()
-{ 
-    __=$1;
-    test "`type -t "$__"`" = function && __="$__ \"\$@\"";
-    while shift;
-    [ "$#" -gt 0 ]; do
-        eval "$__";
-    done;
-    unset __
-}
 each()
 { 
     __=$1;
@@ -1383,15 +1383,6 @@ grub2-search-for-device()
 hex2chr()
 { 
     echo "puts -nonewline [format \"%c\" 0x$1]" | tclsh
-}
-hex2chr () 
-{ 
-    ( S="";
-    for ARG in "$@";
-    do
-        S="$S\\x$ARG";
-    done;
-    echo -e "$S" )
 }
 
 hexdump_printfable()
@@ -2124,100 +2115,6 @@ list()
         msg $choices;
     fi
 }
-list()
-{ 
-    sed "s|/files\.list:|/|"
-}
-list()
-{ 
-    local n=$1 count=0 choices='';
-    shift;
-    for choice in "$@";
-    do
-        choices="$choices $choice";
-        count=$((count + 1));
-        if $((count)) -eq $((n)); then
-            count=0;
-            choices='';
-        fi;
-    done;
-    if [ -n "${choices# }" ]; then
-        msg $choices;
-    fi
-}
-list()
-{ 
-    sed "s|/files\.list:|/|"
-}
-list()
-{ 
-    local indent='  ' IFS="
-";
-    while [ "$1" != "${1#-}" ]; do
-        case $1 in 
-            -i)
-                indent=$2 && shift 2
-            ;;
-            -i*)
-                indent=${2#-i} && shift
-            ;;
-        esac;
-    done;
-    if test -z "$*" || test "$*" = -; then
-        cat;
-    else
-        echo "$*";
-    fi | while read item; do
-        echo " \\";
-        echo -n "$indent$item";
-    done
-}
-list()
-{ 
-    local indent='  ' IFS="
-";
-    while [ "$1" != "${1#-}" ]; do
-        case $1 in 
-            -i)
-                indent=$2 && shift 2
-            ;;
-            -i*)
-                indent=${2#-i} && shift
-            ;;
-        esac;
-    done;
-    if test -z "$*" || test "$*" = -; then
-        cat;
-    else
-        echo "$*";
-    fi | while read item; do
-        echo " \\";
-        echo -n "$indent$item";
-    done
-}
-list()
-{ 
-    local indent='  ' IFS="
-";
-    while [ "$1" != "${1#-}" ]; do
-        case $1 in 
-            -i)
-                indent=$2 && shift 2
-            ;;
-            -i*)
-                indent=${2#-i} && shift
-            ;;
-        esac;
-    done;
-    if test -z "$*" || test "$*" = -; then
-        cat;
-    else
-        echo "$*";
-    fi | while read item; do
-        echo " \\";
-        echo -n "$indent$item";
-    done
-}
 
 locate-filename()
 { 
@@ -2329,25 +2226,6 @@ ls-l()
     CMD="while read  -r $* P; do  echo \"\${P}\"; done";
     echo "+ $CMD" 1>&2;
     eval "$CMD" )
-}
-ls-l()
-{ 
-    ( IFS="
-";
-    unset ARGS;
-    while :; do
-        case "$1" in 
-            -*)
-                ARGS="${ARGS+$ARGS$IFS}$1";
-                shift
-            ;;
-            *)
-                break
-            ;;
-        esac;
-    done;
-    [ $# -ge 1 ] && exec <<< "$*"
-    xargs -d "$IFS" ls -l -d --time-style="+%s" $ARGS -- )
 }
 
 lsof-win()
@@ -3386,69 +3264,6 @@ resolution()
     HEIGHT=${1#*${MULT_CHAR-x}};
     echo $((WIDTH / $2))${MULT_CHAR-x}$((HEIGHT / $2)) )
 }
-resolution()
-{ 
-    ( WIDTH=${1%%x*};
-    HEIGHT=${1#*x};
-    echo $((WIDTH * $2))x$((HEIGHT * $2)) )
-}
-resolution()
-{ 
-    ( IFS=" $IFS";
-    while :; do
-        case "$1" in 
-            -s)
-                SEPARATOR="$2";
-                shift 2
-            ;;
-            -a)
-                ASPECT=true;
-                shift
-            ;;
-            -p)
-                MULTIPLY=true;
-                shift
-            ;;
-            -m)
-                MULT_CHAR="$2";
-                shift 2
-            ;;
-            --all-pixels)
-                ALL_PIXELS=true
-            ;;
-            -m=*)
-                MULT_CHAR="${1#-?=}";
-                shift
-            ;;
-            *)
-                break
-            ;;
-        esac;
-    done;
-    N="$#";
-    for ARG in "$@";
-    do
-        ( D=$(mminfo "$ARG" |grep -iE '(width|height)=');
-        set -- $D;
-        eval "$D";
-        if [ -n "$Width" -a -n "$Height" ]; then
-            if [ "$ASPECT" = true ]; then
-                RES=`echo "${Width} / ${Height}" | bc -l`;
-            else
-                if [ "$MULTIPLY" = true ]; then
-                    RES=`expr ${Width} \* ${Height}`;
-                else
-                    RES="${Width}${MULT_CHAR-x}${Height}";
-                fi;
-            fi;
-        else
-            RES="";
-        fi;
-        [ "$ALL_PIXELS" = true ] && RES="$RES${SEPARATOR- }$((Width * Height))";
-        [ "$N" -gt 1 ] && RES="$ARG${SEPARATOR- }$RES";
-        echo "$RES" );
-    done )
-}
 
 retcode()
 { 
@@ -3582,46 +3397,6 @@ some()
   do
   case \"\`str_tolower \"\$1\"\`\" in
     $(str_tolower "$1") ) return 0 ;;
-  esac
-  done
-  return 1"
-}
-some()
-{ 
-    eval "while shift
-  do
-  case \"\$1\" in
-    $1 ) return 0 ;;
-  esac
-  done
-  return 1"
-}
-some()
-{ 
-    eval "while shift
-  do
-  case \"\`str_tolower \"\$1\"\`\" in
-    $(str_tolower "$1") ) return 0 ;;
-  esac
-  done
-  return 1"
-}
-some()
-{ 
-    eval "while shift
-  do
-  case \"\$1\" in
-    $1 ) return 0 ;;
-  esac
-  done
-  return 1"
-}
-some()
-{ 
-    eval "while shift
-  do
-  case \"\$1\" in
-    $1 ) return 0 ;;
   esac
   done
   return 1"
@@ -3931,6 +3706,11 @@ vlcpid()
     ( ps -aW | grep --color=auto --color=auto --color=auto --color=auto --color=auto --line-buffered --color=auto --line-buffered -i vlc.exe | awkp )
 }
 
+w2c()
+{ 
+    ch_conv UTF-16 UTF-8 "$@"
+}
+
 waitproc()
 { 
     function getprocs () 
@@ -4031,7 +3811,7 @@ _msyspath()
     ;;
     win*)  add_to_script "s|^a:|A:|" "s|^b:|B:|" "s|^c:|C:|" "s|^d:|D:|" "s|^e:|E:|" "s|^f:|F:|" "s|^g:|G:|" "s|^h:|H:|" "s|^i:|I:|" "s|^j:|J:|" "s|^k:|K:|" "s|^l:|L:|" "s|^m:|M:|" "s|^n:|N:|" "s|^o:|O:|" "s|^p:|P:|" "s|^q:|Q:|" "s|^r:|R:|" "s|^s:|S:|" "s|^t:|T:|" "s|^u:|U:|" "s|^v:|V:|" "s|^w:|W:|" "s|^x:|X:|" "s|^y:|Y:|" "s|^z:|Z:|" ;;
   esac
-  echo "SCRIPT=$SCRIPT" 1>&2
+  #echo "SCRIPT=$SCRIPT" 1>&2
  (sed "$SCRIPT" "$@")
  )
 }

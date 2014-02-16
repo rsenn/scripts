@@ -1,4 +1,4 @@
-find-all() 
+find-all()
 { 
  (CMD="for_each 'locate32.sh -f -d -i \"\$1\"' \"\$@\""
   CMD="${CMD:+$CMD; }find-media.sh -i \"\$@\""
