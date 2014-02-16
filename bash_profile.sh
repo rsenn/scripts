@@ -95,10 +95,6 @@ alias lsof='lsof 2>/dev/null'
 
 [ "$OSTYPE" ] && OS="$OSTYPE"
 
-[ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; : ${OS="Cygwin"}; }
-[ -d /sysdrive ]  && SYSDRIVE="/sysdrive" || SYSDRIVE=
-
-
 if [ "$PS1" = '\s-\v\$ ' ]; then
   unset PS1
 fi
@@ -111,6 +107,10 @@ set-prompt()
 				PS1="$*"
 	fi
 }
+
+
+[ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; : ${OS="Cygwin"}; }
+[ -d /sysdrive ]  && SYSDRIVE="/sysdrive" || SYSDRIVE=
 
 case "${OS=`uname -o |head -n1`}" in
    msys* | Msys* |MSys* | MSYS*)
