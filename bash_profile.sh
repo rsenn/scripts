@@ -277,7 +277,8 @@ if [ -n "$USERPROFILE" ]; then
 fi
 
 case "$MSYSTEM" in
-  *MINGW*) [ -d /mingw/bin ] && pathmunge /mingw/bin after ;;
+  MINGW32) [ -d /mingw/bin ] && pathmunge /mingw/bin ;;
+  MINGW64) [ -d /mingw64/bin ] && pathmunge /mingw64/bin ;;
 esac
 
  
