@@ -366,7 +366,7 @@ cut-arch()
 
 cut-basename()
 { 
-    sed 's,/[^/]*/\?$,,'
+    sed 's,[/\\][^/\\]*[/\\]\?$,,'
 }
 
 cut-dirname()
@@ -785,6 +785,7 @@ explode()
 explore()
 { 
   ( r=$(realpath "$1");
+  [ -z "$r" ] && r=$1
   r=${r%/.};
   r=${r#./};
   p=$(msyspath -w "$r");
@@ -3792,7 +3793,7 @@ _msyspath()
  
   case $MODE in
     win*|mix*) #add_to_script "s|^${SYSDRIVE}[\\\\/]\(.\)[\\\\/]|\1:/|" "s|^${SYSDRIVE}[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
-      add_to_script "s|^/sysdrive[\\\\/]\\([^\\\\/]\\)\\([^\\\\/]\\)\\?|\\1:\\2|" ;;
+      add_to_script "s|^${SYSDRIVE}[\\\\/]\\([^\\\\/]\\)\\([^\\\\/]\\)\\?|\\1:\\2|" ;;
   
     *) add_to_script "s|^\([A-Za-z0-9]\):|${SYSDRIVE}/\\1|" ;;
   esac
