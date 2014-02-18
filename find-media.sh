@@ -79,7 +79,7 @@ else
 fi
 
 case "$CLASS" in
-  archive*) EXPR="$EXPR.*\.(7z|rar|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz|zip)\$" ;;
+  archive*) EXPR="$EXPR.*\.(7z|rar|tar\.bz2|tar\.gz|tar\.xz|tar|tar\.lzma|tbz2|tgz|txz|zip)\$" ;;
   audio*) EXPR="$EXPR.*\.(aif|aiff|flac|m4a|m4b|mp2|mp3|mpc|ogg|raw|rm|wav|wma)\$" ;;
   fonts*) EXPR="$EXPR.*\.(bdf|flac|fon|m4a|m4b|mp3|mpc|ogg|otf|pcf|rm|ttf|wma)\$" ;;
   image*) EXPR="$EXPR.*\.(bmp|cin|cod|dcx|djvu|emf|fig|gif|ico|im1|im24|im8|jin|jpeg|jpg|lss|miff|opc|pbm|pcx|pgm|pgx|png|pnm|ppm|psd|rle|rmp|sgi|shx|svg|tga|tif|tiff|wim|xcf|xpm|xwd)\$" ;;
@@ -136,6 +136,7 @@ fi
 : ${INDEXES="$MEDIAPATH/files.list"}
 CMD="ls -d $MEDIAPATH/files.list 2>/dev/null"
 : ${INDEXES:=$(eval "$CMD")}
+[ "$DEBUG" = true ] && echo "Having" $(ls -d $INDEXES |wc -l ) "indices..." 1>&2
 
 FILTERCMD="sed -u 's,/files.list:,/,'"
 
