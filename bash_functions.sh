@@ -144,6 +144,11 @@ bpm()
     done )
 }
 
+c2w()
+{ 
+    ch_conv UTF-8 UTF-16 "$@"
+}
+
 canonicalize()
 {
   (IFS="
@@ -179,6 +184,26 @@ canonicalize()
    )
 }
 
+ch_conv()
+{ 
+    FROM="$1" TO="$2";
+    shift 2;
+    for ARG in "$@";
+    do
+        ( trap 'rm -f "$TMP"' EXIT;
+        TMP=$(mktemp);
+        iconv -f "$FROM" -t "$TO" <"$ARG" >"$TMP" && mv -vf "$TMP" "$ARG" );
+    done
+}
+c2w() 
+{ 
+    ch_conv UTF-8 UTF-16 "$@"
+}
+w2c() 
+{ 
+    ch_conv UTF-16 UTF-8 "$@"
+}
+
 check-link()
 {
   (TARGET=$(readshortcut "$1")
@@ -206,6 +231,18 @@ choices_list()
 chr2hex()
 { 
     echo "set ascii [scan \"$1\" \"%c\"]; puts -nonewline [format \"${2-0x}%02x\" \${ascii}]" | tclsh
+}
+
+ch_conv()
+{ 
+    FROM="$1" TO="$2";
+    shift 2;
+    for ARG in "$@";
+    do
+        ( trap 'rm -f "$TMP"' EXIT;
+        TMP=$(mktemp);
+        iconv -f "$FROM" -t "$TO" <"$ARG" >"$TMP" && mv -vf "$TMP" "$ARG" );
+    done
 }
 
 clamp()
@@ -329,12 +366,17 @@ cut-arch()
 
 cut-basename()
 { 
-    sed 's,/[^/]*/\?$,,'
+    sed 's,[/\\][^/\\]*[/\\]\?$,,'
 }
 
 cut-dirname()
 { 
     sed "s,\\(.*\\)/\\([^/]\\+/\\?\\)${1//./\\.}\$,\2,"
+}
+
+cut-distver()
+{
+  cat "$@" | sed 's,\.fc[0-9]\+\(\.\)\?,\1,g'
 }
 
 cut-ext()
@@ -358,7 +400,7 @@ cut-ls-l()
     done;
     IFS=" ";
     CMD="while read  -r $* P; do  echo \"\${P}\"; done";
-    echo "+ $CMD" 1>&2;
+   #echo "+ $CMD" 1>&2;
     eval "$CMD" )
 }
 
@@ -372,6 +414,16 @@ cut-lsof()
 cut-num()
 { 
   sed 's,^\s*[0-9]\+\s*,,' "$@"
+}
+
+cut-pkgver()
+{
+    cat "$@" |sed 's,-[0-9]\+$,,g'
+}
+
+cut-trailver()
+{
+    cat "$@" |sed 's,-[0-9][^-.]*\(\.[0-9][^-.]*\)*$,,'
 }
 
 cut-ver()
@@ -668,26 +720,6 @@ each()
     done;
     unset __
 }
-each()
-{ 
-    __=$1;
-    test "`type -t "$__"`" = function && __="$__ \"\$@\"";
-    while shift;
-    [ "$#" -gt 0 ]; do
-        eval "$__";
-    done;
-    unset __
-}
-each()
-{ 
-    __=$1;
-    test "`type -t "$__"`" = function && __="$__ \"\$@\"";
-    while shift;
-    [ "$#" -gt 0 ]; do
-        eval "$__";
-    done;
-    unset __
-}
 
 enable-some-swap()
 { 
@@ -753,6 +785,7 @@ explode()
 explore()
 { 
   ( r=$(realpath "$1");
+  [ -z "$r" ] && r=$1
   r=${r%/.};
   r=${r#./};
   p=$(msyspath -w "$r");
@@ -1352,15 +1385,6 @@ hex2chr()
 { 
     echo "puts -nonewline [format \"%c\" 0x$1]" | tclsh
 }
-hex2chr () 
-{ 
-    ( S="";
-    for ARG in "$@";
-    do
-        S="$S\\x$ARG";
-    done;
-    echo -e "$S" )
-}
 
 hexdump_printfable()
 { 
@@ -1627,7 +1651,7 @@ index-dir()
         echo "Indexing directory $PWD ..." 1>&2;
         TEMP=`mktemp /tmp/"${PWD##*/}XXXXXX.list"`
         trap 'rm -f "$TEMP"; unset TEMP' EXIT
-        list-recursive >"$TEMP";
+        (list-r 2>/dev/null || list-recursive) >"$TEMP";
         mv -f "$TEMP" "$PWD/files.list";
         wc -l "$PWD/files.list" 1>&2 );
     done )
@@ -1918,6 +1942,15 @@ linedelay()
     test "${o+set}" = set && echo "$o"
 }
 
+lines()
+{ 
+    for ARG in "$@";
+    do
+        N=$( set -- $ARG; (xzcat "$1" || bzcat "$1" || zcat "$1" || cat "$1") 2>/dev/null | wc -l);
+        test "$#" -gt 1 && printf "%10d %s\n" $N $ARG || echo "$N";
+    done
+}
+
 link-mpd-music-dirs()
 { 
     ( : ${DESTDIR=/var/lib/mpd/music};
@@ -2083,100 +2116,6 @@ list()
         msg $choices;
     fi
 }
-list()
-{ 
-    sed "s|/files\.list:|/|"
-}
-list()
-{ 
-    local n=$1 count=0 choices='';
-    shift;
-    for choice in "$@";
-    do
-        choices="$choices $choice";
-        count=$((count + 1));
-        if $((count)) -eq $((n)); then
-            count=0;
-            choices='';
-        fi;
-    done;
-    if [ -n "${choices# }" ]; then
-        msg $choices;
-    fi
-}
-list()
-{ 
-    sed "s|/files\.list:|/|"
-}
-list()
-{ 
-    local indent='  ' IFS="
-";
-    while [ "$1" != "${1#-}" ]; do
-        case $1 in 
-            -i)
-                indent=$2 && shift 2
-            ;;
-            -i*)
-                indent=${2#-i} && shift
-            ;;
-        esac;
-    done;
-    if test -z "$*" || test "$*" = -; then
-        cat;
-    else
-        echo "$*";
-    fi | while read item; do
-        echo " \\";
-        echo -n "$indent$item";
-    done
-}
-list()
-{ 
-    local indent='  ' IFS="
-";
-    while [ "$1" != "${1#-}" ]; do
-        case $1 in 
-            -i)
-                indent=$2 && shift 2
-            ;;
-            -i*)
-                indent=${2#-i} && shift
-            ;;
-        esac;
-    done;
-    if test -z "$*" || test "$*" = -; then
-        cat;
-    else
-        echo "$*";
-    fi | while read item; do
-        echo " \\";
-        echo -n "$indent$item";
-    done
-}
-list()
-{ 
-    local indent='  ' IFS="
-";
-    while [ "$1" != "${1#-}" ]; do
-        case $1 in 
-            -i)
-                indent=$2 && shift 2
-            ;;
-            -i*)
-                indent=${2#-i} && shift
-            ;;
-        esac;
-    done;
-    if test -z "$*" || test "$*" = -; then
-        cat;
-    else
-        echo "$*";
-    fi | while read item; do
-        echo " \\";
-        echo -n "$indent$item";
-    done
-}
 
 locate-filename()
 { 
@@ -2288,25 +2227,6 @@ ls-l()
     CMD="while read  -r $* P; do  echo \"\${P}\"; done";
     echo "+ $CMD" 1>&2;
     eval "$CMD" )
-}
-ls-l()
-{ 
-    ( IFS="
-";
-    unset ARGS;
-    while :; do
-        case "$1" in 
-            -*)
-                ARGS="${ARGS+$ARGS$IFS}$1";
-                shift
-            ;;
-            *)
-                break
-            ;;
-        esac;
-    done;
-    [ $# -ge 1 ] && exec <<< "$*"
-    xargs -d "$IFS" ls -l -d --time-style="+%s" $ARGS -- )
 }
 
 lsof-win()
@@ -3019,9 +2939,8 @@ pathmunge()
       *) break ;;
     esac
   done
-  : ${PATHVAR="PATH"}
   local IFS=":";
-  : ${OS=`uname -o`};
+  : ${OS=`uname -o | head -n1`};
   case "$OS:$1" in
       [Mm]sys:*[:\\]*)
           tmp="$1";
@@ -3029,13 +2948,14 @@ pathmunge()
           set -- `${PATHTOOL:-msyspath} "$tmp"` "$@"
       ;;
   esac;
-  if ! eval "echo \"\${$PATHVAR}\"" | egrep -q "(^|:)$1($|:)"; then
+  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | egrep -q "(^|:)$1($|:)"; then
       if test "$2" = "after"; then
-          eval "$PATHVAR=\"\${$PATHVAR}:\$1\"";
+          eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
       else
-          eval "$PATHVAR=\"\$1:\${$PATHVAR}\"";
+          eval "${PATHVAR-PATH}=\"\$1:\${${PATHVAR-PATH}}\"";
       fi;
   fi
+  unset PATHVAR
 }
 
 pdfpextr()
@@ -3345,69 +3265,6 @@ resolution()
     HEIGHT=${1#*${MULT_CHAR-x}};
     echo $((WIDTH / $2))${MULT_CHAR-x}$((HEIGHT / $2)) )
 }
-resolution()
-{ 
-    ( WIDTH=${1%%x*};
-    HEIGHT=${1#*x};
-    echo $((WIDTH * $2))x$((HEIGHT * $2)) )
-}
-resolution()
-{ 
-    ( IFS=" $IFS";
-    while :; do
-        case "$1" in 
-            -s)
-                SEPARATOR="$2";
-                shift 2
-            ;;
-            -a)
-                ASPECT=true;
-                shift
-            ;;
-            -p)
-                MULTIPLY=true;
-                shift
-            ;;
-            -m)
-                MULT_CHAR="$2";
-                shift 2
-            ;;
-            --all-pixels)
-                ALL_PIXELS=true
-            ;;
-            -m=*)
-                MULT_CHAR="${1#-?=}";
-                shift
-            ;;
-            *)
-                break
-            ;;
-        esac;
-    done;
-    N="$#";
-    for ARG in "$@";
-    do
-        ( D=$(mminfo "$ARG" |grep -iE '(width|height)=');
-        set -- $D;
-        eval "$D";
-        if [ -n "$Width" -a -n "$Height" ]; then
-            if [ "$ASPECT" = true ]; then
-                RES=`echo "${Width} / ${Height}" | bc -l`;
-            else
-                if [ "$MULTIPLY" = true ]; then
-                    RES=`expr ${Width} \* ${Height}`;
-                else
-                    RES="${Width}${MULT_CHAR-x}${Height}";
-                fi;
-            fi;
-        else
-            RES="";
-        fi;
-        [ "$ALL_PIXELS" = true ] && RES="$RES${SEPARATOR- }$((Width * Height))";
-        [ "$N" -gt 1 ] && RES="$ARG${SEPARATOR- }$RES";
-        echo "$RES" );
-    done )
-}
 
 retcode()
 { 
@@ -3541,46 +3398,6 @@ some()
   do
   case \"\`str_tolower \"\$1\"\`\" in
     $(str_tolower "$1") ) return 0 ;;
-  esac
-  done
-  return 1"
-}
-some()
-{ 
-    eval "while shift
-  do
-  case \"\$1\" in
-    $1 ) return 0 ;;
-  esac
-  done
-  return 1"
-}
-some()
-{ 
-    eval "while shift
-  do
-  case \"\`str_tolower \"\$1\"\`\" in
-    $(str_tolower "$1") ) return 0 ;;
-  esac
-  done
-  return 1"
-}
-some()
-{ 
-    eval "while shift
-  do
-  case \"\$1\" in
-    $1 ) return 0 ;;
-  esac
-  done
-  return 1"
-}
-some()
-{ 
-    eval "while shift
-  do
-  case \"\$1\" in
-    $1 ) return 0 ;;
   esac
   done
   return 1"
@@ -3890,6 +3707,11 @@ vlcpid()
     ( ps -aW | grep --color=auto --color=auto --color=auto --color=auto --color=auto --line-buffered --color=auto --line-buffered -i vlc.exe | awkp )
 }
 
+w2c()
+{ 
+    ch_conv UTF-16 UTF-8 "$@"
+}
+
 waitproc()
 { 
     function getprocs () 
@@ -3970,7 +3792,9 @@ _msyspath()
  (add_to_script() { while [ "$1" ]; do SCRIPT="${SCRIPT:+$SCRIPT ;; }$1"; shift; done; }
  
   case $MODE in
-    win*|mix*) add_to_script "s|^${SYSDRIVE}||" "s|^[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
+    win*|mix*) #add_to_script "s|^${SYSDRIVE}[\\\\/]\(.\)[\\\\/]|\1:/|" "s|^${SYSDRIVE}[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
+      add_to_script "s|^${SYSDRIVE}[\\\\/]\\([^\\\\/]\\)\\([^\\\\/]\\)\\?|\\1:\\2|" ;;
+  
     *) add_to_script "s|^\([A-Za-z0-9]\):|${SYSDRIVE}/\\1|" ;;
   esac
   case $MODE in
@@ -3984,9 +3808,11 @@ _msyspath()
     *) add_to_script "s|\\\\|/|g" ;;
   esac
   case "$MODE" in
-    msys*) add_to_script "s|^${SYSDRIVE}/A/|${SYSDRIVE}/a/|" "s|^${SYSDRIVE}/B/|${SYSDRIVE}/b/|" "s|^${SYSDRIVE}/C/|${SYSDRIVE}/c/|" "s|^${SYSDRIVE}/D/|${SYSDRIVE}/d/|" "s|^${SYSDRIVE}/E/|${SYSDRIVE}/e/|" "s|^${SYSDRIVE}/F/|${SYSDRIVE}/f/|" "s|^${SYSDRIVE}/G/|${SYSDRIVE}/g/|" "s|^${SYSDRIVE}/H/|${SYSDRIVE}/h/|" "s|^${SYSDRIVE}/I/|${SYSDRIVE}/i/|" "s|^${SYSDRIVE}/J/|${SYSDRIVE}/j/|" "s|^${SYSDRIVE}/K/|${SYSDRIVE}/k/|" "s|^${SYSDRIVE}/L/|${SYSDRIVE}/l/|" "s|^${SYSDRIVE}/M/|${SYSDRIVE}/m/|" "s|^${SYSDRIVE}/N/|${SYSDRIVE}/n/|" "s|^${SYSDRIVE}/O/|${SYSDRIVE}/o/|" "s|^${SYSDRIVE}/P/|${SYSDRIVE}/p/|" "s|^${SYSDRIVE}/Q/|${SYSDRIVE}/q/|" "s|^${SYSDRIVE}/R/|${SYSDRIVE}/r/|" "s|^${SYSDRIVE}/S/|${SYSDRIVE}/s/|" "s|^${SYSDRIVE}/T/|${SYSDRIVE}/t/|" "s|^${SYSDRIVE}/U/|${SYSDRIVE}/u/|" "s|^${SYSDRIVE}/V/|${SYSDRIVE}/v/|" "s|^${SYSDRIVE}/W/|${SYSDRIVE}/w/|" "s|^${SYSDRIVE}/X/|${SYSDRIVE}/x/|" "s|^${SYSDRIVE}/Y/|${SYSDRIVE}/y/|" "s|^${SYSDRIVE}/Z/|${SYSDRIVE}/z/|" ;;
+    msys*) add_to_script "s|^${SYSDRIVE}/A/|${SYSDRIVE}/a/|" "s|^${SYSDRIVE}/B/|${SYSDRIVE}/b/|" "s|^${SYSDRIVE}/C/|${SYSDRIVE}/c/|" "s|^${SYSDRIVE}/D/|${SYSDRIVE}/d/|" "s|^${SYSDRIVE}/E/|${SYSDRIVE}/e/|" "s|^${SYSDRIVE}/F/|${SYSDRIVE}/f/|" "s|^${SYSDRIVE}/G/|${SYSDRIVE}/g/|" "s|^${SYSDRIVE}/H/|${SYSDRIVE}/h/|" "s|^${SYSDRIVE}/I/|${SYSDRIVE}/i/|" "s|^${SYSDRIVE}/J/|${SYSDRIVE}/j/|" "s|^${SYSDRIVE}/K/|${SYSDRIVE}/k/|" "s|^${SYSDRIVE}/L/|${SYSDRIVE}/l/|" "s|^${SYSDRIVE}/M/|${SYSDRIVE}/m/|" "s|^${SYSDRIVE}/N/|${SYSDRIVE}/n/|" "s|^${SYSDRIVE}/O/|${SYSDRIVE}/o/|" "s|^${SYSDRIVE}/P/|${SYSDRIVE}/p/|" "s|^${SYSDRIVE}/Q/|${SYSDRIVE}/q/|" "s|^${SYSDRIVE}/R/|${SYSDRIVE}/r/|" "s|^${SYSDRIVE}/S/|${SYSDRIVE}/s/|" "s|^${SYSDRIVE}/T/|${SYSDRIVE}/t/|" "s|^${SYSDRIVE}/U/|${SYSDRIVE}/u/|" "s|^${SYSDRIVE}/V/|${SYSDRIVE}/v/|" "s|^${SYSDRIVE}/W/|${SYSDRIVE}/w/|" "s|^${SYSDRIVE}/X/|${SYSDRIVE}/x/|" "s|^${SYSDRIVE}/Y/|${SYSDRIVE}/y/|" "s|^${SYSDRIVE}/Z/|${SYSDRIVE}/z/|" 
+    ;;
     win*)  add_to_script "s|^a:|A:|" "s|^b:|B:|" "s|^c:|C:|" "s|^d:|D:|" "s|^e:|E:|" "s|^f:|F:|" "s|^g:|G:|" "s|^h:|H:|" "s|^i:|I:|" "s|^j:|J:|" "s|^k:|K:|" "s|^l:|L:|" "s|^m:|M:|" "s|^n:|N:|" "s|^o:|O:|" "s|^p:|P:|" "s|^q:|Q:|" "s|^r:|R:|" "s|^s:|S:|" "s|^t:|T:|" "s|^u:|U:|" "s|^v:|V:|" "s|^w:|W:|" "s|^x:|X:|" "s|^y:|Y:|" "s|^z:|Z:|" ;;
   esac
+  #echo "SCRIPT=$SCRIPT" 1>&2
  (sed "$SCRIPT" "$@")
  )
 }

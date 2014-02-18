@@ -24,7 +24,7 @@ if type kill.exe 2>/dev/null >/dev/null; then
 -f"
 fi
 
-PSOUT=`ps $PSARGS`
+PSOUT=`${PS-ps} $PSARGS`
 PSMATCH=` echo "$PSOUT" | grep -iE "($*)" `
 PIDS=` echo "$PSMATCH" | sed -n "/${0##*/}/! s,^[^0-9]*\([0-9]\+\).*,\1,p"`
 

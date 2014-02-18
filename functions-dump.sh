@@ -30,7 +30,9 @@ script_getfn()
               /\n}\s*$/! { b lp2; }
 
               p
+              
             }
+            q
           }" "$@"
 }
 

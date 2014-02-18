@@ -1,4 +1,4 @@
-index-dir() 
+index-dir()
 { 
     [ -z "$*" ] && set -- .;
     ( for ARG in "$@";
@@ -11,7 +11,7 @@ index-dir()
         echo "Indexing directory $PWD ..." 1>&2;
         TEMP=`mktemp /tmp/"${PWD##*/}XXXXXX.list"`
         trap 'rm -f "$TEMP"; unset TEMP' EXIT
-        list-recursive >"$TEMP";
+        (list-r 2>/dev/null || list-recursive) >"$TEMP";
         mv -f "$TEMP" "$PWD/files.list";
         wc -l "$PWD/files.list" 1>&2 );
     done )

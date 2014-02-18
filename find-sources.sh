@@ -5,6 +5,29 @@ NL="
 "
 #: ${CYGPATH:=true}
 
+IFS="$NL "
+
+while :; do
+  case "$1" in
+    -c|--completed) COMPLETED="true"; shift ;;
+    -C|--incomplete) INCOMPLETE="true"; shift ;;
+    -x|-d|--debug) DEBUG="true"; shift ;;
+    --all | -all) shift; set -- --javascript --java --csharp --ruby --python --cpp --c "$@" ;;
+    --javascript | -js | --js) EXTS="${EXTS+$EXTS$NL}js"; shift ;;
+    --java | -java | -j) EXTS="${EXTS+$EXTS$NL}java jpp j"; shift ;;
+    --csharp | --cs | -cs) EXTS="${EXTS+$EXTS$NL}cs"; shift ;;
+    --ruby | --rb | -rb | -ruby) EXTS="${EXTS+$EXTS$NL}rb"; shift ;;
+    --python | --py | -py | -python) EXTS="${EXTS+$EXTS$NL}py"; shift ;;
+    --c[px+][px+] | -c[px+][px+]) EXTS="${EXTS+$EXTS$NL}cc cpp cxx h hh hpp hxx ipp"; shift ;;
+    --c | -c) EXTS="${EXTS+$EXTS$NL}c h"; shift ;;
+    *) break ;;
+  esac
+done
+
+: ${EXTS="c cc cpp cxx h hh hpp hxx ipp"}
+
+
+
 # append <var> <value>
 append()
 {
@@ -15,7 +38,6 @@ find_sources()
 {
 	(IFS="
 	 "
-		 EXTS="c cpp cxx h hpp hxx"
 
 		[ "$#" -le 0 ] && set -- *
 
@@ -39,17 +61,6 @@ find_sources()
 	)
 }
 
-IFS="
-"
-
-while :; do
-  case "$1" in
-    -c|--completed) COMPLETED="true"; shift ;;
-    -C|--incomplete) INCOMPLETE="true"; shift ;;
-    -x|-d|--debug) DEBUG="true"; shift ;;
-    *) break ;;
-  esac
-done
 
 ARGS="$*"
 
