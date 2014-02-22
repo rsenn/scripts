@@ -97,5 +97,5 @@ for arg; do
   esac
   
 done
-set -x
+#set -x
 exec grep "$@"
