@@ -10,7 +10,7 @@ install: $(SCRIPTS)
 	$(INSTALL) -m 755 $(SCRIPTS) $(DESTDIR)$(bindir)
 
 
-slackpkg: prefix=/usr/local
+slackpkg: 
 slackpkg: $(SCRIPTS) 
 	@set -x; distdir="_inst"; rm -rf $$distdir; mkdir -p $$distdir/$(bindir) $$distdir/root; \
 		$(INSTALL) -m 755 $(SCRIPTS) $$distdir/$(bindir); \
