@@ -17,7 +17,7 @@ ansi_cyan='\[\033[1;36m\]' ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]'
 #LANG=C
 #LANGUAGE="en_US.ISO-8859-1"
 [ -d /usr/share/locale/en_US ] && LANGUAGE="en_US" || {
-[ -d /usr/share/locale/en_US ] && LANGUAGE="en" || LANGUAGE="C"
+[ -d /usr/share/locale/en ] && LANGUAGE="en" || LANGUAGE="C"
 }
 LC_ALL="$LANGUAGE"
 HISTSIZE=32768
