@@ -106,7 +106,9 @@ case "$OS" in
   Cygwin* | *cygwin*) CYGDRIVE="/cygdrive" 
 MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
 ;;
-*Linux*|*linux*) MEDIAPATH="/m*/*/" ;;
+*Linux*|*linux*) 
+  MEDIAPATH="/m*/*/" 
+  ;;
 esac
 
 case "$(command grep --help 2>&1)" in
@@ -133,10 +135,15 @@ if [ "$OS" = Cygwin -o -n "$DRIVEPREFIX" ]; then
         INDEXES=`for x in a b c d e f g h i j k l m n o p q r s t u v w x y z; do test -e $DRIVEPREFIX/$x/files.list && echo $DRIVEPREFIX/$x/files.list; done`
 fi
 
-: ${INDEXES="$MEDIAPATH/files.list"}
-CMD="ls -d $MEDIAPATH/files.list 2>/dev/null"
-: ${INDEXES:=$(eval "$CMD")}
-[ "$DEBUG" = true ] && echo "Having" $(ls -d $INDEXES |wc -l ) "indices..." 1>&2
+MEDIAPATH="/{$(set -- $(df -a | sed 1d | sed -n 's|.* /\([mc]\)|\1|p'); IFS=","; echo "$*")}"
+#: ${INDEXES="$MEDIAPATH/files.list"}
+#CMD="ls -d $MEDIAPATH/files.list 2>/dev/null"
+#: ${INDEXES:=$(eval "$CMD")}
+#[ "$DEBUG" = true ] && echo "Having" $(ls -d $INDEXES |wc -l ) "indices..." 1>&2
+FILEARG="\$INDEXES"
+case "$MEDIAPATH" in
+  *"}") FILEARG="$MEDIAPATH/files.list" ;;
+esac
 
 FILTERCMD="sed -u 's,/files.list:,/,'"
 
@@ -156,7 +163,7 @@ set -- $INDEXES
 
 [ "$DEBUG" = true ] && echo "EXPR is $EXPR" 1>&2
 
-CMD="grep $GREP_ARGS -H -E \"\$EXPR\" \$INDEXES | $FILTERCMD"
+CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG | $FILTERCMD"
 
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 eval "($CMD) 2>/dev/null" 
