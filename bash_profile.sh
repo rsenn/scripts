@@ -74,7 +74,7 @@ unalias mv  2>/dev/null
 unalias rm 2>/dev/null
 
 type yum 2>/dev/null >/dev/null && alias yum='sudo yum -y'
-type smart 2>/dev/null >/dev/null && alias smart='sudo smart -y'
+#type smart 2>/dev/null >/dev/null && alias smart='sudo smart -y'
 type apt-get 2>/dev/null >/dev/null && alias apt-get='sudo apt-get -y'
 type aptitude 2>/dev/null >/dev/null && alias aptitude='sudo aptitude -y'
 
@@ -287,5 +287,8 @@ LS_COLORS='di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=33;01:cd=33;01:or=31;01:
 export LS_COLORS
 ;;
 esac
+
+[ -d /sbin ] && pathmunge /sbin
+[ -d /usr/sbin ] && pathmunge /usr/sbin
 
  
