@@ -2524,7 +2524,8 @@ mount-remaining()
         MNTDIR="$MNT/${LABEL:-${DEV##*/}}";
         mkdir -p "$MNTDIR";
         echo "Mounting $DEV to $MNTDIR ..." 1>&2;
-        mount "$DEV" "$MNTDIR";
+        mount "$DEV" "$MNTDIR" ${MNTOPTS:+-o
+"$MNTOPTS"};
     done )
 }
 
