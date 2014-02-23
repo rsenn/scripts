@@ -216,3 +216,9 @@ SCRIPTS =  \
 	wlan-restart.sh \
 	wlan-tmwnet.sh \
 	x2x-ssh-fuse.sh
+
+inst-slackpkg: slackpkg
+	for x in /m*/*/pmagic/pmodules/; do \
+		rm -vf "$$x"/scripts-*.txz; \
+		cp -vf scripts-`date +%Y%m%d`-slackware.txz "$$x"; \
+  done
