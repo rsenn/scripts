@@ -2492,7 +2492,8 @@ mount-all()
 { 
     for ARG in "$@";
     do
-        mount "$ARG";
+        mount "$ARG" ${MNTOPTS:+-o
+"$MNTOPTS"}
     done
 }
 
@@ -2509,7 +2510,8 @@ mount-matching()
             if ! is-mounted "$DEV" && ! is-mounted "$MNT"; then
                 mkdir -p "$MNT";
                 echo "Mounting $DEV to $MNT ..." 1>&2;
-                mount "$DEV" "$MNT";
+                mount "$DEV" "$MNT" ${MNTOPTS:+-o
+"$MNTOPTS"}
             fi;
         done
     } )
@@ -2524,7 +2526,8 @@ mount-remaining()
         MNTDIR="$MNT/${LABEL:-${DEV##*/}}";
         mkdir -p "$MNTDIR";
         echo "Mounting $DEV to $MNTDIR ..." 1>&2;
-        mount "$DEV" "$MNTDIR";
+        mount "$DEV" "$MNTDIR" ${MNTOPTS:+-o
+"$MNTOPTS"};
     done )
 }
 
