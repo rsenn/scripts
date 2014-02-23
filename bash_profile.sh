@@ -11,26 +11,27 @@ IFS="
 drives_upper=$'A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\nO\nP\nQ\nR\nS\nT\nU\nV\nW\nX\nY\nZ'
 drives_lower=$'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
 
-
 ansi_cyan='\[\033[1;36m\]' ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]' ansi_yellow='\[\033[1;33m\]' ansi_blue='\[\033[1;34m\]' ansi_magenta='\[\033[1;35m\]' ansi_gray='\[\033[0;37m\]' ansi_bold='\[\033[1m\]' ansi_none='\[\033[0m\]'
 
 #PATH="/sbin:/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/libexec:/usr/local/libexec"
-LC_ALL=C
-#LOCALE=C
-LANG=C
+#LANG=C
+LC_ALL="en_US.ISO-8859-1"
+LANGUAGE="en_US.ISO-8859-1"
 HISTSIZE=32768
 HISTFILESIZE=16777216
 XLIB_SKIP_ARGB_VISUALS=1
 LESS="-R"
+IFS=$'\n\t\r'
+HISTFILESIZE=$((HISTSIZE * 512))
+
+case "$TERM" in
+  *256color*) ;;
+  konsole|screen|rxvt|vte|Eterm|putty|xterm|mlterm|mrxvt|gnome) TERM="$TERM-256color" ;;
+esac
 
 unalias cp mv rm  2>/dev/null
 
-
-#if [ -z "$COLORS" -o ! -e "$COLORS" ]; then
-#  LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:*.wav=00;36:'
-#fi
-
-export PATH LC_ALL LOCALE LANG HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS
+export PATH LC_ALL LOCALE LANGUAGE HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS TERM
 
 case "$TERM" in
     xterm*) TERM=rxvt ;;
@@ -87,12 +88,6 @@ fi
 
 set -o vi
 
-IFS=$'\n\t\r'
-TERM=rxvt-256color
-HISTFILESIZE=$((HISTSIZE * 512))
-LC_ALL="C"
-
-export TERM LC_ALL
 alias lsof='lsof 2>/dev/null'
 
 [ "$OSTYPE" ] && OS="$OSTYPE"
