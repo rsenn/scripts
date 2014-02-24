@@ -1,4 +1,4 @@
-index-dir() 
+index-dir()
 { 
     [ -z "$*" ] && set -- .;
     ( for ARG in "$@";
