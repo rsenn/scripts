@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 lines () 
+=======
+lines()
+>>>>>>> 920a4a7eb2d8d4ebe7a624d237d7d9aad809de43
 { 
     for ARG in "$@";
     do

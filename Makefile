@@ -10,7 +10,7 @@ install: $(SCRIPTS)
 	$(INSTALL) -m 755 $(SCRIPTS) $(DESTDIR)$(bindir)
 
 
-slackpkg: prefix=/usr/local
+slackpkg: 
 slackpkg: $(SCRIPTS) 
 	@set -x; distdir="_inst"; rm -rf $$distdir; mkdir -p $$distdir/$(bindir) $$distdir/root; \
 		$(INSTALL) -m 755 $(SCRIPTS) $$distdir/$(bindir); \
@@ -20,7 +20,6 @@ slackpkg: $(SCRIPTS)
 
 SCRIPTS =  \
 	aaview.sh \
-	aliases.sh \
 	any23gp.sh \
 	any2amr-wb.sh \
 	any2avi.sh \
@@ -45,8 +44,6 @@ SCRIPTS =  \
 	avi2vob.sh \
 	bcmm-dump.sh \
 	bridge-setup.sh \
-	browser-history.sh \
-	cdhook.sh \
 	cerberus-dump.sh \
 	check-symlinks.sh \
 	checkpassword-test.sh \
@@ -55,18 +52,13 @@ SCRIPTS =  \
 	color-attr-table.sh \
 	color-html-table.sh \
 	color-syllables.sh \
-	colorgcc.sh \
-	colorgrep.sh \
-	colors.sh \
 	colortable16.sh \
 	colortable256.pl \
-	conf.sh \
 	cp-bash-scripts.bash \
 	cpio2tar.sh \
 	curl-upload.sh \
 	cyginst.sh \
 	cygpath.sh \
-	daemontools-conf.sh \
 	decode-ls-lR.sh \
 	dir-stats.sh \
 	distcc-discover.sh \
@@ -115,17 +107,13 @@ SCRIPTS =  \
 	fnsed.sh \
 	functions-assemble.sh \
 	functions-dump.sh \
-	functions.sh \
-	fuse-directives.sh \
 	gendvdimage.sh \
 	get-alive.sh \
 	get-names.sh \
-	getopts.sh \
 	git-config.bash \
 	google.sh \
 	grep-archives.sh \
 	grep-audio.sh \
-	grep-colors.sh \
 	grep-fonts.sh \
 	grep-images.sh \
 	grep-incomplete.sh \
@@ -136,8 +124,6 @@ SCRIPTS =  \
 	grep-sources.sh \
 	grep-videos.sh \
 	grub-files-find.sh \
-	hashstash.sh \
-	hex2chr.sh \
 	hhv-search.sh \
 	histogram.awk \
 	home-cleanup.sh \
@@ -164,19 +150,15 @@ SCRIPTS =  \
 	locate-sources.sh \
 	locate-videos.sh \
 	locate32.sh \
-	locks.sh \
-	logrun.sh \
 	lsof.sh \
 	lvm-mount-all.sh \
 	maildirfix.sh \
 	make-archive.sh \
 	make-wine-wrapper.sh \
 	media-mnt-find.sh \
-	messages.sh \
 	mingwvars.sh \
 	mkcrt.sh \
 	mkcsr.sh \
-	mkgrub-conf.sh \
 	mkkeys.sh \
 	mkloglinks.sh \
 	mkrunlinks.sh \
@@ -190,26 +172,18 @@ SCRIPTS =  \
 	msvc.sh \
 	mysql-example.sh \
 	mysql-functions.sh \
-	newfile.sh \
 	otf2ttf.fontforge \
 	otf2ttf.sh \
 	pack-dir.sh \
 	package-search.sh \
 	program-paths.sh \
-	prompt.sh \
 	proxy-list.sh \
-	proxy-server.sh \
-	ps2png.sh \
 	ps2tiff.sh \
 	ptrace.sh \
-	putty-sessions.sh \
 	rcat.sh \
-	reg-export.sh \
-	reg-generic.sh \
 	require.sh \
 	rmsem.sh \
 	rsed.sh \
-	rsync.sh \
 	rxvt.sh \
 	scan-open-wlans.sh \
 	search-files.sh \
@@ -217,14 +191,13 @@ SCRIPTS =  \
 	search-sc.sh \
 	search-soundcloud.sh \
 	sets.sh \
-	shopts.sh \
 	slackpkg-archive.sh \
-	ssh-agent-takeover.sh \
 	svmigrate.sh \
 	svnbuild.sh \
 	svnpath.sh \
 	svtail.sh \
 	test.sh \
+	tokextract.sh \
 	tokgrep.sh \
 	toksubst.sh \
 	torrent-finder.sh \
@@ -234,7 +207,6 @@ SCRIPTS =  \
 	udiff.sh \
 	unpack-and-remove.sh \
 	unpack-each-in-own-folder.sh \
-	urlcoding.sh \
 	vbox-sdl.sh \
 	vimpager.sh \
 	vzlist-dummy.sh \
@@ -243,6 +215,10 @@ SCRIPTS =  \
 	wlan-linksys.sh \
 	wlan-restart.sh \
 	wlan-tmwnet.sh \
-	x11.sh \
-	x2x-ssh-fuse.sh \
-	xterm-256color.sh
+	x2x-ssh-fuse.sh
+
+inst-slackpkg: slackpkg
+	for x in /m*/*/pmagic/pmodules/; do \
+		rm -vf "$$x"/scripts-*.txz; \
+		cp -vf scripts-`date +%Y%m%d`-slackware.txz "$$x"; \
+  done

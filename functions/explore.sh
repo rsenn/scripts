@@ -1,6 +1,7 @@
 explore()
 { 
   ( r=$(realpath "$1");
+  [ -z "$r" ] && r=$1
   r=${r%/.};
   r=${r#./};
   p=$(msyspath -w "$r");

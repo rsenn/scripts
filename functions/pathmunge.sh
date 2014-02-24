@@ -6,9 +6,8 @@ pathmunge()
       *) break ;;
     esac
   done
-  : ${PATHVAR="PATH"}
   local IFS=":";
-  : ${OS=`uname -o`};
+  : ${OS=`uname -o | head -n1`};
   case "$OS:$1" in
       [Mm]sys:*[:\\]*)
           tmp="$1";
@@ -16,11 +15,12 @@ pathmunge()
           set -- `${PATHTOOL:-msyspath} "$tmp"` "$@"
       ;;
   esac;
-  if ! eval "echo \"\${$PATHVAR}\"" | egrep -q "(^|:)$1($|:)"; then
+  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | egrep -q "(^|:)$1($|:)"; then
       if test "$2" = "after"; then
-          eval "$PATHVAR=\"\${$PATHVAR}:\$1\"";
+          eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
       else
-          eval "$PATHVAR=\"\$1:\${$PATHVAR}\"";
+          eval "${PATHVAR-PATH}=\"\$1:\${${PATHVAR-PATH}}\"";
       fi;
   fi
+  unset PATHVAR
 }
