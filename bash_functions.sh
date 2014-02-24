@@ -2500,7 +2500,8 @@ mount-all()
 mount-matching()
 { 
     ( MNTDIR="/mnt";
-    blkid | grep-e "$@" | { 
+   [ "$UID" != 0 ] && SUDO=sudo 
+   blkid | grep-e "$@" | { 
         IFS=" ";
         while read -r DEV PROPERTIES; do
             DEV=${DEV%:};
@@ -2508,9 +2509,9 @@ mount-matching()
             eval "$PROPERTIES";
             MNT="$MNTDIR/${LABEL:-${DEV##*/}}";
             if ! is-mounted "$DEV" && ! is-mounted "$MNT"; then
-                mkdir -p "$MNT";
+                $SUDO mkdir -p "$MNT";
                 echo "Mounting $DEV to $MNT ..." 1>&2;
-                mount "$DEV" "$MNT" ${MNTOPTS:+-o
+                $SUDO mount "$DEV" "$MNT" ${MNTOPTS:+-o
 "$MNTOPTS"}
             fi;
         done
@@ -2520,13 +2521,14 @@ mount-matching()
 mount-remaining()
 { 
     ( MNT="${1:-/mnt}";
+    [ "$UID" != 0 ] && SUDO=sudo
     for DEV in $(not-mounted-disks);
     do
         LABEL=` disk-label "$DEV"`;
         MNTDIR="$MNT/${LABEL:-${DEV##*/}}";
-        mkdir -p "$MNTDIR";
+        $SUDO mkdir -p "$MNTDIR";
         echo "Mounting $DEV to $MNTDIR ..." 1>&2;
-        mount "$DEV" "$MNTDIR" ${MNTOPTS:+-o
+        $SUDO mount "$DEV" "$MNTDIR" ${MNTOPTS:+-o
 "$MNTOPTS"};
     done )
 }
