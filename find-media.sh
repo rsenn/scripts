@@ -135,7 +135,9 @@ if [ "$OS" = Cygwin -o -n "$DRIVEPREFIX" ]; then
         INDEXES=`for x in a b c d e f g h i j k l m n o p q r s t u v w x y z; do test -e $DRIVEPREFIX/$x/files.list && echo $DRIVEPREFIX/$x/files.list; done`
 fi
 
-MEDIAPATH="/{$(set -- $(df -a | sed 1d | sed -n 's|.* /\([mc]\)|\1|p'); IFS=","; echo "$*")}"
+#MEDIAPATH="/{$(set -- $(df -a | sed 1d | sed -n 's|.* /\([mc]\)|\1|p'); IFS=","; echo "$*")}"
+MEDIAPATH="/{$(set -- $(df -a |sed -n 's,^/[^ ]*\s[^/]\+\s/,/,p'); IFS=","; echo "$*")}"
+
 #: ${INDEXES="$MEDIAPATH/files.list"}
 #CMD="ls -d $MEDIAPATH/files.list 2>/dev/null"
 #: ${INDEXES:=$(eval "$CMD")}
