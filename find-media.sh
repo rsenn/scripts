@@ -108,14 +108,7 @@ case "$OS" in
   Cygwin* | *cygwin*) CYGDRIVE="/cygdrive" 
 : ${MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"}
 ;;
-<<<<<<< HEAD
 *Linux*|*linux*) : ${MEDIAPATH="/m*/*/"} ;;
-
-=======
-*Linux*|*linux*) 
-  MEDIAPATH="/m*/*/" 
-  ;;
->>>>>>> 920a4a7eb2d8d4ebe7a624d237d7d9aad809de43
 esac
 
 case "$(command grep --help 2>&1)" in
