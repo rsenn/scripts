@@ -120,11 +120,10 @@ set-prompt()
 
 currentpath()
 {
-   if [ "$PWD" != "${PWD#$HOME}" ]; then
-     echo "~${PWD#$HOME}"
-   else
-     $PATHTOOL -m "$PWD"
-   fi
+  (CWD="${1-$PWD}"
+   [ "$CWD" != "${CWD#$HOME}" ] && OUT="~${CWD#$HOME}" || OUT=`$PATHTOOL -m "$CWD"`
+   [ "$OUT" != "${OUT#$SYSROOT}" ] && OUT=${OUT#$SYSROOT}
+   echo "$OUT")
 }
 
 case "${OS=`uname -o |head -n1`}" in
@@ -132,11 +131,13 @@ case "${OS=`uname -o |head -n1`}" in
     MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
     PATHTOOL=msyspath
     set-prompt '\e[32m\]\u@\h \[\e[33m\]`currentpath`\[\e[0m\]\n\$ '
+    MSYSROOT=`msyspath -m /`
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
    set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]`currentpath`\[\e[0m\]\n\$ '
    PATHTOOL=cygpath
+   CYGROOT=`cygpath -m /`
   ;;
 *) 
   MEDIAPATH="/m*/*/"
@@ -144,6 +145,7 @@ case "${OS=`uname -o |head -n1`}" in
   set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
  ;;
 esac
+SYSROOT=`$PATHTOOL -m /`
 
 #: ${PS1:='\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '}
 
