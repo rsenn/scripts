@@ -4,6 +4,7 @@ IFS="
 "
 while :; do
   case "$1" in
+    -H | --file*name* ) SHOW_FILENAME=true ; shift ;;
     -h | --human-size | --*human*) HUMAN_SIZE=true SHOW_SIZE=true; shift ;;
     -s | --show-size | --*size*) SHOW_SIZE=true; shift ;;
     -r | --rename | --*rename*) DO_RENAME=true; shift ;;
@@ -84,7 +85,7 @@ if [ "$DERIVE_NAME" = true -o "$DO_RENAME" = true ]; then
 fi
 fi
 
-[ "$ARGC" -gt 1 ] && OUTPUT="\$ARG: $OUTPUT"
+[ "$ARGC" -gt 1 -o "$SHOW_FILENAME" = true ] && OUTPUT="\$ARG: $OUTPUT"
 for ARG in $ARGS; do
   CTOR=$(ctorrent -x "$ARG")
   if ! [ "$CTOR" ] || ! eval "$CMD"; then

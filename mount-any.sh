@@ -1,7 +1,7 @@
 #!/bin/bash
 
 : ${MNTDIR:="$HOME/mnt"}
-: ${FUSEISO:=`which fuseiso` }
+: ${FUSEISO:=`which fuseiso`}
 
 while :; do
   case "$1" in
