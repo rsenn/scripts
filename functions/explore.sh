@@ -1,6 +1,6 @@
 explore()
 { 
-  ( r=$(realpath "$1");
+  ( r=$(myrealpath "$1");
   [ -z "$r" ] && r=$1
   r=${r%/.};
   r=${r#./};

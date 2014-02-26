@@ -3,54 +3,12 @@
 IFS="
 "
 
-list-mediapath() 
-{ 
-    ( while :; do
-        case "$1" in 
-            -*)
-                OPTS="${OPTS+$OPTS
-}$1";
-                shift
-            ;;
-            --)
-                shift;
-                break
-            ;;
-            *)
-                break
-            ;;
-        esac;
-    done;
-    for ARG in "$@";
-    do
-        eval "ls -1 -d \$OPTS -- $MEDIAPATH/\$ARG 2>/dev/null";
-    done )
-}
-
-[ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; : ${OS="Cygwin"}; }
-(for DIR in /sysdrive/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/; do [ -d "$DIR" ] && exit 0; done; exit 1)  && SYSDRIVE="/sysdrive" || SYSDRIVE=
-
-case "${OS=`uname -o |head -n1`}" in
-   msys* | Msys* |MSys* | MSYS*)
-    MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-    PATHTOOL=msyspath
-   ;;
-  *cygwin* |Cygwin* | CYGWIN*) 
-    MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-   set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]\w\[\e[0m\]\n\$ '
-   PATHTOOL=cygpath
-  ;;
-*) 
-  MEDIAPATH="/m*/*/"
-  
-	set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
- ;;
-esac
+MEDIAPATH="/{$(set -- $(df -a |sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
 
 pathconv() { (IFS="/\\"; S="${2-/}"; set -- $1; IFS="$S"; echo "$*"); }
 addopt() { for OPT; do OPTS="${OPTS:+$OPTS }${OPT}"; done; }
 
-LOCATE=$(ls -d -- $(list-mediapath 'Prog*/Locate32/Locate.exe')|head -n1)
+LOCATE=`eval "ls -d -- $MEDIAPATH/Prog*/Locate32/Locate.exe" 2>/dev/null|head -n1`
 LOCATEDIR=$(dirname "$LOCATE")
 #LOCATEREG=$(ls -d $LOCATEDIR/*.reg)
 (cd "$LOCATEDIR"; for REG in *.reg; do reg import "$REG"
