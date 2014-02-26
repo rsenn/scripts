@@ -1,23 +1,21 @@
 multiline_list()
 { 
-    local indent='  ' IFS="
-";
-    while [ "$1" != "${1#-}" ]; do
-        case $1 in 
-            -i)
-                indent=$2 && shift 2
-            ;;
-            -i*)
-                indent=${2#-i} && shift
-            ;;
-        esac;
-    done;
-    if test -z "$*" || test "$*" = -; then
-        cat;
-    else
-        echo "$*";
-    fi | while read item; do
-        echo " \\";
-        echo -n "$indent$item";
-    done
+ (INDENT='  ' IFS="
+  "
+  case "$1" in
+    -i) INDENT=$2 && shift 2 ;;
+    -i*) INDENT=${2#-i} && shift
+    ;;
+    *) break ;;
+  esac;
+  done;
+  if test -z "$*" || test "$*" = -; then
+    cat
+  else
+    echo "$*";
+  fi |
+  while read ITEM; do
+      echo " \\";
+      echo -n "$INDENT$ITEM";
+  done)
 }

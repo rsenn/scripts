@@ -24,16 +24,26 @@ abspath()
 
 addprefix()
 { 
-    ( while read -r LINE; do
-        echo "$1${LINE}";
-    done )
+ (PREFIX=$1; shift
+  CMD='echo "$PREFIX$LINE"'
+  if [ $# -gt 1 ]; then
+    CMD="for LINE; do $CMD; done"
+  else
+    CMD="while read -r LINE; do $CMD; done"
+  fi
+  eval "$CMD")
 }
 
 addsuffix()
 { 
-    ( while read -r LINE; do
-        echo "${LINE}$1";
-    done )
+ (SUFFIX=$1; shift
+  CMD='echo "$LINE$SUFFIX"'
+  if [ $# -gt 1 ]; then
+    CMD="for LINE; do $CMD; done"
+  else
+    CMD="while read -r LINE; do $CMD; done"
+  fi
+  eval "$CMD")
 }
 
 all-disks()
@@ -871,47 +881,47 @@ filter-quoted-name()
 
 filter-test()
 { 
-    ( IFS="
+  ( IFS="
   ";
-    unset ARGS NEG;
-    while :; do
-        case "$1" in 
-            -a | -b | -c | -d | -e | -f | -g | -h | -k | -L | -N | -O | -p | -r | -s | -u | -w | -x)
-                ARGS="${ARGS:+$ARGS
+  unset ARGS NEG;
+  while :; do
+      case "$1" in 
+          -a | -b | -c | -d | -e | -f | -g | -h | -k | -L | -N | -O | -p | -r | -s | -u | -w | -x)
+              ARGS="${ARGS:+$ARGS
 }"${NEG:+'!
 '}"$1";
 
-                shift;
-                NEG=""
-            ;;
-            '!')
-                [ "${NEG:-false}" = false ] && NEG='!' ||
-                NEG=
-                shift
-            ;;
-            *)
-                break
-            ;;
-        esac;
-    done;
-    [ -z "$ARGS" ] && { 
-        exit 2
-    };
-    IFS=" ";
-    set -- $ARGS;
-    ARGN=$#;
-    ARGS="$*";
-    IFS="
+              shift;
+              NEG=""
+          ;;
+          '!')
+              [ "${NEG:-false}" = false ] && NEG='!' ||
+              NEG=
+              shift
+          ;;
+          *)
+              break
+          ;;
+      esac;
+  done;
+  [ -z "$ARGS" ] && { 
+      exit 2
+  };
+  IFS=" ";
+  set -- $ARGS;
+  ARGN=$#;
+  ARGS="$*";
+  IFS="
 "
-    while read -r LINE; do
+  while read -r LINE; do
  set -- $LINE;
-        #if [ $ARGN = 1 ]; then
-            test $ARGS "$LINE" || continue 2;
-        #else
-        #    eval "test $ARGS \"\$LINE\"" || continue 2;
-        #fi;
-        echo "$LINE";
-    done )
+      #if [ $ARGN = 1 ]; then
+          test $ARGS "$LINE" || continue 2;
+      #else
+      #    eval "test $ARGS \"\$LINE\"" || continue 2;
+      #fi;
+      echo "$LINE";
+  done )
 }
 
 filter()
@@ -1971,7 +1981,7 @@ link-mpd-music-dirs()
 
 list-7z()
 { 
-    7z l "$1" | cut-ls-l 4 | sed 's,^[0-9]\+\s\+,,' | grep --color=auto --line-buffered -E '(\\|^[A-Za-z]|^[^\\]*\.)' | sed '1d; $d; s,\\,/,g'
+    7z l "$1" | sed -n '/^\s*Date\s\+Time\s\+Attr/ {   :lp; N; $! b lp;  s/[^\n]*files[^\n]*folders$//; s/\n[- ]*\n/\n/g; s/\n[0-9][-0-9]\+\s\+[0-9:]\+\s\+[^ ]*[.[:alnum:]][^ ]*\+\s\s*\([0-9]\+\)\s\s/\n  /g; s/\n\s\+[0-9]\+\s\s*/\n  /g; s/\n\s\+/\n/g; s/^\s*Date\s\+Time[^\n]*//; p; }'
 }
 
 list-dotfiles()
@@ -2648,26 +2658,24 @@ msyspath()
 
 multiline_list()
 { 
-    local indent='  ' IFS="
-";
-    while [ "$1" != "${1#-}" ]; do
-        case $1 in 
-            -i)
-                indent=$2 && shift 2
-            ;;
-            -i*)
-                indent=${2#-i} && shift
-            ;;
-        esac;
-    done;
-    if test -z "$*" || test "$*" = -; then
-        cat;
-    else
-        echo "$*";
-    fi | while read item; do
-        echo " \\";
-        echo -n "$indent$item";
-    done
+ (INDENT='  ' IFS="
+  "
+  case "$1" in
+    -i) INDENT=$2 && shift 2 ;;
+    -i*) INDENT=${2#-i} && shift
+    ;;
+    *) break ;;
+  esac;
+  done;
+  if test -z "$*" || test "$*" = -; then
+    cat
+  else
+    echo "$*";
+  fi |
+  while read ITEM; do
+      echo " \\";
+      echo -n "$INDENT$ITEM";
+  done)
 }
 
 multiply-resolution()
