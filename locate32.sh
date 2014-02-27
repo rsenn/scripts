@@ -3,7 +3,7 @@
 IFS="
 "
 
-MEDIAPATH="/{$(set -- $(df -a |sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
+MEDIAPATH="/{$(set -- $(df -a 2>/dev/null |sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
 
 pathconv() { (IFS="/\\"; S="${2-/}"; set -- $1; IFS="$S"; echo "$*"); }
 addopt() { for OPT; do OPTS="${OPTS:+$OPTS }${OPT}"; done; }
