@@ -142,7 +142,7 @@ if [ "$OS" = Cygwin -o -n "$DRIVEPREFIX" ]; then
 fi
 
 #MEDIAPATH="/{$(set -- $(df -a | sed 1d | sed -n 's|.* /\([mc]\)|\1|p'); IFS=","; echo "$*")}"
-MEDIAPATH="/{$(set -- $(df -a |sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
+MEDIAPATH="/{$(set -- $(df -a 2>/dev/null|sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
 
 #: ${INDEXES="$MEDIAPATH/files.list"}
 #CMD="ls -d $MEDIAPATH/files.list 2>/dev/null"
