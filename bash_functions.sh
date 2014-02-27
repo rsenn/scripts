@@ -26,19 +26,16 @@ addprefix()
 { 
  (PREFIX=$1; shift
   CMD='echo "$PREFIX$LINE"'
-  if [ $# -gt 1 ]; then
-    CMD="for LINE; do $CMD; done"
-  else
-    CMD="while read -r LINE; do $CMD; done"
-  fi
-  eval "$CMD")
+  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD"
+ )
 }
 
 addsuffix()
 { 
  (SUFFIX=$1; shift
   CMD='echo "$LINE$SUFFIX"'
-  if [ $# -gt 1 ]; then
+  if [ $# -gt 0 ]; then
     CMD="for LINE; do $CMD; done"
   else
     CMD="while read -r LINE; do $CMD; done"
@@ -1981,7 +1978,7 @@ link-mpd-music-dirs()
 
 list-7z()
 { 
-    7z l "$1" | sed -n '/^\s*Date\s\+Time\s\+Attr/ {   :lp; N; $! b lp;  s/[^\n]*files[^\n]*folders$//; s/\n[- ]*\n/\n/g; s/\n[0-9][-0-9]\+\s\+[0-9:]\+\s\+[^ ]*[.[:alnum:]][^ ]*\+\s\s*\([0-9]\+\)\s\s/\n  /g; s/\n\s\+[0-9]\+\s\s*/\n  /g; s/\n\s\+/\n/g; s/^\s*Date\s\+Time[^\n]*//; p; }'
+    7z l "$1" | sed -n '/^\s*Date\s\+Time\s\+Attr/ {   :lp; N; $! b lp;  s/[^\n]*files[^\n]*folders$//; s/\n[- ]*\n/\n/g; s/\n[0-9][-0-9]\+\s\+[0-9:]\+\s\+[^ ]*[.[:alnum:]][^ ]*\+\s\s*\([0-9]\+\)\s\s/\n  /g; s/\n\s\+[0-9]\+\s\s*/\n  /g; s/\n\s\+/\n/g; s/^\s*Date\s\+Time[^\n]*//; s/\n[^/]*files[^/]*folders$//; p; }'
 }
 
 list-dotfiles()
@@ -2658,24 +2655,23 @@ msyspath()
 
 multiline_list()
 { 
- (INDENT='  ' IFS="
-  "
-  case "$1" in
-    -i) INDENT=$2 && shift 2 ;;
-    -i*) INDENT=${2#-i} && shift
-    ;;
-    *) break ;;
-  esac;
-  done;
-  if test -z "$*" || test "$*" = -; then
-    cat
-  else
-    echo "$*";
-  fi |
-  while read ITEM; do
-      echo " \\";
-      echo -n "$INDENT$ITEM";
-  done)
+ (IFS="
+ "
+  : ${INDENT='  '}
+  while :; do
+    case "$1" in
+      -i) INDENT=$2 && shift 2 ;;
+      -i*) INDENT=${2#-i} && shift
+      ;;
+      *) break ;;
+    esac
+  done
+
+  CMD='echo -n " \\
+$INDENT$LINE"'
+  [ $# -ge 1 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD"
+ )
 }
 
 multiply-resolution()

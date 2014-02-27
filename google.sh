@@ -14,7 +14,20 @@ urlescape()
 
 IFS="
 "
-USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0"
+
+while :; do
+  case "$1" in
+    -x|--debug) DEBUG=true; shift ;;
+    -t=*|--type=*) TYPE=${1%#*=}; shift ;; -t|--type) TYPE=$2; shift 2 ;;
+    -c=*|--class=*) CLASS=${1%#*=}; shift ;; -c|--class) CLASS=$2; shift 2 ;;
+    -n=*|--results=*) RESULTS=${1%#*=}; shift ;; -n|--results) RESULTS=$2; shift 2 ;;
+    -*) echo "Invalid argument '$1'." 1>&2; exit 1 ;;
+    *) break ;;
+  esac
+done
+
+: ${USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0"}
+: ${RESULTS=30}
 #HTTP_PROXY="127.0.0.1:8123"
 
 DLCMD="curl -s --insecure --location -A '$USER_AGENT' ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks5 \"${SOCKS_PROXY#*://}\"}"
@@ -35,9 +48,6 @@ done
 IFS="+$IFS"
 #URL=`surfraw -p -escape-url-args="no" google -results="${RESULTS-30}" "$*"`
 
-if [ -z "$RESULTS" ]; then
-  RESULTS=30
-fi
 
 if [ "$RESULTS" -le 100 ]; then
   END=0
@@ -47,7 +57,14 @@ else
 fi
 
 
-URLS="http://www.google.com/search?q=$*&num=${RESULTS-30}"
+case "$CLASS" in
+  image*|img*) 
+    URLS="http://www.google.com/search?safe=off&site=imghp&tbs=isz:ex${TYPE+%2Cift:$TYPE}&tbm=isch&source=hp&biw=1280&bih=823&q=TEST&oq=TEST"
+    FILTER="sed -n 's,.*imgrefurl=\\([^&]\+\\).*imgurl=\\([^&]\+\\).*,\\2,p'"
+  ;;
+  *) URLS="http://www.google.com/search?q=$*&num=${RESULTS-30}" ;;
+esac
+
 I="$RESULTS"
 while [ "$I" -lt "$END" ]; do
   URLS="${URLS:+$URLS
@@ -56,6 +73,10 @@ while [ "$I" -lt "$END" ]; do
 done
 
 #echo "URL is $URL" 1>&2
+CMD="$DLCMD \$URLS"
 
-eval "(set -x; $DLCMD \$URLS)"  |
-sed 's,<,\n&,g'| sed -n 's,^<a href="\([^"/:]\+://[^"]\+\)"[^>]\+.*,\1,p'
+[ "$DEBUG" = true ] && CMD="set -x; $CMD"
+
+FILTER="sed 's%<%\n&%g' | sed -n 's%^<a href=\"\\([^\"/:]\\+://[^\"]\\+\\)\"[^>]\\+.*%\\1%p'${FILTER:+ | $FILTER}"
+FILTER="$FILTER | sed 's%\\&amp;%\\&%g'"
+eval "($CMD) ${FILTER:+ | ${FILTER#\ \|\ }}" 

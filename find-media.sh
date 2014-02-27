@@ -46,17 +46,21 @@ while :; do
   	-m=* | --mediapath=*) MEDIAPATH="${1#*=}"; shift ;;
   	-d | --debug) DEBUG=true; shift ;;
   	-e | --exist*) EXIST_FILE=true; shift ;;
-#  	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
+  	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
   	-f) WANT_FILE=true; shift ;;
-    -i | --case-insensitive) GREP_ARGS="${GREP_ARGS:+$IFS}-i"; shift ;;
+    -I | --case-sensitive) CASE_SENSITIVE=true ; shift ;;
+    -i | --case-insensitive) CASE_SENSITIVE=false; shift ;;
     --color) GREP_ARGS="${GREP_ARGS:+$IFS}--color"; shift ;;
   	-I | --include) add_dir INCLUDE_DIRS "$2" ; shift 2 ;;
   	-[EeXx]) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;;
-	*) break ;;
+  -*) echo "No such option '$1'." 1>&2; exit 1 ;;
+  --) shift; break ;;	*) break ;;
 	esac
 done
 
-
+if [ "$CASE_CENSITIVE" != true ]; then
+  GREP_ARGS="${GREP_ARGS:+$IFS}-i"
+fi
 
 : ${OS=`uname -o`}
 EXPR=""
@@ -81,6 +85,7 @@ else
 fi
 
 case "$CLASS" in
+  bin*|exe*|prog*)  EXPR="$EXPR.*\.(exe|msi|dll)\$" ;;
   archive*) EXPR="$EXPR.*\.(7z|rar|tar\.bz2|tar\.gz|tar\.xz|tar|tar\.lzma|tbz2|tgz|txz|zip)\$" ;;
   audio*) EXPR="$EXPR.*\.(aif|aiff|flac|m4a|m4b|mp2|mp3|mpc|ogg|raw|rm|wav|wma)\$" ;;
   fonts*) EXPR="$EXPR.*\.(bdf|flac|fon|m4a|m4b|mp3|mpc|ogg|otf|pcf|rm|ttf|wma)\$" ;;
@@ -88,6 +93,7 @@ case "$CLASS" in
   incompl*|part*) EXPR="$EXPR.*\.(\*\.!??|\*\.part|INCOMPL\*|\[/\\\]INCOMPL\[^/\\\]\*\$|\\\.!??\$|\\\.part\$)\$" ;;
   music*) EXPR="$EXPR.*\.(aif|aiff|flac|m4a|m4b|mp3|mpc|ogg|rm|voc|wav|wma)\$" ;;
   package*|pkg*) EXPR="$EXPR.*\.(deb|rpm|tgz|txz)\$" ;;
+  patch*|diff*) EXPR="$EXPR.*\.(diff|patch)[^/]*$" ;;
   script*) EXPR="$EXPR.*\.(bat|cmd|py|rb|sh)\$" ;;
   software*) EXPR="$EXPR.*\.(\*\.msi|\*install\*\.exe|\*setup\*\.exe|\.msi|7z|deb|exe|install\*\.exe|msi|rar|rpm|setup\*\.exe|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz|zip)\$" ;;
   source*) EXPR="$EXPR.*\.(c|cpp|cxx|h|hpp|hxx)\$" ;;
