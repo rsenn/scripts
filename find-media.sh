@@ -44,7 +44,7 @@ while :; do
 	case "$1" in
   	-m | --mediapath) MEDIAPATH="$2"; shift 2 ;;
   	-m=* | --mediapath=*) MEDIAPATH="${1#*=}"; shift ;;
-  	-d | --debug) DEBUG=true; shift ;;
+  	-x | --debug) DEBUG=true; shift ;;
   	-e | --exist*) EXIST_FILE=true; shift ;;
   	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
   	-f) WANT_FILE=true; shift ;;
