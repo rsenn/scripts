@@ -121,52 +121,47 @@ case "$CLASS" in
   *) echo "No such class '$CLASS'." 1>&2; exit 2 ;;
 esac
 
-MOUNT_OUTPUT=`mount`
+#MOUNT_OUTPUT=`mount`
+#
+#
+#case "$OS" in
+#  M[Ss][Yy][Ss]*)
+#  (set -- /sysdrive/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/; for DRIVE do test -d "$DRIVE" && exit 0; done; exit 1) && SYSDRIVE="/sysdrive" || unset SYSDRIVE 
+#  MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
+# ;;
+#
+#  Cygwin* | *cygwin*) CYGDRIVE="/cygdrive" 
+#: ${MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"}
+#;;
+#*Linux*|*linux*) : ${MEDIAPATH="/m*/*/"} ;;
+#esac
+#
+#case "$(command grep --help 2>&1)" in
+#  *--color*) GREP_ARGS="$GREP_ARGS --color=auto" ;;
+#esac
+#
+#case "$OS" in
+#  Cygwin) DRIVEPREFIX="/cygdrive" ;;
+#*) test -d "/sysdrive"  && DRIVEPREFIX="/sysdrive" ;;
+#esac
+#
+#while read C1 C2 C3 C4 C5 C6; do
+#  if [ "$C2" = on ]; then
+#    case "$C3" in
+#      /[a-z])
+#        INDEXES=`for x in a b c d e f g h i j k l m n o p q r s t u v w x y z; do test -e $DRIVEPREFIX/$x/files.list && echo $DRIVEPREFIX/$x/files.list; done`
+#        break
+#      ;;
+#    esac
+#  fi
+#done <<<"$MOUNT_OUTPUT"
+#
+#if [ "$OS" = Cygwin -o -n "$DRIVEPREFIX" ]; then
+#        INDEXES=`for x in a b c d e f g h i j k l m n o p q r s t u v w x y z; do test -e $DRIVEPREFIX/$x/files.list && echo $DRIVEPREFIX/$x/files.list; done`
+#fi
+#
+MEDIAPATH="/{$(set -- $( df -a 2>/dev/null|sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/\(.*\),/\1,p' |grep -vE '^/\?(sys|proc|dev|run)'); IFS=","; echo "${*#/}")}"
 
-
-case "$OS" in
-  M[Ss][Yy][Ss]*)
-  (set -- /sysdrive/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/; for DRIVE do test -d "$DRIVE" && exit 0; done; exit 1) && SYSDRIVE="/sysdrive" || unset SYSDRIVE 
-  MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
- ;;
-
-  Cygwin* | *cygwin*) CYGDRIVE="/cygdrive" 
-: ${MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"}
-;;
-*Linux*|*linux*) : ${MEDIAPATH="/m*/*/"} ;;
-esac
-
-case "$(command grep --help 2>&1)" in
-  *--color*) GREP_ARGS="$GREP_ARGS --color=auto" ;;
-esac
-
-case "$OS" in
-  Cygwin) DRIVEPREFIX="/cygdrive" ;;
-*) test -d "/sysdrive"  && DRIVEPREFIX="/sysdrive" ;;
-esac
-
-while read C1 C2 C3 C4 C5 C6; do
-  if [ "$C2" = on ]; then
-    case "$C3" in
-      /[a-z])
-        INDEXES=`for x in a b c d e f g h i j k l m n o p q r s t u v w x y z; do test -e $DRIVEPREFIX/$x/files.list && echo $DRIVEPREFIX/$x/files.list; done`
-        break
-      ;;
-    esac
-  fi
-done <<<"$MOUNT_OUTPUT"
-
-if [ "$OS" = Cygwin -o -n "$DRIVEPREFIX" ]; then
-        INDEXES=`for x in a b c d e f g h i j k l m n o p q r s t u v w x y z; do test -e $DRIVEPREFIX/$x/files.list && echo $DRIVEPREFIX/$x/files.list; done`
-fi
-
-#MEDIAPATH="/{$(set -- $(df -a | sed 1d | sed -n 's|.* /\([mc]\)|\1|p'); IFS=","; echo "$*")}"
-MEDIAPATH="/{$(set -- $(df -a 2>/dev/null|sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
-
-#: ${INDEXES="$MEDIAPATH/files.list"}
-#CMD="ls -d $MEDIAPATH/files.list 2>/dev/null"
-#: ${INDEXES:=$(eval "$CMD")}
-#[ "$DEBUG" = true ] && echo "Having" $(ls -d $INDEXES |wc -l ) "indices..." 1>&2
 FILEARG="\$INDEXES"
 case "$MEDIAPATH" in
   *"}") FILEARG="$MEDIAPATH/files.list" ;;
