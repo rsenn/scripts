@@ -39,20 +39,39 @@ add_dir()
 unset INCLUDE_DIRS
 GREP_ARGS=""
 
+usage()
+{
+  echo "Usage: ${0##*/} [OPTIONS] ARGUMENTS...
+  -m, --mediapath=PATH     List of search paths.
+  -x, --debug              Show debug messages
+  -e, --exists             Show only existing files
+  -f, --want-file         Return only files
+  -i, --case-insensitive  Case insensitive search
+  -I, --case-sensitive    Case sensitive search
+      --color             Return colored list
+      --include=DIR       Include results in DIR
+  -x, --exclude=DIR       Exclude results from DIR
+  -c, --class              File type class
+  One of: 
+    bin|exe|prog, archive, audio, fonts, image, incompl|part, music,
+    package|pkg, patch|diff, script, software, source, video
+"
+  exit 0
+}
 
 while :; do
 	case "$1" in
-  	-m | --mediapath) MEDIAPATH="$2"; shift 2 ;;
-  	-m=* | --mediapath=*) MEDIAPATH="${1#*=}"; shift ;;
+	  -h | --help) usage; shift ;;
+  	-m | --mediapath) MEDIAPATH="$2"; shift 2 ;; -m=* | --mediapath=*) MEDIAPATH="${1#*=}"; shift ;;
   	-x | --debug) DEBUG=true; shift ;;
   	-e | --exist*) EXIST_FILE=true; shift ;;
   	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
-  	-f) WANT_FILE=true; shift ;;
+  	-f | --*file*) WANT_FILE=true; shift ;;
     -I | --case-sensitive) CASE_SENSITIVE=true ; shift ;;
     -i | --case-insensitive) CASE_SENSITIVE=false; shift ;;
     --color) GREP_ARGS="${GREP_ARGS:+$IFS}--color"; shift ;;
-  	-I | --include) add_dir INCLUDE_DIRS "$2" ; shift 2 ;;
-  	-[EeXx]) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;;
+  	--include) add_dir INCLUDE_DIRS "$2" ; shift 2 ;; --include=*) add_dir INCLUDE_DIRS "${1#*=}"; shift ;;
+  	-[EeXx] |--exclude) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;; -[EeXx]=* | --exclude=*) add_dir EXLUDE_DIRS "${1#*=}"; shift ;;
   -*) echo "No such option '$1'." 1>&2; exit 1 ;;
   --) shift; break ;;	*) break ;;
 	esac

@@ -3,6 +3,43 @@
 IFS="
 "
 
+OPTS=
+REGEX= NOCASE=
+LOOKDIR= LOOKFILE= 
+WHOLE= SIZE=
+
+usage()
+{
+  echo "Usage: ${0##*/} [OPTIONS] PATTERN
+
+  -h, --help           Show this help
+  -p, --path=PATH      Look in path
+  -r, --regex          Regular expression search
+  -i, --ignore-case    Case insensitive search
+  -f, --file           Look for a file
+  -d, --dir            Look for a directory
+  -s, --size=SIZE      Specify file size
+  -x, --debug          Show debug messages
+"
+  exit 0
+}
+
+while :; do
+  case "$1" in
+    -h | --help) usage; shift ;;
+    -p | --path) LOOKPATH="$2"; shift 2 ;; -p=* | --path=*) LOOKPATH="${1#*=}"; shift ;;
+    -r | --regex) REGEX=true ;;
+    -i | --ignore-case) NOCASE=true ;;
+    -f | --file) LOOKFILE=f ;;
+    -d | --dir) LOOKDIR=d ;;
+    -w | --wholename) WHOLE=true ;;
+    -s | 	--size) SIZE="$2"; shift 2 ;; -s=* | --size=*) SIZE="${1#*=}"; shift ;;
+    -x | --debug) DEBUG=true; shift ;;
+    *) break ;;
+  esac
+  shift
+done
+
 MEDIAPATH="/{$(set -- $(df -a 2>/dev/null |sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
 
 pathconv() { (IFS="/\\"; S="${2-/}"; set -- $1; IFS="$S"; echo "$*"); }
@@ -17,25 +54,7 @@ LOCATEDIR=$(dirname "$LOCATE")
 (cd "$LOCATEDIR"; for REG in *.reg; do test -f "$REG" && reg import "$REG"
 done)
 #$(pathconv "$PROGRAMFILES")/Locate32/locate.exe
-OPTS=
-REGEX= NOCASE=
-LOOKDIR= LOOKFILE= 
-WHOLE= SIZE=
 
-while :; do
-  case "$1" in
-    -p | --path) LOOKPATH="$2"; shift ;;
-    -r | --regex) REGEX=true ;;
-    -i | --ignore-case) NOCASE=true ;;
-    -f | --file) LOOKFILE=f ;;
-    -d | --dir) LOOKDIR=d ;;
-    -w | --wholename) WHOLE=true ;;
-    -s | 	--size) SIZE="$2"; shift ;;
-    -x | --debug) DEBUG=true; shift ;;
-    *) break ;;
-  esac
-  shift
-done
 
 case "${NOCASE:-false}:${REGEX:-false}" in
   true:false) addopt -lcn ;;
