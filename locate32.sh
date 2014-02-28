@@ -9,9 +9,12 @@ pathconv() { (IFS="/\\"; S="${2-/}"; set -- $1; IFS="$S"; echo "$*"); }
 addopt() { for OPT; do OPTS="${OPTS:+$OPTS }${OPT}"; done; }
 
 LOCATE=`eval "ls -d -- $MEDIAPATH/Prog*/Locate32/Locate.exe" 2>/dev/null|head -n1`
+
+[ "$DEBUG" = true ] && echo "Found locate at: $LOCATE" 1>&2 
+
 LOCATEDIR=$(dirname "$LOCATE")
 #LOCATEREG=$(ls -d $LOCATEDIR/*.reg)
-(cd "$LOCATEDIR"; for REG in *.reg; do reg import "$REG"
+(cd "$LOCATEDIR"; for REG in *.reg; do test -f "$REG" && reg import "$REG"
 done)
 #$(pathconv "$PROGRAMFILES")/Locate32/locate.exe
 OPTS=
@@ -28,6 +31,7 @@ while :; do
     -d | --dir) LOOKDIR=d ;;
     -w | --wholename) WHOLE=true ;;
     -s | 	--size) SIZE="$2"; shift ;;
+    -x | --debug) DEBUG=true; shift ;;
     *) break ;;
   esac
   shift
@@ -61,5 +65,5 @@ SED_EXPR="${SED_EXPR}; s|^A|a|; s|^B|b|; s|^C|c|; s|^D|d|; s|^E|e|; s|^F|f|; s|^
 
 
 CMD="exec \"$LOCATE\" $OPTS -- \"$@\" | sed \"\${SED_EXPR}\""
-echo "+ $CMD" 1>&2
+[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
 eval "$CMD"
