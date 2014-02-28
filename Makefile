@@ -9,6 +9,12 @@ install: $(SCRIPTS)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(INSTALL) -m 755 $(SCRIPTS) $(DESTDIR)$(bindir)/
 
+uninstall:
+	@for SCRIPT in $(SCRIPTS); do \
+	  FILE="$(DESTDIR)$(bindir)/$$SCRIPT"; test ! -e "$$FILE" || { echo "$(RM) $$FILE" 1>&2; eval "$(RM) $$FILE"; }; \
+	done
+
+
 
 slackpkg: 
 slackpkg: $(SCRIPTS) 
