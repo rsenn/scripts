@@ -141,7 +141,10 @@ case "${OS=`uname -o |head -n1`}" in
 *) 
   MEDIAPATH="/m*/*/"
   
-  set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
+  case "$PS1" in
+    *\\033*) ;;
+    *) : set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ " ;;
+  esac
  ;;
 esac
 SYSROOT=`$PATHTOOL -m /`
@@ -293,9 +296,7 @@ fi
 case "$MSYSTEM" in
   *MINGW32*) [ -d /mingw/bin ] && pathmunge /mingw/bin ;;
   *MINGW64*) [ -d /mingw64/bin ] && pathmunge /mingw64/bin ;;
-  *)
-LS_COLORS='di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=33;01:cd=33;01:or=31;01:ex=01;33:'
-export LS_COLORS
+  *) LS_COLORS='di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=33;01:cd=33;01:or=31;01:ex=01;33:'; export LS_COLORS
 ;;
 esac
 
