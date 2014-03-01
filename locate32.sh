@@ -3,77 +3,58 @@
 IFS="
 "
 
-list-mediapath() 
-{ 
-    ( while :; do
-        case "$1" in 
-            -*)
-                OPTS="${OPTS+$OPTS
-}$1";
-                shift
-            ;;
-            --)
-                shift;
-                break
-            ;;
-            *)
-                break
-            ;;
-        esac;
-    done;
-    for ARG in "$@";
-    do
-        eval "ls -1 -d \$OPTS -- $MEDIAPATH/\$ARG 2>/dev/null";
-    done )
-}
-
-[ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; : ${OS="Cygwin"}; }
-(for DIR in /sysdrive/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/; do [ -d "$DIR" ] && exit 0; done; exit 1)  && SYSDRIVE="/sysdrive" || SYSDRIVE=
-
-case "${OS=`uname -o |head -n1`}" in
-   msys* | Msys* |MSys* | MSYS*)
-    MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-    PATHTOOL=msyspath
-   ;;
-  *cygwin* |Cygwin* | CYGWIN*) 
-    MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-   set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]\w\[\e[0m\]\n\$ '
-   PATHTOOL=cygpath
-  ;;
-*) 
-  MEDIAPATH="/m*/*/"
-  
-	set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ "
- ;;
-esac
-
-pathconv() { (IFS="/\\"; S="${2-/}"; set -- $1; IFS="$S"; echo "$*"); }
-addopt() { for OPT; do OPTS="${OPTS:+$OPTS }${OPT}"; done; }
-
-LOCATE=$(ls -d -- $(list-mediapath 'Prog*/Locate32/Locate.exe')|head -n1)
-LOCATEDIR=$(dirname "$LOCATE")
-#LOCATEREG=$(ls -d $LOCATEDIR/*.reg)
-(cd "$LOCATEDIR"; for REG in *.reg; do reg import "$REG"
-done)
-#$(pathconv "$PROGRAMFILES")/Locate32/locate.exe
 OPTS=
 REGEX= NOCASE=
 LOOKDIR= LOOKFILE= 
 WHOLE= SIZE=
 
+usage()
+{
+  echo "Usage: ${0##*/} [OPTIONS] PATTERN
+
+  -h, --help           Show this help
+  -p, --path=PATH      Look in path
+  -r, --regex          Regular expression search
+  -i, --ignore-case    Case insensitive search
+  -f, --file           Look for a file
+  -d, --dir            Look for a directory
+  -s, --size=SIZE      Specify file size
+  -x, --debug          Show debug messages
+"
+  exit 0
+}
+
 while :; do
   case "$1" in
-    -p | --path) LOOKPATH="$2"; shift ;;
+    -h | --help) usage; shift ;;
+    -p | --path) LOOKPATH="$2"; shift 2 ;; -p=* | --path=*) LOOKPATH="${1#*=}"; shift ;;
     -r | --regex) REGEX=true ;;
     -i | --ignore-case) NOCASE=true ;;
     -f | --file) LOOKFILE=f ;;
     -d | --dir) LOOKDIR=d ;;
     -w | --wholename) WHOLE=true ;;
-    -s | 	--size) SIZE="$2"; shift ;;
+    -s | 	--size) SIZE="$2"; shift 2 ;; -s=* | --size=*) SIZE="${1#*=}"; shift ;;
+    -x | --debug) DEBUG=true; shift ;;
     *) break ;;
   esac
   shift
 done
+
+MEDIAPATH="/{$(set -- $(df -a 2>/dev/null |sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
+
+pathconv() { (IFS="/\\"; S="${2-/}"; set -- $1; IFS="$S"; echo "$*"); }
+addopt() { for OPT; do OPTS="${OPTS:+$OPTS }${OPT}"; done; }
+
+LOCATE=`eval "ls -d -- $MEDIAPATH/Prog*/Locate32/Locate.exe" 2>/dev/null|head -n1`
+
+[ "$DEBUG" = true ] && echo "Found locate at: $LOCATE" 1>&2 
+
+LOCATEDIR=$(dirname "$LOCATE")
+#LOCATEREG=$(ls -d $LOCATEDIR/*.reg)
+(cd "$LOCATEDIR"; for REG in *.reg; do test -f "$REG" && reg import "$REG"
+done)
+#$(pathconv "$PROGRAMFILES")/Locate32/locate.exe
+
 
 case "${NOCASE:-false}:${REGEX:-false}" in
   true:false) addopt -lcn ;;
@@ -103,5 +84,5 @@ SED_EXPR="${SED_EXPR}; s|^A|a|; s|^B|b|; s|^C|c|; s|^D|d|; s|^E|e|; s|^F|f|; s|^
 
 
 CMD="exec \"$LOCATE\" $OPTS -- \"$@\" | sed \"\${SED_EXPR}\""
-echo "+ $CMD" 1>&2
+[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
 eval "$CMD"

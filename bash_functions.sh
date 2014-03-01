@@ -24,16 +24,23 @@ abspath()
 
 addprefix()
 { 
-    ( while read -r LINE; do
-        echo "$1${LINE}";
-    done )
+ (PREFIX=$1; shift
+  CMD='echo "$PREFIX$LINE"'
+  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD"
+ )
 }
 
 addsuffix()
 { 
-    ( while read -r LINE; do
-        echo "${LINE}$1";
-    done )
+ (SUFFIX=$1; shift
+  CMD='echo "$LINE$SUFFIX"'
+  if [ $# -gt 0 ]; then
+    CMD="for LINE; do $CMD; done"
+  else
+    CMD="while read -r LINE; do $CMD; done"
+  fi
+  eval "$CMD")
 }
 
 all-disks()
@@ -371,7 +378,7 @@ cut-basename()
 
 cut-dirname()
 { 
-    sed "s,\\(.*\\)/\\([^/]\\+/\\?\\)${1//./\\.}\$,\2,"
+    sed "s,\\(.*\\)[/\\\\]\\([^/\\\\]\\+[/\\\\]\\?\\)${1//./\\.}\$,\2,"
 }
 
 cut-distver()
@@ -784,7 +791,7 @@ explode()
 
 explore()
 { 
-  ( r=$(realpath "$1");
+  ( r=$(myrealpath "$1");
   [ -z "$r" ] && r=$1
   r=${r%/.};
   r=${r#./};
@@ -871,47 +878,47 @@ filter-quoted-name()
 
 filter-test()
 { 
-    ( IFS="
+  ( IFS="
   ";
-    unset ARGS NEG;
-    while :; do
-        case "$1" in 
-            -a | -b | -c | -d | -e | -f | -g | -h | -k | -L | -N | -O | -p | -r | -s | -u | -w | -x)
-                ARGS="${ARGS:+$ARGS
+  unset ARGS NEG;
+  while :; do
+      case "$1" in 
+          -a | -b | -c | -d | -e | -f | -g | -h | -k | -L | -N | -O | -p | -r | -s | -u | -w | -x)
+              ARGS="${ARGS:+$ARGS
 }"${NEG:+'!
 '}"$1";
 
-                shift;
-                NEG=""
-            ;;
-            '!')
-                [ "${NEG:-false}" = false ] && NEG='!' ||
-                NEG=
-                shift
-            ;;
-            *)
-                break
-            ;;
-        esac;
-    done;
-    [ -z "$ARGS" ] && { 
-        exit 2
-    };
-    IFS=" ";
-    set -- $ARGS;
-    ARGN=$#;
-    ARGS="$*";
-    IFS="
+              shift;
+              NEG=""
+          ;;
+          '!')
+              [ "${NEG:-false}" = false ] && NEG='!' ||
+              NEG=
+              shift
+          ;;
+          *)
+              break
+          ;;
+      esac;
+  done;
+  [ -z "$ARGS" ] && { 
+      exit 2
+  };
+  IFS=" ";
+  set -- $ARGS;
+  ARGN=$#;
+  ARGS="$*";
+  IFS="
 "
-    while read -r LINE; do
+  while read -r LINE; do
  set -- $LINE;
-        #if [ $ARGN = 1 ]; then
-            test $ARGS "$LINE" || continue 2;
-        #else
-        #    eval "test $ARGS \"\$LINE\"" || continue 2;
-        #fi;
-        echo "$LINE";
-    done )
+      #if [ $ARGN = 1 ]; then
+          test $ARGS "$LINE" || continue 2;
+      #else
+      #    eval "test $ARGS \"\$LINE\"" || continue 2;
+      #fi;
+      echo "$LINE";
+  done )
 }
 
 filter()
@@ -1609,11 +1616,16 @@ imatch_some()
 
 implode()
 { 
-    ( unset DATA;
-    while read LINE; do
-        DATA="${DATA+$DATA$1}$LINE";
-    done;
-    echo "$DATA" )
+ (unset DATA SEPARATOR;
+  SEPARATOR="$1"; shift
+  CMD='DATA="${DATA+$DATA$SEPARATOR}$LINE"'
+  if [ $# -gt 1 ]; then
+    CMD="for LINE; do $CMD; done"
+  else
+    CMD="while read -r LINE; do $CMD; done"
+  fi
+  eval "$CMD"
+  echo "$DATA")
 }
 
 importlibs()
@@ -1652,6 +1664,7 @@ index-dir()
         TEMP=`mktemp /tmp/"${PWD##*/}XXXXXX.list"`
         trap 'rm -f "$TEMP"; unset TEMP' EXIT
         (list-r 2>/dev/null || list-recursive) >"$TEMP";
+        (install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP") || 
         mv -f "$TEMP" "$PWD/files.list";
         wc -l "$PWD/files.list" 1>&2 );
     done )
@@ -1966,7 +1979,7 @@ link-mpd-music-dirs()
 
 list-7z()
 { 
-    7z l "$1" | cut-ls-l 4 | sed 's,^[0-9]\+\s\+,,' | grep --color=auto --line-buffered -E '(\\|^[A-Za-z]|^[^\\]*\.)' | sed '1d; $d; s,\\,/,g'
+    7z l "$1" | sed -n '/^\s*Date\s\+Time\s\+Attr/ {   :lp; N; $! b lp;  s/[^\n]*files[^\n]*folders$//; s/\n[- ]*\n/\n/g; s/\n[0-9][-0-9]\+\s\+[0-9:]\+\s\+[^ ]*[.[:alnum:]][^ ]*\+\s\s*\([0-9]\+\)\s\s/\n  /g; s/\n\s\+[0-9]\+\s\s*/\n  /g; s/\n\s\+/\n/g; s/^\s*Date\s\+Time[^\n]*//; s/\n[^/]*files[^/]*folders$//; p; }'
 }
 
 list-dotfiles()
@@ -2101,20 +2114,7 @@ list-upx()
 
 list()
 { 
-    local n=$1 count=0 choices='';
-    shift;
-    for choice in "$@";
-    do
-        choices="$choices $choice";
-        count=$((count + 1));
-        if $((count)) -eq $((n)); then
-            count=0;
-            choices='';
-        fi;
-    done;
-    if [ -n "${choices# }" ]; then
-        msg $choices;
-    fi
+    sed "s|/files\.list:|/|"
 }
 
 locate-filename()
@@ -2658,26 +2658,23 @@ msyspath()
 
 multiline_list()
 { 
-    local indent='  ' IFS="
-";
-    while [ "$1" != "${1#-}" ]; do
-        case $1 in 
-            -i)
-                indent=$2 && shift 2
-            ;;
-            -i*)
-                indent=${2#-i} && shift
-            ;;
-        esac;
-    done;
-    if test -z "$*" || test "$*" = -; then
-        cat;
-    else
-        echo "$*";
-    fi | while read item; do
-        echo " \\";
-        echo -n "$indent$item";
-    done
+ (IFS="
+ "
+  : ${INDENT='  '}
+  while :; do
+    case "$1" in
+      -i) INDENT=$2 && shift 2 ;;
+      -i*) INDENT=${2#-i} && shift
+      ;;
+      *) break ;;
+    esac
+  done
+
+  CMD='echo -n " \\
+$INDENT$LINE"'
+  [ $# -ge 1 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD"
+ )
 }
 
 multiply-resolution()
@@ -3401,8 +3398,8 @@ some()
 { 
     eval "while shift
   do
-  case \"\`str_tolower \"\$1\"\`\" in
-    $(str_tolower "$1") ) return 0 ;;
+  case \"\$1\" in
+    $1 ) return 0 ;;
   esac
   done
   return 1"

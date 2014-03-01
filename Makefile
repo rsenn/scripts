@@ -7,13 +7,19 @@ INSTALL = install
 all:
 install: $(SCRIPTS)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
-	$(INSTALL) -m 755 $(SCRIPTS) $(DESTDIR)$(bindir)
+	$(INSTALL) -m 755 $(SCRIPTS) $(DESTDIR)$(bindir)/
+
+uninstall:
+	@for SCRIPT in $(SCRIPTS); do \
+	  FILE="$(DESTDIR)$(bindir)/$$SCRIPT"; test ! -e "$$FILE" || { echo "$(RM) $$FILE" 1>&2; eval "$(RM) $$FILE"; }; \
+	done
+
 
 
 slackpkg: 
 slackpkg: $(SCRIPTS) 
 	@set -x; distdir="_inst"; rm -rf $$distdir; mkdir -p $$distdir/$(bindir) $$distdir/root; \
-		$(INSTALL) -m 755 $(SCRIPTS) $$distdir/$(bindir); \
+		$(INSTALL) -m 755 $(SCRIPTS) $$distdir/$(bindir)/; \
 		bash cp-bash-scripts.bash $$distdir/root/; \
 		tar -cJf scripts-`date +%Y%m%d`-slackware.txz -C $$distdir .; \
 		rm -rf $$distdir
