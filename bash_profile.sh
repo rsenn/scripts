@@ -147,7 +147,7 @@ case "${OS=`uname -o |head -n1`}" in
   esac
  ;;
 esac
-SYSROOT=`$PATHTOOL -m /`
+SYSROOT=`${PATHTOOL-:} -m /`
 
 #: ${PS1:='\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '}
 
