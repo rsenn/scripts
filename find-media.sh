@@ -160,7 +160,7 @@ esac
 #        INDEXES=`for x in a b c d e f g h i j k l m n o p q r s t u v w x y z; do test -e $DRIVEPREFIX/$x/files.list && echo $DRIVEPREFIX/$x/files.list; done`
 #fi
 #
-MEDIAPATH="{$(set -- $( df -a 2>/dev/null|sed -n '\|/sys|d ;; \|/proc|d ;; \|/dev|d ;; \|/run|d ;; s,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^\\/]\+\s\([\\/]\)\(.*\),\1\2,p' | sort -u); IFS=","; echo "${*%/}")}"
+MEDIAPATH="{$(set -- $( df -l 2>/dev/null|sed -n '\|/sys|d ;; \|/proc|d ;; \|/dev$|d ;; \|/run|d ;; s,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^\\/]\+\s\([\\/]\)\(.*\),\1\2,p' | sort -u); IFS=","; echo "${*%/}")}"
 
 FILEARG="\$INDEXES"
 case "$MEDIAPATH" in
