@@ -130,7 +130,7 @@ pathmunge()
       [Mm]sys:*[:\\]*)
           tmp="$1";
           shift;
-          set -- `${PATHTOOL:-msyspath} "$tmp"` "$@"
+          set -- `$PATHTOOL "$tmp"` "$@"
       ;;
   esac;
   if ! eval "echo \"\${${PATHVAR-PATH}}\"" | egrep -q "(^|:)$1($|:)"; then
@@ -191,7 +191,7 @@ FNS="$HOME/.bash_functions"
 
 [ -r "$FNS" -a -s "$FNS" ] && . "$FNS"
 
-[ -d "$USERPROFILE" ] && CDPATH=".:$(${PATHTOOL:-msyspath} "$USERPROFILE")"
+[ -d "$USERPROFILE" -a -n "$PATHTOOL" ] && CDPATH=.:`$PATHTOOL "$USERPROFILE"`
 
 #CDPATH=".:$CYGDRIVE/c/Users/rsenn"
 #
@@ -216,7 +216,7 @@ explore()
  (r=`realpath "$1" 2>/dev/null`; [ "$r" ] || r=$1
   r=${r%/.}
   r=${r#./}
-  p=`${PATHTOOL:-msyspath} -w "$r"`
+  p=`$PATHTOOL -w "$r"`
   set -x
   "${SystemRoot:+$SystemRoot\\}explorer.exe" "/n,/e,$p"
  )
@@ -234,7 +234,7 @@ msiexec()
     r=$(realpath "$1");
     r=${r%/.};
     r=${r#./};
-    p=$(${PATHTOOL:-msyspath} -w "$r");
+    p=$($PATHTOOL -w "$r");
     ( set -x;
     cmd /c "msiexec.exe $ARGS $p" ) )
 }
@@ -245,15 +245,15 @@ fi
  
 CDPATH="."
 
-if [ -n "$USERPROFILE" ]; then
-  USERPROFILE=`${PATHTOOL:-msyspath} -m "$USERPROFILE"`
+if [ -n "$USERPROFILE" -a -n "$PATHTOOL" ]; then
+  USERPROFILE=`$PATHTOOL -m "$USERPROFILE"`
   if [ -d "$USERPROFILE" ]; then
-     pathmunge -v CDPATH "$(${PATHTOOL:-msyspath} "$USERPROFILE")" after
+     pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`" after
   
     DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" DOWNLOADS="$USERPROFILE/Downloads" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos" MUSIC="$USERPROFILE/Music"
     
-    pathmunge -v CDPATH "$(${PATHTOOL:-msyspath} "$DOCUMENTS")" after
-    pathmunge -v CDPATH "$(${PATHTOOL:-msyspath} "$DESKTOP")" after
+    pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")" after
+    pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")" after
   fi
 fi
 
