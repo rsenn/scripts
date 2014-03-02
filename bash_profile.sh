@@ -1,25 +1,20 @@
 #!/bin/bash
 
-pmods='$MEDIAPATH/pmagic*/pmodules'
-
 set -o vi
 
 IFS="
 "
 
-[ "$HOSTNAME" = MSYS ] && OS="Msys"
+[ "$HOSTNAME" = MSYS -o -n "$MSYSTEM" ] && OS="Msys"
+[ "$OSTYPE" ] && OS="$OSTYPE"
+
+pmods='$MEDIAPATH/pmagic*/pmodules'
 drives_upper=$'A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\nO\nP\nQ\nR\nS\nT\nU\nV\nW\nX\nY\nZ'
 drives_lower=$'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
 
 ansi_cyan='\[\033[1;36m\]' ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]' ansi_yellow='\[\033[1;33m\]' ansi_blue='\[\033[1;34m\]' ansi_magenta='\[\033[1;35m\]' ansi_gray='\[\033[0;37m\]' ansi_bold='\[\033[1m\]' ansi_none='\[\033[0m\]'
 
-#PATH="/sbin:/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/libexec:/usr/local/libexec"
-#LANG=C
-#LANGUAGE="en_US.ISO-8859-1"
 LANGUAGE=C
-#[ -d /usr/share/locale/en_US ] && LANGUAGE="en_US" || {
-#[ -d /usr/share/locale/en ] && LANGUAGE="en" || LANGUAGE="C"
-#}
 LC_ALL="$LANGUAGE"
 HISTSIZE=32768
 HISTFILESIZE=16777216
@@ -35,35 +30,25 @@ esac
 
 unalias cp mv rm  2>/dev/null
 
-export PATH LC_ALL LOCALE LANGUAGE HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS TERM
-
 case "$TERM" in
     xterm*) TERM=rxvt ;;
 esac
-
 case "$TERM" in
   xterm|rxvt|screen) TERM="$TERM-256color" ;;
 esac
 
-TERM=xterm-256color
+export PATH LC_ALL LOCALE LANGUAGE HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS TERM
 
 alias xargs='xargs -d "\n"'
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
 
-if ls --help 2>&1 |grep -q '\--color'; then
-        LS_ARGS="$LS_ARGS --color=auto"
-fi
-if ls --help 2>&1 |grep -q '\--time-style'; then
-        LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
-fi
-alias ls="ls $LS_ARGS"
+ls --help 2>&1|grep -q '\--color' && LS_ARGS="$LS_ARGS --color=auto"
+ls --help 2>&1|grep -q '\--time-style' && LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
 
-if grep --help 2>&1 |grep -q '\--color'; then
-        GREP_ARGS="$GREP_ARGS --color=auto"
-fi
-if grep --help 2>&1 |grep -q '\--line-buffered'; then
-        GREP_ARGS="$GREP_ARGS --line-buffered"
-fi
+grep --help 2>&1|grep -q '\--color' && GREP_ARGS="$GREP_ARGS --color=auto"
+grep --help 2>&1|grep -q '\--line-buffered' && GREP_ARGS="$GREP_ARGS --line-buffered"
+
+alias ls="ls $LS_ARGS"
 alias grep="grep $GREP_ARGS"
 alias cp='cp'
 alias mv='mv'
@@ -78,59 +63,41 @@ type yum 2>/dev/null >/dev/null && alias yum='sudo yum -y'
 type apt-get 2>/dev/null >/dev/null && alias apt-get='sudo apt-get -y'
 type aptitude 2>/dev/null >/dev/null && alias aptitude='sudo aptitude -y'
 
-#cd() { command cd "$(d "$1")"; }
-#pushd() { command pushd "$(d "$1")"; }
-
 if type require.sh 2>/dev/null >/dev/null; then
-	. require.sh
-
-	require util
-	require algorithm
-	require list
-	require fs
+  . require.sh
+	
+  require util
+  require algorithm
+  require list
+  require fs
 fi
 
-set -o vi
 
 alias lsof='lsof 2>/dev/null'
 
-[ "$OSTYPE" ] && OS="$OSTYPE"
-
-[ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; : ${OS="Cygwin"}; }
-(set -- /sysdrive/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/; for DRIVE do test -d "$DRIVE" && exit 0; done; exit 1) && SYSDRIVE="/sysdrive" || unset SYSDRIVE
-
-
-if [ "$PS1" = '\s-\v\$ ' ]; then
-  unset PS1
-fi
+[ "$PS1" = '\s-\v\$ ' ] && unset PS1
 
 set-prompt()
-{
-  if [ -r "$HOME/.bash_prompt" ]; then
-         eval "PS1=\"$(<$HOME/.bash_prompt)\""
-  else
-        PS1="$*"
-  fi
-}
-
+{ [ -r "$HOME/.bash_prompt" ] && eval "PS1=\"$(<$HOME/.bash_prompt)\"" || PS1="$*"; }
 
 [ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; : ${OS="Cygwin"}; }
-[ -d /sysdrive ]  && SYSDRIVE="/sysdrive" || SYSDRIVE=
+#[ -d /sysdrive ]  && SYSDRIVE="/sysdrive" || SYSDRIVE=
+(set -- /sysdrive/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/; for DRIVE do test -d "$DRIVE" && exit 0; done; exit 1) && SYSDRIVE="/sysdrive" || unset SYSDRIVE
 
 currentpath()
 {
-  (CWD="${1-$PWD}"
-   [ "$CWD" != "${CWD#$HOME}" ] && OUT="~${CWD#$HOME}" || OUT=`$PATHTOOL -m "$CWD"`
-   [ "$OUT" != "${OUT#$SYSROOT}" ] && OUT=${OUT#$SYSROOT}
-   echo "$OUT")
+ (CWD="${1-$PWD}"
+  [ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=`$PATHTOOL -m "$CWD"`; }
+  [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}
+  echo "$CWD")
 }
 
 case "${OS=`uname -o |head -n1`}" in
    msys* | Msys* |MSys* | MSYS*)
     MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
     PATHTOOL=msyspath
-    set-prompt '\e[32m\]\u@\h \[\e[33m\]`currentpath`\[\e[0m\]\n\$ '
     MSYSROOT=`msyspath -m /`
+    set-prompt '\e[32m\]\u@\h \[\e[33m\]`currentpath`\[\e[0m\]\n\$ '
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
@@ -139,15 +106,13 @@ case "${OS=`uname -o |head -n1`}" in
    CYGROOT=`cygpath -m /`
   ;;
 *) 
-  MEDIAPATH="/m*/*/"
-  
+  MEDIAPATH="/m*/*/"  
   case "$PS1" in
     *\\033*) ;;
     *) : set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ " ;;
   esac
  ;;
 esac
-SYSROOT=`${PATHTOOL-:} -m /`
 
 #: ${PS1:='\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '}
 
@@ -177,12 +142,14 @@ pathmunge()
   fi
   unset PATHVAR
 }
+
 list-mediapath()
 {
   for ARG; do
     eval "ls -1 -d  -- $MEDIAPATH/\$ARG 2>/dev/null"
   done
 }
+
 add-mediapath()
 {
   for ARG; do
@@ -246,12 +213,13 @@ FNS="$HOME/.bash_functions"
 
 explore()
 {
-    ( r=$(realpath "$1");
-    r=${r%/.};
-    r=${r#./};
-    p=$(${PATHTOOL:-msyspath} -w "$r");
-    ( set -x;
-    cmd /c "${SystemRoot:+$SystemRoot\\}explorer.exe /n,/e,$p" ) )
+ (r=`realpath "$1" 2>/dev/null`; [ "$r" ] || r=$1
+  r=${r%/.}
+  r=${r#./}
+  p=`${PATHTOOL:-msyspath} -w "$r"`
+  set -x
+  cmd /c "${SystemRoot:+$SystemRoot\\}explorer.exe /n,/e,$p"
+ )
 }
 
 msiexec()
@@ -271,13 +239,9 @@ msiexec()
     cmd /c "msiexec.exe $ARGS $p" ) )
 }
 
-
-
-
-#
 if [ -e /etc/bash_completion -a "${BASH_COMPLETION-unset}" = unset ]; then
-         . /etc/bash_completion
- fi
+  . /etc/bash_completion
+fi
  
 CDPATH="."
 
@@ -302,5 +266,3 @@ esac
 
 [ -d /sbin ] && pathmunge /sbin
 [ -d /usr/sbin ] && pathmunge /usr/sbin
-
- 
