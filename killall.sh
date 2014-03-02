@@ -11,7 +11,7 @@ done
 
 IFS="|$IFS"
 
-if ps --help | grep -q '\-W'; then
+if ps -X -Y -Z 2>&1 | grep -q '\-W'; then
   PSARGS="-aW"
 else
   PSARGS="axw"	
