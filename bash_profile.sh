@@ -218,7 +218,7 @@ explore()
   r=${r#./}
   p=`${PATHTOOL:-msyspath} -w "$r"`
   set -x
-  cmd /c "${SystemRoot:+$SystemRoot\\}explorer.exe /n,/e,$p"
+  "${SystemRoot:+$SystemRoot\\}explorer.exe" "/n,/e,$p"
  )
 }
 

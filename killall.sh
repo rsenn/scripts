@@ -11,7 +11,7 @@ IFS=$' \t\r\n'
 
 if type wmic 2>/dev/null >/dev/null; then
   PS="wmic"
-  PSARGS="process get ProcessID,CommandLine /VALUE"
+  PSARGS="process get ProcessID,CommandLine -VALUE"
   PSFILTER=' | { while read -r LINE; do
   case $LINE in
    CommandLine=*) CMDLINE="${CMDLINE:+$CMDLINE }${LINE#*=}" ;;
@@ -33,8 +33,7 @@ fi
 
 if type taskkill.exe 2>/dev/null >/dev/null; then
   KILL="taskkill"
-  KILLARGS="$KILLARGS
-/F /PID"
+  KILLARGS="-F -PID"
 elif type kill.exe 2>/dev/null >/dev/null; then
   KILL="kill.exe"
   KILLARGS="$KILLARGS
