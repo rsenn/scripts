@@ -790,12 +790,14 @@ eval_arith()
 }
 
 explode()
-{ 
-    ( IFS="$2$IFS";
-    for VALUE in $1;
-    do
-        echo "$VALUE";
-    done )
+{
+ (S="$1"; shift
+  IFS="
+";
+
+  [ $# -gt 0 ] && exec <<<"$*"
+  sed "s|${S//\"/\\\"}|\n|g"
+ )
 }
 
 explore()
@@ -2123,7 +2125,10 @@ list-upx()
 
 list()
 { 
-    sed "s|/files\.list:|/|"
+ (CMD='echo "$LINE"'
+  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD"
+ )
 }
 
 locate-filename()
@@ -2302,14 +2307,12 @@ $EXPR:*:*:* | *:$EXPR:*:* | *:*:$EXPR:* | *:*:*:$EXPR) echo "$DEV $MNT $TYPE $OP
 
 match()
 { 
-    case $1 in 
-        $2)
-            return 0
-        ;;
-        *)
-            return 1
-        ;;
-    esac
+ (EXPR="$1"; shift
+  CMD='case $LINE in
+  $EXPR) echo "$LINE" ;;
+esac'
+  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD")  
 }
 
 matchall()
@@ -2715,19 +2718,21 @@ myip()
 
 myrealpath()
 { 
-    ( DIR=` dirname "$1" `;
-    BASE=` basename "$1" `;
+ (for ARG; do
+    DIR=` dirname "$ARG" `;
+    BASE=` basename "$ARG" `;
     cd "$DIR";
     if [ -h "$BASE" ]; then
-        FILE=` readlink "$BASE"`;
+    FILE=` readlink "$BASE"`;
     fi;
     DIR=` dirname "$FILE"`;
     BASE=`basename "$FILE"`;
-    if is-relative "$1"; then
-        DIR="$PWD/$DIR";
+    if is-relative "$ARG"; then
+    DIR="$PWD/$DIR";
     fi;
     DIR=$(cd "$DIR"; pwd -P);
-    echo "$DIR/$BASE" )
+    echo "$DIR/$BASE"
+  done)
 }
 
 neighbours()

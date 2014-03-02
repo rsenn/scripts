@@ -1,11 +1,9 @@
 match()
 { 
-    case $1 in 
-        $2)
-            return 0
-        ;;
-        *)
-            return 1
-        ;;
-    esac
+ (EXPR="$1"; shift
+  CMD='case $LINE in
+  $EXPR) echo "$LINE" ;;
+esac'
+  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD")  
 }
