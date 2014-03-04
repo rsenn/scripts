@@ -96,7 +96,7 @@ case "${OS=`uname -o |head -n1`}" in
    msys* | Msys* |MSys* | MSYS*)
     MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
     PATHTOOL=msyspath
-    MSYSROOT=`msyspath -m /`
+    MSYSROOT=`msyspath -m / 2>/dev/null`
     set-prompt '\e[32m\]\u@\h \[\e[33m\]`currentpath`\[\e[0m\]\n\$ '
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
@@ -250,7 +250,9 @@ if [ -n "$USERPROFILE" -a -n "$PATHTOOL" ]; then
   if [ -d "$USERPROFILE" ]; then
      pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`" after
   
-    DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" DOWNLOADS="$USERPROFILE/Downloads" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos" MUSIC="$USERPROFILE/Music"
+    DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" DOWNLOADS="$USERPROFILE/Downloads" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos"    MUSIC="$USERPROFILE/Music"
+    
+    [ -d "$DOCUMENTS/Sources" ] && SOURCES="$DOCUMENTS/Sources"
     
     pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")" after
     pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")" after

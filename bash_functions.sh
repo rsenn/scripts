@@ -801,14 +801,14 @@ explode()
 }
 
 explore()
-{ 
-  ( r=$(myrealpath "$1");
-  [ -z "$r" ] && r=$1
-  r=${r%/.};
-  r=${r#./};
-  p=$(msyspath -w "$r");
-  ( set -x;
-  cmd /c "explorer.exe /n,/e,$p" ) )
+{
+ (r=`realpath "$1" 2>/dev/null`; [ "$r" ] || r=$1
+  r=${r%/.}
+  r=${r#./}
+  p=`$PATHTOOL -w "$r"`
+  set -x
+  "${SystemRoot:+$SystemRoot\\}explorer.exe" "/n,/e,$p"
+ )
 }
 
 extract-slackpkg()
@@ -3226,16 +3226,23 @@ reload()
 
 removeprefix()
 { 
-    ( PREFIX=$1;
-    shift;
-    echo "${*##$PREFIX}" )
+ (PREFIX=$1; shift
+  CMD='echo "${LINE#$PREFIX}"'
+  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD"
+ )
 }
 
 removesuffix()
 { 
-    ( SUFFIX=$1;
-    shift;
-    echo "${*%%$SUFFIX}" )
+ (SUFFIX=$1; shift
+  CMD='echo "${LINE%$SUFFIX}"'
+  if [ $# -gt 0 ]; then
+    CMD="for LINE; do $CMD; done"
+  else
+    CMD="while read -r LINE; do $CMD; done"
+  fi
+  eval "$CMD")
 }
 
 remove_emptylines()
