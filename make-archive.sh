@@ -7,13 +7,18 @@ while :; do
   case "$1" in
     -[0-9]) LEVEL=${1#-}; shift ;;
     -t) TYPE=$2; shift 2 ;;
+    -D | --no*date*) NODATE=true; shift  ;;
     -E) EXCLUDE="$2"; shift 2 ;; -E=*) EXCLUDE="${1#*=}"; shift ;;
     -e | --exclude) EXCLUDE="${EXCLUDE:+$EXCLUDE }$2"; shift 2 ;; -e=* | --exclude=*) EXCLUDE="${EXCLUDE:+$EXCLUDE }${1#*=}"; shift ;;
     *) break ;;
   esac
 done
 
-ARCHIVE=${1-"../${PWD##*/}-`date ${DIR:+-r "$DIR"} +%Y%m%d`.${TYPE:-7z}"}
+if [ -z "$1" ]; then
+  ARCHIVE=../${PWD##*/}
+  [ "$NODATE" != true ] && ARCHIVE=$ARCHIVE-`date ${DIR:+-r "$DIR"} +%Y%m%d`
+  ARCHIVE=$ARCHIVE.${TYPE:-7z}
+fi
 DIR=${2-"."}
 
 bce()
