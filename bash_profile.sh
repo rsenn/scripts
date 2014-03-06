@@ -107,10 +107,14 @@ case "${OS=`uname -o |head -n1`}" in
   ;;
 *) 
   MEDIAPATH="/m*/*/"  
-  case "$PS1" in
-    *\\033*) ;;
-    *) : set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ " ;;
-  esac
+  if [ -e ~/.bash_prompt ]; then
+    set-prompt
+  else
+    case "$PS1" in
+      *\\033*) ;;
+      *) : set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ " ;;
+    esac
+  fi
  ;;
 esac
 
