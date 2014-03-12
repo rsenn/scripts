@@ -58,6 +58,6 @@ for ($green = 0; $green < 6; $green++) {
 # now the grayscale ramp
 print "Grayscale ramp:\n";
 for ($color = 232; $color < 256; $color++) {
-    printf("\x1b[48;5;${color}m%3d\x1b[0m", $color);
+    printf("\x1b[48;5;${color}m %3d\x1b[0m", $color);
 }
 print "\x1b[0m\n";

@@ -1,10 +1,10 @@
 explore()
-{ 
-  ( r=$(realpath "$1");
-  [ -z "$r" ] && r=$1
-  r=${r%/.};
-  r=${r#./};
-  p=$(msyspath -w "$r");
-  ( set -x;
-  cmd /c "explorer.exe /n,/e,$p" ) )
+{
+ (r=`realpath "$1" 2>/dev/null`; [ "$r" ] || r=$1
+  r=${r%/.}
+  r=${r#./}
+  p=`$PATHTOOL -w "$r"`
+  set -x
+  "${SystemRoot:+$SystemRoot\\}explorer.exe" "/n,/e,$p"
+ )
 }
