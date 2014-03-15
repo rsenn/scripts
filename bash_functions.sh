@@ -395,6 +395,11 @@ cut-distver()
   cat "$@" | sed 's,\.fc[0-9]\+\(\.\)\?,\1,g'
 }
 
+cut-dotslash()
+{
+  sed -u 's,^\.[/\\],,'
+}
+
 cut-ext()
 { 
     sed 's,\.[^./]\+$,,' "$@"
