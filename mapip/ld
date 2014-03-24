@@ -1,35 +1,47 @@
 #!/bin/sh
 PIPE_TOOL=$MOSYNCDIR/bin/pipe-tool
+NL="
+"
 
-unset ARGS
-while :; do
+push() { eval "shift; $1=\${$1+\$$1\$NL}\$*"; }
+
+unset OPTS ARGS LIBDIRS 
+while [ $# -gt 0 ]; do
   case "$1" in
-    -o) OUTPUT="$2"; shift 2 ;; -o*) OUTPUT="${1#-o}"; shift ;;
-    -L) LIBDIRS="$LIBDIRS $2"; shift 2 ;; -L*) LIBDIRS="$LIBDIRS ${2#-L}"; shift ;;
-    -l) LIBS="$LIBS $2"; shift 2 ;; -l*) LIBS="$LIBS ${2#-l}"; shift ;;
-    --heap) HEAPSIZE="$2"; shift 2 ;;
-    --stack) STAKSIZE="$2"; shift 2 ;;
-    -z) case "$2" in
-      stacksize=*) STACKSIZE=${2#*=} ;;
-      heapsize=*) HEAPSIZE=${2#*=} ;;
-    esac
-    shift 2
-    ;;
-    *.lib) LIBS="$LIBS ${1%.*}"; shift ;;
-    *) ARGS="${ARGS+$ARGS }$1"; shift ;;
+    -o) OUTPUT="$2";  shift ;; -o*) OUTPUT="${1#-o}" ;;
+    -L) push LIBDIRS "$2"; shift ;; -L*) push LIBDIRS "${2#-L}" ;;
+    -l) push LIBS "$2";  shift ;; -l*) LIBS="$LIBS ${1#-l}" ;;
+    --heap) HEAPSIZE="$2";  shift ;;
+    --stack) STAKSIZE="$2";  shift ;;
+    -z) 
+      case "$2" in
+        stacksize=*) STACKSIZE=${2#*=} ;;
+        heapsize=*) HEAPSIZE=${2#*=} ;;
+      esac
+       shift
+      ;;
+    -*) push OPTS "$1" ;;
+    *.lib) push LIBS "${1%.*}" ;;
+    *) push ARGS "$1" ;;
   esac
+  shift
 done
 
-OPTS="-appcode=YSYW -stabs=stabs.tab -heapsize=${HEAPSIZE-3145728} -stacksize=${STACKSIZE-524288} -datasize=${DATASIZE-4194304} -sld=sld.tab"
+push OPTS -appcode=YSYW -stabs=stabs.tab -heapsize=${HEAPSIZE-3145728} -stacksize=${STACKSIZE-524288} -datasize=${DATASIZE-4194304} -sld=sld.tab
+
+
+if [ -z "$LIBDIRS" -a -n "$MOSYNCDIR" -a -d "$MOSYNCDIR/lib/pipe" ]; then
+  LIBDIRS="$MOSYNCDIR/lib/pipe"
+fi
 
 for LIBDIR in $LIBDIRS; do
-  OPTS="$OPTS -s${LIBDIR}"
+  push OPTS -s"$LIBDIR"
 done
 
-OPTS="$OPTS -B ${OUTPUT-a.out}"
+push OPTS -B "${OUTPUT-a.out}"
 
 for LIB in $LIBS; do
-  ARGS="${ARGS+$ARGS }${LIB}.lib"
+  push ARGS "$LIB.lib"
 done
 set -x
 exec "$PIPE_TOOL" $OPTS $ARGS
