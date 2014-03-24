@@ -40,4 +40,4 @@ install-both:
 
 install-all: install-zpipe
 	$(MAKE) program_prefix="mapip-" install-both
-	$(MAKE) program_prefix="mapip2-" install-both
+#	$(MAKE) program_prefix="mapip2-" install-both
