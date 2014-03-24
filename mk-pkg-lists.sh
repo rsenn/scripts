@@ -41,5 +41,6 @@ require distrib
 
 case $(distrib_get id) in
   [Ff]edora) yum_rpm_list_all_pkgs ;;
-  [Dd]ebian) apt_dpkg_list_all_pkgs ;;
+  [Dd]ebian|[Uu]buntu) apt_dpkg_list_all_pkgs ;;
+*) echo "No such distribution $(distrib_get id)" 1>&2 ;;
 esac

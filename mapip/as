@@ -1,0 +1,13 @@
+#!/bin/sh
+
+unset ARGS
+while :; do
+  case "$1" in
+    -o) OUTPUT="$2"; shift 2 ;; -o*) OUTPUT="${1#-o}"; shift ;;
+    *) ARGS="${ARGS+$ARGS }$1"; shift ;;
+  esac
+esac
+
+[ "$OUTPUT" ] && exec 1>"$OUTPUT"
+
+exec cat "$@"
