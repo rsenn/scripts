@@ -1,7 +1,8 @@
 #!/bin/sh
 CMD=$1
 ARCHIVE=$2
-shift 2
+shift 2>/dev/null
+shift 2>/dev/null
 OBJECTS=$*
 
 PIPE_TOOL=$MOSYNCDIR/bin/pipe-tool
