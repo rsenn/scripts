@@ -61,16 +61,6 @@ usage()
 
 while :; do
 	case "$1" in
-<<<<<<< HEAD
-  	-d|--debug) DEBUG=true; shift ;;
-  	-e|--exist*) EXIST_FILE=true; shift ;;
-  	-f) WANT_FILE=true; shift ;;
-  -i| --ignore*case) IGNORE_CASE=true ; shift  ;;
-  	-I=*| --include=*) add_dir INCLUDE_DIRS "${1#*=}" ; shift  ;;
-  	-I | --include) add_dir INCLUDE_DIRS "$2" ; shift 2 ;;
-  	-e|-x) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;;
-	*) break ;;
-=======
 	  -h | --help) usage; shift ;;
   	-m | --mediapath) MEDIAPATH="$2"; shift 2 ;; -m=* | --mediapath=*) MEDIAPATH="${1#*=}"; shift ;;
   	-x | --debug) DEBUG=true; shift ;;
@@ -84,7 +74,6 @@ while :; do
   	-[EeXx] |--exclude) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;; -[EeXx]=* | --exclude=*) add_dir EXLUDE_DIRS "${1#*=}"; shift ;;
   -*) echo "No such option '$1'." 1>&2; exit 1 ;;
   --) shift; break ;;	*) break ;;
->>>>>>> 23b8bc41dc9bc3083f76b9089dc806fc9b4a2881
 	esac
 done
 
@@ -96,31 +85,6 @@ fi
 EXPR=""
 
 #EXPR="($(IFS="|$IFS";  echo "$*"))"
-<<<<<<< HEAD
-for ARG; do
-  [ -z "$EXPR" ] && EXPR="(" || EXPR="$EXPR|"
-  EXPR="$EXPR$ARG"
-  case "$ARG" in
-      *\$) ;; 
-    *) [ "$WANT_FILE" = true ] && EXPR="$EXPR[^/]*\$" ;;
-  esac
-done
-EXPR="$EXPR)"
-
-MOUNT_OUTPUT=`mount`
-
-[ "$IGNORE_CASE" = true ] && GREP_ARGS="${GREP_ARGS:+$GREP_ARGS
-}-i"
-
-
-case "$OS" in
-  Cygwin* | *cygwin*) CYGDRIVE="/cygdrive" 
-MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
-;;
-*Linux*|*linux*) MEDIAPATH="/m*/*/" ;;
-
-esac
-=======
 if [ $# -le 0 ]; then
 				EXPR=".*"
 else
@@ -138,7 +102,6 @@ else
 				done
 				EXPR="$EXPR)"
 fi
->>>>>>> 23b8bc41dc9bc3083f76b9089dc806fc9b4a2881
 
 case "$CLASS" in
   bin*|exe*|prog*)  EXPR="${EXPR//\$)/)}.*\.(exe|msi|dll)\$" ;;
