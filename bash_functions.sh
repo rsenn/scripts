@@ -421,11 +421,7 @@ cut-ls-l()
     done;
     IFS=" ";
     CMD="while read  -r $* P; do  echo \"\${P}\"; done";
-<<<<<<< HEAD
-#    echo "+ $CMD" 1>&2;
-=======
    #echo "+ $CMD" 1>&2;
->>>>>>> 23b8bc41dc9bc3083f76b9089dc806fc9b4a2881
     eval "$CMD" )
 }
 
