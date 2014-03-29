@@ -337,7 +337,7 @@ cut-ls-l()
     done;
     IFS=" ";
     CMD="while read  -r $* P; do  echo \"\${P}\"; done";
-    echo "+ $CMD" 1>&2;
+#    echo "+ $CMD" 1>&2;
     eval "$CMD" )
 }
 
@@ -1105,7 +1105,7 @@ git-set-remote()
 grep-e-expr()
 { 
     echo "($(IFS="|
-";  set -- $*; echo "$*" |sed 's,[()],.,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*],\\&,g'))"  
+";  set -- $*; echo "$*" |sed 's,[()],&,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*],\\&,g'))"  
 }
 
 grep-e()

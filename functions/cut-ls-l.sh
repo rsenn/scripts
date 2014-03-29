@@ -8,6 +8,6 @@ cut-ls-l()
     done;
     IFS=" ";
     CMD="while read  -r $* P; do  echo \"\${P}\"; done";
-    echo "+ $CMD" 1>&2;
+#    echo "+ $CMD" 1>&2;
     eval "$CMD" )
 }
