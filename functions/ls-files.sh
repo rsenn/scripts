@@ -4,5 +4,5 @@ ls-files()
     for ARG in "$@";
     do
         ls --color=auto -d "$ARG"/*;
-    done ) | filter-test -f| sed -u 's,^\./,,; s,/$,,'
+    done ) | filter-test -f| sed 's,^\./,,; s,/$,,'
 }

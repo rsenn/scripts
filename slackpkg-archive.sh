@@ -41,16 +41,13 @@ grep-e-expr()
 	 $IFS";  set -- $*; echo "$*"))"
 }
 
-  archiver-cfg()
+archiver-cfg()
 {
-<<<<<<< HEAD
-
-
-if [ -n "$ARCHIVE" -a -e "$ARCHIVE" ]; then
-  EXISTS=true
-else
-EXISTS=false
-fi
+  if [ -n "$ARCHIVE" -a -e "$ARCHIVE" ]; then
+    EXISTS=true
+  else
+  EXISTS=false
+  fi
 
 	case "${ARCHIVE##*.}" in
 		 rar)  ACMD="rar"  AFLAGS="-m0 -y" ;;
@@ -114,7 +111,6 @@ done
     EXISTS=true
 	else
 
-=======
   case "$ARCHIVE":"$EXISTS" in
      *.zip:*)  ACMD="zip" 
                case "$ARCHIVE":"$EXISTS" in
@@ -166,7 +162,6 @@ echo "$ACTION archive $ARCHIVE ..." 1>&2
   if [ -e "$ARCHIVE" ]; then
     EXISTS=true
 	else 
->>>>>>> e7565526d2afb95d33c52cc256c35cac60be57d0
 		EXISTS=false
   fi  
   archiver-cfg
@@ -175,27 +170,6 @@ echo "$ACTION archive $ARCHIVE ..." 1>&2
 
 	PACKAGES=$( find /m*/*/pmagic -name "*.t?z" )
   set -- $PACKAGES; PACKAGE_COUNT=$#
-<<<<<<< HEAD
-
-  echo "Found $PACKAGE_COUNT slackware package files" 1>&2
- 
- PACKAGE_FILES=$(sed -u "s,.*/,," <<<"$PACKAGES" |sort -fu); set -- $PACKAGE_FILES ; PACKAGE_FILES_COUNT=$#
- 
-  echo "Found $PACKAGE_FILES_COUNT different slackware packages" 1>&2
-
-  if [ "$EXISTS" = true -a -n "$PKGS" ]; then
-    FILTER_EXPR="^$(grep-e-expr $PKGS)\$"
-    set -- $(grep -v -E "$FILTER_EXPR" <<<"$*")
-	fi
-  
-PACKAGES_NEW="$*" 
-  PACKAGES_NEW_COUNT="$#"
-		
-	if [ $PACKAGE_FILES_COUNT -gt 0 ]; then
-	 
-		echo "$PACKAGE_FILES_COUNT packages total" 1>&2
-
-=======
  
   echo "Found $PACKAGE_COUNT slackware package files" 1>&2
  
@@ -215,7 +189,6 @@ PACKAGES_NEW="$*"
  
 		echo "$PACKAGE_FILES_COUNT packages total" 1>&2
 
->>>>>>> e7565526d2afb95d33c52cc256c35cac60be57d0
 	 if [ "$PACKAGES_NEW_COUNT" != "$PACKAGE_FILES_COUNT" ]; then
 		 echo "$((PACKAGE_FILES_COUNT - PACKAGES_NEW_COUNT)) packages already in $ARCHIVE" 1>&2
 		fi 

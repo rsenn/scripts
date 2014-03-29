@@ -1,4 +1,4 @@
-some () 
+some()
 { 
     eval "while shift
   do

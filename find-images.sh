@@ -15,7 +15,7 @@ find_images()
 {
 	(IFS="
 	 "
-		EXTS="bmp cin cod dcx djvu emf fig gif ico im1 im24 im8 jin jpeg jpg lss miff opc pbm pcx pgm pgx png pnm ppm psd rle rmp sgi shx svg tga tif tiff wim xcf xpm xwd"
+		EXTS="bmp cin cod dcx djvu emf fig gif ico im1 im24 im8 jin jpeg jpg lss miff opc pbm pcx pgm pgx png pnm ppm psd rle rmp sgi shx svg tga tif tiff wim xcf xpm xwd mng"
 
 		[ "$#" -le 0 ] && set -- *
 
@@ -29,7 +29,7 @@ find_images()
        append CONDITIONS -iname "*.$EXT${S}"
 		done
 
-		CONDITIONS="-type${NL}f${NL}-and${NL}-size${NL}+3M${NL}(${NL}${CONDITIONS}${NL})" 
+		CONDITIONS="-type${NL}f${NL}-and${NL}(${NL}${CONDITIONS}${NL})" 
 		set "$@"  $CONDITIONS 
 
     ${DEBUG-false} && echo "+ $@" 1>&2

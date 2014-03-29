@@ -1,7 +1,4 @@
 pid-args()
 { 
-    ( for ARG in "$@";
-    do
-        ( pgrep -f "$ARG" | sed 's,^,-p,' );
-    done )
+  pid-of "$@" | sed -n  "/^[0-9]\+$/ s,^,-p\n,p"
 }

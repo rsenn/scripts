@@ -1,20 +1,41 @@
 #!/bin/bash
+
 . require.sh
 
 require url
-require xml
 
-X="+x"
+case "$1" in
+  -x) X="-x"; shift ;;
+esac
+
+: ${X="+x"}
 N=99
 Q=`url_encode_args q="$@"`
-(  CMD="curl -q -s \"http://www.filestube.com/look_for.html?${Q}&select=All&Submit=Search&${HOSTING:+hosting=${HOSTING}&}page=\""{`seq -s, 1 $N `}""
-echo "$CMD" 1>&2
-eval "(set ${X:--x}; $CMD)") |
-sed -u 's,<a,\n&,g ; s,</a>,&\n,g' |
-sed -u -n 's,^<a href="\([^"]*.html\)".*resultsLink.*,http://www.filestube.com\1,p'   | 
-while read -r LINK; do
+IFS="
+ "
+USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0"
+#SOCKS_PROXY="127.0.0.1:8123"
 
-    (   curl -s "$LINK" )  |xml_get 'pre id="copy_paste_links"[^>]*'
-  #|xml_get 'pre id="copy_paste_links" style="clear:both;padding: 6px; border: 1px inset #ccc; width: 590px;text-align: left;background:#fff;overflow:auto;max-height:500px; height:32px;"')
+DLCMD="curl -q -s --location -A '$USER_AGENT' ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"}"
+#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }wget -q -O - -U '$USER_AGENT'"
+#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent '$USER_AGENT' 2>/dev/null"
+#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }links -source"
+#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null"
+
+SEQ=$(set -- `seq -s , 1 $N`; IFS=","; echo "${*%,}")
+#echo "CMD='$CMD' SEQ='$SEQ'" 1>&2
+
+#CMD="$DLCMD \"http://www.filestube.com/search.html?${Q}&select=All&Submit=Search&${HOSTING:+hosting=${HOSTING}&}page=\"{$SEQ}"
+CMD="$DLCMD \"http://www.filestube.to/query.html?${Q}&select=All&Submit=Search&${HOSTING:+hosting=${HOSTING}&}page=\"{$SEQ}"
+
+[ "${X:--x}" = -x ] && echo "+ $CMD" 1>&2; eval "$CMD"|
+sed 's,<,\n<,g' | 
+sed -n "/resultsLink/ s,.*href=\"\\([^\"]*\\)\".*,http://www.filestube.com\\1,p" |
+while read -r LINK; do
+#				echo "LINK=$LINK" 1>&2
+    (   CMD="$DLCMD '$LINK'"; [ "${X:--x}" = -x ] && echo "+ $CMD" 1>&2; eval "$CMD")  | 
+		sed "s|>\s*<|>\n<|g" |
+		sed -n '\|<pre| { :lp; N; \|</pre|! b lp; p; }' |
+		sed "s|</\?pre[^>]*>||g"
 
 done | sed -u '/^\s*$/d'

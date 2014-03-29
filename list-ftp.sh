@@ -1,5 +1,19 @@
 #!/bin/bash
 
+exec_bin()
+{
+  (IFS=" $IFS"; CMD="$*"
+  [ "$VERBOSE" = true ] &&  echo "+ $CMD" 1>&2 
+  exec "$@")
+}
+
+eval_bin()
+{
+  (IFS=" $IFS"; CMD="$*"
+  [ "$VERBOSE" = true ] &&  echo "+ $CMD" 1>&2 
+  eval "$*")
+}
+
 decode_ls_lR()
 {
  (IFS=" "
@@ -7,10 +21,8 @@ decode_ls_lR()
   
   while [ "$1" ]; do
     case "$1" in
-      -n) N="$2" ; shift 2 ;;
-      -n*) N="${1#-n}" ; shift ;;
-      -p) PREFIX="$2"; shift 2 ;;
-      -p*) PREFIX="${1#-p}"; shift ;;
+      -n | --num-cols | --num) N="$2" ; shift 2 ;; -n=* | --num-cols=* | --num=*) N="${1#*=}"; shift ;; -n*) N="${1#-n}" ; shift ;;
+      -p | --prefix) PREFIX="$2"; shift 2 ;; -p=* | --prefix=*) PREFIX="${1#*=}" ; shift ;; -p*) PREFIX="${1#-p}"; shift ;;
       *) break ;;
     esac
   done
@@ -54,7 +66,7 @@ decode_ls_lR()
     esac
   
   #var_dump PREFIX DIR FILE
-       echo "${PREFIX:+$PREFIX/}${DIR:+$DIR/}$FILE"
+       echo "${PREFIX:+${PREFIX%/}/}${DIR:+${DIR%/}/}$FILE"
   done)
 }
   
@@ -62,7 +74,7 @@ decode_ls_lR()
 list_ftp_lftp()
 {
     for ARG; do
-   (lftp "$ARG" -e "find $ARG/; exit"  2>/dev/null
+   (eval_bin "lftp \"$ARG\" -e \"find ${ARG%/}/; exit\" 2>/dev/null"  
    ) | { 
    VARNAME=LINE 
    read -r LINE
@@ -82,20 +94,36 @@ list_ftp_ftpls()
   (HOST=${ARG#*://}
    HOST=${HOST%%/*}
    LOCATION=${ARG#*://$HOST}
-   ftpls -R "$HOST" "$LOCATION") | decode_ls_lR -n6 -p"${ARG%/}"
+   exec_bin ftpls -R "$HOST" "$LOCATION") | decode_ls_lR -n6 -p"${ARG%/}"
    done
 }
 
-: ${LFTP=`type lftp >/dev/null && echo lftp`}
-: ${FTPLS=`type ftpls >/dev/null && echo ftpls`}
+: ${LFTP=`type lftp 2>/dev/null >/dev/null && echo lftp`}
+: ${FTPLS=`type ftpls 2>/dev/null >/dev/null && echo ftpls`}
 
-if [ "$FTPLS" ]; then
-  list_ftp_ftpls "$@"
-elif [ "$LFTP" ]; then
-  list_ftp_lftp "$@"
-else
-  echo "No FTP program such as ftpls/lftp" 1>&2
-  exit 2
+while :; do
+  case "$1"  in
+      -t | --type) TYPE="$2" ; shift 2 ;; -t=* | --type=*) TYPE="${1#*=}" ; shift ;; -t*) TYPE="${1#-t}"; shift ;;
+      -v | --verbose) VERBOSE=true; shift ;;
+    *) break ;;
+  esac
+done
+
+if [ -z "$TYPE" ]; then
+  if [ "$FTPLS" ]; then
+    TYPE=ftpls
+  elif [ "$LFTP" ]; then
+    TYPE=lftp
+  else
+    echo "No FTP program such as ftpls/lftp" 1>&2
+    exit 2
+  fi
 fi
-  
-  
+
+for ARG; do
+ (case "${TYPE}-${ARG}" in
+    ftpls-*http*://*) TYPE=lftp ;;
+ esac
+  list_ftp_"$TYPE" "$ARG"
+  )
+done
