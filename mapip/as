@@ -1,0 +1,18 @@
+#!/bin/sh
+
+NL="
+"
+
+push() { eval "shift; $1=\${$1+\$$1\$NL}\$*"; }
+
+unset ARGS
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -o) OUTPUT="$2"; shift 2 ;; -o*) OUTPUT="${1#-o}"; shift ;;
+    *) push ARGS "$1"; shift ;;
+  esac
+done
+
+[ "$OUTPUT" ] && exec 1>"$OUTPUT"
+
+exec cat $ARGS
