@@ -23,6 +23,8 @@ usage()
 "
 }
 
+DATABASE=$(reg query 'HKCU\Software\Update\Databases\1_default' /v ArchiveName |sed -n 's,\\,/,g ;; s,.*REG_SZ\s\+,,p')
+
 while :; do
   case "$1" in
     --) shift; break ;;
@@ -32,6 +34,7 @@ while :; do
     -i | --ignore-case) NOCASE=true ;;
     -f | --file) LOOKFILE=f ;;
     -d | --dir) LOOKDIR=d ;;
+    -b | --database) DATABASE="$2" ; shift ;;
     -w | --wholename) WHOLE=true ;;
     -s | --size) SIZE="$2"; shift ;; -s=* | --size=*) SIZE="${1#*=}" ;;
     -x | --debug) DEBUG=true ;;
@@ -61,6 +64,10 @@ case "${NOCASE:-false}:${REGEX:-false}" in
   true:true) addopt -rc ;;
   false:true) addopt -r ;;
 esac
+
+if [ "$DATABASE" -a -e "$DATABASE" ]; then
+  addopt -d "$DATABASE"
+fi
 
 if [ -z "${LOOKFILE}${LOOKDIR}${LOOKWHOLE}" ]; then
   LOOKFILE=f
