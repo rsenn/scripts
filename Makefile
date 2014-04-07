@@ -30,6 +30,8 @@ inst-slackpkg: slackpkg
 		rm -vf "$$x"/scripts-*.txz; \
 		cp -vf scripts-`date +%Y%m%d`-slackware.txz "$$x"; \
   done
+
+
 SCRIPTS =  \
 	aaview.sh \
 	am2cmake.rb \
@@ -145,6 +147,7 @@ SCRIPTS =  \
 	histogram.awk \
 	home-cleanup.sh \
 	image-anim.rb \
+	impgen.sh \
 	isodate.sh \
 	isotime.sh \
 	jadmaker.sh \

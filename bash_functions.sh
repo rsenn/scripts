@@ -45,12 +45,27 @@ addsuffix()
 
 all-disks()
 { 
+   (case "$1" in
+      -l) SHOW_LABEL=true; shift ;;
+      -u) SHOW_UUID=true; shift ;;
+    esac
     if [ -z "$1" ]; then
         set -- /dev/disk/by-{uuid,label};
     fi;
     find "$@" -type l | while read -r FILE; do
+       if [ "$SHOW_LABEL" = true ]; then
+	 case "$FILE" in
+	     /dev/disk/by-label/*) echo "LABEL=${FILE##*/}" ;;
+	 esac
+       elif [ "$SHOW_UUID" = true ]; then
+	 case "$FILE" in
+	     /dev/disk/by-uuid/*) echo "UUID=${FILE##*/}" ;;
+	 esac
+       else
         myrealpath "$FILE";
+       fi
     done | sort -u
+    )
 }
 
 array()
@@ -278,6 +293,14 @@ clamp()
 command-exists()
 { 
     type "$1" 2> /dev/null > /dev/null
+}
+
+compare-dirs()
+{
+     diff -ru "$@" | sed -n \
+         -e "/^Binary files/ s,^Binary files \(.*\) and \(.*\) differ,\1 \2,p" \
+         -e "s,^Only in \(.*\): \(.*\),\1/\2,p" \
+         -e "/^diff/ { N; /\n---/ { N; /\n+++/ { s,\n.*,, ;; s,^diff\s\+,, ;; s,^-[^ ]* ,,g ;; p } } }"
 }
 
 convert-boot-entries()
@@ -885,6 +908,27 @@ filter-cmd()
         esac;
         eval "$EVAL" ) || break;
     done )
+}
+
+filter-git-status()
+{
+ (unset MATCH SUBST MODIFIER
+  while :; do
+    case "$1" in
+      -v) MODIFIER='!'; shift ;;
+    *) break ;;
+    esac
+  done
+  WHAT=${1:-untracked}
+  shift
+  ARGS="-n"
+  case "$WHAT" in
+    untracked) MATCH="/^??\\s/" ;;
+    merge*) MATCH="/^\\s\\?M/" ;;
+    #*) echo "No such git status specifier: $WHAT" 1>&2; exit 1 ;;
+  esac
+  : ${SUBST="s|^...||p"}
+  exec sed $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
 }
 
 filter-quoted-name()

@@ -58,10 +58,15 @@ unalias cp  2>/dev/null
 unalias mv  2>/dev/null
 unalias rm 2>/dev/null
 
-type yum 2>/dev/null >/dev/null && alias yum='sudo yum -y'
-#type smart 2>/dev/null >/dev/null && alias smart='sudo smart -y'
-type apt-get 2>/dev/null >/dev/null && alias apt-get='sudo apt-get -y'
-type aptitude 2>/dev/null >/dev/null && alias aptitude='sudo aptitude -y'
+if [ "`id -u`" = 0 ]; then
+    SUDO=command
+else
+    SUDO=sudo
+fi
+type yum 2>/dev/null >/dev/null && alias yum="$SUDO yum -y"
+#type smart 2>/dev/null >/dev/null && alias smart="$SUDO smart -y"
+type apt-get 2>/dev/null >/dev/null && alias apt-get="$SUDO apt-get -y"
+type aptitude 2>/dev/null >/dev/null && alias aptitude="$SUDO aptitude -y"
 
 if type require.sh 2>/dev/null >/dev/null; then
   . require.sh
