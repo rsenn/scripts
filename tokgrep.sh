@@ -2,7 +2,7 @@
 # 
 # match name token
 
-charset='0-9A-Za-z_'
+charset='0-9A-Za-z_'$extrachars
 
 unset pattern
 unset replace

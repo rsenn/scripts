@@ -45,12 +45,27 @@ addsuffix()
 
 all-disks()
 { 
+   (case "$1" in
+      -l) SHOW_LABEL=true; shift ;;
+      -u) SHOW_UUID=true; shift ;;
+    esac
     if [ -z "$1" ]; then
         set -- /dev/disk/by-{uuid,label};
     fi;
     find "$@" -type l | while read -r FILE; do
+       if [ "$SHOW_LABEL" = true ]; then
+	 case "$FILE" in
+	     /dev/disk/by-label/*) echo "LABEL=${FILE##*/}" ;;
+	 esac
+       elif [ "$SHOW_UUID" = true ]; then
+	 case "$FILE" in
+	     /dev/disk/by-uuid/*) echo "UUID=${FILE##*/}" ;;
+	 esac
+       else
         myrealpath "$FILE";
+       fi
     done | sort -u
+    )
 }
 
 array()
@@ -280,6 +295,14 @@ command-exists()
     type "$1" 2> /dev/null > /dev/null
 }
 
+compare-dirs()
+{
+     diff -ru "$@" | sed -n \
+         -e "/^Binary files/ s,^Binary files \(.*\) and \(.*\) differ,\1 \2,p" \
+         -e "s,^Only in \(.*\): \(.*\),\1/\2,p" \
+         -e "/^diff/ { N; /\n---/ { N; /\n+++/ { s,\n.*,, ;; s,^diff\s\+,, ;; s,^-[^ ]* ,,g ;; p } } }"
+}
+
 convert-boot-entries()
 {
   ([ -z "$FORMAT" ] && FORMAT="$1"
@@ -393,6 +416,11 @@ cut-dirname()
 cut-distver()
 {
   cat "$@" | sed 's,\.fc[0-9]\+\(\.\)\?,\1,g'
+}
+
+cut-dotslash()
+{
+  sed -u 's,^\.[/\\],,'
 }
 
 cut-ext()
@@ -790,23 +818,25 @@ eval_arith()
 }
 
 explode()
-{ 
-    ( IFS="$2$IFS";
-    for VALUE in $1;
-    do
-        echo "$VALUE";
-    done )
+{
+ (S="$1"; shift
+  IFS="
+";
+
+  [ $# -gt 0 ] && exec <<<"$*"
+  sed "s|${S//\"/\\\"}|\n|g"
+ )
 }
 
 explore()
-{ 
-  ( r=$(myrealpath "$1");
-  [ -z "$r" ] && r=$1
-  r=${r%/.};
-  r=${r#./};
-  p=$(msyspath -w "$r");
-  ( set -x;
-  cmd /c "explorer.exe /n,/e,$p" ) )
+{
+ (r=`realpath "$1" 2>/dev/null`; [ "$r" ] || r=$1
+  r=${r%/.}
+  r=${r#./}
+  p=`$PATHTOOL -w "$r"`
+  set -x
+  "${SystemRoot:+$SystemRoot\\}explorer.exe" "/n,/e,$p"
+ )
 }
 
 extract-slackpkg()
@@ -878,6 +908,27 @@ filter-cmd()
         esac;
         eval "$EVAL" ) || break;
     done )
+}
+
+filter-git-status()
+{
+ (unset MATCH SUBST MODIFIER
+  while :; do
+    case "$1" in
+      -v) MODIFIER='!'; shift ;;
+    *) break ;;
+    esac
+  done
+  WHAT=${1:-untracked}
+  shift
+  ARGS="-n"
+  case "$WHAT" in
+    untracked) MATCH="/^??\\s/" ;;
+    merge*) MATCH="/^\\s\\?M/" ;;
+    #*) echo "No such git status specifier: $WHAT" 1>&2; exit 1 ;;
+  esac
+  : ${SUBST="s|^...||p"}
+  exec sed $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
 }
 
 filter-quoted-name()
@@ -1204,14 +1255,12 @@ get_ext()
 
 git-get-remote()
 {
-
   ([ $# -lt 1 ] && set -- .
   [ $# -gt 1 ] && FILTER="sed \"s|^|\$DIR: |\"" || FILTER=
   CMD="REMOTE=\`git remote -v 2>/dev/null | sed \"s|\\s\\+| |g ;; s|\\s*([^)]*)||\" |uniq ${FILTER:+|$FILTER}\`;"
   CMD=$CMD'echo "$REMOTE"'
   for DIR; do
-					
-					(cd "$DIR";	eval "$CMD")
+					(cd "${DIR%/.git}" >/dev/null &&	eval "$CMD")
 		done)
 
 }
@@ -1238,7 +1287,7 @@ git-set-remote()
 grep-e-expr()
 { 
     echo "($(IFS="|
-";  set -- $*; echo "$*" |sed 's,[()],.,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*],\\&,g'))"  
+";  set -- $*; echo "$*" |sed 's,[()],&,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*],\\&,g'))"  
 }
 
 grep-e()
@@ -1988,7 +2037,11 @@ link-mpd-music-dirs()
 
 list-7z()
 { 
-    7z l "$1" | sed -n '/^\s*Date\s\+Time\s\+Attr/ {   :lp; N; $! b lp;  s/[^\n]*files[^\n]*folders$//; s/\n[- ]*\n/\n/g; s/\n[0-9][-0-9]\+\s\+[0-9:]\+\s\+[^ ]*[.[:alnum:]][^ ]*\+\s\s*\([0-9]\+\)\s\s/\n  /g; s/\n\s\+[0-9]\+\s\s*/\n  /g; s/\n\s\+/\n/g; s/^\s*Date\s\+Time[^\n]*//; s/\n[^/]*files[^/]*folders$//; p; }'
+  (FILTER="sed -n '/^\\s*Date\\s\\+Time\\s\\+Attr/ {   :lp; N; \$! b lp;  s/[^\\n]*files[^\\n]*folders\$//; s/\\n[- ]*\\n/\\n/g; s/\\n[0-9][-0-9]\\+\\s\\+[0-9:]\\+\\s\\+[^ ]*[.[:alnum:]][^ ]*\\+\\s\\s*\\([0-9]\\+\\)\\s\\s/\\n  /g; s/\\n\\s\\+[0-9]\\+\\s\\s*/\\n  /g; s/\\n\\s\\+/\\n/g; s/^\\s*Date\\s\\+Time[^\\n]*//; s/\\n[^/]*files[^/]*folders\$//; p; }'"
+  [ $# -gt 1 ] && FILTER="$FILTER | addprefix \"\$ARG: \""
+  for ARG; do  
+    7z l "$ARG" | eval "$FILTER"
+   done)
 }
 
 list-dotfiles()
@@ -2055,7 +2108,7 @@ list-nolastitem()
 
 list-path()
 {
-				(IFS=":"; find $PATH -maxdepth 1 -mindepth 1 -not -type d)
+  (IFS=":"; find $PATH -maxdepth 1 -mindepth 1 -not -type d)
 }
 
 list-recursive()
@@ -2123,7 +2176,10 @@ list-upx()
 
 list()
 { 
-    sed "s|/files\.list:|/|"
+ (CMD='echo "$LINE"'
+  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD"
+ )
 }
 
 locate-filename()
@@ -2302,14 +2358,12 @@ $EXPR:*:*:* | *:$EXPR:*:* | *:*:$EXPR:* | *:*:*:$EXPR) echo "$DEV $MNT $TYPE $OP
 
 match()
 { 
-    case $1 in 
-        $2)
-            return 0
-        ;;
-        *)
-            return 1
-        ;;
-    esac
+ (EXPR="$1"; shift
+  CMD='case $LINE in
+  $EXPR) echo "$LINE" ;;
+esac'
+  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD")  
 }
 
 matchall()
@@ -2715,19 +2769,21 @@ myip()
 
 myrealpath()
 { 
-    ( DIR=` dirname "$1" `;
-    BASE=` basename "$1" `;
+ (for ARG; do
+    DIR=` dirname "$ARG" `;
+    BASE=` basename "$ARG" `;
     cd "$DIR";
     if [ -h "$BASE" ]; then
-        FILE=` readlink "$BASE"`;
+    FILE=` readlink "$BASE"`;
     fi;
     DIR=` dirname "$FILE"`;
     BASE=`basename "$FILE"`;
-    if is-relative "$1"; then
-        DIR="$PWD/$DIR";
+    if is-relative "$ARG"; then
+    DIR="$PWD/$DIR";
     fi;
     DIR=$(cd "$DIR"; pwd -P);
-    echo "$DIR/$BASE" )
+    echo "$DIR/$BASE"
+  done)
 }
 
 neighbours()
@@ -3221,16 +3277,23 @@ reload()
 
 removeprefix()
 { 
-    ( PREFIX=$1;
-    shift;
-    echo "${*##$PREFIX}" )
+ (PREFIX=$1; shift
+  CMD='echo "${LINE#$PREFIX}"'
+  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD"
+ )
 }
 
 removesuffix()
 { 
-    ( SUFFIX=$1;
-    shift;
-    echo "${*%%$SUFFIX}" )
+ (SUFFIX=$1; shift
+  CMD='echo "${LINE%$SUFFIX}"'
+  if [ $# -gt 0 ]; then
+    CMD="for LINE; do $CMD; done"
+  else
+    CMD="while read -r LINE; do $CMD; done"
+  fi
+  eval "$CMD")
 }
 
 remove_emptylines()
@@ -3804,8 +3867,7 @@ _msyspath()
  
   case $MODE in
     win*|mix*) #add_to_script "s|^${SYSDRIVE}[\\\\/]\(.\)[\\\\/]|\1:/|" "s|^${SYSDRIVE}[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
-      add_to_script "s|^${SYSDRIVE}[\\\\/]\\([^\\\\/]\\)\\([\\\\/]\\)\\([^\\\\/]\\)\\?|\\1:\\2\\3|" ;;
-  
+      add_to_script "s|^${SYSDRIVE}[\\\\/]\\([^\\\\/]\\)\\([\\\\/]\\)\\([^\\\\/]\\)\\?|\\1:\\2\\3|" "s|^${SYSDRIVE}[\\\\/]\\([^\\\\/]\\)\$|\\1:/|" ;;
     *) add_to_script "s|^\([A-Za-z0-9]\):|${SYSDRIVE}/\\1|" ;;
   esac
   case $MODE in

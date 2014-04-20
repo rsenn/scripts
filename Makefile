@@ -24,8 +24,16 @@ slackpkg: $(SCRIPTS)
 		tar -cJf scripts-`date +%Y%m%d`-slackware.txz -C $$distdir .; \
 		rm -rf $$distdir
 
+
+inst-slackpkg: slackpkg
+	for x in /m*/*/pmagic/pmodules/; do \
+		rm -vf "$$x"/scripts-*.txz; \
+		cp -vf scripts-`date +%Y%m%d`-slackware.txz "$$x"; \
+  done
+
 SCRIPTS =  \
 	aaview.sh \
+	am2cmake.rb \
 	any23gp.sh \
 	any2amr-wb.sh \
 	any2avi.sh \
@@ -50,6 +58,7 @@ SCRIPTS =  \
 	avi2vob.sh \
 	bcmm-dump.sh \
 	bridge-setup.sh \
+	c256.pl \
 	cerberus-dump.sh \
 	check-symlinks.sh \
 	checkpassword-test.sh \
@@ -82,6 +91,7 @@ SCRIPTS =  \
 	episodes.sh \
 	eth-adhoc-vinylz.sh \
 	eth-colobern.sh \
+	ethernet-connect.sh \
 	extract-urls.sh \
 	fastroll.pl \
 	fetch-urls.sh \
@@ -113,6 +123,8 @@ SCRIPTS =  \
 	fnsed.sh \
 	functions-assemble.sh \
 	functions-dump.sh \
+	gen-implibs.sh \
+	gencmake.rb \
 	gendvdimage.sh \
 	get-alive.sh \
 	get-names.sh \
@@ -134,6 +146,7 @@ SCRIPTS =  \
 	histogram.awk \
 	home-cleanup.sh \
 	image-anim.rb \
+	impgen.sh \
 	isodate.sh \
 	isotime.sh \
 	jadmaker.sh \
@@ -163,6 +176,7 @@ SCRIPTS =  \
 	make-wine-wrapper.sh \
 	media-mnt-find.sh \
 	mingwvars.sh \
+	mk-pkg-lists.sh \
 	mkcrt.sh \
 	mkcsr.sh \
 	mkkeys.sh \
@@ -217,14 +231,9 @@ SCRIPTS =  \
 	vimpager.sh \
 	vzlist-dummy.sh \
 	warn-auto.sh \
+	wlan-connect.sh \
 	wlan-digitall.sh \
 	wlan-linksys.sh \
 	wlan-restart.sh \
 	wlan-tmwnet.sh \
 	x2x-ssh-fuse.sh
-
-inst-slackpkg: slackpkg
-	for x in /m*/*/pmagic/pmodules/; do \
-		rm -vf "$$x"/scripts-*.txz; \
-		cp -vf scripts-`date +%Y%m%d`-slackware.txz "$$x"; \
-  done
