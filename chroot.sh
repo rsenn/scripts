@@ -24,7 +24,7 @@ bind-mounts()
 
   DIRS="dev/pts dev sys proc tmp"
 
-	set -- $DIRS  $(df -a | sed 1d | sed -n 's|.* /m|m|p')
+	set -- $DIRS  $(df -a | sed 1d | sed -n 's|.* /m|m|p' | grep -v "${ABSDIR#/}.*${ABSDIR#/}")
 
 
   for MNT; do
