@@ -11,7 +11,10 @@ IFS=" ""
 
 : ${IP=192.168.0.16}
 : ${USERNAME=roman}
-: ${PASSWORD=}
+
+if [ "${PASSWORD+set}" != set ]; then
+   read -p "Password: " -s PASSWORD
+ fi
 
 SMB_OUTPUT=`smbclient -L "$IP" --user "$USERNAME${PASSWORD:+%$PASSWORD}" 2>/dev/null`
 #echo "$SMB_OUTPUT" |tee o|sed 's,^,output: ,'
