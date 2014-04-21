@@ -93,9 +93,9 @@ if :; then #[ -h etc/mtab -o ! -s etc/mtab ]; then
         
 				(IFS=" "; while read -r DEV MNT TYPE OPTS A  B; do 
 
-case "$MNT" in
-				"$ABSDIR"/*) NEWDIR=${MNT#$ABSDIR} ; echo "$MNT -> $NEWDIR" 1>&2 ; MNT=$NEWDIR ;; 
-esac
+if [ "$MNT" != "${MNT#$ABSDIR}" ]; then
+ NEWDIR=${MNT#$ABSDIR} ; echo "$MNT -> $NEWDIR" 1>&2 ; MNT=$NEWDIR
+    fi
 
 test -d "${MNT#/}" &&
 				printf "%-10s %-10s %-10s %-20s %d %d\n" "$DEV" "$MNT" "$TYPE" "$OPTS" $((A)) $((B))
