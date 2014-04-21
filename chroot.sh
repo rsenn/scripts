@@ -6,10 +6,10 @@ cd "$MYDIR"
 
 ABSDIR="$PWD"
 
-get-lan-ip() {
+get-lan-ip()
+{
  ifconfig |sed -n '/127\.0/! s,^[^0-9]*:\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\).*,\1,p'
 }
-
 
 bind-mounts()
 {
