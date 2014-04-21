@@ -4,14 +4,9 @@ MYDIR=`dirname "$0"`
 
 cd "$MYDIR"
 
-get-lan-ip()
-{
- ifconfig |sed -n '/127\.0/! s,^[^0-9]*:\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\).*,\1,p'
-}
+ABSDIR="$PWD"
 
-
-get-lan-ip()
-{
+get-lan-ip() {
  ifconfig |sed -n '/127\.0/! s,^[^0-9]*:\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\).*,\1,p'
 }
 
@@ -28,7 +23,8 @@ bind-mounts()
 
   DIRS="dev/pts dev sys proc tmp"
 
-  set -- $DIRS
+	set -- $DIRS  $(df -a | sed 1d | sed -n 's|.* /m|m|p')
+
 
   for MNT; do
     umount -f $MNT 2>/dev/null
@@ -46,7 +42,7 @@ bind-mounts()
         tmp) umount -f tmp 2>/dev/null; rm -rf tmp/* ;;
         dev/pts) mount -t devpts devpts  dev/pts -o rw,relatime,mode=600,ptmxmode=000 ;;
       *)
-    mount -o bind /$MNT $MNT
+							(set -x; mount -o bind /$MNT $MNT)
     ;;
 esac
   done
@@ -91,6 +87,23 @@ nameserver 8.8.8.8
 nameserver 8.8.4.4
 nameserver 4.2.2.1" >>etc/resolv.conf
 fi
+
+if :; then #[ -h etc/mtab -o ! -s etc/mtab ]; then
+				rm -vf etc/mtab
+        
+				(IFS=" "; while read -r DEV MNT TYPE OPTS A  B; do 
+
+case "$MNT" in
+				"$ABSDIR"/*) NEWDIR=${MNT#$ABSDIR} ; echo "$MNT -> $NEWDIR" 1>&2 ; MNT=$NEWDIR ;; 
+esac
+
+test -d "${MNT#/}" &&
+				printf "%-10s %-10s %-10s %-20s %d %d\n" "$DEV" "$MNT" "$TYPE" "$OPTS" $((A)) $((B))
+
+done) </proc/mounts >etc/mtab
+
+fi
+
 
 env - PATH="$PATH:/usr/local/bin" TERM="$TERM" DISPLAY="$DISPLAY" HOME="/root"  HOSTNAME="${PWD##*/}" chroot . /bin/bash --login
 
