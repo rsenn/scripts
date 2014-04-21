@@ -5,6 +5,7 @@ MYDIR=`dirname "$0"`
 cd "$MYDIR"
 
 ABSDIR="$PWD"
+echo ABSDIR="$ABSDIR" 1>&2
 
 get-lan-ip()
 {
@@ -93,8 +94,11 @@ if :; then #[ -h etc/mtab -o ! -s etc/mtab ]; then
         
 				(IFS=" "; while read -r DEV MNT TYPE OPTS A  B; do 
 
-if [ "$MNT" != "${MNT#$ABSDIR}" ]; then
- NEWDIR=${MNT#$ABSDIR} ; echo "$MNT -> $NEWDIR" 1>&2 ; MNT=$NEWDIR
+if [ "$MNT" != "${MNT#$ABSDIR/}" ]; then
+NEWDIR=${MNT#$ABSDIR} ;
+    [ "$NEWDIR" = "${NEWDIR#$ABSDIR/}" ] &&  {
+     echo "$MNT -> $NEWDIR" 1>&2 ; MNT=$NEWDIR
+}
     fi
 
 test -d "${MNT#/}" &&
