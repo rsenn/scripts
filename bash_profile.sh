@@ -44,25 +44,8 @@ export PATH LC_ALL LOCALE LANGUAGE HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS 
 alias xargs='xargs -d "\n"'
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
 
-<<<<<<< HEAD
-
-if type gls 2>/dev/null 1>/dev/null; then
-  LS=gls
-else
-  LS=ls
-fi
-
-if $LS --help 2>&1 |grep -q '\--color'; then
-				LS_ARGS="$LS_ARGS --color=auto"
-fi
-if $LS --help 2>&1 |grep -q '\--time-style'; then
-				LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
-fi
-alias ls="$LS $LS_ARGS"
-=======
 ls --help 2>&1|grep -q '\--color' && LS_ARGS="$LS_ARGS --color=auto"
 ls --help 2>&1|grep -q '\--time-style' && LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
->>>>>>> 514b802a1cabaafef6b430c3e46689047fe9fc9c
 
 grep --help 2>&1|grep -q '\--color' && GREP_ARGS="$GREP_ARGS --color=auto"
 grep --help 2>&1|grep -q '\--line-buffered' && GREP_ARGS="$GREP_ARGS --line-buffered"
