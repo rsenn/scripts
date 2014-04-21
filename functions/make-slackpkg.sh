@@ -4,7 +4,7 @@ make-slackpkg()
 "
     require str 
     
-     : ${DESTDIR="$PWD"};
+     : ${OUTDIR="$PWD"};
     [ -z "$1" ] && set -- .;
     ARGS="$*"
 IFS=";, $IFS"
@@ -15,7 +15,7 @@ IFS=";, $IFS"
     for ARG in $ARGS;
     do
         test -d "$ARG";
-        cmd="(cd \"$ARG\"; tar --exclude=${EXCLUDELIST} -cv --no-recursion \$(echo .; find install/ 2>/dev/null; find * -not -wholename 'install*'  |sort ) |xz -0 -f  -c  > \"$DESTDIR/\${PWD##*/}.txz\")";
+        cmd="(cd \"$ARG\" >/dev/null; tar --exclude=${EXCLUDELIST} -cv --no-recursion \$(echo .; find install/ 2>/dev/null; find * -not -wholename 'install*'  |sort ) |xz -0 -f  -c  > \"$OUTDIR/\${PWD##*/}.txz\")";
         echo + "$cmd" 1>&2;
         eval "$cmd";
     done
