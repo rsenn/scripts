@@ -7,16 +7,32 @@ IFS="
 
 require xml
 require url
-require http
+#require http
+
+USER_AGENT="Mozilla/5.0 (Windows NT 5.1; rv:21.0) Gecko/20100101 Firefox/21.0 SeaMonkey/2.18"
+
+http_get()
+{
+case "${OS=`uname -o`}" in
+  Cygwin*) CMD='curl --insecure --location --user-agent "$USER_AGENT" "$@"' ;;
+   *) CMD='wget --no-check-certificate -q --user-agent="$USER_AGENT" -O - "$@"' ;;
+   esac
+   
+   eval "(set -x; $CMD)"
+}
 
 
  for ARG; 
  do 
 
-	URL="http://soundcloud.com/search?$(url_encode_args "q%5Bfulltext%5D=$ARG")"
+	URL="https://soundcloud.com/search?$(url_encode_args q="$ARG")"
 	echo "URL is $URL" 1>&2
 	
-  LINKS=`(set -x; curl --location  "$URL") | grep --line-buffered -E '<(h3|div class="pagination")>'  | xml_get a href`
+  #LINKS=`(http_get "$URL") | sed "s|>\\s*<|>\\n<|g" `
+
+ # LINKS=`(set -x; curl --location  "$URL") | grep --line-buffered -E '<(h3|div class="pagination")>'  | xml_get a href`
+  LINKS=`extract-urls.sh "$URL"`
+  echo LINKS = "$LINKS" 1>&2
 	TRACKS=`echo "$LINKS" | grep -v page=`
 	NAV=`echo "$LINKS" | sed -n 's,.*page=\([0-9]\+\).*,\1,p'`
 	BROWSE=`echo "$LINKS" | sed -n "/page=/ { s,^,http://soundcloud.com, ; s,\\&amp;,\\\\\\\\\\&,g ; s,page=[0-9]\+,page=\\\${PAGE}, ; p ; q ; }"`

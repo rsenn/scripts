@@ -4,8 +4,45 @@ count()
 {
 echo $#
 }
+
+match()
+{
+ (PATTERN="$1"
+  shift
+	for ARG; do
+		case "$ARG" in
+			$PATTERN) echo "$ARG" ;; 
+		esac
+	done)
+}
+
+output()
+{
+				[ "$PLAYLIST" = true -o "$SHOW_FILES" = true ] && set -- $(match "*${1}*" $FILES)
+
+   for NAME; do
+	 if [ "$PLAYLIST" = true ]; then
+      TITLE=`basename "${NAME%.*}" | sed "s|[^[:alnum:]]\+| |g" | sed "s|\sTvR\s\?||gi ;; s|\sXivD\s\?||gi ;; s|\sXviD\s\?||gi ;; s|\sdTV\s\?||gi ;; s|\sHDTV\s\?||gi ;; s|\sGerman$||"`
+	    echo "#EXTINF:,${TITLE}"
+			echo "${NAME}"
+	 elif [ "$SHOW_FILES" = true ]; then
+			echo "$NAME"
+	else
+					echo "$NAME"
+		fi
+		done
+}
 IFS="
 "
+
+while :; do
+  case "$1" in
+	  -f | --files) SHOW_FILES=true; shift ;;
+	  -p | --playlist) PLAYLIST=true; shift ;;
+		*) break ;;
+  esac
+done
+
 FILES=$(find "${@-.}" -type f -size +20M)
 
 echo "Found $(count $FILES) files." 1>&2
@@ -31,7 +68,9 @@ do
   E=${LIST##*E}; E=${E#0}; E=$((E + 0))
 
    #var_dump SEASON EPISODE S E 1>&2 
-echo "$LIST"
+
+     output "$LIST"
+
 
   [ $((S)) -eq $((SEASON)) -a $((E)) -eq $((EPISODE)) ] || {
     echo "Season $SEASON Episode $EPISODE is missing!" 1>&2

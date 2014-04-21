@@ -15,7 +15,7 @@ find_music()
 {
 	(IFS="
 	 "
-		EXTS="mp3 ogg flac mpc m4a m4b wma"
+		EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff"
 
 		[ "$#" -le 0 ] && set -- *
 

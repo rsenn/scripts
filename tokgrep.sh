@@ -2,7 +2,7 @@
 # 
 # match name token
 
-charset='0-9A-Za-z_'
+charset='0-9A-Za-z_'$extrachars
 
 unset pattern
 unset replace
@@ -97,5 +97,5 @@ for arg; do
   esac
   
 done
-set -x
+#set -x
 exec grep "$@"

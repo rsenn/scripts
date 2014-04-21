@@ -97,9 +97,11 @@ var_dump VBR
 
 unset RESOLUTIONS
 #pushv RESOLUTIONS 1920x1080
+#pushv RESOLUTIONS 1440x1080
 pushv RESOLUTIONS 1280x720
 pushv RESOLUTIONS 1024x576
 #pushv RESOLUTIONS 1000x564
+pushv RESOLUTIONS 960x720
 pushv RESOLUTIONS 960x540
 pushv RESOLUTIONS 950x536
 pushv RESOLUTIONS 854x480
@@ -107,10 +109,13 @@ pushv RESOLUTIONS 852x480
 pushv RESOLUTIONS 850x480
 pushv RESOLUTIONS 768x432
 pushv RESOLUTIONS 750x420
+pushv RESOLUTIONS 720x540
 pushv RESOLUTIONS 704x394
+pushv RESOLUTIONS 640x480
 pushv RESOLUTIONS 640x360
 pushv RESOLUTIONS 608x336
 pushv RESOLUTIONS 576x320
+pushv RESOLUTIONS 480x360
 
 #pushv RESOLUTIONS 720x576
 #pushv RESOLUTIONS 720x480
@@ -121,32 +126,39 @@ pushv RESOLUTIONS 576x320
 #pushv RESOLUTIONS 352x288
 
 for ARG; do
+
     OUTPUT="${ARG%.*}.mp4"
     if [ "$DIR" ]; then
   OUTPUT="$DIR"/`basename "$OUTPUT"`
 fi
-    WIDTH=`minfo "$ARG" |info_get Width`
-    HEIGHT=`minfo "$ARG" |info_get Height`
-    R=`size2ratio "${WIDTH}x${HEIGHT}"`
-    unset SIZE
 
-    is16to9 $WIDTH $HEIGHT && ASPECT="16:9" || ASPECT="4:3"
+ [ "$RESOLUTION" ] && SIZE="$RESOLUTION"
 
-    while read RES; do
-  R2=`size2ratio "$RES"`
-  echo "Check ratio $(bce "$R2 / 100")" 1>&2
-        
-  if [ "$R" -eq "$R2" ]; then
-      SIZE="$RES"
-      break
-  fi
-    done <<<"$RESOLUTIONS"
+    if [ -z "$SIZE" ]; then
+      WIDTH=`minfo "$ARG" |info_get Width`
+      HEIGHT=`minfo "$ARG" |info_get Height`
+      R=`size2ratio "${WIDTH}x${HEIGHT}"`
+      unset SIZE
 
-    if [ "$SIZE" ]; then
-   echo "Size is $SIZE" 1>&2
-     else
-   echo "WARNING: No appropriate size (ratio `bce "$R / 100"`) found!" 1>&2
+      is16to9 $WIDTH $HEIGHT && ASPECT="16:9" #|| ASPECT="4:3"
+
+      while read RES; do
+    R2=`size2ratio "$RES"`
+    echo "Check ratio $(bce "$R2 / 100")" 1>&2
+          
+    if [ "$R" -eq "$R2" ]; then
+        SIZE="$RES"
+        break
+    fi
+      done <<<"$RESOLUTIONS"
+
+      if [ "$SIZE" ]; then
+     echo "Size is $SIZE" 1>&2
+       else
+     echo "WARNING: No appropriate size (ratio `bce "$R / 100"`) found!" 1>&2
      fi
+     
+   fi
 
      if [ "$FILESIZE" ]; then
 
@@ -172,9 +184,11 @@ $((VBR + ABR))"
 
 
 RATE=29.97
-    (set -x; "$FFMPEG" 2>&1 -strict -2 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 \
+    (IFS="$IFS "; set -x; "$FFMPEG" 2>&1  $FFMPEGOPTS -strict -2 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 \
       ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  $BITRATE_ARG -acodec mp2 \
-   -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) && rm -f "$ARG" ||
+      -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) && ([ "$REMOVE" = true ] && rm -vf "$ARG") ||
         break
+        
+   unset SIZE
 done
 

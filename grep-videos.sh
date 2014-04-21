@@ -1,10 +1,10 @@
 #!/bin/bash
-EXTS="mkv 3gp avi flv mp4 wmv mov mpg mpeg"
+EXTS="3gp avi f4v flv m2v mkv mov mp4 mpeg mpg ogm vob webm wmv"
 
 while :; do
-				case "$1" in
-								-c | --compl*) COMPLETE=true ; shift ;;
-				*) break ;;
+        case "$1" in
+                -c | --compl*) COMPLETE=true ; shift ;;
+        *) break ;;
 esac
 done
 
@@ -16,4 +16,4 @@ fi
 EXPR="\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))${TRAILING}\$" 
 
 exec grep -iE "$EXPR" \
-				"$@"
+        "$@"
