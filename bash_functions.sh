@@ -1286,8 +1286,7 @@ git-set-remote()
 
 grep-e-expr()
 { 
-    echo "($(IFS="|
-";  set -- $*; echo "$*" |sed 's,[()],&,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*],\\&,g'))"  
+  implode "|" "$@"  |sed 's,[()],&,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*],\\&,g ; s,.*,(&),'
 }
 
 grep-e()
