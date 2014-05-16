@@ -1253,6 +1253,10 @@ get_ext()
     echo "$*" )
 }
 
+git-get-branch() {
+  git branch -a |sed -n 's,^\* ,,p'
+}
+
 git-get-remote()
 {
   ([ $# -lt 1 ] && set -- .
