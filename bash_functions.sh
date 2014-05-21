@@ -1255,14 +1255,12 @@ get_ext()
 
 git-get-remote()
 {
-
   ([ $# -lt 1 ] && set -- .
   [ $# -gt 1 ] && FILTER="sed \"s|^|\$DIR: |\"" || FILTER=
   CMD="REMOTE=\`git remote -v 2>/dev/null | sed \"s|\\s\\+| |g ;; s|\\s*([^)]*)||\" |uniq ${FILTER:+|$FILTER}\`;"
   CMD=$CMD'echo "$REMOTE"'
   for DIR; do
-					
-					(cd "$DIR";	eval "$CMD")
+					(cd "${DIR%/.git}" >/dev/null &&	eval "$CMD")
 		done)
 
 }
@@ -1289,7 +1287,7 @@ git-set-remote()
 grep-e-expr()
 { 
     echo "($(IFS="|
-";  set -- $*; echo "$*" |sed 's,[()],.,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*],\\&,g'))"  
+";  set -- $*; echo "$*" |sed 's,[()],&,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*],\\&,g'))"  
 }
 
 grep-e()
@@ -2110,7 +2108,7 @@ list-nolastitem()
 
 list-path()
 {
-				(IFS=":"; find $PATH -maxdepth 1 -mindepth 1 -not -type d)
+  (IFS=":"; find $PATH -maxdepth 1 -mindepth 1 -not -type d)
 }
 
 list-recursive()
@@ -2309,7 +2307,7 @@ make-slackpkg()
 "
     require str 
     
-     : ${DESTDIR="$PWD"};
+     : ${OUTDIR="$PWD"};
     [ -z "$1" ] && set -- .;
     ARGS="$*"
 IFS=";, $IFS"
@@ -2320,7 +2318,7 @@ IFS=";, $IFS"
     for ARG in $ARGS;
     do
         test -d "$ARG";
-        cmd="(cd \"$ARG\"; tar --exclude=${EXCLUDELIST} -cv --no-recursion \$(echo .; find install/ 2>/dev/null; find * -not -wholename 'install*'  |sort ) |xz -0 -f  -c  > \"$DESTDIR/\${PWD##*/}.txz\")";
+        cmd="(cd \"$ARG\" >/dev/null; tar --exclude=${EXCLUDELIST} -cv --no-recursion \$(echo .; find install/ 2>/dev/null; find * -not -wholename 'install*'  |sort ) |xz -0 -f  -c  > \"$OUTDIR/\${PWD##*/}.txz\")";
         echo + "$cmd" 1>&2;
         eval "$cmd";
     done
@@ -3869,8 +3867,7 @@ _msyspath()
  
   case $MODE in
     win*|mix*) #add_to_script "s|^${SYSDRIVE}[\\\\/]\(.\)[\\\\/]|\1:/|" "s|^${SYSDRIVE}[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
-      add_to_script "s|^${SYSDRIVE}[\\\\/]\\([^\\\\/]\\)\\([\\\\/]\\)\\([^\\\\/]\\)\\?|\\1:\\2\\3|" ;;
-  
+      add_to_script "s|^${SYSDRIVE}[\\\\/]\\([^\\\\/]\\)\\([\\\\/]\\)\\([^\\\\/]\\)\\?|\\1:\\2\\3|" "s|^${SYSDRIVE}[\\\\/]\\([^\\\\/]\\)\$|\\1:/|" ;;
     *) add_to_script "s|^\([A-Za-z0-9]\):|${SYSDRIVE}/\\1|" ;;
   esac
   case $MODE in

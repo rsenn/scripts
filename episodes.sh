@@ -22,7 +22,7 @@ output()
 
    for NAME; do
 	 if [ "$PLAYLIST" = true ]; then
-      TITLE=`basename "${NAME%.*}" | sed "s|[^[:alnum:]]\+| |g"`
+      TITLE=`basename "${NAME%.*}" | sed "s|[^[:alnum:]]\+| |g" | sed "s|\sTvR\s\?||gi ;; s|\sXivD\s\?||gi ;; s|\sXviD\s\?||gi ;; s|\sdTV\s\?||gi ;; s|\sHDTV\s\?||gi ;; s|\sGerman$||"`
 	    echo "#EXTINF:,${TITLE}"
 			echo "${NAME}"
 	 elif [ "$SHOW_FILES" = true ]; then
