@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Wrapper for the MSVC++ compiler, making it behave like GNU C.
 #
@@ -607,7 +607,7 @@ case ${OS=`uname -o`} in
 			}
 		#fi  
    ;;
-  Cygwin) PATHTOOL=cygpath ;;
+  [Cc]ygwin) PATHTOOL=cygpath ;;
 esac
 
 echo "PATHTOOL=$PATHTOOL" 1>&2
