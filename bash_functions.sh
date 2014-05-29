@@ -1253,6 +1253,10 @@ get_ext()
     echo "$*" )
 }
 
+git-get-branch() {
+  git branch -a |sed -n 's,^\* ,,p'
+}
+
 git-get-remote()
 {
   ([ $# -lt 1 ] && set -- .
@@ -1286,8 +1290,7 @@ git-set-remote()
 
 grep-e-expr()
 { 
-    echo "($(IFS="|
-";  set -- $*; echo "$*" |sed 's,[()],&,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*],\\&,g'))"  
+  implode "|" "$@"  |sed 's,[()],&,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*],\\&,g ; s,.*,(&),'
 }
 
 grep-e()
