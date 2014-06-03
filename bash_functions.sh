@@ -525,14 +525,6 @@ dec_to_hex()
     printf "%08x\n" "$1"
 }
 
-def2a()
-{
-  for ARG; do
-    BASE=`basename "${ARG%.def}"`
-  ${DLLTOOL-dlltool} --input-def "$ARG" --output-lib "lib${BASE}.dll.a" --dllname "$BASE.dll"
-done
-}
-
 detect-filesystem()
 { 
     if [ -e "$1" ]; then
@@ -560,6 +552,11 @@ device-of-file()
             echo "$DEV";
         fi );
     done )
+}
+
+diffcmp()
+{ 
+    diff "$@" | sed -n -e 's/^Binary files \(.*\) and \(.*\) differ/\1\n\2/p' -e 's,^[-+][-+][-+] \(.*\) '$(date +%Y)'.*,\1,p'
 }
 
 diff_plus_minus()
@@ -2469,7 +2466,10 @@ min()
 minfo()
 { 
     #timeout ${TIMEOUT:-10} \
-    mediainfo "$@" 2>&1 | sed 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g'
+   (CMD='mediainfo "$ARG" 2>&1'
+    [ $# -gt 1 ] && CMD="$CMD | addprefix \"\$ARG:\""
+    CMD="for ARG; do $CMD; done"
+    eval "$CMD")  | sed 's,\s\+:\([^:]*\)$,:\1, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g'
 }
 
 mktempdata()
@@ -3362,9 +3362,7 @@ require()
 
 resolution()
 { 
-    ( WIDTH=${1%%${MULT_CHAR-x}*};
-    HEIGHT=${1#*${MULT_CHAR-x}};
-    echo $((WIDTH / $2))${MULT_CHAR-x}$((HEIGHT / $2)) )
+ (minfo "$@"|sed -n "/Width: / { N; /Height:/ { s,Width:,, ; s,[^:\n0-9]\+: \+\([^:]*\)\$,\1,g; s,\n[^\n]*:,x,g; p } }")
 }
 
 retcode()
