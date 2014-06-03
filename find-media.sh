@@ -59,6 +59,8 @@ usage()
   exit 0
 }
 
+EXCLUDE_DIRS='.*/\.wine/drive.*/\.wine/drive'
+
 while :; do
 	case "$1" in
 	  -h | --help) usage; shift ;;

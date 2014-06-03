@@ -525,6 +525,14 @@ dec_to_hex()
     printf "%08x\n" "$1"
 }
 
+def2a()
+{
+  for ARG; do
+    BASE=`basename "${ARG%.def}"`
+  ${DLLTOOL-dlltool} --input-def "$ARG" --output-lib "lib${BASE}.dll.a" --dllname "$BASE.dll"
+done
+}
+
 detect-filesystem()
 { 
     if [ -e "$1" ]; then
@@ -1251,6 +1259,21 @@ get_ext()
     set -- $( ( (set -- $(grep EXT.*= {find,locate,grep}-$1.sh -h 2>/dev/null |sed "s,EXTS=[\"']\?\(.*\)[\"']\?,\1," ); IFS="$nl"; echo "$*")|sed 's,[^[:alnum:]]\+,\n,g; s,^\s*,, ; s,\s*$,,';) |sort -fu);
     ( IFS=" ";
     echo "$*" )
+}
+
+git-branches()
+{ 
+ (EXPR='\, -> ,d ;; s,^remotes/,,'
+  while :; do
+    case "$1" in
+      -l | --local) EXPR="\\,^remotes/,d ;; $EXPR"; shift ;;
+      -r | --remote) EXPR="\\,^remotes/,!d ;; $EXPR"; shift ;;
+      *) break ;;
+    esac
+  done
+  EXPR="s,^. ,, ;; $EXPR"
+  git branch -a | sed "$EXPR"
+ )
 }
 
 git-get-branch() {
@@ -2445,7 +2468,8 @@ min()
 
 minfo()
 { 
-    timeout ${TIMEOUT:-10} mediainfo "$@" 2>&1 | sed 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g'
+    #timeout ${TIMEOUT:-10} \
+    mediainfo "$@" 2>&1 | sed 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g'
 }
 
 mktempdata()

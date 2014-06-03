@@ -1,6 +1,4 @@
 resolution()
 { 
-    ( WIDTH=${1%%${MULT_CHAR-x}*};
-    HEIGHT=${1#*${MULT_CHAR-x}};
-    echo $((WIDTH / $2))${MULT_CHAR-x}$((HEIGHT / $2)) )
+ (minfo "$@"|sed -n "/Width: / { N; /Height:/ { s,Width:,, ; s,[^:\n0-9]\+: \+\([^:]*\)\$,\1,g; s,\n[^\n]*:,x,g; p } }")
 }

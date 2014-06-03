@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Wrapper for the MSVC++ compiler, making it behave like GNU C.
 #
@@ -6,54 +6,108 @@
 
 # Directories of the build system
 # -------------------------------------------------------------------------
-: ${prefix:="/usr"}
-: ${libdir:="$prefix/lib"}
-: ${shlibdir:="$libdir/sh"}
+prefix="/usr"
+libdir="$prefix/lib"
+shlibdir="$libdir/sh"
 
 # Shell script libraries
 # -------------------------------------------------------------------------
 . $shlibdir/util.sh
+. $shlibdir/std/array.sh
+. $shlibdir/std/var.sh
+
+IFS="
+$array_s"
+var_s="
+"
+
+
 
 # Visual C++ compiler directories 
 # -------------------------------------------------------------------------
-: ${VC_target="vc80"}
-: ${VC_prefix="/cygwin/c/Program Files/Microsoft Visual Studio 9.0/VC"}
-: ${VC_dir="C:/Program Files/Microsoft Visual Studio 9.0/VC"}
-: ${VC_bindir="$VC_prefix/bin"}
-: ${VC_libdir="$VC_dir/lib"}
-: ${VC_includedir="$VC_dir/include"}
+find_vc() {
+  set -- ${@-`ls -d -- "c:/Program Files"*"/Microsoft Visual Studio "*"/VC/bin/cl.exe"`}
+  eval "VC_cl=\"\${$#}\""
+  
+	VC_target="vc80"
+	VC_dir=${VC_cl%/bin/*}
+	VC_prefix=`$PATHTOOL "${VC_dir}"`
+	VC_bindir="$VC_prefix/bin"
+	VC_libdir="$VC_dir/lib"
+	VC_includedir="$VC_dir/include"
+	
+	if ${DEBUG-false}; then
+	  var_dump VC_{target,prefix,dir,bindir,libdir,includedir} 1>&2 
+	fi
+}
 
 # Visual Studio IDE directories
 # -------------------------------------------------------------------------
-: ${IDE_prefix="/c/Program Files/Microsoft Visual Studio 9.0/Common7/IDE"}
-: ${IDE_dir="C:/Program Files/Microsoft Visual Studio 9.0/Common7/IDE"}
+find_ide() {
+  set -- ${@-`ls -d -- "${VC_dir%/VC*}/"*"/IDE"`}
+  eval "IDE_dir=\"\${$#}\""
+	IDE_prefix=`$PATHTOOL "$IDE_dir"`
+	
+	if ${DEBUG-false}; then
+	  var_dump IDE_{dir,prefix} 1>&2 
+	fi
+	
+	pathmunge "$("$PATHTOOL" "$IDE_dir")" after
+	
+	var_dump PATH 1>&2
+}
 
 # Microsoft Platform SDK directories
 # -------------------------------------------------------------------------
-: ${PSDK_prefix="/c/Program Files/Microsoft SDKs/Windows/v6.0A"}
-: ${PSDK_dir="C:/Program Files/Microsoft SDKs/Windows/v6.0A"}
-: ${PSDK_bindir="$PSDK_prefix/bin"}
-: ${PSDK_libdir="$PSDK_dir/lib"}
-: ${PSDK_includedir="$PSDK_dir/include"}
-: ${PSDK_libs="advapi32.lib"}
+find_psdk() {
+  set -- ${@-`ls -d --  "c:/Program Files"*"/Microsoft SDKs/Windows"/v*`}
+  eval "PSDK_dir=\"\${$#}\""
+ 
+	PSDK_prefix=`$PATHTOOL "$PSDK_dir"`
+	PSDK_bindir="$PSDK_prefix/bin"
+	PSDK_libdir="$PSDK_dir/lib"
+	PSDK_includedir="$PSDK_dir/include"
+	PSDK_libs="advapi32.lib"
+	
+	if ${DEBUG-false}; then
+	  var_dump PSDK_{prefix,dir,bindir,libdir,includedir,libs} 1>&2 
+	fi
+}
 
 # Cygwin directories
 # -------------------------------------------------------------------------
-: ${CYGWIN_prefix="/cygdrive/c/Cygwin"}
-: ${CYGWIN_dir="C:/Cygwin"}
-: ${CYGWIN_bindir="$CYGWIN_prefix/bin"}
+find_cygwin() {
+	set -- ${@-`reg query 'HKEY_CURRENT_USER\Software\Cygwin\Installations' |
+	  sed -n "/REG_SZ/ { s/.*REG_SZ\\s\\+// ; p }"`}
+
+	eval "CYGWIN_prefix=\"\${$#}\""
+
+	CYGWIN_dir="$CYGWIN_prefix"
+	CYGWIN_bindir="$CYGWIN_prefix/bin"
+	CYGWIN_libdir="$CYGWIN_prefix/lib"
+	CYGWIN_includedir="$CYGWIN_prefix/include"
+	CYGWIN_libs="-lcygwin"
+	
+	if ${DEBUG-false}; then
+	  var_dump CYGWIN_{prefix,dir,bindir,libdir,includedir,libs} 1>&2 
+	fi
+}
 
 # Compilation target configuration
 # -------------------------------------------------------------------------
-: ${TARGET_compiler="$VC_dir/bin/cl.exe"}
-: ${TARGET_optchar="/"}
-#WINE="$libdir/wine/wine.bin"
+configure_target() {
+	TARGET_compiler="$VC_dir/bin/cl.exe"
+	TARGET_optchar="/"
+	#WINE="$libdir/wine/wine.bin"
+}
 
 # Environment variable configuration
 # -------------------------------------------------------------------------
-: ${ENV_path="$VC_bindir:$IDE_prefix:$PSDK_bindir"}
-: ${ENV_include="$VC_includedir;$PSDK_includedir"}
-: ${ENV_lib="$VC_libdir;$PSDK_libdir"}
+configure_env() {
+	ENV_path="$VC_bindir:$IDE_prefix:$PSDK_bindir"
+	ENV_include="$VC_includedir;$PSDK_includedir"
+	ENV_lib="$VC_libdir;$PSDK_libdir"
+}
 
 # Wrapper info
 # -------------------------------------------------------------------------
@@ -83,8 +137,7 @@ script_restart()
 # Set the Platform SDK configuration variables based on the given 
 # installation path.
 # -------------------------------------------------------------------------
-psdk_config()
-{
+psdk_config() {
   PSDK_prefix=`cygpath "$1"`
   PSDK_dir=`cygpath -m "$1"`
   PSDK_bindir=$PSDK_prefix/bin
@@ -221,7 +274,7 @@ msvc_relative()
 # ------------------------------------------------------------------------- #
 msvc_main()
 {
-  IFS="$array_s"
+#  IFS="$array_s"
   
   msvc_infer "$@"
   msvc_optimize=1
@@ -233,10 +286,17 @@ msvc_main()
   
   i=0
   prev=
-  
-  for arg
-  do
-    test $((i++)) = 0 && set --
+  args=$*
+
+	find_vc
+	find_ide
+	find_psdk
+	find_cygwin
+	configure_target
+	configure_env
+    
+  for arg; do
+      test $((i++)) = 0 && set --
     
     if $msvc_ldflags
     then
@@ -479,10 +539,10 @@ msvc_main()
   set -- "$TARGET_compiler" "$@"
   
  
-#  if $DEBUG
-#  then
-#    echo "CMD: $@"
-#  fi
+  if $DEBUG
+  then
+    echo "CMD: $@"
+  fi
 
 #  exec "$@"
 
@@ -490,6 +550,10 @@ msvc_main()
   
   PATH="$ENV_path" LIB="$ENV_lib" INCLUDE="$ENV_include"
   export PATH LIB INCLUDE
+  
+  if ${DEBUG-false}; then
+    var_dump PATH LIB INCLUDE
+  fi
   
   if $DEBUG; then set -x; fi
   "$@") || exit $?
@@ -504,6 +568,49 @@ msvc_main()
   
   return $msvc_ret
 }
+
+# -------------------------------------------------------------------------
+pathmunge () { 
+		echo "pathmunge: $@" 1>&2
+    while :; do
+        case "$1" in 
+            -v)
+                PATHVAR="$2";
+                shift 2
+            ;;
+            *)
+                break
+            ;;
+        esac;
+    done;
+    old_IFS="$IFS"; IFS=":";
+    if ! eval "echo \"\${${PATHVAR-PATH}}\"" | egrep -q "(^|:)$1($|:)"; then
+        if test "$2" = "after"; then
+            eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
+        else
+            eval "${PATHVAR-PATH}=\"\$1:\${${PATHVAR-PATH}}\"";
+        fi;
+    fi;
+    unset PATHVAR
+    IFS="$old_IFS"
+}
+
+case ${OS=`uname -o`} in 
+  [Mm][Ss][Yy][Ss]*) PATHTOOL=msyspath
+		#if ! type msyspath; then
+			msyspath() {
+			  echo "msyspath: $@" 1>&2
+				case "$1" in
+					?:*) echo "/sysdrive/${1%%:*}${1#?:}" ;;
+					*) echo "$*" ;;
+				esac
+			}
+		#fi  
+   ;;
+  [Cc]ygwin) PATHTOOL=cygpath ;;
+esac
+
+echo "PATHTOOL=$PATHTOOL" 1>&2
 
 # -------------------------------------------------------------------------
 PROG_dir=`dirname "$0"`
