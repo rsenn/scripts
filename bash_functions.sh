@@ -645,6 +645,11 @@ diff_plus_minus()
     echo "+$plus" "-$minus"
 }
 
+diffcmp()
+{ 
+    diff "$@" | sed -n -e 's/^Binary files \(.*\) and \(.*\) differ/\1\n\2/p' -e 's,^[-+][-+][-+] \(.*\) '$(date +%Y)'.*,\1,p'
+}
+
 disk-device-for-partition()
 { 
     echo "${1%[0-9]}"
@@ -3166,7 +3171,7 @@ pathmunge()
           set -- `${PATHTOOL:-msyspath} "$tmp"` "$@"
       ;;
   esac;
-  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | grep -E -q "(^|:)$1($|:)"; then
+  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | egrep -q "(^|:)$1($|:)"; then
       if test "$2" = "after"; then
           eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
       else
