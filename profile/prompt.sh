@@ -2,8 +2,11 @@ HAVE_256_COLORS=false
 
 case "$TERM" in
   *256color*) HAVE_256_COLORS=true ;;
-  *) if [ "$(tput colors)" -ge 256 ] 2>/dev/null; then
-    HAVE_256_COLORS=true ;;
+  *)
+    if [ "$(tput colors)" -ge 256 ] 2>/dev/null; then
+      HAVE_256_COLORS=true
+    fi
+  ;;
 esac
 
 if [ "$HAVE_256_COLORS" = true ]; then
