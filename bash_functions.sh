@@ -605,7 +605,7 @@ diffcmp()
   unset DIREXPR
   for ARG; do
     test -d "$ARG" || ARG=`dirname "$ARG"`
-    DIREXPR="${DIREXPR+$DIREXPR ;; }s|^${ARG%/}||"
+    DIREXPR="${DIREXPR+$DIREXPR ;; }s|^${ARG%/}/||"
   done
 
   diff $OPTS "$@" |
