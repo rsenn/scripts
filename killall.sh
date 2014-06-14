@@ -1,6 +1,7 @@
 #!/bin/bash
 while :; do
 	case "$1" in
+	   -x) DEBUG=true; shift ;;
 		 -*) KILLARGS="${KILLARGS+$KILLARGS
 }$1"; shift ;;
 	 *) break ;;
@@ -44,7 +45,7 @@ fi
 
 PATTERN=\(`IFS='|'; echo "$*"`\)
 
-PSOUT=`eval "$PS $PSARGS $PSFILTER"`
+PSOUT=`eval "(${DEBUG:+set -x; }$PS $PSARGS $PSFILTER)"`
 PSMATCH=` echo "$PSOUT" | grep -i -E "$PATTERN" `
 PIDS=` echo "$PSMATCH" | sed -n "/${0##*/}/! s,^[^0-9]*\([0-9]\+\).*,\1,p"`
 
@@ -55,5 +56,5 @@ fi
 echo "$PSMATCH"
 
 for PID in $PIDS; do
-  (set -x; "${KILL:-kill}" $KILLARGS $PID)
+  eval "(${DEBUG:+set -x; }${KILL:-kill} \$KILLARGS \$PID)"
 done
