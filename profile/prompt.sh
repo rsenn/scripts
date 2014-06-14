@@ -2,6 +2,7 @@ HAVE_256_COLORS=false
 
 case "$TERM" in
   *256color*) HAVE_256_COLORS=true ;;
+  Eterm*|gnome*|konsole*|putty*|rxvt*|rxvt-unicode*|screen*|st*|vte*|xterm*) TERM="$TERM-256color" HAVE_256_COLORS=true ;;
   *)
     if [ "$(tput colors)" -ge 256 ] 2>/dev/null; then
       HAVE_256_COLORS=true
