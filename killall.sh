@@ -23,7 +23,11 @@ for DIR in "$SYSTEMROOT"/{System32,SysWOW64}; do
   PATH="$PATH:$DIR:$DIR/wbem"
 done
 
-if type wmic 2>/dev/null >/dev/null; then
+if type tlist 2>/dev/null >/dev/null; then
+  PS="tlist"
+  PSARGS="-c"
+  PSFILTER="2>&1 | sed ':lp; N; \$! { b lp; } ; s,\\n\\s\\+,\\t,g'"
+elif type wmic 2>/dev/null >/dev/null; then
   PS="wmic"
   PSARGS="process get ProcessID,CommandLine -VALUE"
   PSFILTER=' | { while read -r LINE; do
@@ -32,10 +36,6 @@ if type wmic 2>/dev/null >/dev/null; then
    ProcessId=*) echo ${LINE#*=} $CMDLINE; CMDLINE=; ;;
   esac
 done; }'   
-elif type tlist 2>/dev/null >/dev/null; then
-  PS="tlist"
-  PSARGS="-c"
-  PSFILTER="2>&1 | sed ':lp; N; \$! { b lp; } ; s,\\n\\s\\+,\\t,g'"
 elif type ps 2>/dev/null >/dev/null; then
   PS="ps"
   if (ps --help; ps -X -Y -Z) 2>&1 | grep -q '\-W'; then
