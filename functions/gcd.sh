@@ -1,5 +1,5 @@
 gcd()
-{ 
+{
     ( A="$1" B="$2";
     while :; do
         if [ "$A" = 0 ]; then

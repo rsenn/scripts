@@ -1,10 +1,10 @@
 msiexec()
-{ 
+{
     ( IFS="
 ";
     IFS=" $IFS";
     while :; do
-        case "$1" in 
+        case "$1" in
             -*)
                 ARGS="${ARGS+
 }/${1#-}";

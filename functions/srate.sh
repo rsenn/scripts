@@ -1,5 +1,5 @@
 srate()
-{ 
+{
   ( N=$#
   for ARG in "$@";
   do
@@ -15,10 +15,10 @@ srate()
       SRATE=$(mminfo "$ARG" | sed -n "/Sampling rate[^=]*=/ { s,.*[:=],,; s,Hz,,; s,\.[0-9]*\$,, ; s|^|$ARG:|;  p }" | tail -n1)
       SRATE=${SRATE##*:}
       case "$SRATE" in
-          *[Kk]) 
+          *[Kk])
              CMD='SRATE=$(echo "'${SRATE%[Kk]}' * 1000" | bc -l); SRATE=${SRATE%.*}'
              #echo "$CMD" 1>&2
-             eval "$CMD" 
+             eval "$CMD"
           ;;
        esac
       [ "$N" -gt 1 ]  && SRATE="$ARG:$SRATE"

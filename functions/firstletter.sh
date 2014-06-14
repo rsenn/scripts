@@ -1,5 +1,5 @@
 firstletter()
-{ 
+{
     ( for ARG in "$@";
     do
         REST=${ARG#?};

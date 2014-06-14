@@ -1,5 +1,5 @@
 minfo()
-{ 
+{
     #timeout ${TIMEOUT:-10} \
    (CMD='mediainfo "$ARG" 2>&1'
     [ $# -gt 1 ] && CMD="$CMD | addprefix \"\$ARG:\""

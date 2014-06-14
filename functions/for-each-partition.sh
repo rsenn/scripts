@@ -1,5 +1,5 @@
 for-each-partition()
-{ 
+{
     ( SCRIPT="$1";
     shift;
     blkid "$@" | while read -r LINE; do

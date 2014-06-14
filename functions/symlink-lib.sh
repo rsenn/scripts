@@ -1,7 +1,7 @@
 symlink-lib()
-{ 
+{
     ( while :; do
-        case "$1" in 
+        case "$1" in
             -p)
                 PRINT_ONLY=echo;
                 shift

@@ -1,5 +1,5 @@
 link-mpd-music-dirs()
-{ 
+{
     ( : ${DESTDIR=/var/lib/mpd/music};
     mkdir -p "$DESTDIR";
     chown mpd:mpd "$DESTDIR";

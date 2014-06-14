@@ -1,5 +1,5 @@
 cut-ls-l()
-{ 
+{
     ( I=${1:-6};
     set --;
     while [ "$I" -gt 0 ]; do

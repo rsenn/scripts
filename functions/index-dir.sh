@@ -1,5 +1,5 @@
 index-dir()
-{ 
+{
     [ -z "$*" ] && set -- .;
     ( for ARG in "$@";
     do
@@ -12,7 +12,7 @@ index-dir()
         TEMP=`mktemp /tmp/"${PWD##*/}XXXXXX.list"`
         trap 'rm -f "$TEMP"; unset TEMP' EXIT
         (list-r 2>/dev/null || list-recursive) >"$TEMP";
-        (install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP") || 
+        (install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP") ||
         mv -f "$TEMP" "$PWD/files.list";
         wc -l "$PWD/files.list" 1>&2 );
     done )

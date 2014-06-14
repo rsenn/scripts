@@ -2,7 +2,7 @@
 if [ -n "$DISPLAY" ]; then
 
   if [ -z "`pgrep browser-history`" ]; then
-    setsid "browser-history" 
+    setsid "browser-history"
   fi
 
 fi

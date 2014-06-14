@@ -1,6 +1,6 @@
 is_pattern()
-{ 
-    case "$*" in 
+{
+    case "$*" in
         *'['*']'* | *'*'* | *'?'*)
             return 0
         ;;

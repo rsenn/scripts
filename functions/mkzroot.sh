@@ -1,5 +1,5 @@
 mkzroot()
-{ 
+{
     ( IFS="$IFS " TEMPTAR=/tmp/mkzroot$$.tar;
     trap 'rm -vf "$TEMPTAR"' EXIT INT QUIT;
     EXCLUDE="*~ *.tmp *mnt/* *.log *cache/*";

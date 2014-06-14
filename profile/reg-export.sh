@@ -1,5 +1,5 @@
-reg-export() 
-{ 
+reg-export()
+{
  (OUT=$(mktemp tmp-XXXXXX.txt);
   trap 'rm -f "$OUT"' EXIT;
   reg export "$1" "$OUT" -y >/dev/null || exit $?
@@ -12,11 +12,11 @@ reg-export()
     :lp2
     N
     /\\\\\\s*$/ b lp2
-    
+
     s|\\s*\\\\\\n\\s*||g
-    
+
     p
-    q 
+    q
   }'"
       eval "$CMD"
   )

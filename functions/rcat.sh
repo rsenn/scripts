@@ -1,8 +1,8 @@
 rcat()
-{ 
+{
     local opts= args=;
     while test -n "$1"; do
-        case $1 in 
+        case $1 in
             *)
                 pushv args "$1"
             ;;

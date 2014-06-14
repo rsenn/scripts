@@ -1,5 +1,5 @@
 pkg-name()
-{ 
+{
     ( for ARG in "$@";
     do
         ARG=${ARG%.t?z};

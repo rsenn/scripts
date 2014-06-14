@@ -1,5 +1,5 @@
 map()
-{ 
+{
     from=$1 to=$2;
     shift;
     while shift && [ "$#" -gt 0 ]; do

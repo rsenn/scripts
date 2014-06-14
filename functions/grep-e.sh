@@ -1,5 +1,5 @@
 grep-e()
-{ 
+{
     (IFS="
 "    unset ARGS;
     eval "LAST=\"\${$#}\"";
@@ -10,7 +10,7 @@ grep-e()
         set -- $A;
     fi;
     while [ $# -gt 0 ]; do
-        case "$1" in 
+        case "$1" in
             --) shift; LAST="$*"; break ;;
             -*) ARGS="${ARGS+$ARGS$IFS}$1"; shift ;;
             *) WORDS="${WORDS+$WORDS$IFS}$1"; shift ;;

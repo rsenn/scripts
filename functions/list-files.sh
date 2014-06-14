@@ -1,9 +1,9 @@
 list-files()
-{ 
+{
     ( OUTPUT=">";
     OUTFILE=".files.file.tmp";
     while :; do
-        case "$1" in 
+        case "$1" in
             -v)
                 OUTPUT="| tee ";
                 shift

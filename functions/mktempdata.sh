@@ -1,5 +1,5 @@
 mktempdata()
-{ 
+{
     local path prefix="${tmppfx-${myname-${0##*/}}}" file;
     if [ "$#" -gt 1 ]; then
         path=$1;

@@ -1,5 +1,5 @@
 multiline_list()
-{ 
+{
  (IFS="
  "
   : ${INDENT='  '}

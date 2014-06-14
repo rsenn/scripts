@@ -1,10 +1,10 @@
 id3dump()
-{ 
+{
     ( IFS="
 	";
     unset FLAGS;
     while :; do
-        case "$1" in 
+        case "$1" in
             -*)
                 FLAGS="${FLAGS+$FLAGS
 	}$1";

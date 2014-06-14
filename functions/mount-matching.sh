@@ -1,8 +1,8 @@
 mount-matching()
-{ 
+{
     ( MNTDIR="/mnt";
-   [ "$UID" != 0 ] && SUDO=sudo 
-   blkid | grep-e "$@" | { 
+   [ "$UID" != 0 ] && SUDO=sudo
+   blkid | grep-e "$@" | {
         IFS=" ";
         while read -r DEV PROPERTIES; do
             DEV=${DEV%:};

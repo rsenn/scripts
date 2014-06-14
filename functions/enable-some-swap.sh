@@ -1,5 +1,5 @@
 enable-some-swap()
-{ 
+{
     ( SWAPS=` blkid|grep 'TYPE="swap"'|cut -d: -f1 `;
     set -- $SWAPS;
     for SWAP in $SWAPS;

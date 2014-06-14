@@ -10,7 +10,7 @@
 # published by the Free Software Foundation.                              #
 #                                                                         #
 ###########################################################################
-# 
+#
 # $Date: 2006-07-31 09:40:21 +0300 (Mon, 31 Jul 2006) $
 # $Author: haizaar $
 #
@@ -24,8 +24,8 @@
 #-------------------------------------------------------------------------
 
 #
-# __messages_calculateShift 
-#	Calculate tty width (X) and reports X-10. If its unable to 
+# __messages_calculateShift
+#	Calculate tty width (X) and reports X-10. If its unable to
 #	determite tty width (for example, in case of serial console),
 #	returns 80-10
 #
@@ -56,7 +56,7 @@ __messages_print()
 	local TEXT=$2
 	local INDENT=$3
 	echo -en "\\033[${INDENT}G["
-	
+
 	case ${#TEXT} in
 		0)	echo -en "    "	;;
 		1)	echo -en "  "	;;
@@ -64,9 +64,9 @@ __messages_print()
 		3)	echo -en " "	;;
 		*)	echo -en
 	esac
-	
+
 	colorPrint $COLOR $TEXT
-	
+
 	case ${#TEXT} in
 		1)	echo -en " "	;;
 		2)	echo -en " "	;;

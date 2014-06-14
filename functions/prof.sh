@@ -1,7 +1,7 @@
 prof()
-{ 
+{
     PROF="$HOME/.bash_profile";
-    case "$1" in 
+    case "$1" in
         load* | source* | relo*)
             . "$PROF"
         ;;

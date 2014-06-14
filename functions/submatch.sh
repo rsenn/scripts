@@ -1,5 +1,5 @@
 submatch()
-{ 
+{
     local arg exp src dst result=$1 && shift;
     for arg in "$@";
     do

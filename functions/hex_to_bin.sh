@@ -1,10 +1,10 @@
 hex_to_bin()
-{ 
+{
     local chars=`str_to_list "$1"`;
     local bin IFS="$newline" ch;
     for ch in $chars;
     do
-        case $ch in 
+        case $ch in
             0)
                 bin="${bin}0000"
             ;;

@@ -1,5 +1,5 @@
 pkginst()
-{ 
+{
     ( PKGS=`pkgsearch "$@"`;
     set -- ${PKGS%%" "*};
     if [ $# -gt 0 ]; then

@@ -1,5 +1,5 @@
 list-slackpkgs()
-{ 
+{
     ( [ -z "$*" ] && set -- .;
     for ARG in "$@";
     do

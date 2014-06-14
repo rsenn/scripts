@@ -1,5 +1,5 @@
 list-mediapath()
-{ 
+{
    (while :; do
       case "$1" in
         -*) OPTS="${OPTS+$OPTS

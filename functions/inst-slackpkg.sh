@@ -1,9 +1,9 @@
 inst-slackpkg()
-{ 
+{
     ( . require.sh;
     require array;
     while :; do
-        case "$1" in 
+        case "$1" in
             -a)
                 ALL=true;
                 shift

@@ -1,5 +1,5 @@
 partition-table-type()
-{ 
+{
     ( if command-exists "parted"; then
         parted "$1" p | sed -n 's,.*Table:\s\+,,p';
     else

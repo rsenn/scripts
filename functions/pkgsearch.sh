@@ -1,5 +1,5 @@
 pkgsearch()
-{ 
+{
     ( EXCLUDE='-common -data -debug -doc -docs -el -examples -fonts -javadoc -static -tests -theme';
     for ARG in "$@";
     do

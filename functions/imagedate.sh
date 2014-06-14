@@ -1,5 +1,5 @@
 imagedate()
-{ 
+{
 				(
 				case "$1" in
 								 -u | --unix*) UT=true ; shift ;;

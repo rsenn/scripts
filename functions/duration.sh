@@ -1,5 +1,5 @@
 duration()
-{ 
+{
     ( IFS=" $IFS";
       CMD='echo "${ARG:+$ARG:}$S"'
     while :; do
@@ -16,7 +16,7 @@ duration()
         S=0;
         for PART in "$@";
         do
-            case $PART in 
+            case $PART in
                 *ms)
                     S=$(( (S * 1000 + ${PART%ms}) / 1000))
                 ;;

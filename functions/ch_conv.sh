@@ -1,5 +1,5 @@
 ch_conv()
-{ 
+{
     FROM="$1" TO="$2";
     shift 2;
     for ARG in "$@";
