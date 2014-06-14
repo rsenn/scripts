@@ -10,25 +10,25 @@ done
 
 IFS=$' \t\r\n'
 
-if [ -n "$SYSTEMROOT" -a -d "$SYSTEMROOT" ]; then
-	BS='\' FS='/'
-  SYSTEMROOT="${SYSTEMROOT//"$BS"/$FS}"
-  SYSTEMDRIVE=${SYSTEMROOT%%:*}
-  SYSTEMDIR=${SYSTEMROOT#?:}
-  SYSTEMROOT=`ls -d -- /???drive/$SYSTEMDRIVE/"$SYSTEMDIR" 2>/dev/null`  
-  #echo "$SYSTEMROOT" 1>&2
-fi
-
-for DIR in "$SYSTEMROOT"/{System32,SysWOW64}; do
-  PATH="$PATH:$DIR:$DIR/wbem"
-done
+#if [ -n "$SYSTEMROOT" -a -d "$SYSTEMROOT" ]; then
+#	BS='\' FS='/'
+#  SYSTEMROOT="${SYSTEMROOT//"$BS"/$FS}"
+#  SYSTEMDRIVE=${SYSTEMROOT%%:*}
+#  SYSTEMDIR=${SYSTEMROOT#?:}
+#  SYSTEMROOT=`ls -d -- /???drive/$SYSTEMDRIVE/"$SYSTEMDIR" 2>/dev/null`  
+#  #echo "$SYSTEMROOT" 1>&2
+#fi
+#
+#for DIR in "$SYSTEMROOT"/{System32,SysWOW64}; do
+#  PATH="$PATH:$DIR:$DIR/wbem"
+#done
 
 if type tlist 2>/dev/null >/dev/null; then
   PS="tlist"
   PSARGS="-c"
   PSFILTER="2>&1 | sed ':lp; N; \$! { b lp; } ; s,\\n\\s\\+,\\t,g'"
-elif type wmic 2>/dev/null >/dev/null; then
-  PS="wmic"
+elif [ -e "$SYSTEMROOT/system32/wbem/wmic" ]; then
+  PS="$SYSTEMROOT/system32/wbem/wmic"
   PSARGS="process get ProcessID,CommandLine -VALUE"
   PSFILTER=' | { while read -r LINE; do
   case $LINE in
@@ -58,7 +58,7 @@ fi
 
 PATTERN=\(`IFS='|'; echo "$*"`\)
 
-PSOUT=`eval "(${DEBUG:+set -x; }$PS $PSARGS) $PSFILTER"`
+PSOUT=`eval "(${DEBUG:+set -x; }\"$PS\" $PSARGS) $PSFILTER"`
 PSMATCH=` echo "$PSOUT" | grep -i -E "$PATTERN" `
 PIDS=` echo "$PSMATCH" | sed -n "/${0##*/}/! s,^[^0-9]*\([0-9]\+\).*,\1,p"`
 
