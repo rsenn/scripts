@@ -1,10 +1,10 @@
 filter-cmd()
-{ 
+{
     ( IFS="
 ";
     CMD="$*";
     while read -r LINE; do
-        ( case "$CMD" in 
+        ( case "$CMD" in
             *{}*)
                 EXEC=${CMD//"{}"/"$LINE"};
                 EVAL="\$EXEC || exit \$?"
@@ -14,7 +14,7 @@ filter-cmd()
                 EVAL="\$EXEC \"\$LINE\" || exit \$?"
             ;;
         esac;
-        case "$EXEC" in 
+        case "$EXEC" in
             *\ *)
                 EVAL="$EXEC"
             ;;

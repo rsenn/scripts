@@ -1,7 +1,7 @@
 mountpoints()
-{ 
+{
     ( while :; do
-        case "$1" in 
+        case "$1" in
             -u | --user)
                 USER=true;
                 shift
@@ -12,7 +12,7 @@ mountpoints()
         esac;
     done;
     function lsmnt()
-    { 
+    {
         if [ -e /proc/mounts ]; then
             awk '{ print $2'"${1:+.\"/${1#/}\"} }" /proc/mounts;
         else

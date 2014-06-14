@@ -1,5 +1,5 @@
 vlcfile()
-{ 
+{
     ( IFS="
 ";
     set -- ` handle -p $(vlcpid)|grep -vi "$(cygpath -m "$WINDIR"| sed 's,/,.,g')"  |sed -n -u 's,.*: File  (RW-)\s\+,,p'

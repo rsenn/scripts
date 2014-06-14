@@ -1,5 +1,5 @@
 unpack-deb()
-{ 
+{
     ( for ARG in "$@";
     do
         ( TMPDIR=` mktemp -d `;

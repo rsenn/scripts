@@ -1,8 +1,8 @@
 ctime()
-{ 
+{
     ( TS="+%s";
     while :; do
-        case "$1" in 
+        case "$1" in
             +*)
                 TS="$1";
                 shift

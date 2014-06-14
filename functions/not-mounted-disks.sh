@@ -1,5 +1,5 @@
 not-mounted-disks()
-{ 
+{
     ( IFS="
 ";
     for DISK in $(all-disks);

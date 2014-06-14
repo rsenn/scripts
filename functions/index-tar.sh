@@ -1,10 +1,10 @@
 index-tar()
-{ 
+{
     ( while :; do
       case "$1" in
          -s | --save ) SAVE=true; shift ;;
          -d | --debug ) DEBUG=true; shift ;;
-         *) break ;; 
+         *) break ;;
          esac
          done
 
@@ -15,7 +15,7 @@ if [ $# -gt 1 ]; then
         unset FILTERCMD;
     fi
     [ "$SAVE" = true ] && OUTPUT="\${ARG%.tar*}.list"
-    
+
     CMD="tar -tf \"\$ARG\" 2>/dev/null ${FILTERCMD+|$FILTERCMD}${OUTPUT:+>$OUTPUT}"
     [ "$DEBUG" = true ] && DBG="echo \"tar -tf \$ARG${OUTPUT:+ >$OUTPUT}\"; "
    eval "for ARG; do $DBG eval \"\$CMD\" ; done")

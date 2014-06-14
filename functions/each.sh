@@ -1,5 +1,5 @@
 each()
-{ 
+{
     __=$1;
     test "`type -t "$__"`" = function && __="$__ \"\$@\"";
     while shift;

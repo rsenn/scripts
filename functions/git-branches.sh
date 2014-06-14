@@ -1,5 +1,5 @@
-git-branches () 
-{ 
+git-branches()
+{
  (EXPR='\, -> ,d ;; s,^remotes/,,'
   while :; do
     case "$1" in

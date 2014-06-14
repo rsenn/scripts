@@ -1,10 +1,10 @@
 list-recursive()
-{ 
+{
     ( NL="
 ";
     unset ARGS;
     while :; do
-        case "$1" in 
+        case "$1" in
             -s | -save)
                 SAVE=true;
                 shift

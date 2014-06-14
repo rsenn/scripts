@@ -1,6 +1,6 @@
 unpack()
-{ 
-    case $(mime "$1") in 
+{
+    case $(mime "$1") in
         application/x-tar)
             tar ${2+-C "$2"} -xf "$1" && return 0
         ;;

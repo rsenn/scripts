@@ -1,5 +1,5 @@
 removesuffix()
-{ 
+{
  (SUFFIX=$1; shift
   CMD='echo "${LINE%$SUFFIX}"'
   if [ $# -gt 0 ]; then

@@ -1,5 +1,5 @@
 reverse()
-{ 
+{
     ( INDEX=$#;
     while [ "$INDEX" -gt 0 ]; do
         eval "echo \"\${$INDEX}\"";

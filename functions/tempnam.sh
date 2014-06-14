@@ -1,5 +1,5 @@
 tempnam()
-{ 
+{
     local IFS=" $newline";
     local pfx=${0##*/};
     local prefix=${2-${tmppfx-${pfx%:*}}};

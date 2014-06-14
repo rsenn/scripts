@@ -1,6 +1,6 @@
 unpackable()
-{ 
-    case $(mime $1) in 
+{
+    case $(mime $1) in
         'application/x-tar')
             return 0
         ;;

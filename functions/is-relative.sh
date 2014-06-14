@@ -1,6 +1,6 @@
 is-relative()
-{ 
-    case "$1" in 
+{
+    case "$1" in
         /*)
             return 1
         ;;

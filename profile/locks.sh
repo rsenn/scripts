@@ -56,7 +56,7 @@ __locks_findEffectiveDirname()
 	local DIR_NAME=$1
 
 	# Check if it a file/dir exists
-	if [ -e "$DIR_NAME" ] ; then 
+	if [ -e "$DIR_NAME" ] ; then
 		if [[ -d "$DIR_NAME" ]] ; then
 			retval=$(cd "$DIR_NAME" > /dev/null 2>&1 && pwd) || \
 					return ${__locks_ERR_COULD_NOT_RESOLVE_DIR}
@@ -85,12 +85,12 @@ __locks_findEffectiveDirname()
 #
 # dirInitLock <DirName> [Spin]
 #	Initializes a lock for a DirName object, for current process
-#	
+#
 #	Parameters:
 #		DirName - 	The name of the directory we wish to lock. You can choose
 #					any name if you want to - i.e It does not have to be a real dir
 #		Spin	-	Spin period - we'll retry to acquire lock each Spin seconds.
-#					Spin may (and generally should) be less then 1. 
+#					Spin may (and generally should) be less then 1.
 #					Default Spin is 0.01 seconds.
 #	Return value:
 #		0 - The lock was initialized and is ready for use
@@ -100,7 +100,7 @@ dirInitLock()
 {
 	local DIR_NAME=$1
 	local SPIN=${2:-${__locks_DEFAULT_SLEEP_TIME}}
-	
+
 	# Resolve effective directory name
 	__locks_findEffectiveDirname "$DIR_NAME" || return ${__locks_ERR_COULD_NOT_RESOLVE_DIR}
 	local EFFECTIVE_DIRNAME=$retval
@@ -115,19 +115,19 @@ dirInitLock()
 
 	# Free the master lock
 	rmdir "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME/.lock"
-	
+
 	# Return the return value of the spin-file creation command
 	return $status
 }
 
 #
 # dirTryLock <DirName>
-#	Tries to set a lock on a directory. If lock is 
+#	Tries to set a lock on a directory. If lock is
 #	already set - returns immediately with error.
 #
 #	Parameters:
 #	DirName - The name of the directory we wish to lock.
-#	
+#
 #	The function exits with:
 #		0 - The directory was successfully locked
 #		1 - Lock was already set
@@ -136,23 +136,23 @@ dirInitLock()
 dirTryLock()
 {
 	local DIR_NAME=$1
-	
+
 	# Resolve effective directory name
 	__locks_findEffectiveDirname "$DIR_NAME" || return ${__locks_ERR_COULD_NOT_RESOLVE_DIR}
 	local EFFECTIVE_DIRNAME=$retval
-	
+
 	# Check if the directory-lock is initialized
 	[[ -e "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME/$$.spin" ]] || return ${__locks_ERR_NO_SPIN_FILE}
-	
+
 	__locks_setMasterLock "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME"
-	
+
 	__locks_deadlockCleanup "$DIR_NAME"
 
 	# Check if there is a lock on the directory
 	if ls -d "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME"/.lock.* > /dev/null 2>&1 ; then
 		# Remove the master-lock
 		rmdir "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME/.lock"
-		
+
 		return ${__locks_ERR_DIR_IS_LOCKED}
 	fi
 
@@ -161,7 +161,7 @@ dirTryLock()
 
 	# Remove the master-lock
 	rmdir "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME/.lock"
-	
+
 	# If we got here, everything worked just file.
 	return 0
 }
@@ -180,11 +180,11 @@ dirTryLock()
 dirLock()
 {
 	local DIR_NAME=$1
-	
+
 	# Resolve effective directory name
 	__locks_findEffectiveDirname "$DIR_NAME" || return ${__locks_ERR_COULD_NOT_RESOLVE_DIR}
 	local EFFECTIVE_DIRNAME=$retval
-	
+
 	#  Loop trying to lock the directory
 	while true ; do
 		dirTryLock "$DIR_NAME"
@@ -212,14 +212,14 @@ dirLock()
 dirUnlock()
 {
 	local DIR_NAME=$1
-	
+
 	# Resolve effective directory name
 	__locks_findEffectiveDirname "$DIR_NAME" || return ${__locks_ERR_COULD_NOT_RESOLVE_DIR}
 	local EFFECTIVE_DIRNAME=$retval
-	
+
 	# Check if the directory-lock is initialized
 	[[ -e "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME/$$.spin" ]] || return ${__locks_ERR_NO_SPIN_FILE}
-	
+
 	__locks_setMasterLock "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME"
 
 	__locks_deadlockCleanup "$DIR_NAME"
@@ -231,7 +231,7 @@ dirUnlock()
 	rmdir "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME/.lock" > /dev/null 2>&1
 
 	ls -la "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME/".lock.* > /dev/null 2>&1 && return ${__locks_ERR_DIR_IS_LOCKED}
-	
+
 	return 0
 }
 
@@ -252,11 +252,11 @@ dirUnlock()
 dirDestroyLock()
 {
 	local DIR_NAME=$1
-	
+
 	# Resolve effective directory name
 	__locks_findEffectiveDirname "$DIR_NAME" || return ${__locks_ERR_COULD_NOT_RESOLVE_DIR}
 	local EFFECTIVE_DIRNAME=$retval
-	
+
 	# Make sure that the directory is not locked
 	dirTryLock "$DIR_NAME"
 	if [[ "$?" == "${__locks_ERR_DIR_IS_LOCKED}" ]] ; then
@@ -265,7 +265,7 @@ dirDestroyLock()
 			# We can't destroy our lock while it is locked!!!
 			return ${__locks_ERR_DIR_IS_LOCKED}
 		fi
-		
+
 		# The directory is locked by someone else. We remove our spin file,
 		# and do not touch anything else.
 		rm -f "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME/$$.spin"
@@ -299,18 +299,18 @@ dirDestroyLock()
 #
 # spinCleanup <DirName>
 #	Cleans all unneeded spinfiles from DirName.
-#	This function removes spin-files. 
+#	This function removes spin-files.
 #	This function does not lock the directory, even when removing
 #	the files (non-safe action). That is because it is an internal
 #	function that is to be used only by this library.
 #	When maintaining this file notice that this is a function that
 #	does not protect you from doing nasty stuff.
-#	
+#
 #	If this function will be used without locking first, it can
 #	cause problems. This is an internal function, so nothing like
 #	that should never happened. If it does, sorry, we do not supply
 #	`Stupid user protection'.
-#	
+#
 #	Parameters:
 #		DirName - The name of the directory we wish to clean from spinfiles.
 #
@@ -321,11 +321,11 @@ dirDestroyLock()
 __locks_spinCleanup()
 {
 	local DIR_NAME=$1
-	
+
 	# Resolve effective directory name
 	__locks_findEffectiveDirname "$DIR_NAME" || return ${__locks_ERR_COULD_NOT_RESOLVE_DIR}
 	local EFFECTIVE_DIRNAME=$retval
-	
+
 	# Clean dead processes spin files
 	local spinfile
 	for spinfile in $(ls "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME"/*.spin 2> /dev/null) ; do
@@ -338,18 +338,18 @@ __locks_spinCleanup()
 #
 # deadlockCleanup <DirName>
 #	Cleans all locks that belong to dead processes.
-#	This function removes lock-files. 
+#	This function removes lock-files.
 #	This function does not lock the directory, even when removing
 #	the files (non-safe action). That is because it is an internal
 #	function that is to be used only by this library.
 #	When maintaining this file notice that this is a function that
 #	does not protect you from doing nasty stuff.
-#	
+#
 #	If this function will be used without locking first, it can
 #	cause problems. This is an internal function, so nothing like
 #	that should never happened. If it does, sorry, we do not supply
 #	`Stupid user protection'.
-#	
+#
 #	Parameters:
 #		DirName - The name of the directory we wish to clean from deadlocks.
 #
@@ -360,11 +360,11 @@ __locks_spinCleanup()
 __locks_deadlockCleanup()
 {
 	local DIR_NAME=$1
-	
+
 	# Resolve effective directory name
 	__locks_findEffectiveDirname "$DIR_NAME" || return ${__locks_ERR_COULD_NOT_RESOLVE_DIR}
 	local EFFECTIVE_DIRNAME=$retval
-	
+
 	# Clean dead proccesses spin files
 	local lockfile
 	for lockfile in $(ls "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME/".lock.* 2> /dev/null) ; do

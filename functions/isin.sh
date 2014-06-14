@@ -1,5 +1,5 @@
 isin()
-{ 
+{
     ( needle="$1";
     while [ "$#" -gt 1 ]; do
         shift;

@@ -1,5 +1,5 @@
 bpm()
-{ 
+{
     ( unset NAME;
     if [ $# -gt 1 ]; then
         NAME=":";

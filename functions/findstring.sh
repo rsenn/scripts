@@ -1,5 +1,5 @@
 findstring()
-{ 
+{
     ( STRING="$1";
     while shift;
     [ "$#" -gt 0 ]; do

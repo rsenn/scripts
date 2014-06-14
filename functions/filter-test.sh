@@ -1,10 +1,10 @@
 filter-test()
-{ 
+{
   ( IFS="
   ";
   unset ARGS NEG;
   while :; do
-      case "$1" in 
+      case "$1" in
           -a | -b | -c | -d | -e | -f | -g | -h | -k | -L | -N | -O | -p | -r | -s | -u | -w | -x)
               ARGS="${ARGS:+$ARGS
 }"${NEG:+'!
@@ -23,7 +23,7 @@ filter-test()
           ;;
       esac;
   done;
-  [ -z "$ARGS" ] && { 
+  [ -z "$ARGS" ] && {
       exit 2
   };
   IFS=" ";

@@ -1,5 +1,5 @@
 scriptdir()
-{ 
+{
     local absdir reldir thisdir="`pwd`";
     if [ "$0" != "${0%/*}" ]; then
         reldir="${0%/*}";

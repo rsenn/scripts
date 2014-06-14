@@ -1,5 +1,5 @@
 count-lines()
-{ 
+{
     ( [ $# -le 0 ] && set -- -;
     N=$#;
     for ARG in "$@";

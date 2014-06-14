@@ -1,6 +1,6 @@
 is_object()
-{ 
-    case `file - <$1` in 
+{
+    case `file - <$1` in
         *ELF* | *executable*)
             return 0
         ;;

@@ -1,8 +1,8 @@
 hexnums_to_bin()
-{ 
+{
     ( require str;
     unset NL;
-    case $1 in 
+    case $1 in
         -l)
             shift;
             NL="

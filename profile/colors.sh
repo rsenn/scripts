@@ -41,11 +41,11 @@ __colors_DefaultIndent=60
 #
 #	Parameters:
 #		INDENT	- Column to indent to. Defaults to 60.
-__colors_ident() 
+__colors_ident()
 {
 	local DefaultIndent=60
 	local INDENT=${1:-$DefaultIndent}
-	
+
 	echo -en "\\033[${INDENT}G"
 }
 
@@ -53,7 +53,7 @@ __colors_ident()
 # colorSet colorSet <COLOR>
 #
 #	Sets the color of the tty prints to COLOR.
-#	
+#
 #	Parameters:
 #		COLOR	- The new color for tty prints.
 colorSet()
@@ -63,7 +63,7 @@ colorSet()
 		echo "colors: Warning: Color $1 is not listed in the colors list." 1>&2
 		return 1
 	fi
-	
+
 	echo -en "$WantedColor"
 }
 
@@ -71,7 +71,7 @@ colorSet()
 # colorReset colorReset
 #
 #	Resets tty color to normal
-#	
+#
 colorReset()
 {
 	#  Reset text attributes to normal
@@ -79,10 +79,10 @@ colorReset()
 }
 
 #
-# colorPrint colorPrint [INDENT] <COLOR> <TEXT> 
+# colorPrint colorPrint [INDENT] <COLOR> <TEXT>
 #
 #	Prints TEXT in the color COLOR while shifting curret to INDENT
-#	
+#
 #	Parameters:
 #		COLOR	- The color for the tty print.
 #		TEXT	- The text to be printed in the color COLOR.
@@ -92,7 +92,7 @@ colorPrint()
 
 	# If INDENT parameter given - respect it.
 	echo $1 |grep -q '^[0-9][0-9]*$' && __colors_ident $1 && shift
-	
+
 	local COLOR=$1
 	shift
 	colorSet $COLOR || return 1
@@ -103,7 +103,7 @@ colorPrint()
 }
 
 #
-# colorPrintN colorPrintN [INDENT] <COLOR> <TEXT> 
+# colorPrintN colorPrintN [INDENT] <COLOR> <TEXT>
 #	Same as colorPrint but prints trailing \n as well
 #
 colorPrintN()

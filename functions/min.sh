@@ -1,5 +1,5 @@
 min()
-{ 
+{
     ( i="$1";
     while [ $# -gt 1 ]; do
         shift;

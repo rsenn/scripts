@@ -1,5 +1,5 @@
 path-executables()
-{ 
+{
     ( IFS=":;";
     for DIR in $PATH;
     do

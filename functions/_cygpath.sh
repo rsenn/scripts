@@ -1,10 +1,10 @@
 _cygpath()
-{ 
+{
     ( FMT="cygwin";
     IFS="
 ";
     while :; do
-        case "$1" in 
+        case "$1" in
             -w)
                 FMT="windows";
                 shift
@@ -19,7 +19,7 @@ _cygpath()
         esac;
     done;
     unset CMD PRNT EXPR;
-    case "$FMT" in 
+    case "$FMT" in
         mixed | windows)
             vappend EXPR 's,^/cygdrive/\(.\)\(.*\),\1:\2,'
         ;;
@@ -27,7 +27,7 @@ _cygpath()
             vappend EXPR 's,^\(.\):\(.*\),/cygdrive/\1\2,'
         ;;
     esac;
-    case "$FMT" in 
+    case "$FMT" in
         mixed | cygwin)
             vappend EXPR 's,\\,/,g'
         ;;
