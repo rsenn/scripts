@@ -608,10 +608,12 @@ diffcmp()
     DIREXPR="${DIREXPR+$DIREXPR ;; }s|^${ARG%/}/||"
   done
 
+  LANGUAGE=C LC_ALL=C \
   diff $OPTS "$@" |
   sed -n \
     -e 's/^Binary files \(.*\) and \(.*\) differ/\1\n\2/p' \
-    -e 's,^[-+][-+][-+]\s\+\([^ \t]\+\)\s.*,\1,p' \
+    -e 's,^[-+][-+][-+]\s\+"\([^"]\+\)"\s.*,\1,p' \
+    -e 's,^[-+][-+][-+]\s\+\([^"][^ \t]*\)\s.*,\1,p' \
     | sed -e "$DIREXPR" \
     | uniq)
 }
