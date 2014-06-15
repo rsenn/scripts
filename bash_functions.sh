@@ -1342,6 +1342,12 @@ git-branches()
  )
 }
 
+git-deep-checkout() {
+  (for BRANCH in $(git-branches -r "$@"); do
+    git branch --track "${BRANCH##*/}" "$BRANCH"
+   done)
+}
+
 git-get-branch() {
   git branch -a |sed -n 's,^\* ,,p'
 }
