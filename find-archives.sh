@@ -29,7 +29,7 @@ find_archives()
        append CONDITIONS -iname "*.$EXT${S}"
 		done
 
-		CONDITIONS="-type${NL}f${NL}-and${NL}-size${NL}+3M${NL}(${NL}${CONDITIONS}${NL})" 
+		CONDITIONS="-type${NL}f${NL}-and${NL}(${NL}${CONDITIONS}${NL})" 
 		set "$@"  $CONDITIONS 
 
     ${DEBUG-false} && echo "+ $@" 1>&2

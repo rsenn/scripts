@@ -2136,8 +2136,8 @@ list-7z()
       s/\\n\\s\\+/\\n/g	
       s/^\\s*Date\\s\\+Time[^\\n]*//	
       s/\\n[^/]*files[^/]*folders\$//	
-      s/\\n\\s*\$//
-      s/^\\s*\\n//
+      s/\\n\\s*\\n\\?\$//
+      s/^\\n\\?\\s*\\n//
       p	
   }'"
   [ $# -gt 1 ] && FILTER="$FILTER | addprefix \"\$ARG: \""
