@@ -50,12 +50,12 @@ __urlcoding_SUCCESS="0"
 #	Exit status:
 #		__urlcoding_SUCCESS		-	the run was successful
 #		__urlcoding_USAGE_ERROR	-	bad parameters were given
-__urlcoding_getParams ()
+__urlcoding_getParams()
 {
 	local EncodeEOLflag=
 	local Source=""
 	[[ ! $1 ]] && return $__urlcoding_USAGE_ERROR
-	
+
 	if [[ "$1" == "-l" ]]; then
 		EncodeEOLflag="-l"
 		[[ ! $2 ]] && return $__urlcoding_USAGE_ERROR
@@ -87,7 +87,7 @@ __urlcoding_getParams ()
 #
 #	Exit status:
 #		See the 'exit status' section of urlEncodeStream
-urlEncodeString ()
+urlEncodeString()
 {
 	__urlcoding_getParams "$@" || return $__urlcoding_USAGE_ERROR
 	echo "${retval[0]}" | urlEncodeStream "${retval[1]}"
@@ -105,14 +105,14 @@ urlEncodeString ()
 #
 #		FILENAME:
 #			the path of the file which contains the text to encode
-#		
+#
 #	Return value:
 #		None.
 #
 #	Exit status:
 #		See the 'exit status' section of urlEncodeStream
 #
-urlEncodeFile ()
+urlEncodeFile()
 {
 	__urlcoding_getParams "$@" || return $__urlcoding_USAGE_ERROR
 	urlEncodeStream "${retval[1]}" < "${retval[0]}"
@@ -127,14 +127,14 @@ urlEncodeFile ()
 #	Parameters:
 #		STRING:
 #			URL to decode
-#	
+#
 #	Return value:
 #		None.
 #
 #	Exit status:
 #		See the exit status of urlDecodeStream
 #
-urlDecodeString ()
+urlDecodeString()
 {
 	[[ "$1" ]] || return $__urlcoding_USAGE_ERROR
 	echo "$1" | urlDecodeStream
@@ -156,7 +156,7 @@ urlDecodeString ()
 #	Exit status:
 #		See the exit status of urlDecodeStream
 #
-urlDecodeFile ()
+urlDecodeFile()
 {
 	[[ "$1" ]] || return $__urlcoding_USAGE_ERROR
 	urlDecodeStream < "$1"
@@ -177,7 +177,7 @@ urlDecodeFile ()
 #
 #	Exit status:
 #		The exit status of the command $__urlcoding_AWK
-urlEncodeStream ()
+urlEncodeStream()
 {
 	local EncodeEOL=
 	[[ "$1" == "-l" ]] && EncodeEOL=yes
@@ -220,7 +220,7 @@ urlEncodeStream ()
 			}
 			previous_line = encoded
 	    }
-		
+
 	    END {
 			print previous_line
 	    	#if ( EncodeEOL ) print ""
@@ -242,7 +242,7 @@ urlEncodeStream ()
 #
 #	Exit status:
 #		The exit status of the command $__urlcoding_AWK
-urlDecodeStream ()
+urlDecodeStream()
 {
 
 	$__urlcoding_AWK '

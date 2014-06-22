@@ -15,7 +15,7 @@ find_archives()
 {
 	(IFS="
 	 "
-		EXTS="7z rar tar.bz2 tar.gz tar.xz tbz2 tgz txz zip"
+		EXTS="rar zip 7z tar tar.Z tar.gz tar.xz tar.bz2 tar.lzma tgz txz tbz2 tlzma"
 
 		[ "$#" -le 0 ] && set -- *
 
@@ -29,7 +29,7 @@ find_archives()
        append CONDITIONS -iname "*.$EXT${S}"
 		done
 
-		CONDITIONS="-type${NL}f${NL}-and${NL}-size${NL}+3M${NL}(${NL}${CONDITIONS}${NL})" 
+		CONDITIONS="-type${NL}f${NL}-and${NL}(${NL}${CONDITIONS}${NL})" 
 		set "$@"  $CONDITIONS 
 
     ${DEBUG-false} && echo "+ $@" 1>&2

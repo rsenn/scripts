@@ -1,10 +1,10 @@
 modules()
-{ 
+{
     local abs="no" ext="no" dir modules= IFS="
 ";
     require "fs";
     while :; do
-        case $1 in 
+        case $1 in
             -a)
                 abs="yes"
             ;;
@@ -27,10 +27,10 @@ modules()
         do
             ( cd "$dir" && fs_recurse );
         done;
-    fi | { 
+    fi | {
         set --;
         while read module; do
-            case $module in 
+            case $module in
                 *.sh | *.bash)
                     if test "$ext" = no; then
                         module="${module%.*}";

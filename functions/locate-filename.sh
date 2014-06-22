@@ -1,10 +1,10 @@
 locate-filename()
-{ 
+{
     ( IFS="
  ";
     unset TEST_ARGS;
     while :; do
-        case "$1" in 
+        case "$1" in
             -i)
                 IGNORE_CASE=true;
                 shift
@@ -35,7 +35,7 @@ locate-filename()
             EXPR=${EXPR//"."/"\\."};
             EXPR=${EXPR//"?"/"."};
             EXPR=${EXPR//"*"/"[^/]*"};
-            case "$EXPR" in 
+            case "$EXPR" in
                 *"[^/]*")
 
                 ;;
@@ -43,7 +43,7 @@ locate-filename()
                     EXPR="$EXPR\$"
                 ;;
             esac;
-            case "$EXPR" in 
+            case "$EXPR" in
                 "[^/]*"*)
 
                 ;;
@@ -54,7 +54,7 @@ locate-filename()
             REGEXP=true;
         fi;
         if [ "$REGEXP" = true ]; then
-            case "$EXPR" in 
+            case "$EXPR" in
                 *\$)
 
                 ;;
@@ -62,7 +62,7 @@ locate-filename()
                     EXPR="${EXPR%"[^/]*"}[^/]*\$"
                 ;;
             esac;
-            case "$EXPR" in 
+            case "$EXPR" in
                 ^*)
                     EXPR="/${EXPR#^}"
                 ;;

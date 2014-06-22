@@ -1,9 +1,9 @@
 matchall()
-{ 
+{
     ( STR="$1";
     shift;
     while [ $# -gt 0 ]; do
-        case "$STR" in 
+        case "$STR" in
             $1)
 
             ;;

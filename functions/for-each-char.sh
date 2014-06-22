@@ -1,5 +1,5 @@
 for-each-char()
-{ 
+{
     x="$1";
     shift;
     s="$*";

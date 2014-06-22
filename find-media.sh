@@ -59,6 +59,8 @@ usage()
   exit 0
 }
 
+EXCLUDE_DIRS='.*/\.wine/drive.*/\.wine/drive'
+
 while :; do
 	case "$1" in
 	  -h | --help) usage; shift ;;
@@ -79,6 +81,12 @@ done
 
 if [ "$CASE_CENSITIVE" != true ]; then
   GREP_ARGS="${GREP_ARGS:+$IFS}-i"
+fi
+
+if [ "$WANT_FILE" = true ]; then
+  MATCH_ALL="[^/]*"
+else
+  MATCH_ALL=".*"
 fi
 
 : ${OS=`uname -o`}
@@ -104,19 +112,19 @@ else
 fi
 
 case "$CLASS" in
-  bin*|exe*|prog*)  EXPR="${EXPR//\$)/)}.*\.(exe|msi|dll)\$" ;;
-  archive*) EXPR="${EXPR//\$)/)}.*\.(7z|rar|tar\.bz2|tar\.gz|tar\.xz|tar|tar\.lzma|tbz2|tgz|txz|zip)\$" ;;
-  audio*) EXPR="${EXPR//\$)/)}.*\.(aif|aiff|flac|m4a|m4b|mp2|mp3|mpc|ogg|raw|rm|wav|wma)\$" ;;
-  fonts*) EXPR="${EXPR//\$)/)}.*\.(bdf|flac|fon|m4a|m4b|mp3|mpc|ogg|otf|pcf|rm|ttf|wma)\$" ;;
-  image*) EXPR="${EXPR//\$)/)}.*\.(bmp|cin|cod|dcx|djvu|emf|fig|gif|ico|im1|im24|im8|jin|jpeg|jpg|lss|miff|opc|pbm|pcx|pgm|pgx|png|pnm|ppm|psd|rle|rmp|sgi|shx|svg|tga|tif|tiff|wim|xcf|xpm|xwd)\$" ;;
-  incompl*|part*) EXPR="${EXPR//\$)/)}.*\.(\*\.!??|\*\.part|INCOMPL\*|\[/\\\]INCOMPL\[^/\\\]\*\$|\\\.!??\$|\\\.part\$)\$" ;;
-  music*) EXPR="${EXPR//\$)/)}.*\.(aif|aiff|flac|m4a|m4b|mp3|mpc|ogg|rm|voc|wav|wma)\$" ;;
-  package*|pkg*) EXPR="${EXPR//\$)/)}.*\.(deb|rpm|tgz|txz)\$" ;;
-  patch*|diff*) EXPR="${EXPR//\$)/)}.*\.(diff|patch)[^/]*$" ;;
-  script*) EXPR="${EXPR//\$)/)}.*\.(bat|cmd|py|rb|sh)\$" ;;
-  software*) EXPR="${EXPR//\$)/)}.*\.(\*\.msi|\*install\*\.exe|\*setup\*\.exe|\.msi|7z|deb|exe|install\*\.exe|msi|rar|rpm|setup\*\.exe|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz|zip)\$" ;;
-  source*) EXPR="${EXPR//\$)/)}.*\.(c|cpp|cxx|h|hpp|hxx)\$" ;;
-  video*) EXPR="${EXPR//\$)/)}.*\.(3gp|avi|f4v|flv|m2v|mkv|mov|mp4|mpeg|mpg|ogm|vob|wmv)\$" ;;
+  bin*|exe*|prog*)  EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(exe|msi|dll)\$" ;;
+  archive*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(7z|rar|tar\.bz2|tar\.gz|tar\.xz|tar|tar\.lzma|tbz2|tgz|txz|zip)\$" ;;
+  audio*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(aif|aiff|flac|m4a|m4b|mp2|mp3|mpc|ogg|raw|rm|wav|wma)\$" ;;
+  fonts*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(bdf|flac|fon|m4a|m4b|mp3|mpc|ogg|otf|pcf|rm|ttf|wma)\$" ;;
+  image*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(bmp|cin|cod|dcx|djvu|emf|fig|gif|ico|im1|im24|im8|jin|jpeg|jpg|lss|miff|opc|pbm|pcx|pgm|pgx|png|pnm|ppm|psd|rle|rmp|sgi|shx|svg|tga|tif|tiff|wim|xcf|xpm|xwd)\$" ;;
+  incompl*|part*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(\*\.!??|\*\.part|INCOMPL\*|\[/\\\]INCOMPL\[^/\\\]\*\$|\\\.!??\$|\\\.part\$)\$" ;;
+  music*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(aif|aiff|flac|m4a|m4b|mp3|mpc|ogg|rm|voc|wav|wma)\$" ;;
+  package*|pkg*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(deb|rpm|tgz|txz)\$" ;;
+  patch*|diff*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(diff|patch)[^/]*$" ;;
+  script*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(bat|cmd|py|rb|sh)\$" ;;
+  software*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(\*\.msi|\*install\*\.exe|\*setup\*\.exe|\.msi|7z|deb|exe|install\*\.exe|msi|rar|rpm|setup\*\.exe|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz|zip)\$" ;;
+  source*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(c|cpp|cxx|h|hpp|hxx)\$" ;;
+  video*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(3gp|avi|f4v|flv|m2v|mkv|mov|mp4|mpeg|mpg|ogm|vob|wmv)\$" ;;
 	'') ;;
   *) echo "No such class '$CLASS'." 1>&2; exit 2 ;;
 esac
@@ -160,7 +168,7 @@ esac
 #        INDEXES=`for x in a b c d e f g h i j k l m n o p q r s t u v w x y z; do test -e $DRIVEPREFIX/$x/files.list && echo $DRIVEPREFIX/$x/files.list; done`
 #fi
 #
-MEDIAPATH="{$(set -- $( df 2>/dev/null|sed -n '\|/sys|d ;; \|/proc|d ;; \|/dev$|d ;; \|/run|d ;; s,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^\\/]\+\s\([\\/]\)\(.*\),\1\2,p' | sort -u); IFS=","; echo "${*%/}")}"
+MEDIAPATH="{$(set -- $( df 2>/dev/null|sed -n '\|/sys$|d ;; \|/sys |d ;; \|/proc|d ;; \|/dev$|d ;; \|/run|d ;; s,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^\\/]\+\s\([\\/]\)\(.*\),\1\2,p' | sort -u); IFS=","; echo "${*%/}")}"
 
 FILEARG="\$INDEXES"
 case "$MEDIAPATH" in

@@ -1,9 +1,9 @@
 filter()
-{ 
+{
     ( while read -r LINE; do
         for PATTERN in "$@";
         do
-            case "$LINE" in 
+            case "$LINE" in
                 $PATTERN)
                     echo "$LINE";
                     break

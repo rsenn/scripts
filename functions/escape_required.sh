@@ -1,7 +1,7 @@
 escape_required()
-{ 
+{
     local b="\\" q="\`\$\'\"${IFS}";
-    case "$1" in 
+    case "$1" in
         '')
             return 1
         ;;

@@ -1,5 +1,5 @@
 rangearg()
-{ 
+{
     ( S="$1";
     E="$2";
     shift 2;

@@ -1,7 +1,7 @@
 regexp_to_fnmatch()
-{ 
+{
     ( expr=$1;
-    case $expr in 
+    case $expr in
         '^'*)
             expr="${expr#^}"
         ;;
@@ -9,7 +9,7 @@ regexp_to_fnmatch()
             expr="*${expr}"
         ;;
     esac;
-    case $expr in 
+    case $expr in
         *'$')
             expr="${expr%$}"
         ;;
@@ -20,12 +20,12 @@ regexp_to_fnmatch()
             expr="${expr}*"
         ;;
     esac;
-    case $expr in 
+    case $expr in
         *'.*'*)
             expr=`echo "$expr" | sed "s,\.\*,\*,g"`
         ;;
     esac;
-    case $expr in 
+    case $expr in
         *'.'*)
             expr=`echo "$expr" | sed "s,\.,\?,g"`
         ;;

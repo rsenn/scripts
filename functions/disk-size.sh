@@ -1,7 +1,7 @@
 disk-size()
-{ 
+{
     ( while :; do
-        case "$1" in 
+        case "$1" in
             -m | -M)
                 DIV=1024;
                 shift

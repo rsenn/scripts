@@ -1,5 +1,5 @@
 myrealpath()
-{ 
+{
  (for ARG; do
     DIR=` dirname "$ARG" `;
     BASE=` basename "$ARG" `;

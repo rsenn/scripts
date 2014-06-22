@@ -1,7 +1,7 @@
 waitproc()
-{ 
-    function getprocs () 
-    { 
+{
+    function getprocs()
+    {
         for ARG in "$@";
         do
             pgrep -f "$ARG";

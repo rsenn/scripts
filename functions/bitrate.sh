@@ -1,5 +1,5 @@
 bitrate()
-{ 
+{
   ( N=$#
   for ARG in "$@";
   do
@@ -14,7 +14,7 @@ bitrate()
     test -n "$KBPS" && echo "$KBPS" || (
     R=0
     set -- $(mminfo "$ARG" | sed -n "/Bit rate=/ { s,\s*Kbps\$,, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }")
-   #echo "$*" 1>&2 
+   #echo "$*" 1>&2
     for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
     [ "$N" -gt 1 ] && R="$ARG:$R"
       echo "$R"

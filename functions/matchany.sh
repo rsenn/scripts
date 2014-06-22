@@ -1,11 +1,11 @@
 matchany()
-{ 
+{
     ( STR="$1";
     shift;
     set -o noglob;
     for EXPR in "$@";
     do
-        case "$STR" in 
+        case "$STR" in
             *$EXPR*)
                 exit 0
             ;;

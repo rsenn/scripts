@@ -1,5 +1,5 @@
-hex2chr () 
-{ 
+hex2chr()
+{
     ( S="";
     for ARG in "$@";
     do

@@ -1,5 +1,5 @@
 fstentry()
-{ 
+{
     ( DEV="$1" TYPE=${2-auto} OPTS=${3-defaults};
     MNT=/media/${DEV##*/};
     blkvars "$DEV";

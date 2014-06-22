@@ -1,6 +1,6 @@
 dospath()
-{ 
-    ( case "$1" in 
+{
+    ( case "$1" in
         ?:*)
             set -- /cygdrive/${1%%:*}${1#?:}
         ;;

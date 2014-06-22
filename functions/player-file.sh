@@ -1,7 +1,7 @@
 player-file()
-{ 
+{
   ( SED_SCRIPT=
-	while :; do 
+	while :; do
 					case "$1" in
 									-H|--no*hidden) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|/\\.|d" ; shift ;;
 									-P|--no*proc) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|^/proc|d" ; shift ;;

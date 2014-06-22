@@ -1,9 +1,9 @@
 filter_out()
-{ 
+{
     ( while read -r LINE; do
         for PATTERN in "$@";
         do
-            case "$LINE" in 
+            case "$LINE" in
                 $PATTERN)
                     continue 2
                 ;;

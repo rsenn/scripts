@@ -1,5 +1,5 @@
 inputf()
-{ 
+{
     local __line__ __cmds__;
     __line__=$IFS;
     __cmds__="( set -- \$__line__; $*; )";

@@ -6,7 +6,7 @@ cd()
   esac
 
   command cd "$@"
-  
+
   case `type postcd 2>/dev/null` in
     *function*) postcd "$@" || return $? ;;
   esac
@@ -15,6 +15,6 @@ cd()
 postcd()
 {
   if test -r .todo; then
-    todo 
+    todo
   fi
 }

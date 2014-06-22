@@ -1,5 +1,5 @@
 extract-slackpkg()
-{ 
+{
     : ${DESTDIR=unpack};
     mkdir -p "$DESTDIR";
     l=$(grep "$1" pkgs.files );

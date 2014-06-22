@@ -1,7 +1,7 @@
 fstab-line()
-{ 
+{
     ( while :; do
-        case "$1" in 
+        case "$1" in
             -u | --uuid)
                 USE_UUID=true;
                 shift
@@ -32,7 +32,7 @@ fstab-line()
         [ -n "$6" ] && PASS="$6";
         [ "$USE_UUID" = true -a -n "$UUID" ] && DEV="UUID=$UUID";
         [ "$USE_LABEL" = true -a -n "$LABEL" -a -e /dev/disk/by-label/"$LABEL" ] && DEV="LABEL=$LABEL";
-        case "$FSTYPE" in 
+        case "$FSTYPE" in
             swap)
                 MNTDIR=none;
                 : ${OPTS:=sw}

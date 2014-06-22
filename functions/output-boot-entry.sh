@@ -3,15 +3,15 @@ output-boot-entry()
  (
   [ -z "$FORMAT" ] && FORMAT="$1"
   case "$FORMAT" in
-    grub4dos) 
+    grub4dos)
        echo "title "${TITLE//"
 "/"\\n"}
          [ "$CMDS" ] && echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS"| sed 's,^,#,'
        if [ "$KERNEL" ]; then
         echo "kernel $KERNEL"
-       [ "$INITRD" ] && echo "initrd $INITRD" 
+       [ "$INITRD" ] && echo "initrd $INITRD"
        fi
-       
+
     ;;
     grub2)
        echo "menuentry \"$TITLE\" {"
@@ -32,11 +32,11 @@ output-boot-entry()
          [ $# -gt 0 ] &&
          echo "  append" $@
        fi
-       
+
        if [ "$CMDS" ]; then
          echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS" |sed 's,^,  #,'
          fi
-       
+
      ;;
   esac
   echo

@@ -32,7 +32,8 @@ inst-slackpkg: slackpkg
   done
 
 SCRIPTS =  \
-	aaview.sh \
+	adb-screenshot.sh \
+        aaview.sh \
 	am2cmake.rb \
 	any23gp.sh \
 	any2amr-wb.sh \

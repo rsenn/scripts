@@ -1,5 +1,5 @@
 linedelay()
-{ 
+{
     unset o;
     while read i; do
         test "${o+set}" = set && echo "$o";

@@ -1,6 +1,6 @@
 is_binary()
-{ 
-    case `file - <$1` in 
+{
+    case `file - <$1` in
         *text*)
             return 1
         ;;

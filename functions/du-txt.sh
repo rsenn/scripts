@@ -1,5 +1,5 @@
 du-txt()
-{ 
+{
     ( IFS="
 ";
     TMP="du.tmp$RANDOM";
