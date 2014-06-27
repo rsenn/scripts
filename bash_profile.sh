@@ -55,6 +55,7 @@ alias grep="grep $GREP_ARGS"
 alias cp='cp'
 alias mv='mv'
 alias rm='rm'
+alias grepdiff='grepdiff --output-matching=hunk'
 
 unalias cp  2>/dev/null
 unalias mv  2>/dev/null
