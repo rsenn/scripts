@@ -18,8 +18,9 @@ ansi_cyan='\[\033[1;36m\]' ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]'
 
 [ -d /usr/local/gnubin  ] && PATH="$PATH:/usr/local/gnubin"
 
-LANGUAGE=de_CH.UTF-8
-LC_ALL="$LANGUAGE"
+LANG=en_US
+LC_ALL=C
+LC_CTYPE=en_US.ISO-8859-1
 HISTSIZE=32768
 HISTFILESIZE=16777216
 XLIB_SKIP_ARGB_VISUALS=1
@@ -41,7 +42,7 @@ case "$TERM" in
   xterm|rxvt|screen) TERM="$TERM-256color" ;;
 esac
 
-export LC_ALL LOCALE LANGUAGE HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS TERM
+export LC_ALL LC_CTYPE LANG HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS TERM
 
 alias xargs='xargs -d "\n"'
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
