@@ -1,5 +1,5 @@
 grub2-modules-for-device()
-{ 
+{
     ( ARG="$1";
     [ ! -b "$ARG" ] && ARG=$(device-of-file "$ARG");
     [ ! -b "$ARG" ] && exit 2;
@@ -8,7 +8,7 @@ grub2-modules-for-device()
     SUFFIX=${SUFFIX#[hs]d[a-z]};
     DISK=${1%"$SUFFIX"};
     [ "$DISK" ] && PART_TYPE=$(partition-table-type "$DISK");
-    case "$PART_TYPE" in 
+    case "$PART_TYPE" in
         msdos | mbr*)
             echo "${2}insmod part_msdos"
         ;;
@@ -16,7 +16,7 @@ grub2-modules-for-device()
             echo "${2}insmod gpt"
         ;;
     esac;
-    case "$FS" in 
+    case "$FS" in
         ntfs)
             echo "${2}insmod ntfs"
         ;;

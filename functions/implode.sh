@@ -1,5 +1,5 @@
 implode()
-{ 
+{
  (unset DATA SEPARATOR;
   SEPARATOR="$1"; shift
   CMD='DATA="${DATA+$DATA$SEPARATOR}$LINE"'

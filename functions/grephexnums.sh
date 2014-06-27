@@ -1,9 +1,9 @@
 grephexnums()
-{ 
+{
     ( IFS="|";
     unset ARGS;
     while :; do
-        case "$1" in 
+        case "$1" in
             -*)
                 ARGS="${ARGS+$ARGS$IFS}$1";
                 shift

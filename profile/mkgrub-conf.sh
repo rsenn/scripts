@@ -18,13 +18,13 @@ de_CH
 "
 
 THISDIR=${1:-` dirname "$0"`}
-KERN_IMGS=` ls -d bzImage*` 
+KERN_IMGS=` ls -d bzImage*`
 
 var_s=" "
 cr='' lf=$'\n' ht=$'\t' vt='' squote="'" sq="'"
 
-isin () 
-{ 
+isin()
+{
     ( needle="$1";
     while [ "$#" -gt 1 ]; do
         shift;
@@ -33,10 +33,10 @@ isin ()
     exit 1 )
 }
 
-str_escape () 
-{ 
+str_escape()
+{
     local s=$1;
-    case $s in 
+    case $s in
         *[$cr$lf$ht$vt'€']*)
             s=${s//'\'/'\\'};
             s=${s//'
@@ -60,9 +60,9 @@ str_escape ()
 }
 
 
-str_quote() 
-{ 
-    case "$1" in 
+str_quote()
+{
+    case "$1" in
         *["$cr$lf$ht$vt"]*)
             echo "\$'`str_escape "$1"`'"
         ;;
@@ -75,8 +75,8 @@ str_quote()
     esac
 }
 
-var_dump() 
-{ 
+var_dump()
+{
     ( for N in "$@";
     do
         N=${N%%=*};
@@ -86,11 +86,11 @@ var_dump()
 }
 
 mountpoint-for-file()
-{ 
+{
   df "$1" | sed 1d | awk '{ print $6 }'
 }
 
-MOUNTPOINT=`mountpoint-for-file "$THISDIR"` 
+MOUNTPOINT=`mountpoint-for-file "$THISDIR"`
 
 get_arch()
 {
@@ -114,25 +114,25 @@ for KERN_IMG in $KERN_IMGS; do
   ARCH=
   BITS=
   INITRD_ARCH=
-  
- 
+
+
 
 
   if [ "$VER" != "${VER#64-}" ]; then ARCH=x86_64 BITS=64 VER=${VER#64-}
   elif [ "$VER" != "${VER#64}" ]; then ARCH=x86_64 BITS=64 VER=${VER#64-}
   fi
   VER=${VER#-}
-  #[ "$VER" != "${VER%-i[3-6]86}" -o "$VER" != "${VER%-x86_64}" ] && ARCH=${VER##*-} VER=${VER%-i?86} 
+  #[ "$VER" != "${VER%-i[3-6]86}" -o "$VER" != "${VER%-x86_64}" ] && ARCH=${VER##*-} VER=${VER%-i?86}
 
   [ -z "$ARCH" ] &&
   ARCH=`get_arch "${KERN_IMG#bzImage}"`
 
-  VER=${VER%"-$ARCH"} 
+  VER=${VER%"-$ARCH"}
   VER=${VER%64}
   VER=${VER%64-*}
-  
+
   test -n "$VER" || { skip "$KERN_IMG (1)"; continue; }
- 
+
  INITRD_IMG_MASK="${ARCH:+initr*$VER*${ARCH//[-_]/*}*
 }initr*$VER*"
 
@@ -148,7 +148,7 @@ for KERN_IMG in $KERN_IMGS; do
  INITRD_NAME="${INITRD_IMG%.img}"
 
    INITRD_ARCH=`get_arch $INITRD_NAME`
-#   
+#
     test -n "$INITRD_IMG" -o "$ARCH" = "$INITRD_ARCH" && break
    shift
  done
@@ -160,7 +160,7 @@ test -n "$INITRD_IMG" || { skip "No initrd image (Mask was $INITRD_IMG_MASK) (3)
  KEY="${VER}${ARCH:+-$ARCH}"
 
  isin "$KEY" $DONE && continue
- 
+
  DONE="${DONE:+$DONE
 }$KEY"
 
@@ -182,7 +182,7 @@ test -e "$1" || { skip "No sqfs for $VER (4)" ; continue ; }
  echo title PartedMagic v$VER ${ARCH:+($ARCH)}
 [ "$ROOT" ] && echo root "$ROOT"
  echo kernel $KERN_FILE $ARGS
-echo initrd $INITRD_FILE 
+echo initrd $INITRD_FILE
 echo
 
  done

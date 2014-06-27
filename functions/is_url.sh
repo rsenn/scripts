@@ -1,6 +1,6 @@
 is_url()
-{ 
-    case $1 in 
+{
+    case $1 in
         *://*)
             return 0
         ;;

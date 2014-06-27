@@ -1,5 +1,5 @@
 verbose()
-{ 
+{
     local msg="$*" a=`eval "echo \"\${$#}\""` IFS="
 ";
     if [ "$#" = 1 ]; then

@@ -1,7 +1,7 @@
 # ssh-agent-takeover.sh
 #
 # This script is meant to be put in /etc/sysprofile.d
-# 
+#
 # It helps in a situation where you haven't started the ssh-agent as
 # a parent process of the process launching your shells.
 #
@@ -23,13 +23,13 @@
 # ---------------------------------------------------------------------------
 if [ -z  "$SSH_AUTH_SOCK" ]; then
   for SOCKET in /tmp/ssh-*/agent.*; do
-    
+
     PROC=${SOCKET##*.}
 
     if [ -e "/proc/$PROC/stat" ]; then
-   
+
        msg "Found ssh-agent [$PROC], taking it over."
-   
+
        SSH_AUTH_SOCK="$SOCKET"
        SSH_AUTH_PROC="$PROC"
 

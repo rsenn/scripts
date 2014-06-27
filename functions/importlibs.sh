@@ -1,5 +1,5 @@
 importlibs()
-{ 
+{
     local lib IFS="|";
     for lib in $__LIBS__;
     do

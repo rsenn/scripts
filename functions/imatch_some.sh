@@ -1,5 +1,5 @@
 imatch_some()
-{ 
+{
     eval "while shift
   do
   case \"\`str_tolower \"\$1\"\`\" in

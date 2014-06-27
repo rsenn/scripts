@@ -5,6 +5,8 @@ set -o vi
 IFS="
 "
 
+PATH="/bin:$PATH"
+
 [ "$HOSTNAME" = MSYS -o -n "$MSYSTEM" ] && OS="Msys"
 [ "$OSTYPE" ] && OS="$OSTYPE"
 
@@ -39,7 +41,7 @@ case "$TERM" in
   xterm|rxvt|screen) TERM="$TERM-256color" ;;
 esac
 
-export PATH LC_ALL LOCALE LANGUAGE HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS TERM
+export LC_ALL LOCALE LANGUAGE HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS TERM
 
 alias xargs='xargs -d "\n"'
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
@@ -145,7 +147,7 @@ pathmunge()
           set -- `$PATHTOOL "$tmp"` "$@"
       ;;
   esac;
-  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | egrep -q "(^|:)$1($|:)"; then
+  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | grep -E -q "(^|:)$1($|:)"; then
       if test "$2" = "after"; then
           eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
       else

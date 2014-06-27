@@ -1,8 +1,8 @@
 reload()
-{ 
+{
     local script retcode var force="no";
     while :; do
-        case $1 in 
+        case $1 in
             -f)
                 force="yes"
             ;;
@@ -20,7 +20,7 @@ reload()
         local fn;
         for fn in $(sed -n -e 's/^\([_a-z][_0-9a-z]*\)().*/\1/p' $shlibdir/$script);
         do
-            case $fn in 
+            case $fn in
                 require | verbose | msg)
                     continue
                 ;;

@@ -1,5 +1,5 @@
 in_path()
-{ 
+{
     local dir IFS=:;
     for dir in $PATH;
     do

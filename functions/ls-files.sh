@@ -1,5 +1,5 @@
 ls-files()
-{ 
+{
     ( [ -z "$@" ] && set -- .;
     for ARG in "$@";
     do

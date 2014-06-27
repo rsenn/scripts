@@ -1,7 +1,7 @@
 foreach-partition()
-{ 
+{
     local old_IFS="$IFS";
-    blkid | { 
+    blkid | {
         IFS="
  ";
         while read -r DEV VARS; do

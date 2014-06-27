@@ -1,5 +1,5 @@
 match_some()
-{ 
+{
     eval "while shift
   do
   case \"\$1\" in

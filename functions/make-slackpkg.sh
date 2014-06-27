@@ -1,9 +1,9 @@
 make-slackpkg()
-{ 
+{
     (IFS="
 "
-    require str 
-    
+    require str
+
      : ${OUTDIR="$PWD"};
     [ -z "$1" ] && set -- .;
     ARGS="$*"

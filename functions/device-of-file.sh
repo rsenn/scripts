@@ -1,5 +1,5 @@
 device-of-file()
-{ 
+{
     ( for ARG in "$@";
     do
         ( if [ -e "$ARG" ]; then

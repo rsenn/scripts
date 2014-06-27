@@ -130,6 +130,7 @@ SCRIPTS =  \
 	get-alive.sh \
 	get-names.sh \
 	git-config.bash \
+	git-big-file-finder.sh \
 	google.sh \
 	grep-archives.sh \
 	grep-audio.sh \

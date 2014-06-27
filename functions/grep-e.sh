@@ -1,25 +1,20 @@
 grep-e()
-{ 
-    ( unset ARGS;
+{
+    (IFS="
+"    unset ARGS;
     eval "LAST=\"\${$#}\"";
     if [ ! -d "$LAST" ]; then
         unset LAST;
     else
-        A="$*";
-        A="${A%$LAST}";
+        A="$*"; A="${A%$LAST}";
         set -- $A;
     fi;
-    while :; do
-        case "$1" in 
-            -*)
-                ARGS="${ARGS+$ARGS
-	}$1";
-                shift
-            ;;
-            *)
-                break
-            ;;
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --) shift; LAST="$*"; break ;;
+            -*) ARGS="${ARGS+$ARGS$IFS}$1"; shift ;;
+            *) WORDS="${WORDS+$WORDS$IFS}$1"; shift ;;
         esac;
     done;
-    grep --color=auto --color=auto --color=auto -E $ARGS "$(grep-e-expr "$@")" ${LAST:+"$LAST"} )
+    grep --color=auto --color=auto --color=auto -E $ARGS "$(grep-e-expr $WORDS)" ${LAST:+$LAST} )
 }

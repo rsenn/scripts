@@ -1,5 +1,5 @@
 grub2-search-for-device()
-{ 
+{
     ( ARG="$1";
     [ ! -b "$ARG" ] && ARG=$(device-of-file "$ARG");
     [ ! -b "$ARG" ] && exit 2;

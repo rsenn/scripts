@@ -4,7 +4,7 @@ parse-boot-entry()
    NL="
 "
   unset LINEBUF
-  
+
   getline()
   {
     if [ -n "$LINEBUF" ]; then
@@ -22,14 +22,14 @@ parse-boot-entry()
     fi
     OLDIFS="$IFS"
     IFS=" "
-    set -- $LINE    
+    set -- $LINE
     CMD=$(echo "$1" | tr [:upper:] [:lower:])
     shift
     ARG="$*"
     IFS="$OLDIFS"
   }
   ungetline() { LINEBUF="$LINE${LINEBUF:+$NL$LINEBUF}"; }
-  
+
   while :; do
     getline || return $?
     while [ "$LINE" != "${LINE#' '}" ]; do LINE=${LINE#' '}; done
@@ -42,7 +42,7 @@ parse-boot-entry()
 	      title) T=oldgrub; TITLE=${ARG}; TITLE=${TITLE//"\\n"/"$NL"} ;;
 	      label) T=syslinux LABEL=${ARG} ;;
 #	      menu | *MENU*LABEL*) T=syslinux; TITLE=${LINE#*MENU}; TITLE=${TITLE#*LABEL}; TITLE=${TITLE#*label}; TITLE=${TITLE/^/} ;;
-	      *) continue ;; 
+	      *) continue ;;
 	    esac
 	    LABEL=${LABEL#' '}
 	    TITLE=${TITLE#' '}
@@ -52,14 +52,14 @@ parse-boot-entry()
     echo "+ CMD=$CMD ARG=$ARG" 1>&2
       case "$T" in
          syslinux)
-            case "$CMD" in 
+            case "$CMD" in
                '#'*) continue ;;
               kernel) KERNEL="${LINE#*kernel\ }" ;;
-              append) 
+              append)
                  IFS="$IFS "
                  set -- ${LINE#*append\ }
                  for ARG; do
-                   case "$ARG" in 
+                   case "$ARG" in
                      initrd=*) INITRD="${ARG#*=}" ;;
                      *) KERNEL="${KERNEL:+$KERNEL }$ARG" ;;
                    esac
@@ -68,28 +68,28 @@ parse-boot-entry()
               menu)  ARG=${ARG/^/}; TITLE="${TITLE:+$TITLE$NL}${ARG}" ;;
               label)  ungetline; unset T; return 0 ;;
            *) [ -n "$LINE" ] && CMDS="${CMDS:+$CMDS$NL}$LINE" ;;
-              
-            esac 
+
+            esac
          ;;
          grub)
-            case "$CMD" in 
+            case "$CMD" in
                '#'*) continue ;;
               linux) KERNEL="${LINE#*linux*\ }" ;;
               initrd) INITRD="${LINE#*initrd*\ }" ;;
               chainloader|  configfile) CMDS="${CMDS:+$CMDS$NL}$LINE" ;;
               menuentry) ungetline; unset T; return 0 ;;
-              *)  CMDS="${CMDS:+$CMDS$NL}$LINE" ;; 
-            esac 
+              *)  CMDS="${CMDS:+$CMDS$NL}$LINE" ;;
+            esac
          ;;
          oldgrub)
-            case "$CMD" in 
+            case "$CMD" in
                '#'*) continue ;;
               kernel) KERNEL="${LINE#*kernel*\ }" ;;
               initrd) INITRD="${LINE#*initrd*\ }" ;;
-              #map*|find*|chainloader*|root*|configfile*|set*|cat*|timeout*|default*|rootnoverify*|savedefault*|terminal*|fallback*|echo*|color*|lock*|write*|splashimage*|iftitle*|graphicsmode*|calc*|menu*|found*)  CMDS="${CMDS:+$CMDS$NL}$LINE" ;; 
+              #map*|find*|chainloader*|root*|configfile*|set*|cat*|timeout*|default*|rootnoverify*|savedefault*|terminal*|fallback*|echo*|color*|lock*|write*|splashimage*|iftitle*|graphicsmode*|calc*|menu*|found*)  CMDS="${CMDS:+$CMDS$NL}$LINE" ;;
               title*) ungetline; unset T; return 0 ;;
               *) [ -n "$LINE" ] && CMDS="${CMDS:+$CMDS$NL}$LINE" ;;
-            esac 
+            esac
          ;;
        esac
       fi

@@ -1,5 +1,5 @@
 unescape_newlines()
-{ 
+{
     sed -e ':start
   /\$/ {
   N

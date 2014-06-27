@@ -1,5 +1,5 @@
 all-disks()
-{ 
+{
    (case "$1" in
       -l) SHOW_LABEL=true; shift ;;
       -u) SHOW_UUID=true; shift ;;

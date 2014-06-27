@@ -19,12 +19,12 @@
 # There are two types of command line parameters:
 #	Flag parameters  - Have no value after them, They are either on or of.
 #	Value parameters - Have a value after them.
-#						  If no value is give after this kind of parameter, 
+#						  If no value is give after this kind of parameter,
 #						  a NULL value will be assined, and an error will be show.
 # NOTE: If -a is a value parameter, and you will run <command> -a -b,
 #		-b will be assined as the value of -a. Moreover, it will not be treated as
 #		a flag/value parameter in this case.
- 
+
 #-------------------------------------------------------------------------
 #EXPORT=getopt_long
 #REQUIRE=hashSet hashGet
@@ -36,17 +36,17 @@
 #
 # $retval parseParams <OptsString> <Instructions> <Rest-Of-The-Parameters> (internal)
 #
-#	This function goes over the parameters and creates a string that contains 
-#	variables definitions. If there's a value after the letter parameter, it 
+#	This function goes over the parameters and creates a string that contains
+#	variables definitions. If there's a value after the letter parameter, it
 #	will be given to it. Else, a "1" will be set.
 #	Example: For instructions="h Help p Path", OptsString="hp:",
-#	when the parameters are  --help --path "/etc/", 
+#	when the parameters are  --help --path "/etc/",
 #	it will return Help=1; Path=/etc/;
 #
 #	Parameters:
 #		OptsString
 #			A string that contains parameter letter in getopt(1) format.
-#			If a parameter should have a value after it, its letter will 
+#			If a parameter should have a value after it, its letter will
 #			be followed by ":".
 #			Example: For the parameters -h and -p <path>, the string will be "hp:"
 #			See getopt(1) man page for more info
@@ -56,7 +56,7 @@
 #			They must be in the form: -<letter> <var-name>
 #
 #		Rest-Of-The-Parameters
-#			This is the rest of the $* of this function (we'll call shift). 
+#			This is the rest of the $* of this function (we'll call shift).
 #			getopt(1) always works on $*, so it will work on these.
 #
 #	Return value:
@@ -67,12 +67,12 @@
 __getopts_parseParams()
 {
 	local GotError=0
-	local Params=""	
+	local Params=""
 	local OptsString=$1
 	Instructions=($2)
 	local HashName=GivenParameters
 	shift 2
-	
+
 	while getopts "$OptsString" Param ; do
 		[[ $Param == "?" ]] && GotError=1 && continue
 		retval=""
@@ -109,8 +109,8 @@ __getopts_parseParams()
 #
 #	Parameters:
 #		Instructions
-#			These are the parsing instructions in their last version. 
-#			They must be in the form: 
+#			These are the parsing instructions in their last version.
+#			They must be in the form:
 #				-<single-letter-name>|--<multi-letter-name>-><variable-name>
 #
 #		Params
@@ -136,14 +136,14 @@ __getopts_createSingleCharParams()
 
 			# Find the multi-letter parameter that must be second (exaample: --help)
 			MultiLetterName="${CurrParamName#*|}"
-			
+
 			# Replace the multi letter parameter that has `=' after it with a single letter parameter
 			# that has a ` ' after it.
 			curr_param="$(sed -e "s/^$MultiLetterName\(=\|$\)/ $SingleLetterName /g" <<< $curr_param)"
 		done
 		ParsedParams="$ParsedParams $curr_param"
 	done
-	
+
 	retval="$ParsedParams"
 }
 
@@ -151,11 +151,11 @@ __getopts_createSingleCharParams()
 # $retval[2] buildGetOptsData <Instructions> (internal)
 #
 #	This function builds the data needed for getopts (See return values).
-#	
+#
 #	Parameters
 #		Instructions
-#			These are the parsing instructions in their last version. 
-#			They must be in the form: 
+#			These are the parsing instructions in their last version.
+#			They must be in the form:
 #				-<single-letter-name>|--<multi-letter-name>-><variable-name>
 #
 #	Return value:
@@ -168,7 +168,7 @@ __getopts_buildGetOptsData()
 {
 	local ParsingInstructions="$@"
 	local Instructions=""
-	local OptsString=""	
+	local OptsString=""
 
 	# Go over the parsing instructions
 	for Instruction in $ParsingInstructions ; do
@@ -181,7 +181,7 @@ __getopts_buildGetOptsData()
 
 		# Find the name of the wanted variable name, that comes after a '=' (example: h|help->Help)
 		local WantedVarName=${Instruction#*->}
-		
+
 		# Check if the parameter should have a following value
 		# A ':' at the end of it's name indicates that (example: -p|--path->Path:)
 		if [[ "$WantedVarName" = *: ]] ; then
@@ -191,7 +191,7 @@ __getopts_buildGetOptsData()
 			# Remove the ':' from the variable name
 			WantedVarName=${WantedVarName%:*}
 		fi
-		
+
 		Instructions="${Instructions}${SingleLetterName} ${WantedVarName} "
 	done
 
@@ -203,7 +203,7 @@ __getopts_buildGetOptsData()
 ##############################################################
 #
 # $retval getopt_long <ParsingInstructions> <Params>
-#	
+#
 #	Intented to parse command line parameters.
 #
 #	Parameters:
@@ -212,7 +212,7 @@ __getopts_buildGetOptsData()
 #			Each instruction is in the form of:
 #				<single-letter parameter>|<long parameter>-><Variable name>[:]
 #			For example: -h|--help->Help
-#			The ':' after variable name indicates that the variable must have 
+#			The ':' after variable name indicates that the variable must have
 #			value, otherwise variable is flag (is set to 1 if exists and 0 otherwises).
 #
 #		Params
@@ -226,7 +226,7 @@ __getopts_buildGetOptsData()
 #		and <Params> are -h --path=/etc/,
 #		it will return  'Help=1; Path=/etc/;'
 #		When a value parameter apears more than once an array is created. That is, if
-#		<ParsingInstructions> are  -h|--help->Help -p|--path->Path:, and <Params> are 
+#		<ParsingInstructions> are  -h|--help->Help -p|--path->Path:, and <Params> are
 #		-h --path=/etc/ --path=/bin
 #		it will return 'Help=1; Path=( /etc /bin );'
 #
@@ -235,7 +235,7 @@ getopt_long()
 	local GotError=0
 	ParsingInstructions=$1
 	shift
-	
+
 	local Params=""
 	for param in "$@" ; do
 		# Replace spaces with "__getopts__". This makes it much easier to handle the values.
@@ -248,7 +248,7 @@ getopt_long()
 	__getopts_buildGetOptsData $ParsingInstructions
 
 	__getopts_parseParams "${retval[0]}" "${retval[1]}" $Params
-	
+
 	# Step by step:
 	# 1. Replacing the first "=' " with "=('"
 	#	 This starts an array using ( and starts the first string using "'"
@@ -264,6 +264,6 @@ getopt_long()
 								 -e "s/ /' '/g" \
 								 -e "s/__getopts__/ /g" \
 								 -e "s/;/);/g")"
-	
+
 	return $GotError
 }

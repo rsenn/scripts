@@ -1,5 +1,5 @@
 ls-dirs()
-{ 
+{
     ( [ -z "$@" ] && set -- .;
     for ARG in "$@";
     do

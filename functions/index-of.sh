@@ -1,5 +1,5 @@
 index-of()
-{ 
+{
     io="$1";
     shift;
     s="$*";

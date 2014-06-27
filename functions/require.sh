@@ -1,8 +1,8 @@
 require()
-{ 
+{
     local mask script retcode cmd="source" pre="";
     while :; do
-        case $1 in 
+        case $1 in
             -p)
                 cmd="echo"
             ;;

@@ -3,7 +3,7 @@
 if test -n "$DISPLAY"; then
 
   if test -z "`pgrep browser-history`"; then
-    setsid browser-history 
+    setsid browser-history
   fi
 
 fi

@@ -1,12 +1,12 @@
 disk-label()
-{ 
+{
     (ESCAPE_ARGS="-e"
     while :; do
        case "$1" in
          -E | --no-escape) ESCAPE_ARGS=; shift ;;
        *) break ;;
      esac
-   done 
+   done
     DEV=${1};
     test -L "$DEV" && DEV=` myrealpath "$DEV"`;
     cd /dev/disk/by-label;
@@ -15,7 +15,7 @@ disk-label()
         if [ "${DEV##*/}" = "${TARGET##*/}" ]; then
             NAME=${LINK##*/};
             NAME=${NAME//'\x20'/'\040'}
-            case "$NAME" in 
+            case "$NAME" in
                 *[[:lower:]]*)
                     LOWER=true
                 ;;
@@ -24,7 +24,7 @@ disk-label()
                 echo $ESCAPE_ARGS "$NAME";
             else
                 FS=` filesystem-for-device "$DEV"`;
-                case "$FS" in 
+                case "$FS" in
                     *fat)
                         IFS="
 ";
