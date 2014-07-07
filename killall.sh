@@ -45,7 +45,7 @@ elif type ps 2>/dev/null >/dev/null; then
   fi
 fi
 
-if type taskkill.exe 2>/dev/null >/dev/null; then
+if type taskkill 2>/dev/null >/dev/null; then
   KILL="taskkill"
   KILLARGS="-F -PID"
 elif type kill.exe 2>/dev/null >/dev/null; then
