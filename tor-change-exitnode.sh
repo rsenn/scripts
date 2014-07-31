@@ -30,10 +30,10 @@
 ###
  
  
-HOST=127.0.0.1
-PORT=9051
-LOCALPORT=9051 # Matters only if HOST is not `localhost`
-PASSWORD="" # Better leave it empty
+: ${HOST=127.0.0.1}
+: ${PORT=9051}
+: ${LOCALPORT=9051} # Matters only if HOST is not `localhost`
+: ${PASSWORD=""} # Better leave it empty
  
 if [ "${PASSWORD-unset}" = unset ]; then
   echo -n "Tor control password: "
