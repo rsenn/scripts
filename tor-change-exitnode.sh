@@ -30,24 +30,25 @@
 ###
  
  
-HOST="localhost"
+HOST=127.0.0.1
 PORT=9051
 LOCALPORT=9051 # Matters only if HOST is not `localhost`
 PASSWORD="" # Better leave it empty
  
-if [ -z "$PASSWORD" ]; then
-echo -n "Tor control password: "
-read -s PASSWORD
-echo
+if [ "${PASSWORD-unset}" = unset ]; then
+  echo -n "Tor control password: "
+  read -s PASSWORD
+  echo
 fi
  
-if [ "$HOST" != "localhost" ]; then
-ssh -f -o ExitOnForwardFailure=yes -L "$LOCALPORT:localhost:$PORT" "$HOST" sleep 1
-PORT="$LOCALPORT"
+if [ "$HOST" != "127.0.0.1" ]; then
+  ssh -f -o ExitOnForwardFailure=yes -L "$LOCALPORT:127.0.0.1:$PORT" "$HOST" sleep 1
+  PORT="$LOCALPORT"
 fi
  
 (
-nc localhost "$PORT" <<EOF
+set -x
+nc 127.0.0.1 "$PORT" <<EOF
 authenticate "${PASSWORD}"
 signal newnym
 quit
