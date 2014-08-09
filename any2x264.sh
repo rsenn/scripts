@@ -9,9 +9,12 @@ unset DIR FILESIZE
 
 while :; do
     case "$1" in
+   -abr=*|--abr=*) ABR="${1#*=}"; shift ;; -abr|--abr) ABR="$2"; shift 2 ;;
+   -ar=*|--ar=*) AR="${1#*=}"; shift ;; -ar|--ar) AR="$2"; shift 2 ;;
    -b) VBR="$2"; shift 2 ;;
    -d) DIR="$2"; shift 2 ;;
    -r) REMOVE=true; shift ;;
+   -R) RESOLUTION="$2"; shift 2 ;;
    -s) FILESIZE="$2"; shift 2 ;;
   -a) A="$2"; shift 2 ;;
   -c) A="${A:+-vf crop=$2}" shift 2 ;;
@@ -86,8 +89,8 @@ size2ratio()
 #SIZE="320x240"
 : ${VBR:=$((800 * 1024))}
 
-ABR=96000
-AR=44100
+: ${ABR=128000}
+: ${AR=44100}
 
 case "$VBR" in
   *[Kk]) VBR=$((${VBR%[Kk]} * 1024)) ;;
