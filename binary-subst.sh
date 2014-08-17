@@ -5,7 +5,7 @@ IFS="
 
 while :; do
   case "$1" in
-    -i) INPLACE="-i"; shift ;;
+    -i) INPLACE="i"; shift ;;
     -*) OPTS="${OPTS+$OPTS
 }$1"; shift ;;
     *) break ;;
@@ -20,11 +20,16 @@ FILES="$*"
 
 STRINGS=$(strings $FILES |grep "$FROM")
 
+ESCAPE_EXPR="s|=|\\\\=|g"
+
 for STRING in $STRINGS; do
-  REPLACEMENT=$(echo "$FROM" | sed "s|$FROM|$TO|g")
+  REPLACEMENT=$(echo "$STRING" | sed "s|$FROM|$TO|g")
 
   [ "$STRING" = "$REPLACEMENT" ] && continue
 
+  STRING=`echo "$STRING" | sed "$ESCAPE_EXPR"`
+  REPLACEMENT=`echo "$REPLACEMENT" | sed "$ESCAPE_EXPR"`
+
  (set -x
- bsed  -z0 $INPLACE "$STRING=$REPLACEMENT" $FILES)
+ bsed  -z0$INPLACE "$STRING=$REPLACEMENT" $FILES)
 done
