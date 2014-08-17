@@ -60,6 +60,7 @@ SCRIPTS =  \
   bash_functions.sh \
   bash_profile.sh \
   bcmm-dump.sh \
+  binary-subst.sh \
   bridge-setup.sh \
   c256.pl \
   cerberus-dump.sh \
@@ -72,6 +73,7 @@ SCRIPTS =  \
   color-syllables.sh \
   colortable16.sh \
   colortable256.pl \
+  cp-bash-scripts.bash \
   cpio2tar.sh \
   curl-upload.sh \
   cyginst.sh \
@@ -93,7 +95,9 @@ SCRIPTS =  \
   episodes.sh \
   eth-adhoc-vinylz.sh \
   eth-colobern.sh \
+  ethernet-connect.sh \
   extract-urls.sh \
+  exts.txt \
   fastroll.pl \
   fetch-urls.sh \
   file-hoster-urls.sh \
@@ -122,6 +126,7 @@ SCRIPTS =  \
   find-videos.sh \
   flush-iptables.sh \
   fnsed.sh \
+  foldertable.txt \
   functions-assemble.sh \
   functions-dump.sh \
   gen-implibs.sh \
@@ -130,6 +135,7 @@ SCRIPTS =  \
   get-alive.sh \
   get-names.sh \
   git-big-file-finder.sh \
+  git-config.bash \
   google.sh \
   grep-archives.sh \
   grep-audio.sh \
@@ -143,6 +149,8 @@ SCRIPTS =  \
   grep-sources.sh \
   grep-videos.sh \
   grub-files-find.sh \
+  grubcfg.lst \
+  hfsprescue.log \
   hhv-search.sh \
   histogram.awk \
   home-cleanup.sh \
@@ -187,6 +195,7 @@ SCRIPTS =  \
   modarchive.sh \
   mount-4shared.sh \
   mount-any.sh \
+  mount-cifs.sh \
   mount-iso.sh \
   mpc-listall-by-size.sh \
   mpd-gen-playlist.sh \
@@ -202,6 +211,7 @@ SCRIPTS =  \
   ps2tiff.sh \
   ptrace.sh \
   rcat.sh \
+  require.sh \
   rmsem.sh \
   rsed.sh \
   rxvt.sh \
