@@ -2,7 +2,12 @@ if type ssh-agent 2>/dev/null >/dev/null; then
 
 	if [ -z "$SSH_AUTH_SOCK" -o ! -r "$SSH_AUTH_SOCK" ]; then
 		unset SSH_AUTH_SOCK
+	else
+		if ! ssh-add -l  >/dev/null 2>/dev/null; then
+			unset SSH_AUTH_SOCK
+		fi
 	fi
+
 
 	SSH_AGENT_PIDS=`pgrep -f ssh-agent`
 	if [ -n "$SSH_AGENT_PIDS" ]; then
