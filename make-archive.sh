@@ -30,6 +30,7 @@ else
   else
     NAME=${WD##*/}
   fi
+  NAME=${NAME#.}
 
   ARCHIVE=${DESTDIR:-..}/${NAME}
   [ "$NODATE" != true ] && ARCHIVE=$ARCHIVE-`date ${DIR:+-r "$DIR"} +%Y%m%d`
