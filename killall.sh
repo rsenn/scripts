@@ -45,16 +45,6 @@ elif type ps 2>/dev/null >/dev/null; then
   fi
 fi
 
-<<<<<<< HEAD
-if type taskkill 2>/dev/null >/dev/null; then
-  KILL="taskkill"
-  KILLARGS="-F -PID"
-elif type kill.exe 2>/dev/null >/dev/null; then
-  KILL="kill.exe"
-  KILLARGS="$KILLARGS
--f"
-fi
-=======
 case `uname -o` in
   *Linux*) ;;
   *)
@@ -68,8 +58,10 @@ case `uname -o` in
   fi
 ;;
 esac
->>>>>>> 6a93b6e8e8f120e41631105957baa88a61fb4884
+<<<<<<< HEAD
+=======
 
+>>>>>>> 7def9afac3a4f8713496b3463a47601cd8a2ce3e
 
 
 PATTERN=\(`IFS='|'; echo "$*"`\)
