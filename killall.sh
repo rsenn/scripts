@@ -58,10 +58,6 @@ case `uname -o` in
   fi
 ;;
 esac
-<<<<<<< HEAD
-=======
-
->>>>>>> 7def9afac3a4f8713496b3463a47601cd8a2ce3e
 
 
 PATTERN=\(`IFS='|'; echo "$*"`\)
