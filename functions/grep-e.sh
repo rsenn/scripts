@@ -1,7 +1,7 @@
 grep-e()
 {
     (IFS="
-"    unset ARGS;
+";  unset ARGS;
     eval "LAST=\"\${$#}\"";
     if [ ! -d "$LAST" ]; then
         unset LAST;
@@ -16,5 +16,5 @@ grep-e()
             *) WORDS="${WORDS+$WORDS$IFS}$1"; shift ;;
         esac;
     done;
-    grep --color=auto --color=auto --color=auto -E $ARGS "$(grep-e-expr $WORDS)" ${LAST:+$LAST} )
+    grep -E $ARGS "$(grep-e-expr $WORDS)" ${LAST:+$LAST} )
 }

@@ -60,7 +60,6 @@ case `uname -o` in
 esac
 
 
-
 PATTERN=\(`IFS='|'; echo "$*"`\)
 
 PSOUT=`eval "(${DEBUG:+set -x; }\"$PS\" $PSARGS) $PSFILTER"`

@@ -1,7 +1,8 @@
 #!/bin/sh
 
 ADB=adb
-DIR=/storage/emulated/legacy
+#DIR=/storage/emulated/legacy
+DIR=/sdcard
 NAME=${1-screen.png}
 NAME=${NAME%.png}
 

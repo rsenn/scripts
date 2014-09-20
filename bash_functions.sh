@@ -1303,11 +1303,29 @@ git-get-branch() {
   git branch -a |sed -n 's,^\* ,,p'
 }
 
-git-get-remote()
-{
-  ([ $# -lt 1 ] && set -- .
+git-get-remote() {
+ (while :; do
+ 		case "$1" in
+			-l | --list) LIST=true; shift ;;
+		  -n | --name) NAME=$2; shift 2 ;; -n=* | --name=*) NAME=${1#*=}; shift ;; 
+			*) break ;;
+		esac
+	done
+	[ $# -lt 1 ] && set -- .
   [ $# -gt 1 ] && FILTER="sed \"s|^|\$DIR: |\"" || FILTER=
-  CMD="REMOTE=\`git remote -v 2>/dev/null | sed \"s|\\s\\+| |g ;; s|\\s*([^)]*)||\" |uniq ${FILTER:+|$FILTER}\`;"
+
+	EXPR="s|\\s\\+| |g"
+	if [ -n "$NAME" ]; then
+		EXPR="$EXPR ;; \\|^$NAME\s|!d"
+	fi
+	if [ "$LIST" = true ]; then
+		EXPR="$EXPR ;; s| .*||"
+	else
+		EXPR="$EXPR ;; s|\\s*([^)]*)||"
+	fi
+  CMD="REMOTE=\`git remote -v 2>/dev/null"
+	CMD="$CMD | sed \"$EXPR\""
+	CMD="$CMD |uniq ${FILTER:+|$FILTER}\`;"
   CMD=$CMD'echo "$REMOTE"'
   for DIR; do
 					(cd "${DIR%/.git}" >/dev/null &&	eval "$CMD")
@@ -1336,13 +1354,13 @@ git-set-remote()
 
 grep-e-expr()
 {
-  implode "|" "$@"  |sed 's,[()],&,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*\\],\\&,g ; s,.*,(&),'
+  implode "|" <<<"$*"  |sed 's,[()],&,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*\\],\\&,g ; s,.*,(&),'
 }
 
 grep-e()
 {
     (IFS="
-"    unset ARGS;
+";  unset ARGS;
     eval "LAST=\"\${$#}\"";
     if [ ! -d "$LAST" ]; then
         unset LAST;
@@ -1357,7 +1375,7 @@ grep-e()
             *) WORDS="${WORDS+$WORDS$IFS}$1"; shift ;;
         esac;
     done;
-    grep --color=auto --color=auto --color=auto -E $ARGS "$(grep-e-expr $WORDS)" ${LAST:+$LAST} )
+    grep -E $ARGS "$(grep-e-expr $WORDS)" ${LAST:+$LAST} )
 }
 
 grep-v-optpkgs()
@@ -3511,6 +3529,24 @@ rm_ver()
 ";
     [ $# -gt 0 ] && exec <<< "$*";
     sed 's,-[^-]*$,,' )
+}
+
+samplerate()
+{
+  ( N=$#
+  for ARG in "$@";
+  do
+		EXPR='/^Sampling rate/ { s,^[^:]*:\s*,,; p }'
+    test $N -le 1 && P="" || P="$ARG:"
+
+		HZ=$(mediainfo "$ARG" | sed -n "$EXPR")
+
+		case "$HZ" in
+			*KHz) HZ=$(echo "${HZ% KHz} * 1000" | bc -l| sed 's,\.0*$,,') ;;
+		  *Hz) HZ=$(echo "${HZ% Hz}" | sed 's, ,,g') ;;
+		esac	
+		echo "$P$HZ" 
+	done)
 }
 
 scriptdir()
