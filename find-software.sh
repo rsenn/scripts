@@ -8,7 +8,7 @@ find_music()
 	(
    IFS="
 	 "
-		EXTS="*setup*.exe *install*.exe *.msi"
+		EXTS="*setup*.exe *install*.exe *.msi *.run *.dmg *.app *.apk"
 		
 		[ "$#" -le 0 ] && set -- *
 
