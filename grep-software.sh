@@ -1,5 +1,5 @@
 #!/bin/bash
-EXTS="rar zip 7z tar.gz tar.xz tar.bz2 tgz txz tbz2 exe msi deb rpm iso daa"
+EXTS="rar zip 7z tar.gz tar.xz tar.bz2 tgz txz tbz2 exe msi deb rpm iso daa dmg run pkg app"
 
 while :; do
   case "$1" in
