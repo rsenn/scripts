@@ -62,6 +62,7 @@ SCRIPTS =  \
   bcmm-dump.sh \
   binary-subst.sh \
   bridge-setup.sh \
+  rtf2doc.pl \
   c256.pl \
   cerberus-dump.sh \
   check-symlinks.sh \
