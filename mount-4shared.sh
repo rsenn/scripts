@@ -1,7 +1,7 @@
 #!/bin/sh
 USERNAME="roman.l.senn@gmail.com"
 PASSWORD="lalala"
-MNTPOINT=$HOME/4shared/
+MNTPOINT=${1:-"$HOME/4shared/"}
 
 #TEMPFILE=$(mktemp)
 #trap 'rm -vf "$TEMPFILE"' EXIT INT TERM
@@ -11,5 +11,8 @@ MNTPOINT=$HOME/4shared/
 #EOF
 #grep -H ".*" "$TEMPFILE"
 
-mount -t davfs http://webdav.4shared.com:80/wa "$MNTPOINT" -o conf="$HOME/.davfs2.conf"
+if 
+
+mkdir -p "$MNTPOINT"
+sudo mount -t davfs http://webdav.4shared.com:80/wa "$MNTPOINT" -o rw,conf="$HOME/.davfs2.conf",uid=`id -u`,gid=`id -g`
 

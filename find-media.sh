@@ -79,7 +79,7 @@ while :; do
 	esac
 done
 
-if [ "$CASE_CENSITIVE" != true ]; then
+if [ "$CASE_SENSITIVE" != true ]; then
   GREP_ARGS="${GREP_ARGS:+$IFS}-i"
 fi
 
