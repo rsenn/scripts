@@ -248,4 +248,5 @@ SCRIPTS =  \
   wlan-linksys.sh \
   wlan-restart.sh \
   wlan-tmwnet.sh \
-  x2x-ssh-fuse.sh
+  x2x-ssh-fuse.sh \
+	geteltorito.pl
