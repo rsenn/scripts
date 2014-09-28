@@ -1771,21 +1771,20 @@ incv()
 }
 
 index-dir()
-{
+{ 
     [ -z "$*" ] && set -- .;
     ( for ARG in "$@";
     do
         ( cd "$ARG";
-        if ! test -w "$PWD" ; then
-          echo "Cannot write to $PWD ..." 1>&2
-          exit
-        fi
+        if ! test -w "$PWD"; then
+            echo "Cannot write to $PWD ..." 1>&2;
+            exit;
+        fi;
         echo "Indexing directory $PWD ..." 1>&2;
-        TEMP=`mktemp /tmp/"${PWD##*/}XXXXXX.list"`
-        trap 'rm -f "$TEMP"; unset TEMP' EXIT
-        (list-r 2>/dev/null || list-recursive) >"$TEMP";
-        (install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP") ||
-        mv -f "$TEMP" "$PWD/files.list";
+        TEMP=`mktemp "$PWD/XXXXXX.list"`;
+        trap 'rm -f "$TEMP"; unset TEMP' EXIT;
+        ( list-r 2> /dev/null || list-recursive ) > "$TEMP";
+        ( install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/files.list";
         wc -l "$PWD/files.list" 1>&2 );
     done )
 }
@@ -2053,6 +2052,18 @@ killall-w32()
 lastarg()
 {
     ( eval echo "\${$#}" )
+}
+
+launch-x11() {
+ (IFS=" "
+  CMD="$*"
+
+  : ${DISPLAY:=":0"}
+
+  export DISPLAY
+  xhost +
+
+  eval "$CMD" 2>/dev/null >/dev/null &)
 }
 
 len()
@@ -3529,24 +3540,6 @@ rm_ver()
 ";
     [ $# -gt 0 ] && exec <<< "$*";
     sed 's,-[^-]*$,,' )
-}
-
-samplerate()
-{
-  ( N=$#
-  for ARG in "$@";
-  do
-		EXPR='/^Sampling rate/ { s,^[^:]*:\s*,,; p }'
-    test $N -le 1 && P="" || P="$ARG:"
-
-		HZ=$(mediainfo "$ARG" | sed -n "$EXPR")
-
-		case "$HZ" in
-			*KHz) HZ=$(echo "${HZ% KHz} * 1000" | bc -l| sed 's,\.0*$,,') ;;
-		  *Hz) HZ=$(echo "${HZ% Hz}" | sed 's, ,,g') ;;
-		esac	
-		echo "$P$HZ" 
-	done)
 }
 
 scriptdir()
