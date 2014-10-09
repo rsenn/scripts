@@ -174,6 +174,26 @@ pathmunge() {
   unset PATHVAR
 }
 
+pathremove() {
+  old_IFS="$IFS"
+  IFS=":"
+	RET=1
+  unset NEWPATH
+
+  for DIR in $PATH; do
+    for ARG; do
+      case "$DIR" in
+        $ARG) RET=0; continue 2 ;;
+      esac
+    done
+    NEWPATH="${NEWPATH+$NEWPATH:}$DIR"
+  done
+
+  PATH="$NEWPATH"
+  IFS="$old_IFS"
+  unset NEWPATH old_IFS
+	return $RET
+}
 list-mediapath()
 {
   for ARG; do
@@ -297,23 +317,10 @@ case "$MSYSTEM" in
 ;;
 esac
 
-[ -d /sbin ] && pathmunge /sbin
-[ -d /usr/sbin ] && pathmunge /usr/sbin
-pathremove() {
-  old_IFS="$IFS"
-  IFS=":"
-  unset NEWPATH
+#[ -d /sbin ] && pathmunge /sbin
+#[ -d /usr/sbin ] && pathmunge /usr/sbin
 
-  for DIR in $PATH; do
-    for ARG; do
-      case "$DIR" in
-        $ARG) continue 2 ;;
-      esac
-    done
-    NEWPATH="${NEWPATH+$NEWPATH:}$DIR"
-  done
-
-  PATH="$NEWPATH"
-  IFS="$old_IFS"
-  unset NEWPATH old_IFS
-}
+pathremove /bin && pathmunge /bin after
+pathremove /sbin && pathmunge /sbin after
+pathremove /usr/bin && pathmunge /usr/bin after
+pathremove /usr/sbin && pathmunge /usr/sbin after
