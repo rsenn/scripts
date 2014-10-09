@@ -105,7 +105,7 @@ trap ': grep --color -H ".*" "$COOKIEFILE"; rm -f "$COOKIEFILE"
 readcookies()
 {
 #  echo "Filtering for $EXTLIST ..." 1>&2
-#  egrep -i "\.($EXTLIST)\$" |
+#  grep -E -i "\.($EXTLIST)\$" |
 #  while read FILE; do
 #    echo "Got file $FILE ." 1>&2
 #    echo "$FILE"
@@ -158,7 +158,7 @@ for URL in $URLS; do
         #sed -e 's,[-+a-z]\+://,\n&,g' | grep '^[-+a-z]*://' | sed -e 's,[ ">].*,,' 
     ;;
   esac |  #|
- (egrep -i "\.($EXTLIST)\$") |
+ (grep -E -i "\.($EXTLIST)\$") |
  (while read FILE; do
     #echo "Downloading \"$FILE\"..." 1>&2
     case $FLAGS_client:$FLAGS_print_urls in
