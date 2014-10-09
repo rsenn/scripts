@@ -148,8 +148,7 @@ esac
 
 #: ${PS1:='\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '}
 
-pathmunge()
-{
+pathmunge() {
   while :; do
     case "$1" in
       -v) PATHVAR="$2"; shift 2 ;;
@@ -300,3 +299,21 @@ esac
 
 [ -d /sbin ] && pathmunge /sbin
 [ -d /usr/sbin ] && pathmunge /usr/sbin
+pathremove() {
+  old_IFS="$IFS"
+  IFS=":"
+  unset NEWPATH
+
+  for DIR in $PATH; do
+    for ARG; do
+      case "$DIR" in
+        $ARG) continue 2 ;;
+      esac
+    done
+    NEWPATH="${NEWPATH+$NEWPATH:}$DIR"
+  done
+
+  PATH="$NEWPATH"
+  IFS="$old_IFS"
+  unset NEWPATH old_IFS
+}
