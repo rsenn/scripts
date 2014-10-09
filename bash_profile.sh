@@ -324,3 +324,7 @@ pathremove /bin && pathmunge /bin after
 pathremove /sbin && pathmunge /sbin after
 pathremove /usr/bin && pathmunge /usr/bin after
 pathremove /usr/sbin && pathmunge /usr/sbin after
+
+pathremove /usr/local/bin && pathmunge /usr/local/bin 
+pathremove /usr/local/sbin && pathmunge /usr/local/sbin
+
