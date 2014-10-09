@@ -3130,6 +3130,27 @@ pathmunge()
   unset PATHVAR
 }
 
+pathremove() {
+  old_IFS="$IFS"
+  IFS=":"
+	RET=1
+  unset NEWPATH
+
+  for DIR in $PATH; do
+    for ARG; do
+      case "$DIR" in
+        $ARG) RET=0; continue 2 ;;
+      esac
+    done
+    NEWPATH="${NEWPATH+$NEWPATH:}$DIR"
+  done
+
+  PATH="$NEWPATH"
+  IFS="$old_IFS"
+  unset NEWPATH old_IFS
+	return $RET
+}
+
 pdfpextr()
 {
 (FIRST=$(($1)) LAST=$(($2))
@@ -3540,24 +3561,6 @@ rm_ver()
 ";
     [ $# -gt 0 ] && exec <<< "$*";
     sed 's,-[^-]*$,,' )
-}
-
-samplerate()
-{
-  ( N=$#
-  for ARG in "$@";
-  do
-		EXPR='/^Sampling rate/ { s,^[^:]*:\s*,,; p }'
-    test $N -le 1 && P="" || P="$ARG:"
-
-		HZ=$(mediainfo "$ARG" | sed -n "$EXPR")
-
-		case "$HZ" in
-			*KHz) HZ=$(echo "${HZ% KHz} * 1000" | bc -l| sed 's,\.0*$,,') ;;
-		  *Hz) HZ=$(echo "${HZ% Hz}" | sed 's, ,,g') ;;
-		esac	
-		echo "$P$HZ" 
-	done)
 }
 
 scriptdir()
