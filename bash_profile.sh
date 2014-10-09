@@ -62,7 +62,7 @@ has_cmd gls && alias ls="gls $LS_ARGS" || alias ls="ls $LS_ARGS"
 
 for BIN in \
 	awk base64 basename cat chcon chgrp chmod chown chroot cksum comm cp \
-	csplit cut date dd df dir dircolors dirname du echo env expand expr factor \
+	csplit cut date dd df dir dircolors dirname du env expand expr factor \
 	false find fmt fold groups head hostid id install join kill libtool \
 	libtoolize link ln locate logname m4 md5sum mkdir mkfifo mknod mktemp mv \
 	nice nl nohup nproc numfmt od oldfind paste pathchk pinky pr printenv printf \
