@@ -170,4 +170,4 @@ pattern "http://keep2share.cc/file/$HEXNUM/$FILENAME"
 pattern "http://rapidshare.com/files/$FILENAME"
 pattern "http://uploading.com/files/$HEXNUM/$FILENAME/"
 
-exec egrep "^($PATTERNS)\$" "$@"
+exec grep -E "^($PATTERNS)\$" "$@"

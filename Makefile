@@ -1,8 +1,13 @@
+OS := $(shell uname -o 2>/dev/null || uname)
+
+ifeq ($(OS),Darwin)
+prefix = /usr/local
+else
 prefix = /usr
+endif
 bindir = ${prefix}/bin
 
 INSTALL = install
-
 
 all:
 install: $(SCRIPTS)
