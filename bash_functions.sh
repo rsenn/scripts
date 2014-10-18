@@ -2595,6 +2595,9 @@ mkzroot()
     DEST=$(ls -d ` mountpoints /pmagic/pmodules ` 2>/dev/null);
     for DIR in $DEST;
     do
+      case "$DIR" in
+        /mnt/*/mnt/*) continue ;;
+      esac
         ( CMD="xz -1  -c <\"\$TEMPTAR\"  >\"\$DIR/zroot.xz\"";
         eval "echo \"+ $CMD\" 1>&2";
         eval "$CMD" );
@@ -3561,6 +3564,24 @@ rm_ver()
 ";
     [ $# -gt 0 ] && exec <<< "$*";
     sed 's,-[^-]*$,,' )
+}
+
+samplerate()
+{
+  ( N=$#
+  for ARG in "$@";
+  do
+		EXPR='/^Sampling rate/ { s,^[^:]*:\s*,,; p }'
+    test $N -le 1 && P="" || P="$ARG:"
+
+		HZ=$(mediainfo "$ARG" | sed -n "$EXPR")
+
+		case "$HZ" in
+			*KHz) HZ=$(echo "${HZ% KHz} * 1000" | bc -l| sed 's,\.0*$,,') ;;
+		  *Hz) HZ=$(echo "${HZ% Hz}" | sed 's, ,,g') ;;
+		esac	
+		echo "$P$HZ" 
+	done)
 }
 
 scriptdir()
