@@ -3120,7 +3120,7 @@ pathmunge()
           set -- `${PATHTOOL:-msyspath} "$tmp"` "$@"
       ;;
   esac;
-  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | egrep -q "(^|:)$1($|:)"; then
+  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | grep -E -q "(^|:)$1($|:)"; then
       if test "$2" = "after"; then
           eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
       else
@@ -3128,6 +3128,27 @@ pathmunge()
       fi;
   fi
   unset PATHVAR
+}
+
+pathremove() {
+  old_IFS="$IFS"
+  IFS=":"
+	RET=1
+  unset NEWPATH
+
+  for DIR in $PATH; do
+    for ARG; do
+      case "$DIR" in
+        $ARG) RET=0; continue 2 ;;
+      esac
+    done
+    NEWPATH="${NEWPATH+$NEWPATH:}$DIR"
+  done
+
+  PATH="$NEWPATH"
+  IFS="$old_IFS"
+  unset NEWPATH old_IFS
+	return $RET
 }
 
 pdfpextr()
@@ -3542,24 +3563,6 @@ rm_ver()
     sed 's,-[^-]*$,,' )
 }
 
-samplerate()
-{
-  ( N=$#
-  for ARG in "$@";
-  do
-		EXPR='/^Sampling rate/ { s,^[^:]*:\s*,,; p }'
-    test $N -le 1 && P="" || P="$ARG:"
-
-		HZ=$(mediainfo "$ARG" | sed -n "$EXPR")
-
-		case "$HZ" in
-			*KHz) HZ=$(echo "${HZ% KHz} * 1000" | bc -l| sed 's,\.0*$,,') ;;
-		  *Hz) HZ=$(echo "${HZ% Hz}" | sed 's, ,,g') ;;
-		esac	
-		echo "$P$HZ" 
-	done)
-}
-
 scriptdir()
 {
     local absdir reldir thisdir="`pwd`";
@@ -3669,6 +3672,26 @@ subst_script()
         fi;
     done;
     array_implode script ';'
+}
+
+svgsize() {
+(while :; do
+   case "$1" in
+		-xy | --xy) XY=true; shift ;;
+*) break ;;
+esac
+done
+
+  sed -n  's,.*viewBox=[^0-9]*\([0-9][0-9]*\)[^0-9][^0-9]*\([0-9][0-9]*\)[^0-9][^0-9]*\([0-9][0-9]*\)[^0-9][^0-9]*\([0-9][0-9]*\).*,\1 \2 \3 \4,p' "$@" | 
+	(IFS=" "; while  read -r x y w h; do
+
+	if [ "$XY" = true ]; then
+			echo x$(expr "$w" - "$x")Y$(expr "$h" - "$y")
+		else
+			echo $(expr "$w" - "$x") $(expr "$h" - "$y")
+	fi
+	done)
+	)
 }
 
 symlink-lib()

@@ -7,7 +7,7 @@ if [ -z "$2" ]; then
   CTX=20
 fi
 
-URLS=`egrep -i ${CTX:+-C "$CTX"} "(${2-$EXPR})" "$LIST" | grep -v '^-'`
+URLS=`grep -E -i ${CTX:+-C "$CTX"} "(${2-$EXPR})" "$LIST" | grep -v '^-'`
 IFS="
 "
 

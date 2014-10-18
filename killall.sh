@@ -23,10 +23,17 @@ IFS=$' \t\r\n'
 #  PATH="$PATH:$DIR:$DIR/wbem"
 #done
 
-if type tlist 2>/dev/null >/dev/null; then
+OS=`uname -o 2>/dev/null || uname`
+SED=sed
+
+if [ "$OS" = Darwin ]; then
+  PS="ps"
+	PSARGS="-axw"
+  PSFILTER=""
+elif type tlist 2>/dev/null >/dev/null; then
   PS="tlist"
   PSARGS="-c"
-  PSFILTER="2>&1 | sed ':lp; N; \$! { b lp; } ; s,\\n\\s\\+,\\t,g'"
+  PSFILTER="2>&1 | $SED ':lp; N; \$! { b lp; } ; s,\\n\\s\\+,\\t,g'"
 elif [ -e "$SYSTEMROOT/system32/wbem/wmic" ]; then
   PS="$SYSTEMROOT/system32/wbem/wmic"
   PSARGS="process get ProcessID,CommandLine -VALUE"
@@ -45,7 +52,8 @@ elif type ps 2>/dev/null >/dev/null; then
   fi
 fi
 
-case `uname -o` in
+case `uname -o 2>/dev/null || uname` in
+  *Darwin*) ;;
   *Linux*) ;;
   *)
   if type taskkill.exe 2>/dev/null >/dev/null; then
@@ -61,10 +69,9 @@ esac
 
 
 PATTERN=\(`IFS='|'; echo "$*"`\)
-
 PSOUT=`eval "(${DEBUG:+set -x; }\"$PS\" $PSARGS) $PSFILTER"`
 PSMATCH=` echo "$PSOUT" | grep -i -E "$PATTERN" `
-PIDS=` echo "$PSMATCH" | sed -n "/${0##*/}/! s,^[^0-9]*\([0-9]\+\).*,\1,p"`
+PIDS=` echo "$PSMATCH" | $SED -n "/${0##*/}/! s,^[^0-9]*\([0-9][0-9]*\).*,\1,p"`
 
 if [ -z "$PIDS" ]; then
   echo "No matching process ($@)" 1>&2

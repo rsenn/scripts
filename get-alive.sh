@@ -14,7 +14,7 @@ IFS="
 
 sed -n \
   -e "s,.*\[\(.*\)\].*\(http://.*\),\2 \[\1\],p" $FROM \
-  | egrep -i "($WHAT)" \
+  | grep -E -i "($WHAT)" \
   | sed \
       -e 's,.\[[0-9]\+m,,g' \
   | cat | #: awk '{ print $1 }'  \

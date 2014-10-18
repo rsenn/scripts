@@ -114,7 +114,7 @@ main()
   fi
 
   if [ "$IGNORE" ]; then
-    PKGS=`echo "$PKGS" | egrep -v "^($IGNORE)\$"`
+    PKGS=`echo "$PKGS" | grep -E -v "^($IGNORE)\$"`
   fi
 
   if [ "$FLAGS_print" = "$FLAGS_TRUE" ]; then
