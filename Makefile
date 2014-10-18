@@ -250,4 +250,5 @@ SCRIPTS =  \
   wlan-restart.sh \
   wlan-tmwnet.sh \
   x2x-ssh-fuse.sh \
-	geteltorito.pl
+	geteltorito.pl \
+	qemu-system-macosx.sh
