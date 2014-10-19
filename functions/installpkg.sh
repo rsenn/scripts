@@ -9,7 +9,7 @@ installpkg() {
   fi
   for ARG in $ARGS; do
      case "$ARG" in
-       *://*) (cd "$PKGDIR"; wget -c "$ARG"); ARG="$PKGDIR/${ARG##*/}" ;;
+       *://*) (wget ${PKGDIR:+-P "$PKGDIR"} -c "$ARG"; ARG="$PKGDIR/${ARG##*/}" ;;
      esac
      command installpkg "$ARG"
   done)
