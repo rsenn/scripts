@@ -37,6 +37,7 @@ inst-slackpkg: slackpkg
   done
 
 SCRIPTS =  \
+ \
   aaview.sh \
   adb-screenshot.sh \
   am2cmake.rb \
@@ -67,7 +68,6 @@ SCRIPTS =  \
   bcmm-dump.sh \
   binary-subst.sh \
   bridge-setup.sh \
-  rtf2doc.pl \
   c256.pl \
   cerberus-dump.sh \
   check-symlinks.sh \
@@ -79,7 +79,6 @@ SCRIPTS =  \
   color-syllables.sh \
   colortable16.sh \
   colortable256.pl \
-  cp-bash-scripts.bash \
   cpio2tar.sh \
   curl-upload.sh \
   cyginst.sh \
@@ -99,11 +98,10 @@ SCRIPTS =  \
   enable-ip-forward.sh \
   enable-proxy-arp.sh \
   episodes.sh \
+  eps2svg.sh \
   eth-adhoc-vinylz.sh \
   eth-colobern.sh \
-  ethernet-connect.sh \
   extract-urls.sh \
-  exts.txt \
   fastroll.pl \
   fetch-urls.sh \
   file-hoster-urls.sh \
@@ -132,16 +130,15 @@ SCRIPTS =  \
   find-videos.sh \
   flush-iptables.sh \
   fnsed.sh \
-  foldertable.txt \
   functions-assemble.sh \
   functions-dump.sh \
   gen-implibs.sh \
-  gencmake.rb \
   gendvdimage.sh \
   get-alive.sh \
   get-names.sh \
+  geteltorito.pl \
   git-big-file-finder.sh \
-  git-config.bash \
+  git-pull.sh \
   google.sh \
   grep-archives.sh \
   grep-audio.sh \
@@ -155,8 +152,6 @@ SCRIPTS =  \
   grep-sources.sh \
   grep-videos.sh \
   grub-files-find.sh \
-  grubcfg.lst \
-  hfsprescue.log \
   hhv-search.sh \
   histogram.awk \
   home-cleanup.sh \
@@ -201,7 +196,6 @@ SCRIPTS =  \
   modarchive.sh \
   mount-4shared.sh \
   mount-any.sh \
-  mount-cifs.sh \
   mount-iso.sh \
   mpc-listall-by-size.sh \
   mpd-gen-playlist.sh \
@@ -216,10 +210,11 @@ SCRIPTS =  \
   proxy-list.sh \
   ps2tiff.sh \
   ptrace.sh \
+  qemu-system-macosx.sh \
   rcat.sh \
-  require.sh \
   rmsem.sh \
   rsed.sh \
+  rtf2doc.pl \
   rxvt.sh \
   scan-open-wlans.sh \
   scriptlist.sh \
@@ -254,6 +249,4 @@ SCRIPTS =  \
   wlan-linksys.sh \
   wlan-restart.sh \
   wlan-tmwnet.sh \
-  x2x-ssh-fuse.sh \
-	geteltorito.pl \
-	qemu-system-macosx.sh
+  x2x-ssh-fuse.sh
