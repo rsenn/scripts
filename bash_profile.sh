@@ -69,7 +69,7 @@ for BIN in \
 	ptx pwd readlink realpath rm rmdir runcon sed seq sha1sum sha224sum sha256sum \
 	sha384sum sha512sum shred shuf sleep sort split stat stdbuf stty sum sync tac \
 	tail tee test timeout touch tr true truncate tsort tty uname unexpand uniq \
-	unlink updatedb uptime users vdir wc who whoami xargs yes
+	unlink updatedb uptime users vdir wc who whoami yes
 do
 	 has_cmd "g$BIN" && alias "$BIN=g$BIN"
 done
