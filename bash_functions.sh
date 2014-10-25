@@ -2398,7 +2398,7 @@ ls-files()
     done ) | filter-test -f| sed 's,^\./,,; s,/$,,'
 }
 
-ls-l()
+ls-list()
 {
     ( I=${1:-6};
     set --;
