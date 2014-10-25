@@ -1,5 +1,6 @@
 #!/bin/sh
-
+IFS="
+"
 
 while :; do
 
@@ -7,6 +8,7 @@ while :; do
     -p | --print) PRINT=true; shift ;;
     -r | --recursive) RECURSIVE=true; shift ;;
     -d | --delete) DELETE=true; shift ;;
+    -s | --simple) SIMPLE=true; shift ;;
   *) break ;;
   esac
 
@@ -27,7 +29,7 @@ while [ "$1" ]; do
   test -h "$ARG" || continue
 
   SYMLINKS="${SYMLINKS:+$SYMLINKS
-}$ARG"
+}${ARG#./}"
 
 done
 
@@ -48,8 +50,12 @@ for SYMLINK in $SYMLINKS; do
    if [ "$DELETE" = true ]; then 
      rm -vf "$BASE"
    else
-   echo "Target '$TARGET' of symlink "$SYMLINK" not found!" 1>&2
- fi
+    if [ "$SIMPLE" = true ]; then
+		 echo "$SYMLINK" 1>&2
+		else
+		 echo "Target '$TARGET' of symlink "$SYMLINK" not found!" 1>&2
+	 fi
+	 fi
 
  fi
   )

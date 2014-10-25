@@ -52,11 +52,11 @@ has_cmd gxargs && alias xargs='gxargs -d "\n"' || alias xargs='xargs -d "\n"'
 
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
 
-ls --help 2>&1|grep -q '\--color' && LS_ARGS="$LS_ARGS --color=auto"
-ls --help 2>&1|grep -q '\--time-style' && LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
+ls --help 2>&1|/bin/grep -q '\--color' && LS_ARGS="$LS_ARGS --color=auto"
+ls --help 2>&1|/bin/grep -q '\--time-style' && LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
 
-grep --help 2>&1|grep -q '\--color' && GREP_ARGS="$GREP_ARGS --color=auto"
-grep --help 2>&1|grep -q '\--line-buffered' && GREP_ARGS="$GREP_ARGS --line-buffered"
+/bin/grep --help 2>&1|/bin/grep -q '\--color' && GREP_ARGS="$GREP_ARGS --color=auto"
+/bin/grep --help 2>&1|/bin/grep -q '\--line-buffered' && GREP_ARGS="$GREP_ARGS --line-buffered"
 
 has_cmd gls && alias ls="gls $LS_ARGS" || alias ls="ls $LS_ARGS"
 
@@ -74,7 +74,7 @@ do
 	 has_cmd "g$BIN" && alias "$BIN=g$BIN"
 done
 
-alias grep="grep $GREP_ARGS"
+alias grep="/bin/grep $GREP_ARGS"
 alias grepdiff='grepdiff --output-matching=hunk'
 
 #unalias cp  2>/dev/null
@@ -164,7 +164,7 @@ pathmunge() {
           set -- `$PATHTOOL "$tmp"` "$@"
       ;;
   esac;
-  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | grep -E -q "(^|:)$1($|:)"; then
+  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | /bin/grep -E -q "(^|:)$1($|:)"; then
       if test "$2" = "after"; then
           eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
       else
