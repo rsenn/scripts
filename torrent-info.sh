@@ -10,9 +10,10 @@ Usage: `basename $0 .sh` [options] <files...>
   -h, --human-size   Show human-readable size
   -s, --show-size    Show torrent size
   -r, --rename       Rename torrent files
-  -n, --derive-name  Dervice name
+  -n, --derive-name  Derive name
   -p, --print-only   Print commands only
   -f, --force        Force
+      --help         Show this help
 __EOF
 
 
@@ -21,7 +22,7 @@ __EOF
 
 while :; do
   case "$1" in
-    -h | --help) HELP=true ; shift ;;
+     --help) HELP=true ; shift ;;
     -H | --file*name* ) SHOW_FILENAME=true ; shift ;;
     -h | --human-size | --*human*) HUMAN_SIZE=true SHOW_SIZE=true; shift ;;
     -s | --show-size | --*size*) SHOW_SIZE=true; shift ;;
