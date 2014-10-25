@@ -68,7 +68,7 @@ ctor_listfiles()
 
       #eval "O=\"\${O:+\$O
 #}${OUTPUT:-\${DIR:+\$DIR/}\${FILE}}\""
-      eval "echo \"${OUTPUT:-\${DIR:+\$DIR/}\${FILE}}\""
+      eval "echo \"${OUTPUT-\${DIR:+\$DIR/}\${FILE}}\""
       ;;
     *) 
       echo "No such line: $LINE" 1>&2 
