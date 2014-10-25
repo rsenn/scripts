@@ -88,6 +88,7 @@ else
 fi
 type yum 2>/dev/null >/dev/null && alias yum="$SUDO yum -y"
 #type smart 2>/dev/null >/dev/null && alias smart="$SUDO smart -y"
+type zypper 2>/dev/null >/dev/null && alias zypper="$SUDO zypper"
 type apt-get 2>/dev/null >/dev/null && alias apt-get="$SUDO apt-get -y"
 type aptitude 2>/dev/null >/dev/null && alias aptitude="$SUDO aptitude -y"
 
