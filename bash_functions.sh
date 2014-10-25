@@ -3628,6 +3628,18 @@ shell-functions()
     declare -f | script_fnlist )
 }
 
+show-builtin-defines() {
+ (NARG=$#
+  CMD='"$ARG" -dM -E - <<EOF
+EOF'
+  if [ "$NARG" -gt 1 ]; then
+    CMD="$CMD | addprefix \"\$ARG\":"
+  fi
+  eval "for ARG; do
+    $CMD
+  done")
+}
+
 some()
 {
     eval "while shift
