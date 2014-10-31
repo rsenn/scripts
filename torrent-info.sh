@@ -2,6 +2,8 @@
 
 IFS="
 "
+NL="
+"
 help() {
   cat <<__EOF
 Usage: `basename $0 .sh` [options] <files...>
@@ -41,6 +43,8 @@ fi
 ctor_listfiles()
 {
  (DIR= FILE= O=
+ IFS="
+"
   set -- $CTOR
   while [ "$1" != "FILES INFO" ]; do
     shift
@@ -62,8 +66,13 @@ ctor_listfiles()
         LINE=${LINE##*" ["}
         SIZE=${LINE%"]"*}
 
-       eval "O=\"\${O:+\$O
-}${OUTPUT}\""
+      #eval "O=\"\${O:+\$O
+#}${OUTPUT:-\${DIR:+\$DIR/}\${FILE}}\""
+      eval "echo \"${OUTPUT-\${DIR:+\$DIR/}\${FILE}}\""
+      ;;
+    *) 
+      echo "No such line: $LINE" 1>&2 
+      exit 2
       ;;
     esac
   done
@@ -103,12 +112,13 @@ fi
 if [ "$DERIVE_NAME" = true -o "$DO_RENAME" = true ]; then
   CMD="$CMD | sed s,/.*,, | uniq"
  if [ "$DO_RENAME" = true ] ; then
-    CMD="mv -vf -- \"\$ARG\" \"\$($CMD).torrent\""
+   CMD=" mv -vf -- \"\$ARG\" \"\$($CMD).torrent\" # \$($CMD)"
     [ "$PRINT_ONLY" = true ] && CMD="echo \"$(escape "$CMD")\""
-fi
+  fi
 fi
 
 [ "$ARGC" -gt 1 -o "$SHOW_FILENAME" = true ] && OUTPUT="\$ARG: $OUTPUT"
+echo "CMD='$CMD'" 1>&2
 for ARG in $ARGS; do
   CTOR=$(ctorrent -x "$ARG")
   if ! [ "$CTOR" ] || ! eval "$CMD"; then
@@ -117,5 +127,4 @@ for ARG in $ARGS; do
       exit $?
     fi
   fi
-
 done

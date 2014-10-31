@@ -77,9 +77,12 @@ case "$ARCHIVE" in
   *.7z) CMD='${SEVENZIP:-7za} a -mx=$(( $LEVEL * 5 / 9 )) "$ARCHIVE" '$(create-list '-x!' $EXCLUDE)' "$DIR"' ;;
   *.zip) CMD='zip -${LEVEL} -r "$ARCHIVE" "$DIR" '$(create-list '-x ' $EXCLUDE)' ' ;;
   *.rar) CMD='rar a -m$(($LEVEL * 5 / 9)) -r '$(create-list '-x' $EXCLUDE)' "$ARCHIVE" "$DIR"' ;;
-	*.txz|*.$TAR.xz) CMD='$TAR -cvJf "$ARCHIVE" '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR")' ;;
-  *.tgz|*.$TAR.gz) CMD='$TAR -cvzf "$ARCHIVE" '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR")' ;;
-  *.tbz2|*.tbz|*.$TAR.bz2) CMD='$TAR -cvjf "$ARCHIVE" '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR")' ;;
+  *.txz|*.tar.xz) CMD='$TAR -cv '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR") | xz -$LEVEL >"$ARCHIVE"' ;;
+  *.tlzma|*.tar.lzma) CMD='$TAR -cv '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR") | lzma -$LEVEL >"$ARCHIVE"' ;;
+  *.tlzip|*.tar.lzip) CMD='$TAR -cv '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR") | lzip -$LEVEL >"$ARCHIVE"' ;;
+  *.tlzo|*.tar.lzo) CMD='$TAR -cv '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR") | lzop -$LEVEL >"$ARCHIVE"' ;;
+  *.tgz|*.tar.gz) CMD='$TAR -cv '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR") | gzip -$LEVEL >"$ARCHIVE"' ;;
+  *.tbz2|*.tbz|*.tar.bz2) CMD='$TAR -cv '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR") | bzip2 -$LEVEL >"$ARCHIVE"' ;;
 esac
 CMD='rm -vf "$ARCHIVE";'$CMD
 echo "CMD='$CMD'" 1>&2
