@@ -549,6 +549,9 @@ device-of-file()
             fi;
             DEV=`(grep -E "^[^ ]*\s+$ARG\s" /proc/mounts ;  df "$ARG" |sed '1d' )|awkp 1|head -n1`;
             [ $# -gt 1 ] && DEV="$ARG: $DEV";
+
+						[ "$DEV" = rootfs -o "$DEV" = /dev/root ] && DEV=`get-rootfs`
+
             echo "$DEV";
         fi );
     done )
@@ -1202,6 +1205,13 @@ fstab-line()
         esac;
         [ -z "$OPTS" ] && OPTS="$DEFOPTS"
         [ -n "$ADDOPTS" ] && OPTS="${OPTS:+$OPTS,}$ADDOPTS"
+
+
+        [ "${FSTYPE}" = fuseblk ] && unset FSTYPE
+
+				OPTS=${OPTS//,relatime/,noatime}
+				OPTS=${OPTS//,blksize=[0-9]*/}
+				OPTS=${OPTS//,errors=remount-ro/}
         printf "%-40s %-24s %-6s %-6s %6d %6d\n" "$DEV" "$MNTDIR" "${FSTYPE:-auto}" "${OPTS:-auto}" "${DUMP:-0}" "${PASS:-0}" );
     done )
 }
@@ -1251,6 +1261,10 @@ get-property()
 
   p
 }"
+}
+
+get-rootfs() {
+	sed -n 's,.*root=\([^ ]\+\).*,\1,p' /proc/cmdline
 }
 
 get-shortcut()
@@ -2721,9 +2735,18 @@ mount-remaining()
     done )
 }
 
-mounted-devices()
-{
-    awkp 1 < /proc/mounts | grep --color=auto --color=auto --color=auto --color=auto -vE '(^none$)'
+mounted-devices() {
+  (IFS=" "
+	unset PREV
+	while read -r DEV MNT FSTYPE OPTS A B; do
+		case "$DEV" in
+			rootfs | /dev/root) DEV=`get-rootfs` ;;
+			/*) ;;
+			*) continue	;;
+		esac
+		[ "$DEV" != "$PREV" ] && echo "$DEV"
+		PREV="$DEV"
+	done) </proc/mounts
 }
 
 mountpoint-for-device()

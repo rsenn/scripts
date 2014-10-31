@@ -15,6 +15,9 @@ device-of-file()
             fi;
             DEV=`(grep -E "^[^ ]*\s+$ARG\s" /proc/mounts ;  df "$ARG" |sed '1d' )|awkp 1|head -n1`;
             [ $# -gt 1 ] && DEV="$ARG: $DEV";
+
+						[ "$DEV" = rootfs -o "$DEV" = /dev/root ] && DEV=`get-rootfs`
+
             echo "$DEV";
         fi );
     done )

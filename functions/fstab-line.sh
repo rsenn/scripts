@@ -40,6 +40,13 @@ fstab-line()
         esac;
         [ -z "$OPTS" ] && OPTS="$DEFOPTS"
         [ -n "$ADDOPTS" ] && OPTS="${OPTS:+$OPTS,}$ADDOPTS"
+
+
+        [ "${FSTYPE}" = fuseblk ] && unset FSTYPE
+
+				OPTS=${OPTS//,relatime/,noatime}
+				OPTS=${OPTS//,blksize=[0-9]*/}
+				OPTS=${OPTS//,errors=remount-ro/}
         printf "%-40s %-24s %-6s %-6s %6d %6d\n" "$DEV" "$MNTDIR" "${FSTYPE:-auto}" "${OPTS:-auto}" "${DUMP:-0}" "${PASS:-0}" );
     done )
 }
