@@ -1175,14 +1175,8 @@ fstab-line()
 {
     ( while :; do
         case "$1" in
-            -u | --uuid)
-                USE_UUID=true;
-                shift
-            ;;
-            -l | --label)
-                USE_LABEL=true;
-                shift
-            ;;
+            -u | --uuid) USE_UUID=true; shift ;;
+            -l | --label) USE_LABEL=true; shift ;;
             *)
                 break
             ;;
@@ -1290,7 +1284,7 @@ get-shortcut()
 
 getuuid()
 {
-    blkid "$@" | sed -n "/UUID=/ { s,.*UUID=\"\?,, ;; s,\".*,, ;; p }"
+    blkid "$@" | sed -n "/ UUID=/ { s,.* UUID=\"\?,, ;; s,\".*,, ;; p }"
 }
 
 get_ext()
@@ -2733,10 +2727,14 @@ mount-remaining()
     ( MNT="${1:-/mnt}";
     [ "$UID" != 0 ] && SUDO=sudo
     for DEV in $(not-mounted-disks); do
-        LABEL=` disk-label "$DEV"`;
-        MNTDIR="$MNT/${LABEL:-${DEV##*/}}";
+        LABEL=` disk-label "$DEV"`
+				TYPE=` blkvars "$DEV" TYPE`
+				case "$TYPE" in
+					swap) continue ;;
+				esac
+        MNTDIR="$MNT/${LABEL:-${DEV##*/}}"
         $SUDO mkdir -p "$MNTDIR";
-        echo "Mounting $DEV to $MNTDIR ..." 1>&2;
+        echo "Mounting $DEV to $MNTDIR ..." 1>&2
         $SUDO mount "$DEV" "$MNTDIR" ${MNTOPTS:+-o
 "$MNTOPTS"};
     done )

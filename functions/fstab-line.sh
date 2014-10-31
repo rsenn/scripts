@@ -2,14 +2,8 @@ fstab-line()
 {
     ( while :; do
         case "$1" in
-            -u | --uuid)
-                USE_UUID=true;
-                shift
-            ;;
-            -l | --label)
-                USE_LABEL=true;
-                shift
-            ;;
+            -u | --uuid) USE_UUID=true; shift ;;
+            -l | --label) USE_LABEL=true; shift ;;
             *)
                 break
             ;;
