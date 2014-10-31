@@ -150,7 +150,15 @@ blksize()
 
 blkvars()
 {
-    eval "$(IFS=" "; set -- `blkid "$1"`; shift; echo "$*")"
+  CMD=$(IFS=" "; set -- `blkid "$1"`; shift; echo "$*")
+	shift
+	if [ $# -gt 0 ]; then
+		for V; do
+			CMD="$CMD; echo \"\${$V}\""
+		done
+		CMD="($CMD)"
+	fi
+	eval "$CMD"
 }
 
 bpm()
@@ -2724,8 +2732,7 @@ mount-remaining()
 {
     ( MNT="${1:-/mnt}";
     [ "$UID" != 0 ] && SUDO=sudo
-    for DEV in $(not-mounted-disks);
-    do
+    for DEV in $(not-mounted-disks); do
         LABEL=` disk-label "$DEV"`;
         MNTDIR="$MNT/${LABEL:-${DEV##*/}}";
         $SUDO mkdir -p "$MNTDIR";
