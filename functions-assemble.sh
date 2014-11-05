@@ -1,5 +1,7 @@
 #!/bin/bash
 
+type gsed 1>/dev/null 2>/dev/null && SED=gsed || SED=sed
+
 SOURCE_DIR=${1:-"functions"}
 IFS="
 "
@@ -27,7 +29,7 @@ for FILE ;  do
   FILENAME=${FILE##*/}
   NAME=${FILENAME%.sh}
 
-  FNBODY=$(sed '1 { s|\s*()\s*$|()| }' "$FILE")
+  FNBODY=$($SED '1 { s|\s*()\s*$|()| }' "$FILE")
   FNBODY=`str_triml "$FNBODY"` 
 
  [ "$FUNCTIONS" ] && pushv FUNCTIONS ""
