@@ -2610,11 +2610,13 @@ mktempdir()
     command mktemp -d ${path:-"-t" }"${path:+/}${prefix#-}.XXXXXX"
 }
 
-mktempfile()
-{
-    local prefix=${2-${tmppfx-${myname-${0##*/}}}};
-    local path=${1-${tmpdir-"/tmp"}};
-    command mktemp ${path:-"-t" }"${path:+/}${prefix#-}.XXXXXX"
+mktempfile() {
+   (prefix=${2-${tmppfx-${MYNAME-${0##*/}}}};
+    path=${1-${TMPDIR-"/tmp"}};
+    tempfile=${path}/${prefix#-}.${RANDOM}
+    rm -f "$tempfile"
+    echo -n >"$tempfile"
+    echo "$tempfile")
 }
 
 mkzroot()
