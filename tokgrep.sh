@@ -60,11 +60,11 @@ shift_refs()
 }
 
 for arg; do
-  if test $((count++)) = 0; then
+  if [ "$((count++))" = 0 ]; then
     set --
   fi
 
-  if test -n "${prev+set}"; then
+  if [ -n "${prev+set}" ]; then
     set -- "$@" "$prev" "$arg"
     unset prev
     continue
