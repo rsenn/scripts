@@ -2756,6 +2756,33 @@ mounted-devices() {
 	done) </proc/mounts
 }
 
+type wmic 2>/dev/null >/dev/null &&
+mountpoint-by-label() {
+ (IFS="
+ 	"
+  for MNT in $(wmic Path win32_volume where "Label='$1'" Get DriveLetter /format:list 2>&1); do
+    case "$MNT" in
+      DriveLetter=*) 
+        MNT=${MNT#DriveLetter=}
+        MNT=${MNT:0:1}:
+        break
+      ;;
+    esac
+  done
+  [ -n "$MNT" ] && echo "$MNT")
+} ||
+
+mountpoint-by-label() {
+ (if [ -e /dev/disks/by-label/"$1" ]; then
+    mountpoint-for-device "$1"
+  else
+    DEV=$(blkid -L "$1")
+    if [ -n "$DEV" -a -e "$DEV" ]; then
+      mountpoint-for-device "$DEV"
+    fi
+  fi)
+}
+
 mountpoint-for-device()
 {
     ( set -- $(grep "^$1 " /proc/mounts |awkp 2);
@@ -3222,18 +3249,17 @@ pid-args()
   pid-of "$@" | sed -n  "/^[0-9]\+$/ s,^,-p\n,p"
 }
 
-pid-of()
-{
-    ( for ARG in "$@";
-    do
-        (
-        if type pgrep 2>/dev/null >/dev/null; then
-          pgrep -f "$ARG"
-        else
-          ps -aW |grep "$ARG" | awkp
-        fi | sed -n "/^[0-9]\+$/p"
-        )
-    done )
+pid-of() {
+   (if ps --help 2>&1 |grep -q '\-W'; then
+       PGREP_CMD='ps -aW |grep "$ARG" | awkp'
+    elif type pgrep 2>/dev/null >/dev/null; then
+       PGREP_CMD='pgrep -f "$ARG"'
+    else
+       PGREP_CMD='ps -ax | grep "$ARG" | awkp'
+    fi
+    for ARG in "$@"; do
+      eval "$PGREP_CMD"
+    done | sed -n "/^[0-9]\+$/p")
 }
 
 pkg-name()
