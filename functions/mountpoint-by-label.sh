@@ -11,7 +11,7 @@ mountpoint-by-label() {
       ;;
     esac
   done
-  [ -n "$MNT" ] && echo "$MNT")
+  [ -n "$MNT" ] && { echo "$MNT" | tr "[:"{upper,lower}":]"; })
 } ||
 
 mountpoint-by-label() {
