@@ -140,7 +140,7 @@ SCRIPTS =  \
   git-big-file-finder.sh \
   git-pull.sh \
   google.sh \
-  grep-archives.sh \
+  grep-archives.sh grep-fileclass.sh \
   grep-audio.sh \
   grep-fonts.sh \
   grep-images.sh \

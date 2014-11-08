@@ -25,7 +25,7 @@ for CLASS; do
     package*|pkg*) push "\."{"deb","rpm","tgz","txz"} ;;
     patch*|diff*) push "\."{"diff","patch)[^/]*" ;;
     script*) push "\."{"bat","cmd","py","rb","sh"} ;;
-    software*) push "\."{"\*\.msi","\*install\*\.exe","\*setup\*\.exe","\.msi","7z","deb","exe","install\*\.exe","msi","rar","rpm","setup\*\.exe","tar\.bz2","tar\.gz","tar\.xz","tbz2","tgz","txz","zip"} ;;
+    software*) push "\."{"\*\.msi","\*install\*\.exe","\*setup\*\.exe","\.msi","deb","exe","install\*\.exe","msi","rpm","setup\*\.exe"} ;;
     source*) push "\."{"c","cpp","cxx","h","hpp","hxx"} ;;
     video*) push "\."{"3gp","avi","f4v","flv","m2v","mkv","mov","mp4","mpeg","mpg","ogm","vob","wmv"} ;;
     vmware*|vbox*|virt*|v*disk*) push "\."{"vdi","vmdk","vhd","qed","qcow","vhdx","hdd"} ;;
