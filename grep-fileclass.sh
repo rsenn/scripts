@@ -1,9 +1,9 @@
 #!/bin/bash
-EXTS="rar zip 7z tar.gz tar.xz tar.bz2 tgz txz tbz2 exe msi deb rpm iso daa dmg run pkg app bin iso daa nrg"
 
 while :; do
   case "$1" in
     -c) COMPLETE=true; shift ;;
+    -x) DEBUG=true; shift ;;
   *) break ;;
 esac
 done
@@ -20,7 +20,7 @@ for CLASS; do
     audio*) push "\."{"aif","aiff","flac","m4a","m4b","mp2","mp3","mpc","ogg","raw","rm","wav","wma"} ;;
     fonts*) push "\."{"bdf","flac","fon","m4a","m4b","mp3","mpc","ogg","otf","pcf","rm","ttf","wma"} ;;
     image*) push "\."{"bmp","cin","cod","dcx","djvu","emf","fig","gif","ico","im1","im24","im8","jin","jpeg","jpg","lss","miff","opc","pbm","pcx","pgm","pgx","png","pnm","ppm","psd","rle","rmp","sgi","shx","svg","tga","tif","tiff","wim","xcf","xpm","xwd"} ;;
-    incompl*|part*) push "\."{"\*\.!??","\*\.part","INCOMPL\*","\[/\\\]INCOMPL\[^/\\\]\*","\\\.!??","\\\.part"} ;;
+    incompl*|part*) push "\."{"\*\.!??","\*\.part","INCOMPL\*","\\\[/\\\]INCOMPL\[^/\\\]\*","\\\.!??","\\\.part"} ;;
     music*) push "\."{"aif","aiff","flac","m4a","m4b","mp3","mpc","ogg","rm","voc","wav","wma"} ;;
     package*|pkg*) push "\."{"deb","rpm","tgz","txz"} ;;
     patch*|diff*) push "\."{"diff","patch)[^/]*" ;;
@@ -37,5 +37,9 @@ done
 
 [ "$COMPLETE" != true ] && TRAIL="[^/]*"
 
-exec grep -iE "($(IFS="| $IFS"; set $OUTPUT; echo "$*"))${TRAIL}\$"  "$@"
+
+[ -z "$OUTPUT" ] && OUTPUT="."
+
+CMD="grep -iE \"(\$(IFS=\"| \$IFS\"; set \$OUTPUT; echo \"\$*\"))\${TRAIL}\\\$\"  \"\$@\""
+eval "$CMD"
 
