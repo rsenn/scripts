@@ -1,3 +1,4 @@
+unalias ls-l 2>/dev/null
 ls-l()
 {
     ( I=${1:-6};
