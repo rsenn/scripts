@@ -37,7 +37,7 @@ else
   fi
   NAME=${NAME#.}
 
-  ARCHIVE=${DESTDIR:-..}/${NAME}
+  ARCHIVE=${DESTDIR:-..}/${NAME##*/}
   [ "$NODATE" != true ] && ARCHIVE=$ARCHIVE-`date ${DIR:+-r "$DIR"} +%Y%m%d`
   ARCHIVE=$ARCHIVE.${TYPE:-7z}
 fi
