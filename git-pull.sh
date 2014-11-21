@@ -69,7 +69,8 @@ awkp ()
     esac;
     "$@" "{ print \$${N:-1} }" )
 }
-git-get-remote () 
+
+git-get-remote() 
 { 
     ( while :; do
         case "$1" in 
@@ -110,6 +111,7 @@ git-get-remote ()
         ( cd "${DIR%/.git}" > /dev/null && eval "$CMD" );
     done )
 }
+
 git-get-branch () 
 { 
     git branch -a | sed -n 's,^\* ,,p'
@@ -121,7 +123,7 @@ else
   set -- $(git-get-remote "$MYDIR"/*/|grep -E ' (/var/lib/git|github\.com/|ssh://.*crowdguard.org)'|cut -d: -f1|removesuffix / )
 fi
 
-for DIR ; do 
+for DIR in "${@:-.}"; do 
 
 
   echo "Entering directory $DIR ..." 1>&2
