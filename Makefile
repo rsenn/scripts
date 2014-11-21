@@ -77,6 +77,7 @@ SCRIPTS =  \
   color-attr-table.sh \
   color-html-table.sh \
   color-syllables.sh \
+  colorgcc.sh \
   colortable16.sh \
   colortable256.pl \
   cpio2tar.sh \
