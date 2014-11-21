@@ -43,8 +43,9 @@ apt_dpkg_list_all_pkgs()
 yum_rpm_list_all_pkgs()
 {
   require rpm
+  require yum
 
-  yum list all >yum.list
+  yum_list  >yum.list
   #sed -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1,p' <yum.list >pkgs.list
   sed -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1\2,p' <yum.list |sed 's,\s*$,,' >pkgs.list
   #rpm_list |sort |sed 's,\.[^.]\+$,, ; s,\.[^.]\+$,, ; s,-[^-]\+$,, ; s,-[^-]\+$,,' >rpm.list
