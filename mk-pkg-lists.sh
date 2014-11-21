@@ -7,6 +7,12 @@
 IFS="
 "
 
+exec 9>&1
+
+verbose() {
+  echo $* 1>&9
+}
+
 implode() {
  (unset DATA SEPARATOR;
   SEPARATOR="$1"; shift
@@ -45,19 +51,32 @@ yum_rpm_list_all_pkgs()
   require rpm
   require yum
 
+  verbose "Creating yum.list"  
   yum_list  >yum.list
   #sed -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1,p' <yum.list >pkgs.list
-  sed -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1\2,p' <yum.list |sed 's,\s*$,,' >pkgs.list
+  verbose "Creating pkgs.list"  
+  sed -e 's,\s*$,,' -e  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" <yum.list >pkgs.list
   #rpm_list |sort |sed 's,\.[^.]\+$,, ; s,\.[^.]\+$,, ; s,-[^-]\+$,, ; s,-[^-]\+$,,' >rpm.list
-  rpm_list |sort |sed  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" >rpm.list
+  verbose "Creating rpm.list"  
+  rpm_list >rpm.list
+  #rpm_list |sort |sed  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" >rpm.list
 
 	set -- $(<rpm.list)
 
 	rpm_exprfile=rpm.expr
 	trap 'rm -rf "$rpm_exprfile"' EXIT
-	echo "^$(grep_e_expr "$@")\$" >"$rpm_exprfile"
 
-  grep -v -E -f "$rpm_exprfile" <pkgs.list >available.list
+  for x; do 
+    echo "\|^${x%%-[0-9]*}\\.|d" 
+  done >"$rpm_exprfile"
+
+  #for RPM; do
+  #  grep "^${RPM}\$" rpm.list 
+  #done >available.list
+
+
+  verbose "Creating available.list"  
+  sed -f "$rpm_exprfile" pkgs.list >available.list
 
   (set -x; wc -l {yum,rpm,pkgs,available}.list)
 }
