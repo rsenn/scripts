@@ -34,6 +34,9 @@ elif type tlist 2>/dev/null >/dev/null; then
   PS="tlist"
   PSARGS="-c"
   PSFILTER="2>&1 | $SED ':lp; N; \$! { b lp; } ; s,\\n\\s\\+,\\t,g'"
+elif (ps --help; ps -X -Y -Z) 2>&1 | grep -q '\-W'; then
+  PS="ps"
+  PSARGS="-aW"
 elif [ -e "$SYSTEMROOT/system32/wbem/wmic" ]; then
   PS="$SYSTEMROOT/system32/wbem/wmic"
   PSARGS="process get ProcessID,CommandLine -VALUE"
