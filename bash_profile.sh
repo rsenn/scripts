@@ -61,15 +61,15 @@ grep --help 2>&1|grep -q '\--line-buffered' && GREP_ARGS="$GREP_ARGS --line-buff
 has_cmd gls && alias ls="gls $LS_ARGS" || alias ls="ls $LS_ARGS"
 
 for BIN in \
-	awk base64 basename cat chcon chgrp chmod chown chroot cksum comm \
+	awk base64 basename cat chcon chgrp chmod chown chroot cksum comm cp \
 	csplit cut date dd df dir dircolors dirname du env expand expr factor \
 	false find fmt fold groups head hostid id install join kill libtool \
-	libtoolize link ln locate logname m4 md5sum mkdir mkfifo mknod mktemp \
+	libtoolize link ln locate logname m4 md5sum mkdir mkfifo mknod mktemp mv \
 	nice nl nohup nproc numfmt od oldfind paste pathchk pinky pr printenv printf \
-	ptx pwd readlink realpath rmdir runcon sed seq sha1sum sha224sum sha256sum \
+	ptx pwd readlink realpath rm rmdir runcon sed seq sha1sum sha224sum sha256sum \
 	sha384sum sha512sum shred shuf sleep sort split stat stdbuf stty sum sync tac \
 	tail tee test timeout touch tr true truncate tsort tty uname unexpand uniq \
-	unlink updatedb uptime users vdir wc who whoami yes
+	unlink updatedb uptime users vdir wc who whoami xargs yes
 do
 	 has_cmd "g$BIN" && alias "$BIN=g$BIN"
 done
