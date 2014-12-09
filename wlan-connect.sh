@@ -35,7 +35,6 @@ else
  dhcpcd -d ${IF}
 fi
 
-sysctl net.ipv4.ip_forward=1
 cat >/etc/resolv.conf <<EOF
 nameserver 8.8.4.4
 nameserver 8.8.8.8
@@ -43,5 +42,6 @@ nameserver 4.2.2.1
 search workgroup
 EOF
 
+sysctl net.ipv4.ip_forward=1
 iptables -t nat -A POSTROUTING -o $IF -j MASQUERADE
 
