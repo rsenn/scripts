@@ -42,9 +42,6 @@ nameserver 4.2.2.1
 search workgroup
 EOF
 
-sysctl net.ipv4.ip_forward=1
-iptables -t nat -A POSTROUTING -o $IF -j MASQUERADE
-
 
 for chain in INPUT FORWARD OUTPUT; do
 	iptables -P $chain ACCEPT
@@ -56,3 +53,6 @@ for chain in PREROUTING INPUT OUTPUT POSTROUTING; do
 done
 iptables -t nat --flush
 
+
+sysctl net.ipv4.ip_forward=1
+iptables -t nat -A POSTROUTING -o $IF -j MASQUERADE
