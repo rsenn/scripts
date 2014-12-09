@@ -1,22 +1,35 @@
 #!/bin/sh
 CONFIG="$HOME/wpa_supplicant.conf"
+IF=`iwconfig 2>&1 |grep IEEE.802 | sed 's,\s.*,,'`
 
 if [ "$1" = "-l" ]; then
-  iwlist wlan0 scanning|grep ESSID|sed 's,:",=", ;s,^\s*,, ; s,ESSID="\(.*\)",\1,'           
+  iwlist $IF scanning|grep ESSID|sed 's,:",=", ;s,^\s*,, ; s,ESSID="\(.*\)",\1,'           
   exit $?
 fi
+
+ESSID=$1
+PASS=$2
+IP=$3
 
 if [ $# -gt 1 ]; then
   CONFIG=`mktemp -p /tmp/ wpa_supplicant.conf-XXXXXX` 
   trap 'rm -f "$CONFIG"' EXIT
-  wpa_passphrase "$1" "$2" >"$CONFIG"||exit $?
+  wpa_passphrase "$ESSID" "$PASS" >"$CONFIG"||exit $?
 fi
+
 set -x
-IF=wlan0
+
 killall wpa_supplicant dhcpcd dhclient pump
 sleep 1
 killall -9 wpa_supplicant dhcpcd dhclient pump
 ifconfig $IF down
 ifconfig $IF 0 up
-wpa_supplicant -i ${IF}   -c "$CONFIG" 
-##dhcpcd ${IF}
+wpa_supplicant -i ${IF} -c "$CONFIG" -B
+
+if [ -n "$IP" ]; then
+	ifconfig ${IF} ${IP} up
+  route add default gw ${IP%.[0-9]*}.1
+else
+
+ dhcpcd -d ${IF}
+fi
