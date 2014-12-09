@@ -24,7 +24,7 @@ while :; do
   esac
 done
 
-: ${EXTS="c cc cpp cxx h hh hpp hxx ipp"}
+: ${EXTS="c cs cc cpp cxx h hh hpp hxx ipp"}
 
 
 

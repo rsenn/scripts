@@ -1,5 +1,4 @@
-foreach-partition()
-{
+foreach-partition() {
     local old_IFS="$IFS";
     blkid | {
         IFS="

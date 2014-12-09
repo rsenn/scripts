@@ -15,6 +15,11 @@ while :; do
   esac
 done
 
+type gnutar 2>/dev/null >/dev/null && TAR=gnutar ||
+{ type gtar 2>/dev/null >/dev/null && TAR=gtar; }
+: ${TAR=tar}
+
+
 
 [ "$DESTDIR" ] &&
 ABSDESTDIR=`cd "$DESTDIR" && pwd`
@@ -32,7 +37,7 @@ else
   fi
   NAME=${NAME#.}
 
-  ARCHIVE=${DESTDIR:-..}/${NAME}
+  ARCHIVE=${DESTDIR:-..}/${NAME##*/}
   [ "$NODATE" != true ] && ARCHIVE=$ARCHIVE-`date ${DIR:+-r "$DIR"} +%Y%m%d`
   ARCHIVE=$ARCHIVE.${TYPE:-7z}
 fi
@@ -62,19 +67,22 @@ create-list()
 dir-contents()
 {
 			case "$1" in 
-							.) ls -a -1 --color=no  |grep -v -E '^(\.|\.\.)$' |sort -u ;;
+							.) ls -a -1 |grep -v -E '^(\.|\.\.)$' |sort -u ;;
 			*) echo "$*" ;;
 			esac
 }
 
 set -f
 case "$ARCHIVE" in
-  *.7z) CMD='${SEVENZIP:-7z} a -mx=$(( $LEVEL * 5 / 9 )) "$ARCHIVE" '$(create-list '-x!' $EXCLUDE)' "$DIR"' ;;
+  *.7z) CMD='${SEVENZIP:-7za} a -mx=$(( $LEVEL * 5 / 9 )) "$ARCHIVE" '$(create-list '-x!' $EXCLUDE)' "$DIR"' ;;
   *.zip) CMD='zip -${LEVEL} -r "$ARCHIVE" "$DIR" '$(create-list '-x ' $EXCLUDE)' ' ;;
   *.rar) CMD='rar a -m$(($LEVEL * 5 / 9)) -r '$(create-list '-x' $EXCLUDE)' "$ARCHIVE" "$DIR"' ;;
-	*.txz|*.tar.xz) CMD='tar -cvJf "$ARCHIVE" '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR")' ;;
-  *.tgz|*.tar.gz) CMD='tar -cvzf "$ARCHIVE" '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR")' ;;
-  *.tbz2|*.tbz|*.tar.bz2) CMD='tar -cvjf "$ARCHIVE" '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR")' ;;
+  *.txz|*.tar.xz) CMD='$TAR -cv '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR") | xz -$LEVEL >"$ARCHIVE"' ;;
+  *.tlzma|*.tar.lzma) CMD='$TAR -cv '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR") | lzma -$LEVEL >"$ARCHIVE"' ;;
+  *.tlzip|*.tar.lzip) CMD='$TAR -cv '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR") | lzip -$LEVEL >"$ARCHIVE"' ;;
+  *.tlzo|*.tar.lzo) CMD='$TAR -cv '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR") | lzop -$LEVEL >"$ARCHIVE"' ;;
+  *.tgz|*.tar.gz) CMD='$TAR -cv '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR") | gzip -$LEVEL >"$ARCHIVE"' ;;
+  *.tbz2|*.tbz|*.tar.bz2) CMD='$TAR -cv '$(create-list '--exclude=' $EXCLUDE)' $(dir-contents "$DIR") | bzip2 -$LEVEL >"$ARCHIVE"' ;;
 esac
 CMD='rm -vf "$ARCHIVE";'$CMD
 echo "CMD='$CMD'" 1>&2

@@ -9,8 +9,15 @@ _msyspath()
   esac
   case $MODE in
     win*|mix*)
-       ROOT=$(mount | sed -n 's,\\,\\\\,g ;; s|\s\+on\s\+/\s\+.*||p')
-      add_to_script "/^.:/!  s|^|$ROOT|"
+      for MOUNT in $(mount | sed -n 's|\\|\\\\|g ;; s,\(.\):\\\(.\+\) on \(.*\) type .*,\1:\\\2|\3,p'); do
+        DEV=${MOUNT%'|'*}
+        MNT=${MOUNT##*'|'}
+
+        add_to_script "/^.:/! s|^${MNT}|${DEV}|"
+       done
+
+       #ROOT=$(mount | sed -n 's,\\,\\\\,g ;; s|\s\+on\s\+/\s\+.*||p')
+      #add_to_script "/^.:/!  s|^|$ROOT|"
     ;;
   esac
   case "$MODE" in

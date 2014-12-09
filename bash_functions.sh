@@ -150,7 +150,15 @@ blksize()
 
 blkvars()
 {
-    eval "$(IFS=" "; set -- `blkid "$1"`; shift; echo "$*")"
+  CMD=$(IFS=" "; set -- `blkid "$1"`; shift; echo "$*")
+	shift
+	if [ $# -gt 0 ]; then
+		for V; do
+			CMD="$CMD; echo \"\${$V}\""
+		done
+		CMD="($CMD)"
+	fi
+	eval "$CMD"
 }
 
 bpm()
@@ -532,26 +540,27 @@ detect-filesystem()
     fi
 }
 
-device-of-file()
-{
-    ( for ARG in "$@";
-    do
-        ( if [ -e "$ARG" ]; then
-            if [ -L "$ARG" ]; then
-                ARG=`myrealpath "$ARG"`;
-            fi;
-            if [ -b "$ARG" ]; then
-                echo "$ARG";
-                exit 0;
-            fi;
-            if [ ! -d "$ARG" ]; then
-                ARG=` dirname "$ARG" `;
-            fi;
-            DEV=`(grep -E "^[^ ]*\s+$ARG\s" /proc/mounts ;  df "$ARG" |sed '1d' )|awkp 1|head -n1`;
-            [ $# -gt 1 ] && DEV="$ARG: $DEV";
-            echo "$DEV";
-        fi );
-    done )
+device-of-file() {
+ (for ARG in "$@"; do
+  (if [ -e "$ARG" ]; then
+     if [ -L "$ARG" ]; then
+         ARG=`myrealpath "$ARG"`
+     fi
+     if [ -b "$ARG" ]; then
+         echo "$ARG"
+         exit 0
+     fi
+     if [ ! -d "$ARG" ]; then
+         ARG=` dirname "$ARG" `
+     fi
+     DEV=`(grep -E "^[^ ]*\s+$ARG\s" /proc/mounts ;  df "$ARG" |sed '1d' )|awkp 1|head -n1`
+     [ $# -gt 1 ] && DEV="$ARG: $DEV"
+
+     [ "$DEV" = rootfs -o "$DEV" = /dev/root ] && DEV=`get-rootfs`
+
+     echo "$DEV"
+  fi)
+  done)
 }
 
 diffcmp()
@@ -609,8 +618,17 @@ disk-device-number()
     index-of "$(disk-device-letter "$1")" abcdefghijklmnopqrstuvwxyz
 }
 
-disk-devices()
-{
+type wmic 2>/dev/null >/dev/null &&
+
+disk-devices() {
+  wmic volume get DeviceID /VALUE | while read -r LINE; do
+    case "$LINE" in
+      *=*) echo "${LINE##*=}" ;;
+    esac
+  done
+} ||
+
+disk-devices() {
     foreach-partition 'echo "$DEV"'
 }
 
@@ -1134,8 +1152,7 @@ foreach-mount()
     IFS="$old_IFS"
 }
 
-foreach-partition()
-{
+foreach-partition() {
     local old_IFS="$IFS";
     blkid | {
         IFS="
@@ -1164,14 +1181,8 @@ fstab-line()
 {
     ( while :; do
         case "$1" in
-            -u | --uuid)
-                USE_UUID=true;
-                shift
-            ;;
-            -l | --label)
-                USE_LABEL=true;
-                shift
-            ;;
+            -u | --uuid) USE_UUID=true; shift ;;
+            -l | --label) USE_LABEL=true; shift ;;
             *)
                 break
             ;;
@@ -1202,6 +1213,13 @@ fstab-line()
         esac;
         [ -z "$OPTS" ] && OPTS="$DEFOPTS"
         [ -n "$ADDOPTS" ] && OPTS="${OPTS:+$OPTS,}$ADDOPTS"
+
+
+        [ "${FSTYPE}" = fuseblk ] && unset FSTYPE
+
+				OPTS=${OPTS//,relatime/,noatime}
+				OPTS=${OPTS//,blksize=[0-9]*/}
+				OPTS=${OPTS//,errors=remount-ro/}
         printf "%-40s %-24s %-6s %-6s %6d %6d\n" "$DEV" "$MNTDIR" "${FSTYPE:-auto}" "${OPTS:-auto}" "${DUMP:-0}" "${PASS:-0}" );
     done )
 }
@@ -1253,6 +1271,10 @@ get-property()
 }"
 }
 
+get-rootfs() {
+	sed -n 's,.*root=\([^ ]\+\).*,\1,p' /proc/cmdline
+}
+
 get-shortcut()
 {
   (for SHORTCUT; do
@@ -1268,7 +1290,7 @@ get-shortcut()
 
 getuuid()
 {
-    blkid "$@" | sed -n "/UUID=/ { s,.*UUID=\"\?,, ;; s,\".*,, ;; p }"
+    blkid "$@" | sed -n "/ UUID=/ { s,.* UUID=\"\?,, ;; s,\".*,, ;; p }"
 }
 
 get_ext()
@@ -2381,6 +2403,7 @@ ls-files()
     done ) | filter-test -f| sed 's,^\./,,; s,/$,,'
 }
 
+unalias ls-l 2>/dev/null
 ls-l()
 {
     ( I=${1:-6};
@@ -2577,11 +2600,13 @@ mktempdir()
     command mktemp -d ${path:-"-t" }"${path:+/}${prefix#-}.XXXXXX"
 }
 
-mktempfile()
-{
-    local prefix=${2-${tmppfx-${myname-${0##*/}}}};
-    local path=${1-${tmpdir-"/tmp"}};
-    command mktemp ${path:-"-t" }"${path:+/}${prefix#-}.XXXXXX"
+mktempfile() {
+   (prefix=${2-${tmppfx-${MYNAME-${0##*/}}}};
+    path=${1-${TMPDIR-"/tmp"}};
+    tempfile=${path}/${prefix#-}.${RANDOM}
+    rm -f "$tempfile"
+    echo -n >"$tempfile"
+    echo "$tempfile")
 }
 
 mkzroot()
@@ -2690,20 +2715,59 @@ mount-remaining()
 {
     ( MNT="${1:-/mnt}";
     [ "$UID" != 0 ] && SUDO=sudo
-    for DEV in $(not-mounted-disks);
-    do
-        LABEL=` disk-label "$DEV"`;
-        MNTDIR="$MNT/${LABEL:-${DEV##*/}}";
+    for DEV in $(not-mounted-disks); do
+        LABEL=` disk-label "$DEV"`
+				TYPE=` blkvars "$DEV" TYPE`
+				case "$TYPE" in
+					swap) continue ;;
+				esac
+        MNTDIR="$MNT/${LABEL:-${DEV##*/}}"
         $SUDO mkdir -p "$MNTDIR";
-        echo "Mounting $DEV to $MNTDIR ..." 1>&2;
+        echo "Mounting $DEV to $MNTDIR ..." 1>&2
         $SUDO mount "$DEV" "$MNTDIR" ${MNTOPTS:+-o
 "$MNTOPTS"};
     done )
 }
 
-mounted-devices()
-{
-    awkp 1 < /proc/mounts | grep --color=auto --color=auto --color=auto --color=auto -vE '(^none$)'
+mounted-devices() {
+  (IFS=" "
+	unset PREV
+	while read -r DEV MNT FSTYPE OPTS A B; do
+		case "$DEV" in
+			rootfs | /dev/root) DEV=`get-rootfs` ;;
+			/*) ;;
+			*) continue	;;
+		esac
+		[ "$DEV" != "$PREV" ] && echo "$DEV"
+		PREV="$DEV"
+	done) </proc/mounts
+}
+
+type wmic 2>/dev/null >/dev/null &&
+mountpoint-by-label() {
+ (IFS="
+ 	"
+  for MNT in $(wmic Path win32_volume where "Label='$1'" Get DriveLetter /format:list 2>&1); do
+    case "$MNT" in
+      DriveLetter=*) 
+        MNT=${MNT#DriveLetter=}
+        MNT=${MNT:0:1}:
+        break
+      ;;
+    esac
+  done
+  [ -n "$MNT" ] && { echo "$MNT" | tr "[:"{upper,lower}":]"; })
+} ||
+
+mountpoint-by-label() {
+ (if [ -e /dev/disks/by-label/"$1" ]; then
+    mountpoint-for-device "$1"
+  else
+    DEV=$(blkid -L "$1")
+    if [ -n "$DEV" -a -e "$DEV" ]; then
+      mountpoint-for-device "$DEV"
+    fi
+  fi)
 }
 
 mountpoint-for-device()
@@ -3172,18 +3236,17 @@ pid-args()
   pid-of "$@" | sed -n  "/^[0-9]\+$/ s,^,-p\n,p"
 }
 
-pid-of()
-{
-    ( for ARG in "$@";
-    do
-        (
-        if type pgrep 2>/dev/null >/dev/null; then
-          pgrep -f "$ARG"
-        else
-          ps -aW |grep "$ARG" | awkp
-        fi | sed -n "/^[0-9]\+$/p"
-        )
-    done )
+pid-of() {
+   (if ps --help 2>&1 |grep -q '\-W'; then
+       PGREP_CMD='ps -aW |grep "$ARG" | awkp'
+    elif type pgrep 2>/dev/null >/dev/null; then
+       PGREP_CMD='pgrep -f "$ARG"'
+    else
+       PGREP_CMD='ps -ax | grep "$ARG" | awkp'
+    fi
+    for ARG in "$@"; do
+      eval "$PGREP_CMD"
+    done | sed -n "/^[0-9]\+$/p")
 }
 
 pkg-name()

@@ -125,6 +125,8 @@ case "$CLASS" in
   software*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(\*\.msi|\*install\*\.exe|\*setup\*\.exe|\.msi|7z|deb|exe|install\*\.exe|msi|rar|rpm|setup\*\.exe|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz|zip)\$" ;;
   source*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(c|cpp|cxx|h|hpp|hxx)\$" ;;
   video*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(3gp|avi|f4v|flv|m2v|mkv|mov|mp4|mpeg|mpg|ogm|vob|wmv)\$" ;;
+  vmware*|vbox*|virt*|v*disk*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(vdi|vmdk|vhd|qed|qcow|vhdx|hdd)\$" ;;
+font*|truetype*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(ttf|otf|bdf|pcf|fon|pfa|pfb|pt3|t42|sfd|otb|cff|cef|gai|woff|pf3|ttc|gsf|cid|dfont|mf|ik|fnt|pcf|pmf)\$" ;;
 	'') ;;
   *) echo "No such class '$CLASS'." 1>&2; exit 2 ;;
 esac
