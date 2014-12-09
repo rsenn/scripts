@@ -3,6 +3,7 @@ CONFIG="$HOME/wpa_supplicant.conf"
 IF=`iwconfig 2>&1 |grep IEEE.802 | sed 's,\s.*,,'`
 
 if [ "$1" = "-l" ]; then
+	ifconfig $IF up
   iwlist $IF scanning|grep ESSID|sed 's,:",=", ;s,^\s*,, ; s,ESSID="\(.*\)",\1,'           
   exit $?
 fi
