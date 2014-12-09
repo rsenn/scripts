@@ -45,3 +45,14 @@ EOF
 sysctl net.ipv4.ip_forward=1
 iptables -t nat -A POSTROUTING -o $IF -j MASQUERADE
 
+
+for chain in INPUT FORWARD OUTPUT; do
+	iptables -P $chain ACCEPT
+done
+iptables --flush
+
+for chain in PREROUTING INPUT OUTPUT POSTROUTING; do
+	iptables -t -nat -P $chain ACCEPT
+done
+iptables -t nat --flush
+
