@@ -9,18 +9,21 @@ list_options() {
   echo  "$*" | 
   sed \
 		-e "s,.*\(Microsoft Visual Studio [^/]*\)/VC,\1," \
-		-e "s,.*\(Microsoft SDKs\)/\(.*\)/\(.*\),Windows SDK \3,"
+		-e "s,.*\(Microsoft SDKs\)/\(.*\)/\(.*\),Windows SDK \3," |
+  sort -u
 }
 
 select_option() {
  (EXPR=$(echo "$*" | sed \
-    -e "s,\\.,\\\\.,g" \
-    -e "s,[^0-9\\\\.]*\([.0-9\\\\]\+\)[^0-9\\\\.]*,\1," \
-    -e "s,[^0-9\\\\v.A]*\([v.A\\\\0-9]\+\)[^0-9\\\\.A]*,\1,")
+   -e "s,\\.,\\\\.,g")
+    #-e "#s,[^0-9\\\\.]*\([^/]*[.0-9\\\\]\+\)[^0-9\\\\.]*,\1," \
+    #-e "#s,[^0-9\\\\v.A]*\([^/]*[v.A\\\\0-9]\+\)[^0-9\\\\.A]*,\1,")
     
   SELECTION=$(echo "${LIST:-$VC_LIST
-$SDK_LIST}" | grep "$EXPR")
+$SDK_LIST}" | grep "$EXPR" )
   set -- $SELECTION
+
+  echo "S:" $SELECTION 1>&2
   
   [ $# -eq 1 ] && echo "$1"
   )
