@@ -12,7 +12,7 @@ for ARG; do
   cat "$ARG" |sort -V >"$TMP" 
 
   cut_trailver "$TMP" |uniq  |while read -r NAME; do 
-  echo "+ $NAME" 1>&2
+#  echo "+ $NAME" 1>&2
     grep "^${NAME}[^0-9A-Za-z]\\?[0-9]" "$TMP" |sort -V |tail -n1
   done
 
