@@ -6,6 +6,8 @@ else
 prefix = /usr
 endif
 bindir = ${prefix}/bin
+sysconfdir = /etc
+profiledir = ${sysconfdir}/profile.d
 
 INSTALL = install
 
@@ -13,6 +15,10 @@ all:
 install: $(SCRIPTS)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(INSTALL) -m 755 $(SCRIPTS) $(DESTDIR)$(bindir)/
+
+install-profile: $(PROFILE)
+	$(INSTALL) -d $(DESTDIR)$(profiledir)
+	$(INSTALL) -m 644 $(PROFILE) $(DESTDIR)$(profiledir)/
 
 uninstall:
 	@for SCRIPT in $(SCRIPTS); do \
@@ -36,6 +42,7 @@ inst-slackpkg: slackpkg
 		cp -vf scripts-`date +%Y%m%d`-slackware.txz "$$x"; \
   done
 
+PROFILE = $(wildcard profile/*.sh profile/*.zsh profile/*.bash)
 SCRIPTS = $(wildcard *.awk *.bash *.fontforge *.pl *.rb *.sh)
 #SCRIPTS += \
 #  aaview.sh \
