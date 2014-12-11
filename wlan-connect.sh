@@ -23,16 +23,19 @@ set -x
 killall wpa_supplicant dhcpcd dhclient pump
 sleep 1
 killall -9 wpa_supplicant dhcpcd dhclient pump
+
+route del default
+
 ifconfig $IF down
 ifconfig $IF 0 up
+
 wpa_supplicant -i ${IF} -c "$CONFIG" -B
 
 if [ -n "$IP" ]; then
 	ifconfig ${IF} ${IP} up
   route add default gw ${IP%.[0-9]*}.1
 else
-
- dhcpcd -d ${IF}
+ dhcpcd -d ${IF} || dhclient -v ${IF}
 fi
 
 cat >/etc/resolv.conf <<EOF
@@ -42,14 +45,13 @@ nameserver 4.2.2.1
 search workgroup
 EOF
 
-
 for chain in INPUT FORWARD OUTPUT; do
 	iptables -P $chain ACCEPT
 done
 iptables --flush
 
 for chain in PREROUTING INPUT OUTPUT POSTROUTING; do
-	iptables -t -nat -P $chain ACCEPT
+	iptables -t nat -P $chain ACCEPT
 done
 iptables -t nat --flush
 
