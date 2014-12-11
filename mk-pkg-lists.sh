@@ -98,7 +98,7 @@ zypper_rpm_list_all_pkgs() {
   zypper_list  >zypper.list
   #sed -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1,p' <zypper.list >pkgs.list
   verbose "Creating pkgs.list"  
-  sed -e 's,\s*$,,' -e  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" <zypper.list >pkgs.list
+  sed -e 's,\s*$,,' -e  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|-\1.\4|" <zypper.list >pkgs.list
   #rpm_list |sort |sed 's,\.[^.]\+$,, ; s,\.[^.]\+$,, ; s,-[^-]\+$,, ; s,-[^-]\+$,,' >rpm.list
   verbose "Creating rpm.list"  
   rpm_list |sed 's|-[0-9].*\.fc[0-9]\+||' >rpm.list
