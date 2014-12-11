@@ -21,8 +21,7 @@ echo "ABSDIR=$ABSDIR" 1>&2
   for MNT; do
    (umount "$ABSDIR/$MNT" 2>/dev/null ||
 		umount -f "$ABSDIR/$MNT" 2>/dev/null || 
-		umount -l "$ABSDIR/$MNT" 2>/dev/null) &&
-		echo "Unmounted $ABSDIR/$MNT" 1>&2
+		umount -l "$ABSDIR/$MNT" 2>/dev/null) #&& echo "Unmounted $ABSDIR/$MNT" 1>&2
   done
 
   if [ "$UNDO" = true ]; then
