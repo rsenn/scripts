@@ -19,8 +19,10 @@ echo "ABSDIR=$ABSDIR" 1>&2
   set -- $DIRS $(df -a 2>/dev/null | sed 1d | sed -n 's|.* /m|m|p' | grep -v "^${ABSDIR#/}")
 
   for MNT; do
-    umount -f "$ABSDIR/$MNT" 2>/dev/null ||
-    umount -l "$ABSDIR/$MNT" 2>/dev/null
+   (umount "$ABSDIR/$MNT" 2>/dev/null ||
+		umount -f "$ABSDIR/$MNT" 2>/dev/null || 
+		umount -l "$ABSDIR/$MNT" 2>/dev/null) &&
+		echo "Unmounted $ABSDIR/$MNT" 1>&2
   done
 
   if [ "$UNDO" = true ]; then
