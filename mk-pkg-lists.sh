@@ -90,10 +90,45 @@ yum_rpm_list_all_pkgs()
   (set -x; wc -l {yum,rpm,pkgs,available}.list)
 }
 
+zypper_rpm_list_all_pkgs() {
+  require rpm
+  require zypper
+
+  verbose "Creating zypper.list"  
+  zypper_list  >zypper.list
+  #sed -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1,p' <zypper.list >pkgs.list
+  verbose "Creating pkgs.list"  
+  sed -e 's,\s*$,,' -e  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|-\1.\4|" <zypper.list >pkgs.list
+  #rpm_list |sort |sed 's,\.[^.]\+$,, ; s,\.[^.]\+$,, ; s,-[^-]\+$,, ; s,-[^-]\+$,,' >rpm.list
+  verbose "Creating rpm.list"  
+  rpm_list |sed 's|-[0-9].*\.fc[0-9]\+||' >rpm.list
+  #rpm_list |sort |sed  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" >rpm.list
+
+	set -- $(<rpm.list)
+
+	rpm_exprfile=rpm.expr
+	trap 'rm -rf "$rpm_exprfile"' EXIT
+
+  for x; do 
+    echo "\|^${x}\$|d" 
+  done >"$rpm_exprfile"
+
+  #for RPM; do
+  #  grep "^${RPM}\$" rpm.list 
+  #done >available.list
+
+
+  verbose "Creating available.list"  
+  sed -f "$rpm_exprfile" pkgs.list >available.list
+
+  (set -x; wc -l {zypper,rpm,pkgs,available}.list)
+}
+
 require distrib
 
 case $(distrib_get id) in
   [Ff]edora) yum_rpm_list_all_pkgs ;;
   [Dd]ebian|[Uu]buntu) apt_dpkg_list_all_pkgs ;;
+  openS[Uu]SE*) zypper_rpm_list_all_pkgs  ;;
 *) echo "No such distribution $(distrib_get id)" 1>&2 ;;
 esac
