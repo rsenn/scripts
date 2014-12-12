@@ -43,6 +43,8 @@ while :; do
   shift
 done
 
+: ${DATABASE="$USERPROFILE/AppData/Roaming/Locate32/files.dbs"}
+
 MEDIAPATH="/{$(set -- $(df -a 2>/dev/null |sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
 
 pathconv() { (IFS="/\\"; S="${2-/}"; set -- $1; IFS="$S"; echo "$*"); }
