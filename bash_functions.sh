@@ -365,6 +365,26 @@ count()
     echo $#
 }
 
+cpan-install()
+{ 
+    for ARG in "$@";
+    do
+        perl -MCPAN -e "CPAN::Shell->notest('install', '$ARG')";
+    done
+}
+
+cpan-search()
+{ 
+    ( for ARG in "$@";
+    do
+        ARG=${ARG//::/-};
+        URL=$(dlynx.sh "http://search.cpan.org/search?query=$ARG&mode=dist" |grep "/$ARG-[0-9][^/]*/\$" | sort -V | tail -n1 );
+        test -n "$URL" && { 
+            dlynx.sh "$URL" | grep-archives.sh | sort -V | tail -n1
+        };
+    done )
+}
+
 create-shortcut()
 {
  (declare "$@"
