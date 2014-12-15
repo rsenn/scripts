@@ -365,6 +365,26 @@ count()
     echo $#
 }
 
+cpan-install()
+{ 
+    for ARG in "$@";
+    do
+        perl -MCPAN -e "CPAN::Shell->notest('install', '$ARG')";
+    done
+}
+
+cpan-search()
+{ 
+    ( for ARG in "$@";
+    do
+        ARG=${ARG//::/-};
+        URL=$(dlynx.sh "http://search.cpan.org/search?query=$ARG&mode=dist" |grep "/$ARG-[0-9][^/]*/\$" | sort -V | tail -n1 );
+        test -n "$URL" && { 
+            dlynx.sh "$URL" | grep-archives.sh | sort -V | tail -n1
+        };
+    done )
+}
+
 create-shortcut()
 {
  (declare "$@"
@@ -4134,8 +4154,15 @@ _msyspath()
   esac
   case $MODE in
     win*|mix*)
-       ROOT=$(mount | sed -n 's,\\,\\\\,g ;; s|\s\+on\s\+/\s\+.*||p')
-      add_to_script "/^.:/!  s|^|$ROOT|"
+      for MOUNT in $(mount | sed -n 's|\\|\\\\|g ;; s,\(.\):\\\(.\+\) on \(.*\) type .*,\1:\\\2|\3,p'); do
+        DEV=${MOUNT%'|'*}
+        MNT=${MOUNT##*'|'}
+
+        add_to_script "/^.:/! s|^${MNT}|${DEV}|"
+       done
+
+       #ROOT=$(mount | sed -n 's,\\,\\\\,g ;; s|\s\+on\s\+/\s\+.*||p')
+      #add_to_script "/^.:/!  s|^|$ROOT|"
     ;;
   esac
   case "$MODE" in
