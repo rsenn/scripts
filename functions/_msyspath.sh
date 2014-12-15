@@ -12,6 +12,7 @@ _msyspath()
       for MOUNT in $(mount | sed -n 's|\\|\\\\|g ;; s,\(.\):\\\(.\+\) on \(.*\) type .*,\1:\\\2|\3,p'); do
         DEV=${MOUNT%'|'*}
         MNT=${MOUNT##*'|'}
+        test "$MNT" = / && DEV="$DEV\\\\"
 
         add_to_script "/^.:/! s|^${MNT}|${DEV}|"
        done
