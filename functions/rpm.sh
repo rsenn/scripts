@@ -8,13 +8,18 @@ rpm-cmd() {
       *) break ;;
     esac
   done
+
+ #CMD="addprefix \"\$ARG: \""
+ CMD="sed \"s|^\\./|| ;; s|^|\$ARG: |\""
+ #N=$#
+
   while [ $# -gt 0 ]; do
     ARG="$1"
     shift
    (case "$ARG" in
-      #*://*) CMD='wget -q -O - "$ARG" | rpm2cpio /dev/stdin' ;;
-      #*://*) CMD='lynx -source "$ARG" | rpm2cpio /dev/stdin' ;;
-      #*://*) CMD='lynx -source "$ARG" | rpm2cpio /dev/stdin' ;;
+      #*://*) DLCMD="wget -q -O - \"\$ARG\" | rpm2cpio /dev/stdin" ;;
+      #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
+      #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
     *://*) 
       MIRRORLIST=`curl -s "$ARG.mirrorlist" |sed -n 's,\s*<li><a href="\([^"]*\.rpm\)">.*,\1,p'`
 
@@ -23,13 +28,13 @@ rpm-cmd() {
       else
         set -- "$ARG"
       fi
-      CMD='wget -q -O - "$1" | rpm2cpio /dev/stdin'
+      DLCMD='wget -q -O - "$1" | rpm2cpio /dev/stdin'
       ;;
       *) set -- "$ARG"
-        CMD='rpm2cpio "$ARG"'
+        DLCMD='rpm2cpio "$ARG"'
         ;;
     esac
-    CMD="$CMD | (${OUTPUT:+cd \"\$OUTPUT\"; }cpio \${OPTS:--t} 2>/dev/null)"
+    CMD="$DLCMD | (${OUTPUT:+cd \"\$OUTPUT\"; }cpio \${OPTS:--t} 2>/dev/null)${CMD:+ | $CMD}"
     while [ $# -gt 0 ]; do 
       eval "( $CMD ) 2>/dev/null" && exit 0
       #echo continue 1>&2
