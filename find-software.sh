@@ -3,12 +3,13 @@
 CYGPATH=` which cygpath 2>/dev/null` 
 : ${CYGPATH:=true}
 
-find_music()
+find_software()
 {
 	(
    IFS="
 	 "
 		EXTS="*setup*.exe *install*.exe *.msi *.run *.dmg *.app *.apk"
+    EXTS="$EXTS 7z app bin daa deb dmg exe iso msi nrg pkg rar rpm run sh tar.Z tar.bz2 tar.gz tar.xz tbz2 tgz txz zip"
 		
 		[ "$#" -le 0 ] && set -- *
 
@@ -36,5 +37,5 @@ set -f
 	}
 
 for S in '' ; do
-  S="$S" find_music "$@"
+  S="$S" find_software "$@"
 done
