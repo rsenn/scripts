@@ -221,6 +221,7 @@ is-cmd() { type "$1" >/dev/null 2>/dev/null; }
 #echo -n "Adding mediapaths ... " 1>&2; add-mediapath "I386/" "I386/system32/" "Windows/" "Tools/" "HBCD/" "Program*/{Notepad2,WinRAR,Notepad++,SDCC/bin,gputils/bin}/"; echo "done" 1>&2
 is-cmd "notepad2" || add-mediapath "Prog*/Notepad2"
 
+[ "$(uname -o)" != "GNU/Linux" ] &&
 ADD=after add-mediapath Tools/
 
 #for DIR in $(list-mediapath "Prog*"/{UniExtract,Notepad*,WinRAR,7-Zip,WinZip}/ "Tools/" "I386/" "Windows"/{,system32/} "*.lnk"); do
