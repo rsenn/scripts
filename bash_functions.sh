@@ -1955,6 +1955,23 @@ $IFS";
     done )
 }
 
+installpkg() {
+ (IFS="
+"
+  ARGS="$*"
+  if [ "${PKGDIR+set}" != set ]; then
+    set -- $(ls -d /m*/*/pmagic/pmodules{/extra,} 2>/dev/null)
+    test -d "$1" && PKGDIR="$1"
+    : ${PKGDIR="$PWD"}
+  fi
+  for ARG in $ARGS; do
+     case "$ARG" in
+       *://*) wget ${PKGDIR:+-P "$PKGDIR"} -c "$ARG"; ARG="$PKGDIR/${ARG##*/}" ;;
+     esac
+     command installpkg "$ARG"
+  done)
+}
+
 in_path()
 {
     local dir IFS=:;
@@ -3648,6 +3665,80 @@ rm_ver()
     sed 's,-[^-]*$,,' )
 }
 
+rpm-cmd() {
+  OPTS= OUTPUT=
+  while :; do
+    case "$1" in
+      -o) OUTPUT="$2"; shift 2 ;; -o*) OUTPUT="${1#-o}"; shift  ;; --output=*) OUTPUT="${1#*=}"; shift  ;;
+      -*) OPTS="${OPTS:+$OPTS$IFS}$1"; shift ;;
+      --) shift; break ;;
+      *) break ;;
+    esac
+  done
+
+ #CMD="addprefix \"\$ARG: \""
+ CMD="sed \"s|^\\./|| ;; s|^|\$ARG: |\""
+ #N=$#
+
+  while [ $# -gt 0 ]; do
+    ARG="$1"
+    shift
+   (case "$ARG" in
+      #*://*) DLCMD="wget -q -O - \"\$ARG\" | rpm2cpio /dev/stdin" ;;
+      #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
+      #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
+    *://*) 
+      MIRRORLIST=`curl -s "$ARG.mirrorlist" |sed -n 's,\s*<li><a href="\([^"]*\.rpm\)">.*,\1,p'`
+
+      if [ -n "$MIRRORLIST" ]; then
+        set -- $MIRRORLIST 
+      else
+        set -- "$ARG"
+      fi
+      DLCMD='wget -q -O - "$1" | rpm2cpio /dev/stdin'
+      ;;
+      *) set -- "$ARG"
+        DLCMD='rpm2cpio "$ARG"'
+        ;;
+    esac
+    CMD="$DLCMD | (${OUTPUT:+cd \"\$OUTPUT\"; }cpio \${OPTS:--t} 2>/dev/null)${CMD:+ | $CMD}"
+    while [ $# -gt 0 ]; do 
+      eval "( $CMD ) 2>/dev/null" && exit 0
+      #echo continue 1>&2
+      shift
+    done
+    
+    echo "Failed to list $ARG" 1>&2
+    exit 1)
+  done
+}
+
+rpm-list() {
+  rpm-cmd -t -- "$@"
+}
+
+rpm-extract() {
+  rpm-cmd -i -d -u -- "$@"
+}
+
+samplerate()
+{
+  ( N=$#
+  for ARG in "$@";
+  do
+		EXPR='/^Sampling rate/ { s,^[^:]*:\s*,,; p }'
+    test $N -le 1 && P="" || P="$ARG:"
+
+		HZ=$(mediainfo "$ARG" | sed -n "$EXPR")
+
+		case "$HZ" in
+			*KHz) HZ=$(echo "${HZ% KHz} * 1000" | bc -l| sed 's,\.0*$,,') ;;
+		  *Hz) HZ=$(echo "${HZ% Hz}" | sed 's, ,,g') ;;
+		esac	
+		echo "$P$HZ" 
+	done)
+}
+
 scriptdir()
 {
     local absdir reldir thisdir="`pwd`";
@@ -3662,6 +3753,11 @@ scriptdir()
     echo $absdir
 }
 
+set-devenv() {
+  DEST=${%/bin*}/bin
+  PATH="$DEST:$(explode : "$PATH" |grep -v "$DEST"|implode :)"
+}
+
 set_ps1()
 {
     local b="\\[\\e[37;1m\\]" d="\\[\\e[0;38m\\]" g="\\[\\e[1;36m\\]" n="\\[\\e[0m\\]";
@@ -3673,6 +3769,18 @@ shell-functions()
     ( . require.sh;
     require script;
     declare -f | script_fnlist )
+}
+
+show-builtin-defines() {
+ (NARG=$#
+  CMD='"$ARG" -dM -E - <<EOF
+EOF'
+  if [ "$NARG" -gt 1 ]; then
+    CMD="$CMD | addprefix \"\$ARG\":"
+  fi
+  eval "for ARG; do
+    $CMD
+  done")
 }
 
 some()
@@ -3757,6 +3865,26 @@ subst_script()
         fi;
     done;
     array_implode script ';'
+}
+
+svgsize() {
+(while :; do
+   case "$1" in
+		-xy | --xy) XY=true; shift ;;
+*) break ;;
+esac
+done
+
+  sed -n  's,.*viewBox=[^0-9]*\([0-9][0-9]*\)[^0-9][^0-9]*\([0-9][0-9]*\)[^0-9][^0-9]*\([0-9][0-9]*\)[^0-9][^0-9]*\([0-9][0-9]*\).*,\1 \2 \3 \4,p' "$@" | 
+	(IFS=" "; while  read -r x y w h; do
+
+	if [ "$XY" = true ]; then
+			echo x$(expr "$w" - "$x")Y$(expr "$h" - "$y")
+		else
+			echo $(expr "$w" - "$x") $(expr "$h" - "$y")
+	fi
+	done)
+	)
 }
 
 symlink-lib()

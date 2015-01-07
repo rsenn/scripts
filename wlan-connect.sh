@@ -24,16 +24,16 @@ killall wpa_supplicant dhcpcd dhclient pump
 sleep 1
 killall -9 wpa_supplicant dhcpcd dhclient pump
 
-route del default
+route del default 2>/dev/null || ip route flush default
 
-ifconfig $IF down
-ifconfig $IF 0 up
+ifconfig $IF down 2>/dev/null || ip link delete $IF
+ifconfig $IF 0 up 2>/dev/nul || ip link set dev $IF up 
 
 wpa_supplicant -i ${IF} -c "$CONFIG" -B
 
 if [ -n "$IP" ]; then
-	ifconfig ${IF} ${IP} up
-  route add default gw ${IP%.[0-9]*}.1
+	ifconfig ${IF} ${IP} up 2>/dev/null || ip addr add ${IP} dev ${IF}
+  route add default gw ${IP%.[0-9]*}.1 2>/dev/null || ip route replace to 0/0 via  ${IP%.[0-9]*}.1
 else
  dhcpcd -d ${IF} || dhclient -v ${IF}
 fi
