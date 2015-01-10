@@ -187,7 +187,7 @@ $((VBR + ABR))"
 
 
 RATE=29.97
-    (IFS="$IFS "; set -x; "$FFMPEG" 2>&1  $FFMPEGOPTS -strict -2 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 $EXTRA_ARGS \
+    (IFS="$IFS "; set -x; "$FFMPEG" 2>&1  $FFMPEGOPTS  -map_metadata -1 -strict -2 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 $EXTRA_ARGS \
       ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  $BITRATE_ARG -acodec libmp3lame \
       -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) && ([ "$REMOVE" = true ] && rm -vf "$ARG") ||
         break
