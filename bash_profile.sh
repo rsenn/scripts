@@ -1,3 +1,4 @@
+echo 'loading /home/roman/.bash_profile' 1>&2
 #!/bin/bash
 
 set -o vi
@@ -45,18 +46,13 @@ esac
 export LC_ALL LC_CTYPE LANG HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS TERM
 
 has_cmd() {
-	type "$1" >/dev/null 2>/dev/null
+  test -e /bin/"$1" -o -e /usr/bin/"$1"
+	#type "$1" >/dev/null 2>/dev/null
 }
 	
 has_cmd gxargs && alias xargs='gxargs -d "\n"' || alias xargs='xargs -d "\n"'
 
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
-
-ls --help 2>&1|/bin/grep -q '\--color' && LS_ARGS="$LS_ARGS --color=auto"
-ls --help 2>&1|/bin/grep -q '\--time-style' && LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
-
-/bin/grep --help 2>&1|/bin/grep -q '\--color' && GREP_ARGS="$GREP_ARGS --color=auto"
-/bin/grep --help 2>&1|/bin/grep -q '\--line-buffered' && GREP_ARGS="$GREP_ARGS --line-buffered"
 
 has_cmd gls && alias ls="gls $LS_ARGS" || alias ls="ls $LS_ARGS"
 
@@ -86,13 +82,13 @@ if [ "`id -u`" = 0 ]; then
 else
     SUDO=sudo
 fi
-type yum 2>/dev/null >/dev/null && alias yum="$SUDO yum -y"
-#type smart 2>/dev/null >/dev/null && alias smart="$SUDO smart -y"
-type zypper 2>/dev/null >/dev/null && alias zypper="$SUDO zypper"
-type apt-get 2>/dev/null >/dev/null && alias apt-get="$SUDO apt-get -y"
-type aptitude 2>/dev/null >/dev/null && alias aptitude="$SUDO aptitude -y"
+#type yum 2>/dev/null >/dev/null && alias yum="$SUDO yum -y"
+##type smart 2>/dev/null >/dev/null && alias smart="$SUDO smart -y"
+#type zypper 2>/dev/null >/dev/null && alias zypper="$SUDO zypper"
+#type apt-get 2>/dev/null >/dev/null && alias apt-get="$SUDO apt-get -y"
+#type aptitude 2>/dev/null >/dev/null && alias aptitude="$SUDO aptitude -y"
 
-if type require.sh 2>/dev/null >/dev/null; then
+if has_cmd require.sh; then
   . require.sh
 	
   require util
@@ -216,12 +212,11 @@ add-mediapath()
   done
 }
 
-is-cmd() { type "$1" >/dev/null 2>/dev/null; }
+#is-cmd() { type "$1" >/dev/null 2>/dev/null; }
 
 #echo -n "Adding mediapaths ... " 1>&2; add-mediapath "I386/" "I386/system32/" "Windows/" "Tools/" "HBCD/" "Program*/{Notepad2,WinRAR,Notepad++,SDCC/bin,gputils/bin}/"; echo "done" 1>&2
-is-cmd "notepad2" || add-mediapath "Prog*/Notepad2"
+#is-cmd "notepad2" || add-mediapath "Prog*/Notepad2"
 
-[ "$(uname -o)" != "GNU/Linux" ] &&
 ADD=after add-mediapath Tools/
 
 #for DIR in $(list-mediapath "Prog*"/{UniExtract,Notepad*,WinRAR,7-Zip,WinZip}/ "Tools/" "I386/" "Windows"/{,system32/} "*.lnk"); do
@@ -323,11 +318,11 @@ esac
 #[ -d /sbin ] && pathmunge /sbin
 #[ -d /usr/sbin ] && pathmunge /usr/sbin
 
-pathremove /bin; pathmunge /bin
-pathremove /sbin; pathmunge /sbin
-pathremove /usr/bin; pathmunge /usr/bin
-pathremove /usr/sbin; pathmunge /usr/sbin
+pathremove /bin && pathmunge /bin
+pathremove /sbin && pathmunge /sbin
+pathremove /usr/bin && pathmunge /usr/bin
+pathremove /usr/sbin && pathmunge /usr/sbin
 
-pathremove /usr/local/bin; pathmunge /usr/local/bin 
-pathremove /usr/local/sbin; pathmunge /usr/local/sbin
+pathremove /usr/local/bin && pathmunge /usr/local/bin 
+pathremove /usr/local/sbin && pathmunge /usr/local/sbin
 
