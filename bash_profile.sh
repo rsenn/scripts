@@ -54,7 +54,11 @@ has_cmd gxargs && alias xargs='gxargs -d "\n"' || alias xargs='xargs -d "\n"'
 
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
 
-has_cmd gls && alias ls="gls $LS_ARGS" || alias ls="ls $LS_ARGS"
+has_cmd gls && alias ls="gls \$LS_ARGS" || alias ls="ls \$LS_ARGS"
+
+if ls --help 2>&1 | grep -q '\--color'; then
+  LS_ARGS="--color=auto"
+fi
 
 for BIN in \
 	awk base64 basename cat chcon chgrp chmod chown chroot cksum comm cp \
