@@ -2152,28 +2152,48 @@ link-mpd-music-dirs()
     done )
 }
 
-list-7z()
-{
-  (FILTER="sed -n '/^\\s*Date\\s\\+Time\\s\\+Attr/ { 
-    :lp	
-      N	
-      \$! b lp	
-       s/[^\\n]*files[^\\n]*folders\$//	
-      s/\\n[- \\t]*\\n/\\n/g	
-      s/\\n[.0-9][-.0-9]\\+\\s\\+[.0-9:]\\+\\s\\+[^ \\t]*[.[:alnum:]][^ \\t]*\\+\\s\\s*\\([.0-9]\\+\\)\\s\\s/\\n  /g	
-      s/\\n\\s\\+[.0-9]\\+\\s\\+[.0-9]\\+/\\n  /g	
-      s/\\n\\s\\+[.0-9]\\+\\s\\s*/\\n  /g	
-      s/\\n\\s\\+/\\n/g	
-      s/^\\s*Date\\s\\+Time[^\\n]*//	
-      s/\\n[^/]*files[^/]*folders\$//	
-      s/\\n\\s*\\n\\?\$//
-      s/^\\n\\?\\s*\\n//
-      p	
-  }'"
-  [ $# -gt 1 ] && FILTER="$FILTER | addprefix \"\$ARG: \""
-  for ARG; do
-    7z l "$ARG" | eval "$FILTER"
-   done)
+list-7z() {
+  while :; do 
+    case "$1" in
+      -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
+      *) break ;;
+    esac
+  done
+  NARG=$#
+
+  output() {
+    [ "$NARG" -gt 1 ] && echo "$ARCHIVE:$*" || echo "$*"
+  }
+
+  while [ $# -gt 0 ]; do
+   (case "$1" in 
+      *://*) INPUT="curl -s \"\$1\"" ;;
+
+    *) ARCHIVE=$1  ;;
+    esac
+    CMD="7z l -slt \$OPTS ${ARCHIVE+\"\$ARCHIVE\"}"
+    if [ -n "$INPUT" ]; then
+      CMD="${INPUT+$INPUT | }$CMD"
+      OPTS="$OPTS${IFS:0:1}-si${1##*/}"
+    fi 
+    eval "$CMD"
+    ) | 
+    { IFS=" "; while read -r NAME EQ VALUE; do
+      case "$NAME" in
+        Path) F="$VALUE" ;;
+        Folder) if [ "$VALUE" = + ]; then
+            output "$F/"
+          else
+            output "$F"
+          fi
+        ;;
+        *) ;;
+        esac
+        test -z "$NAME" && unset F
+      done
+    }
+    shift
+  done
 }
 
 list-broken-links() {
