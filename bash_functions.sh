@@ -1868,7 +1868,7 @@ index-dir()
         echo "Indexing directory $PWD ..." 1>&2;
         TEMP=`mktemp "$PWD/XXXXXX.list"`;
         trap 'rm -f "$TEMP"; unset TEMP' EXIT;
-        ( list-r 2> /dev/null || list-recursive ) > "$TEMP";
+        ( type list-r 2>/dev/null >/dev/null && list-r 2>/dev/null || list-recursive ) > "$TEMP";
         ( install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/files.list";
         wc -l "$PWD/files.list" 1>&2 );
     done )
