@@ -1,5 +1,7 @@
 #!/bin/sh
 
+IFS="
+"
 MYDIR=`dirname "$0"`
 
 cd "$MYDIR" 
@@ -10,17 +12,21 @@ ABSDIR=`cd "$MYDIR" && pwd`
 
 for SUBDIR in $SUBDIRS; do
 
+  SUBDIR=${SUBDIR%%/VC*}
   if [ -d "$SUBDIR" ]; then
     SUBDIR=`cd "$SUBDIR" && echo "${PWD#$ABSDIR/}"`
   fi
-
-  case "$SUBDIR" in
-    *2015*) MSVC_VERSION=14 ;;
-    *2013*) MSVC_VERSION=12 ;;
-    *2012*) MSVC_VERSION=11 ;;
-    *2010*) MSVC_VERSION=10 ;;
+  SUBDIRNAME=${SUBDIR##*/}
+  #echo "SUBDIRNAME=$SUBDIRNAME" 1>&2
+  case "$SUBDIRNAME" in
+    *2015* | *\ 14.0) MSVC_VERSION=14 VS_VERSION=2015 ;;
+    *2013* | *\ 12.0) MSVC_VERSION=12 VS_VERSION=2013 ;;
+    *2012* | *\ 11.0) MSVC_VERSION=11 VS_VERSION=2012 ;;
+    *2010* | *\ 10.0) MSVC_VERSION=10 VS_VERSION=2010 ;;
+    *2008* | *\ 9.0) MSVC_VERSION=9 VS_VERSION=2008 ;;
     *) MSVC_VERSION= ;;
   esac
+  echo "MSVC version: $MSVC_VERSION" 1>&2
 
   case "$SUBDIR" in
     *x64* | *x86*64* | *amd64*) PLATFORM_DEFAULT=amd64 ;;
@@ -91,7 +97,7 @@ echo Variables are now set up for Visual Studio $MSVC_VERSION (%PLATFORM%)
 
 EOF
 
-  ) | { O="set-$SUBDIR-vars.cmd"; echo "Writing $O ..." 1>&2; sed "s|\$|\\r|" >"set-$SUBDIR-vars.cmd"; }
+  ) | { O="set-msvc${VS_VERSION}-vars.cmd"; echo "Writing $O ..." 1>&2; sed "s|\$|\\r|" >"$O"; }
 
   #echo "$LIBNAMES"
 
