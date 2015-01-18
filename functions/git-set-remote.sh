@@ -3,11 +3,12 @@ git-set-remote()
   ( IFS="
 "
   gsr-arg() {
+   (unset DIR NAME REMOTE
     ARG="$*"
     case "$ARG" in
       *:\ *) DIR=${ARG%%": "*}; ARG=${ARG#"$DIR: "} ;;
     esac
-   (if [ -n "$DIR" -a -d "$DIR" ]; then
+    if [ -n "$DIR" -a -d "$DIR" ]; then
       eval "${PRECMD}cd \"\$DIR\""
     fi
     case "$ARG" in
