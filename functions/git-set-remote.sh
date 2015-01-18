@@ -17,7 +17,10 @@ git-set-remote()
     esac
       [ -n "$DIR" ] && echo "Setting git remote '$NAME' in '$DIR' to '$REMOTE'" 1>&2
      eval "${PRECMD}git remote rm \"\$NAME\"" >&/dev/null
+
+     if [ -n "$REMOTE" ]; then
      eval "${PRECMD}git remote add \"\$NAME\" \"\$REMOTE\""
+   fi
    )
      #   for NAME in $(git-get-remote | awkp ); do :; done
 
@@ -34,9 +37,11 @@ git-set-remote()
         ?*\|?*\|*)   R="$1 $2"; S=2 ;;
         *\|*\|*)   R="$1"; S=2 ;;
       esac
-      '$CMD' || exit $?
+      (set -x; '$CMD') || exit $?
       echo "Shifting by $S" 1>&2
+      [ "$S" -gt "$#" ]  && S=$#
       shift ${S:-1}
+      unset S
     done'
   fi
   eval "$CMD")
