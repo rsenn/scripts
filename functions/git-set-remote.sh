@@ -37,7 +37,7 @@ git-set-remote()
         ?*\|?*\|*)   R="$1 $2"; S=2 ;;
         *\|*\|*)   R="$1"; S=2 ;;
       esac
-      (set -x; '$CMD') || exit $?
+      '$CMD' || exit $?
       echo "Shifting by $S" 1>&2
       [ "$S" -gt "$#" ]  && S=$#
       shift ${S:-1}
