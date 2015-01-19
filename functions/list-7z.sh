@@ -1,5 +1,5 @@
 list-7z() {
-  while :; do 
+ (while :; do 
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
       *) break ;;
@@ -8,7 +8,7 @@ list-7z() {
   NARG=$#
 
   output() {
-    [ "$NARG" -gt 1 ] && echo "$ARCHIVE:$*" || echo "$*"
+    [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
   }
 
   while [ $# -gt 0 ]; do
@@ -22,8 +22,7 @@ list-7z() {
       CMD="${INPUT+$INPUT | }$CMD"
       OPTS="$OPTS${IFS:0:1}-si${1##*/}"
     fi 
-    eval "$CMD"
-    ) | 
+    eval "$CMD" | 
     { IFS=" "; while read -r NAME EQ VALUE; do
       case "$NAME" in
         Path) F="$VALUE" ;;
@@ -38,6 +37,7 @@ list-7z() {
         test -z "$NAME" && unset F
       done
     }
+    )
     shift
-  done
+  done)
 }
