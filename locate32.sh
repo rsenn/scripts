@@ -44,8 +44,9 @@ while :; do
   esac
   shift
 done
-PARAM="$*"
-echo "ARGS:" $PARAM 1>&2
+PARAMS="$*"
+echo "PARAMS:" $PARAMS 1>&2
+echo "DATABASE:" $DATABASE 1>&2
 
 #: ${DATABASE="$USERPROFILE/AppData/Roaming/Locate32/files.dbs"}
 
@@ -73,7 +74,8 @@ esac
 
 if [ -n "$DATABASE" ]; then
   saved_IFS="$IFS"
-  IFS=";"
+  IFS=";
+"
   for DB in $DATABASE; do
     [ -e "$DB" ] && addopt -d "$DB"
   done
@@ -105,7 +107,7 @@ SED_EXPR="s|\\\\|/|g"
 SED_EXPR="${SED_EXPR}; s|^A|a|; s|^B|b|; s|^C|c|; s|^D|d|; s|^E|e|; s|^F|f|; s|^G|g|; s|^H|h|; s|^I|i|; s|^J|j|; s|^K|k|; s|^L|l|; s|^M|m|; s|^N|n|; s|^O|o|; s|^P|p|; s|^Q|q|; s|^R|r|; s|^S|s|; s|^T|t|; s|^U|u|; s|^V|v|; s|^W|w|; s|^X|x|; s|^Y|y|; s|^Z|z|"
 
 unset ARGS
-for ARG in $PARAM; do
+for ARG in $PARAMS; do
   case "$ARG" in
     *\[^/\]* | *\[^\\\]* | *\[^\\\\\]*) ;;
     *[/\\]*) addopt -w ;;
