@@ -35,7 +35,7 @@ while :; do
     -i | --ignore-case) NOCASE=true ;;
     -f | --file) LOOKFILE=f ;;
     -d | --dir) LOOKDIR=d ;;
-    -b | --database) DATABASE="$2" ; shift ;;
+    -b | -D | --database) DATABASE="$2" ; shift ;;
     -t) EXTENSION="$2" ; shift ;;  --ext*=*) EXTENSION="${1#*=}" ;;
     -w | --wholename) WHOLE=true ;;
     -s | --size) SIZE="$2"; shift ;; -s=* | --size=*) SIZE="${1#*=}" ;;
@@ -44,6 +44,8 @@ while :; do
   esac
   shift
 done
+PARAM="$*"
+echo "ARGS:" $PARAM 1>&2
 
 #: ${DATABASE="$USERPROFILE/AppData/Roaming/Locate32/files.dbs"}
 
@@ -69,8 +71,13 @@ case "${NOCASE:-false}:${REGEX:-false}" in
   false:true) addopt -r ;;
 esac
 
-if [ "$DATABASE" -a -e "$DATABASE" ]; then
-  addopt -d "$DATABASE"
+if [ -n "$DATABASE" ]; then
+  saved_IFS="$IFS"
+  IFS=";"
+  for DB in $DATABASE; do
+    [ -e "$DB" ] && addopt -d "$DB"
+  done
+  IFS="$saved_IFS"
 fi
 
 if [ -n "$EXTENSION" ]; then
@@ -98,16 +105,17 @@ SED_EXPR="s|\\\\|/|g"
 SED_EXPR="${SED_EXPR}; s|^A|a|; s|^B|b|; s|^C|c|; s|^D|d|; s|^E|e|; s|^F|f|; s|^G|g|; s|^H|h|; s|^I|i|; s|^J|j|; s|^K|k|; s|^L|l|; s|^M|m|; s|^N|n|; s|^O|o|; s|^P|p|; s|^Q|q|; s|^R|r|; s|^S|s|; s|^T|t|; s|^U|u|; s|^V|v|; s|^W|w|; s|^X|x|; s|^Y|y|; s|^Z|z|"
 
 unset ARGS
-for ARG; do
+for ARG in $PARAM; do
   case "$ARG" in
     *\[^/\]* | *\[^\\\]* | *\[^\\\\\]*) ;;
     *[/\\]*) addopt -w ;;
   esac
-  ARG=${ARG//"\\."/"."}
+  ARG=${ARG//"\\."/"\\{dot}"}
   ARG=${ARG//".*"/"*"}
   ARG=${ARG//"."/"?"}
   ARG=${ARG//"\\?"/"."}
   ARG=${ARG//"/"/"\\"}
+  ARG=${ARG//"\\{dot}"/"."}
   case "$ARG" in
     ^*\$) ARG=${ARG#^}; ARG="${ARG%\$}" ;;
     *\$) ARG="*${ARG%\$}" ;;
