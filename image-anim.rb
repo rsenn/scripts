@@ -60,7 +60,7 @@ pp tiles
 #tiles.animate(20)
 tiles.delay = 20
 tiles.write(OUTPUTFILE) do
-  self.compression = COMP
+  self.compression = Magick::LZWCompression
 end
 
 #new_img.write("

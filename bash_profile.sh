@@ -1,3 +1,4 @@
+echo 'loading /home/roman/.bash_profile' 1>&2
 #!/bin/bash
 
 set -o vi
@@ -45,34 +46,33 @@ esac
 export LC_ALL LC_CTYPE LANG HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS TERM
 
 has_cmd() {
-	type "$1" >/dev/null 2>/dev/null
+  test -e /bin/"$1" -o -e /usr/bin/"$1"
+	#type "$1" >/dev/null 2>/dev/null
 }
 	
 has_cmd gxargs && alias xargs='gxargs -d "\n"' || alias xargs='xargs -d "\n"'
 
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
 
-ls --help 2>&1|/bin/grep -q '\--color' && LS_ARGS="$LS_ARGS --color=auto"
-ls --help 2>&1|/bin/grep -q '\--time-style' && LS_ARGS="$LS_ARGS --time-style=+%Y%m%d-%H:%M:%S"
+has_cmd gls && alias ls="gls \$LS_ARGS" || alias ls="ls \$LS_ARGS"
 
-/bin/grep --help 2>&1|/bin/grep -q '\--color' && GREP_ARGS="$GREP_ARGS --color=auto"
-/bin/grep --help 2>&1|/bin/grep -q '\--line-buffered' && GREP_ARGS="$GREP_ARGS --line-buffered"
+if ls --help 2>&1 | grep -q '\--color'; then
+  LS_ARGS="--color=auto"
+fi
 
-has_cmd gls && alias ls="gls $LS_ARGS" || alias ls="ls $LS_ARGS"
-
-for BIN in \
-	awk base64 basename cat chcon chgrp chmod chown chroot cksum comm cp \
-	csplit cut date dd df dir dircolors dirname du env expand expr factor \
-	false find fmt fold groups head hostid id install join kill libtool \
-	libtoolize link ln locate logname m4 md5sum mkdir mkfifo mknod mktemp mv \
-	nice nl nohup nproc numfmt od oldfind paste pathchk pinky pr printenv printf \
-	ptx pwd readlink realpath rm rmdir runcon sed seq sha1sum sha224sum sha256sum \
-	sha384sum sha512sum shred shuf sleep sort split stat stdbuf stty sum sync tac \
-	tail tee test timeout touch tr true truncate tsort tty uname unexpand uniq \
-	unlink updatedb uptime users vdir wc who whoami xargs yes
-do
-	 has_cmd "g$BIN" && alias "$BIN=g$BIN"
-done
+#for BIN in \
+#	awk base64 basename cat chcon chgrp chmod chown chroot cksum comm cp \
+#	csplit cut date dd df dir dircolors dirname du env expand expr factor \
+#	false find fmt fold groups head hostid id install join kill libtool \
+#	libtoolize link ln locate logname m4 md5sum mkdir mkfifo mknod mktemp mv \
+#	nice nl nohup nproc numfmt od oldfind paste pathchk pinky pr printenv printf \
+#	ptx pwd readlink realpath rm rmdir runcon sed seq sha1sum sha224sum sha256sum \
+#	sha384sum sha512sum shred shuf sleep sort split stat stdbuf stty sum sync tac \
+#	tail tee test timeout touch tr true truncate tsort tty uname unexpand uniq \
+#	unlink updatedb uptime users vdir wc who whoami xargs yes
+#do
+#	 has_cmd "g$BIN" && alias "$BIN=g$BIN"
+#done
 
 alias grep="/bin/grep $GREP_ARGS"
 alias grepdiff='grepdiff --output-matching=hunk'
@@ -86,13 +86,13 @@ if [ "`id -u`" = 0 ]; then
 else
     SUDO=sudo
 fi
-type yum 2>/dev/null >/dev/null && alias yum="$SUDO yum -y"
-#type smart 2>/dev/null >/dev/null && alias smart="$SUDO smart -y"
-type zypper 2>/dev/null >/dev/null && alias zypper="$SUDO zypper"
-type apt-get 2>/dev/null >/dev/null && alias apt-get="$SUDO apt-get -y"
-type aptitude 2>/dev/null >/dev/null && alias aptitude="$SUDO aptitude -y"
+#type yum 2>/dev/null >/dev/null && alias yum="$SUDO yum -y"
+##type smart 2>/dev/null >/dev/null && alias smart="$SUDO smart -y"
+#type zypper 2>/dev/null >/dev/null && alias zypper="$SUDO zypper"
+#type apt-get 2>/dev/null >/dev/null && alias apt-get="$SUDO apt-get -y"
+#type aptitude 2>/dev/null >/dev/null && alias aptitude="$SUDO aptitude -y"
 
-if type require.sh 2>/dev/null >/dev/null; then
+if has_cmd require.sh; then
   . require.sh
 	
   require util
@@ -216,12 +216,11 @@ add-mediapath()
   done
 }
 
-is-cmd() { type "$1" >/dev/null 2>/dev/null; }
+#is-cmd() { type "$1" >/dev/null 2>/dev/null; }
 
 #echo -n "Adding mediapaths ... " 1>&2; add-mediapath "I386/" "I386/system32/" "Windows/" "Tools/" "HBCD/" "Program*/{Notepad2,WinRAR,Notepad++,SDCC/bin,gputils/bin}/"; echo "done" 1>&2
-is-cmd "notepad2" || add-mediapath "Prog*/Notepad2"
+#is-cmd "notepad2" || add-mediapath "Prog*/Notepad2"
 
-[ "$(uname -o)" != "GNU/Linux" ] &&
 ADD=after add-mediapath Tools/
 
 #for DIR in $(list-mediapath "Prog*"/{UniExtract,Notepad*,WinRAR,7-Zip,WinZip}/ "Tools/" "I386/" "Windows"/{,system32/} "*.lnk"); do
@@ -316,18 +315,18 @@ fi
 case "$MSYSTEM" in
   *MINGW32*) [ -d /mingw/bin ] && pathmunge /mingw/bin ;;
   *MINGW64*) [ -d /mingw64/bin ] && pathmunge /mingw64/bin ;;
-  *) LS_COLORS='di=01;34:ln=01;36:pi=33:so=01;35:do=01;35:bd=33;01:cd=33;01:or=31;01:ex=01;33:tw=1;34:ow=1;34'; export LS_COLORS
+  *) LS_COLORS='di=01;34:ln=01;36:pi=35:so=01;35:do=01;35:bd=35;01:cd=35;01:or=31;01:ex=01;35:tw=1;34:ow=1;34'; export LS_COLORS
 ;;
 esac
 
 #[ -d /sbin ] && pathmunge /sbin
 #[ -d /usr/sbin ] && pathmunge /usr/sbin
 
-pathremove /bin; pathmunge /bin
-pathremove /sbin; pathmunge /sbin
-pathremove /usr/bin; pathmunge /usr/bin
-pathremove /usr/sbin; pathmunge /usr/sbin
+pathremove /bin && pathmunge /bin
+pathremove /sbin && pathmunge /sbin
+pathremove /usr/bin && pathmunge /usr/bin
+pathremove /usr/sbin && pathmunge /usr/sbin
 
-pathremove /usr/local/bin; pathmunge /usr/local/bin 
-pathremove /usr/local/sbin; pathmunge /usr/local/sbin
+pathremove /usr/local/bin && pathmunge /usr/local/bin 
+pathremove /usr/local/sbin && pathmunge /usr/local/sbin
 

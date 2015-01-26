@@ -896,9 +896,11 @@ explore()
  (r=`realpath "$1" 2>/dev/null`; [ "$r" ] || r=$1
   r=${r%/.}
   r=${r#./}
+  bs="\\"
+  fs="/"
   p=`$PATHTOOL -w "$r"`
   set -x
-  "${SystemRoot:+$SystemRoot\\}explorer.exe" "/n,/e,$p"
+  "${SystemRoot:+$SystemRoot\\}cmd.exe" /c "explorer.exe /n,\"${p//$bs/$fs}\""
  )
 }
 
@@ -971,6 +973,38 @@ filter-cmd()
         esac;
         eval "$EVAL" ) || break;
     done )
+}
+
+filter-filesize() {
+  (OPS=
+  IFS="
+"; getnum() {
+    N=$1
+    case "$N" in
+      *K) N=$(( ${N%K} * 1024 )) ;;
+      *G) N=$(( ${N%G} * 1024 * 1048576)) ;;
+      *T) N=$(( ${N%T} * 1048576 * 1048576)) ;;
+      *M) N=$(( ${N%M} * 1048576 )) ;;
+    esac
+    echo "$N"
+  }
+  while :; do
+    case "$1" in
+      -gt | -ge | -lt | -le) OPS="${OPS:+$OPS$IFS}\$FILESIZE${IFS}$1${IFS}\$(($(getnum "$2")))"; shift 2 ;;
+      -a | -o) OPS="${OPS:+$OPS$IFS}${1}"; shift ;;
+      *) break ;;
+    esac
+  done
+  xargs ls -l -d -n --time-style="+%s" -- | { 
+   set -- $OPS
+   IFS=" "
+   CMD="test $*" 
+   while read -r MODE N USERID GROUPID FILESIZE DATETIME PATH; do
+     #echo "$FILESIZE" 1>&2
+      eval "if $CMD; then echo \"\$PATH\"; fi" 
+
+  done; }
+  )
 }
 
 filter-git-status()
@@ -1377,21 +1411,62 @@ git-get-remote() {
 
 git-set-remote()
 {
-  (while [ $# -gt 0 ]; do
-
+  ( IFS="
+"
+  while :; do
     case "$1" in
-      *\ *) BRANCH=${1%%" "*} ;;
-      *) BRANCH="$1"; REMOTE="$2"; shift ;;
+      -f | --force) FORCE=true; shift ;;
+      *) break ;;
     esac
-     git remote rm "$BRANCH" >&/dev/null
+  done
 
-     git remote add "$BRANCH" "$REMOTE"
+  gsr-arg() {
+   (unset DIR NAME REMOTE
+    ARG="$*"
+    case "$ARG" in
+      *:\ *) DIR=${ARG%%": "*}; ARG=${ARG#"$DIR: "} ;;
+    esac
+    if [ -n "$DIR" -a -d "$DIR" ]; then
+      eval "${PRECMD}cd \"\$DIR\""
+    fi
+    case "$ARG" in
+      *\ * | *$IFS*) NAME="${ARG%%[ $IFS]*}"; REMOTE="${ARG#*[ $IFS]}" ;;
+      *) NAME="$ARG";  shift ;;
+    esac
+      [ -n "$DIR" ] && echo "Setting git remote '$NAME' in '$DIR' to '$REMOTE'" 1>&2
+      
+     eval "${PRECMD}git remote rm \"\$NAME\"" #2>/dev/null
+     true
 
-#   for BRANCH in $(git-get-remote | awkp ); do :; done
+     if [ -n "$REMOTE" ]; then
+       eval "${PRECMD}git remote add \"\$NAME\" \"\$REMOTE\""
+     fi
+   )
+     #   for NAME in $(git-get-remote | awkp ); do :; done
 
+  }
+  CMD='gsr-arg $R'
+  CMD="$CMD; R=\$?; [ \"\$FORCE\" = true -o \"\$R\" = 0 ] || exit \$R"
 
-    shift
-  done)
+  if [ $# -le 0 ]; then
+    CMD='while read -r R; do '$CMD'; done'
+  else
+    CMD='while [ $# -gt 0 ]; do 
+      case "$1|$2|$3" in
+        *": "*\|*": "*\|*": "*) R="$1"; S=1 ;;
+        *": "*\|?*\|*": "*) R="$1 $2"; S=2 ;;
+        *": "*\|?*\|?*)   R="$1 $2 $3"; S=3 ;;
+        ?*\|?*\|*)   R="$1 $2"; S=2 ;;
+        *\|*\|*)   R="$1"; S=2 ;;
+      esac
+      '$CMD'
+      echo "Shifting by $S" 1>&2
+      [ "$S" -gt "$#" ]  && S=$#
+      shift ${S:-1}
+      unset S
+    done'
+  fi
+  eval "$CMD")
 }
 
 grep-e-expr()
@@ -1825,7 +1900,7 @@ index-dir()
         echo "Indexing directory $PWD ..." 1>&2;
         TEMP=`mktemp "$PWD/XXXXXX.list"`;
         trap 'rm -f "$TEMP"; unset TEMP' EXIT;
-        ( list-r 2> /dev/null || list-recursive ) > "$TEMP";
+        ( if type list-r 2>/dev/null >/dev/null; then  list-r 2>/dev/null; else list-recursive; fi) > "$TEMP";
         ( install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/files.list";
         wc -l "$PWD/files.list" 1>&2 );
     done )
@@ -2150,28 +2225,48 @@ link-mpd-music-dirs()
     done )
 }
 
-list-7z()
-{
-  (FILTER="sed -n '/^\\s*Date\\s\\+Time\\s\\+Attr/ { 
-    :lp	
-      N	
-      \$! b lp	
-       s/[^\\n]*files[^\\n]*folders\$//	
-      s/\\n[- \\t]*\\n/\\n/g	
-      s/\\n[.0-9][-.0-9]\\+\\s\\+[.0-9:]\\+\\s\\+[^ \\t]*[.[:alnum:]][^ \\t]*\\+\\s\\s*\\([.0-9]\\+\\)\\s\\s/\\n  /g	
-      s/\\n\\s\\+[.0-9]\\+\\s\\+[.0-9]\\+/\\n  /g	
-      s/\\n\\s\\+[.0-9]\\+\\s\\s*/\\n  /g	
-      s/\\n\\s\\+/\\n/g	
-      s/^\\s*Date\\s\\+Time[^\\n]*//	
-      s/\\n[^/]*files[^/]*folders\$//	
-      s/\\n\\s*\\n\\?\$//
-      s/^\\n\\?\\s*\\n//
-      p	
-  }'"
-  [ $# -gt 1 ] && FILTER="$FILTER | addprefix \"\$ARG: \""
-  for ARG; do
-    7z l "$ARG" | eval "$FILTER"
-   done)
+list-7z() {
+ (while :; do 
+    case "$1" in
+      -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
+      *) break ;;
+    esac
+  done
+  NARG=$#
+
+  output() {
+    [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
+  }
+
+  while [ $# -gt 0 ]; do
+   (case "$1" in 
+      *://*) INPUT="curl -s \"\$1\"" ;;
+
+    *) ARCHIVE=$1  ;;
+    esac
+    CMD="7z l -slt \$OPTS ${ARCHIVE+\"\$ARCHIVE\"}"
+    if [ -n "$INPUT" ]; then
+      CMD="${INPUT+$INPUT | }$CMD"
+      OPTS="$OPTS${IFS:0:1}-si${1##*/}"
+    fi 
+    eval "$CMD" | 
+    { IFS=" "; while read -r NAME EQ VALUE; do
+      case "$NAME" in
+        Path) F="$VALUE" ;;
+        Folder) if [ "$VALUE" = + ]; then
+            output "$F/"
+          else
+            output "$F"
+          fi
+        ;;
+        *) ;;
+        esac
+        test -z "$NAME" && unset F
+      done
+    }
+    )
+    shift
+  done)
 }
 
 list-broken-links() {
