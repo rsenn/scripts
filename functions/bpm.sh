@@ -1,5 +1,9 @@
 bpm()
 {
+    if ! type id3v2 2>/dev/null 1>/dev/null; then
+      get-bpm "$@"
+      return $?
+    fi
     ( unset NAME;
     if [ $# -gt 1 ]; then
         NAME=":";
