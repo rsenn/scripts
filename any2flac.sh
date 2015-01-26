@@ -21,9 +21,10 @@ for ARG; do
 
         trap 'rm -vf "$WAV"' EXIT QUIT INT TERM
 rm -f "$OUTPUT"
-  (set -x; mplayer  -really-quiet -noconsolecontrols -vo null -vc null ${SAMPLERATE+-af resample=$SAMPLERATE} -ao pcm:waveheader:file="$WAV" "$ARG") &&
-					(set -x; flac  ${SAMPLERATE:+--sample-rate="$SAMPLERATE"} ${CHANNELS:+--channels="$CHANNELS"} -o "$OUTPUT" "$WAV")
-	    #"(set -x; ffmpeg -y -strict -2 -i "$WAV" ${FMT+-f "$FMT"} ${ACODEC:+-acodec "$ACODEC"}   ${BITRATE+-ab "${BITRATE}k"} ${SAMPLERATE:+-ar "$SAMPLERATE"} ${CHANNELS:+-ac "$CHANNELS"} "$OUTPUT")
+  #(set -x; mplayer  -really-quiet -noconsolecontrols -vo null -vc null ${SAMPLERATE+-af resample=$SAMPLERATE} -ao pcm:waveheader:file="$WAV" "$ARG") &&
+  (set -x; mpg123 -w "$WAV" "$ARG") && 
+				#	(set -x; flac  ${SAMPLERATE:+--sample-rate="$SAMPLERATE"} ${CHANNELS:+--channels="$CHANNELS"} -o "$OUTPUT" "$WAV")
+	    (set -x; ffmpeg -y -strict -2 -i "$WAV" ${FMT+-f "$FMT"} ${ACODEC:+-acodec "$ACODEC"}   ${BITRATE+-ab "${BITRATE}k"} ${SAMPLERATE:+-ar "$SAMPLERATE"} ${CHANNELS:+-ac "$CHANNELS"} "$OUTPUT")
 
   )
 done

@@ -19,6 +19,7 @@ usage()
   -f, --file           Look for a file
   -d, --dir            Look for a directory
   -s, --size=SIZE      Specify file size
+  -t, --extension=EXT  Specify file extension
   -x, --debug          Show debug messages
 "
 }
@@ -35,6 +36,7 @@ while :; do
     -f | --file) LOOKFILE=f ;;
     -d | --dir) LOOKDIR=d ;;
     -b | --database) DATABASE="$2" ; shift ;;
+    -t) EXTENSION="$2" ; shift ;;  --ext*=*) EXTENSION="${1#*=}" ;;
     -w | --wholename) WHOLE=true ;;
     -s | --size) SIZE="$2"; shift ;; -s=* | --size=*) SIZE="${1#*=}" ;;
     -x | --debug) DEBUG=true ;;
@@ -43,7 +45,7 @@ while :; do
   shift
 done
 
-: ${DATABASE="$USERPROFILE/AppData/Roaming/Locate32/files.dbs"}
+#: ${DATABASE="$USERPROFILE/AppData/Roaming/Locate32/files.dbs"}
 
 MEDIAPATH="/{$(set -- $(df -a 2>/dev/null |sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
 
@@ -69,6 +71,10 @@ esac
 
 if [ "$DATABASE" -a -e "$DATABASE" ]; then
   addopt -d "$DATABASE"
+fi
+
+if [ -n "$EXTENSION" ]; then
+  addopt -t "$EXTENSION"
 fi
 
 if [ -z "${LOOKFILE}${LOOKDIR}${LOOKWHOLE}" ]; then
@@ -111,8 +117,11 @@ for ARG; do
   ARGS="${ARGS+$ARGS
 }$ARG"
 done
-addopt -lw
+#ARGS=${ARGS//"**"/"*"}
+ARGS=$(echo "$ARGS" | sed 's,\*\+,*,g')
 
+addopt -lw
+set -f
 CMD="\"$LOCATE\" $OPTS -- \"\$ARG\""
 CMD="for ARG in \$ARGS; do (${DEBUG:+set -x; }$CMD) done"
 CMD="$CMD | sed \"\${SED_EXPR}\""
