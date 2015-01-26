@@ -23,18 +23,17 @@ list-7z() {
       OPTS="$OPTS${IFS:0:1}-si${1##*/}"
     fi 
     eval "$CMD" | 
-    { IFS=" "; while read -r NAME EQ VALUE; do
-      case "$NAME" in
-        Path) F="$VALUE" ;;
-        Folder) if [ "$VALUE" = + ]; then
-            output "$F/"
-          else
-            output "$F"
-          fi
-        ;;
-        *) ;;
+    { IFS=" "; unset PREV; while read -r NAME EQ VALUE; do
+        case "$NAME" in
+          Path) F=${VALUE//"\\"/"/"} ;;
+          Folder) [ "$VALUE" = + ] && FP="/"       ;;
+          *) ;;
         esac
-        test -z "$NAME" && unset F
+        test -z "$NAME" && unset F FP
+        if test -n "$F$FP" -a "$F$FP" != "$PREV"; then
+          output "$F$FP"
+          PREV="$F$FP"
+        fi
       done
     }
     )
