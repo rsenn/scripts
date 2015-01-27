@@ -133,10 +133,12 @@ bitrate()
 
     test -n "$KBPS" && echo "$KBPS" || (
     R=0
-    set -- $(mminfo "$ARG" | sed -n "/Bit rate=/ { s,\s*Kbps\$,, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }")
+    set -- $(mminfo "$ARG"  |sed -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*Kbps\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
+		#echo "BR: $*" 1>&2
    #echo "$*" 1>&2
-    for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
-    [ "$N" -gt 1 ] && R="$ARG:$R"
+   # for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
+	 R=${*##*:}
+   [ "$N" -gt 1 ] && R="$ARG:$R"
       echo "$R"
       )
   done )
@@ -2713,7 +2715,7 @@ minfo()
    (CMD='mediainfo "$ARG" 2>&1'
     [ $# -gt 1 ] && CMD="$CMD | addprefix \"\$ARG:\""
     CMD="for ARG; do $CMD; done"
-    eval "$CMD")  | sed 's,\s\+:\([^:]*\)$,:\1, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g'
+    eval "$CMD")  | sed '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
 }
 
 mktempdata()
@@ -2777,8 +2779,8 @@ mminfo()
 {
     ( for ARG in "$@";
     do
-        minfo "$ARG" | sed -n "s,\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
-    done )
+        minfo "$ARG" | sed -n "s,^\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
+    done | sed 's,\s\+=,=,')
 }
 
 modules()
@@ -3670,8 +3672,8 @@ require()
 }
 
 resolution()
-{
- (minfo "$@"|sed -n "/Width: / { N; /Height:/ { s,Width:,, ; s,[^:\n0-9]\+: \+\([^:]*\)\$,\1,g; s,\n[^\n]*:,x,g; p } }")
+{  
+	(minfo "$@"|sed -n "/Width\s*: / { N; /Height\s*:/ { s,Width\s*:,, ; s,[^:\n0-9]\+: \+\([^:]*\)\$,\1,g; s|^\s*||; s|\([0-9]\)\s\+\([0-9]\)|\1\2|g; s|\s*pixels||g;  s|\n\([^:]*:\)\?|x|g; p } }")
 }
 
 retcode()

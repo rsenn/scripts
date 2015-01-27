@@ -112,6 +112,7 @@ pushv RESOLUTIONS 852x480
 pushv RESOLUTIONS 850x480
 pushv RESOLUTIONS 768x432
 pushv RESOLUTIONS 750x420
+pushv RESOLUTIONS 720x400
 pushv RESOLUTIONS 720x540
 pushv RESOLUTIONS 704x394
 pushv RESOLUTIONS 640x480
@@ -187,7 +188,8 @@ $((VBR + ABR))"
 
 
 RATE=29.97
-    (IFS="$IFS "; set -x; "$FFMPEG" 2>&1  $FFMPEGOPTS  -map_metadata -1 -strict -2 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 $EXTRA_ARGS \
+#METAOPTS="-map_metadata -1"
+    (IFS="$IFS "; set -x; "$FFMPEG" 2>&1  $FFMPEGOPTS  $METAOPTS -strict -2 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 $EXTRA_ARGS \
       ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  $BITRATE_ARG -acodec libmp3lame \
       -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) && ([ "$REMOVE" = true ] && rm -vf "$ARG") ||
         break
