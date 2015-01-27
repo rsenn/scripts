@@ -108,8 +108,8 @@ bitrate()
     set -- $(mminfo "$ARG"  |sed -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*Kbps\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
 		#echo "BR: $*" 1>&2
    #echo "$*" 1>&2
-   # for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
-	 R=${*##*:}
+    for I in "${@##*:}"; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
+	 #R=${*##*:}
    [ "$N" -gt 1 ] && R="$ARG:$R"
       echo "$R"
       )
