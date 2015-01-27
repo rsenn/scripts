@@ -22,6 +22,7 @@ main()
 			TITLE=${TITLE%.*}
 			TITLE=${TITLE//"_"/" "}
 			TITLE=${TITLE//" - "/"-"}
+			TITLE=$(echo "$TITLE" | sed 's|[^[:alnum:]][0-9]\+p[^[:alnum:]]| |g ;; s|\[| |g ;;  s|\]| |g ;; s|[ _]\+| |g ;')
 			RESOLUTION=$(resolution "$ARG")
 			BITRATE=$(bitrate "$ARG")
 	    echo "#EXTINF:$D,${TITLE}${RESOLUTION:+ [$RESOLUTION]}${BITRATE:+ ${BITRATE}kbps}"
