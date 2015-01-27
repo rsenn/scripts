@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 IFS="
 "
@@ -24,8 +24,6 @@ usage()
 "
 }
 
-DATABASE=$(reg query 'HKCU\Software\Update\Databases\1_default' /v ArchiveName |sed -n 's,\\,/,g ;; s,.*REG_SZ\s\+,,p')
-
 while :; do
   case "$1" in
     --) shift; break ;;
@@ -35,7 +33,7 @@ while :; do
     -i | --ignore-case) NOCASE=true ;;
     -f | --file) LOOKFILE=f ;;
     -d | --dir) LOOKDIR=d ;;
-    -b | -D | --database) DATABASE="$2" ; shift ;;
+    -b | -D | --database) DATABASE="${DATABASE:+$DATABASE;}$2" ; shift ;;
     -t) EXTENSION="$2" ; shift ;;  --ext*=*) EXTENSION="${1#*=}" ;;
     -w | --wholename) WHOLE=true ;;
     -s | --size) SIZE="$2"; shift ;; -s=* | --size=*) SIZE="${1#*=}" ;;
@@ -44,9 +42,16 @@ while :; do
   esac
   shift
 done
+set -f
+
+[ "$#" -le 0 ] && set -- "*"
+
 PARAMS="$*"
 echo "PARAMS:" $PARAMS 1>&2
 echo "DATABASE:" $DATABASE 1>&2
+
+
+: ${DATABASE=$(reg query 'HKCU\Software\Update\Databases\1_default' /v ArchiveName |sed -n 's,\\,/,g ;; s,.*REG_SZ\s\+,,p')}
 
 #: ${DATABASE="$USERPROFILE/AppData/Roaming/Locate32/files.dbs"}
 
@@ -55,14 +60,14 @@ MEDIAPATH="/{$(set -- $(df -a 2>/dev/null |sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\
 pathconv() { (IFS="/\\"; S="${2-/}"; set -- $1; IFS="$S"; echo "$*"); }
 addopt() { for OPT; do OPTS="${OPTS:+$OPTS }${OPT}"; done; }
 
-LOCATE=`eval "ls -d -- $MEDIAPATH/Prog*/Locate32/Locate.exe" 2>/dev/null|head -n1`
+LOCATE=`set +f; eval "ls -d -- $MEDIAPATH/Prog*/Locate32/Locate.exe" 2>/dev/null|head -n1`
 
 [ "$DEBUG" = true ] && echo "Found locate at: $LOCATE" 1>&2 
 
 LOCATEDIR=$(dirname "$LOCATE")
 #LOCATEREG=$(ls -d $LOCATEDIR/*.reg)
-(cd "$LOCATEDIR"; for REG in *.reg; do test -f "$REG" && reg import "$REG"
-done)
+
+#(cd "$LOCATEDIR"; for REG in *.reg; do test -f "$REG" && reg import "$REG"; done)
 #$(pathconv "$PROGRAMFILES")/Locate32/locate.exe
 
 
@@ -77,7 +82,8 @@ if [ -n "$DATABASE" ]; then
   IFS=";
 "
   for DB in $DATABASE; do
-    [ -e "$DB" ] && addopt -d "$DB"
+    #[ -e "$DB" ] && 
+    addopt -d "$DB"
   done
   IFS="$saved_IFS"
 fi
@@ -135,5 +141,5 @@ set -f
 CMD="\"$LOCATE\" $OPTS -- \"\$ARG\""
 CMD="for ARG in \$ARGS; do (${DEBUG:+set -x; }$CMD) done"
 CMD="$CMD | sed \"\${SED_EXPR}\""
-#[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+[ "$DEBUG" = true ] && { echo "+ $CMD" 1>&2; : set -x; }
 eval "$CMD"
