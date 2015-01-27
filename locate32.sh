@@ -1,7 +1,6 @@
 #!/bin/bash
 
-IFS="
-"
+IFS=$'\n\r'
 
 OPTS=
 REGEX= NOCASE=
@@ -21,7 +20,7 @@ usage()
   -s, --size=SIZE      Specify file size
   -t, --extension=EXT  Specify file extension
   -x, --debug          Show debug messages
-"
+"
 }
 
 while :; do
@@ -44,16 +43,21 @@ while :; do
 done
 set -f
 
+#: ${DATABASE=$(reg query 'HKCU\Software\Update\Databases\1_default' -v ArchiveName |sed -n 's,\\,/,g ;; s,.*REG_SZ\s\+,,p')}
+: ${DATABASE="$(for key in $(reg query 'HKCU\Software\Update\Databases' #| sed 's,\r$,,'
+); do key=${key%$'\r'}; test -z "$key" || reg query "$key" -v ArchiveName |sed -n '/ArchiveName/ { s,\r$,,; s,.*REG_SZ\s\+,,; s,\\,/,g; p; }'; done)"}
+
+#: ${DATABASE="$USERPROFILE/AppData/Roaming/Locate32/files.dbs"}
+
 [ "$#" -le 0 ] && set -- "*"
 
 PARAMS="$*"
-echo "PARAMS:" $PARAMS 1>&2
-echo "DATABASE:" $DATABASE 1>&2
 
+if [ "$DEBUG" = true ]; then
+	echo "PARAMS:" $PARAMS 1>&2
+	echo "DATABASE:" $DATABASE 1>&2
+fi
 
-: ${DATABASE=$(reg query 'HKCU\Software\Update\Databases\1_default' /v ArchiveName |sed -n 's,\\,/,g ;; s,.*REG_SZ\s\+,,p')}
-
-#: ${DATABASE="$USERPROFILE/AppData/Roaming/Locate32/files.dbs"}
 
 MEDIAPATH="/{$(set -- $(df -a 2>/dev/null |sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
 
@@ -80,7 +84,7 @@ esac
 if [ -n "$DATABASE" ]; then
   saved_IFS="$IFS"
   IFS=";
-"
+"
   for DB in $DATABASE; do
     #[ -e "$DB" ] && 
     addopt -d "$DB"

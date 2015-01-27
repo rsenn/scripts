@@ -22,8 +22,8 @@ ansi_cyan='\[\033[1;36m\]' ansi_red='\[\033[1;31m\]' ansi_green='\[\033[1;32m\]'
 LANG=en_US
 LC_ALL=C
 LC_CTYPE=en_US.ISO-8859-1
-HISTSIZE=32768
 HISTFILESIZE=16777216
+HISTSIZE=94208
 XLIB_SKIP_ARGB_VISUALS=1
 LESS="-R"
 IFS=$'\n\t\r'
