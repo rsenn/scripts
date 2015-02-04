@@ -1,7 +1,15 @@
 #!/bin/bash
 
 MYDIR=`dirname "$0"` 
-cd "$MYDIR"
+
+if [ -n "$1" -a -d "$1" ]; then
+  ROOT="$1"
+	shift
+else
+	ROOT="$MYDIR"
+fi
+
+cd "$ROOT"
 ABSDIR=`pwd`
 
 bind-mounts()

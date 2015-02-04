@@ -1,7 +1,9 @@
 #!/bin/bash
 
-
 OS=`uname -o`
+NL='
+'
+exec 9>&2
 
 grep-e-expr()
 { 
@@ -36,6 +38,64 @@ add_dir()
   eval "$CMD"
 }
 
+filter_filesize() {
+  (OPS=
+  IFS="
+"; getnum() {
+    N=$1
+    case "$N" in
+      *[Kk]) N=$(( ${N%K} * 1024 )) ;;
+      *[Gg]) N=$(( ${N%G} * 1024 * 1048576)) ;;
+      *[Tt]) N=$(( ${N%T} * 1048576 * 1048576)) ;;
+      *[Mm]) N=$(( ${N%M} * 1048576 )) ;;
+    esac
+    echo "$N"
+  }
+  while :; do
+    case "$1" in
+      -gt | -ge | -lt | -le) OPS="${OPS:+$OPS$IFS}\$FILESIZE${IFS}$1${IFS}\$(($(getnum "$2")))"; shift 2 ;;
+      -a | -o) OPS="${OPS:+$OPS$IFS}${1}"; shift ;;
+      *) break ;;
+    esac
+  done
+	
+	set -- $OPS
+	IFS=" "
+	CMD="test $*" 
+	CMD="IFS=''; while read -r LINE; do
+	   (IFS=' '
+	    read -r MODE N USERID GROUPID FILESIZE DATETIME PATH <<<\"\$LINE\"
+			if $CMD; then echo \"\$LINE\"; fi)
+	done"
+		[ "$DEBUG" = true ] && echo "filter_filesize: CMD='$CMD'" 1>&9
+	eval "($CMD)"
+  )
+}
+
+cut_ls_l() 
+{ 
+    ( I=${1:-6};
+    set --;
+    while [ "$I" -gt 0 ]; do
+        set -- "ARG$I" "$@";
+        I=`expr $I - 1`;
+    done;
+    IFS=" ";
+    CMD="while read  -r $* P; do  echo \"\${P}\"; done";
+		[ "$DEBUG" = true ] && echo "cut_ls_l: CMD='$CMD'" 1>&9
+    eval "$CMD" )
+}
+
+file_magic() 
+{ 
+ (CMD='xargs -d "$NL" file --  | sed "s,:\\s\\+,: ,"'
+  IFS="|$IFS"
+	[ "$*" = ".*" ] && set -- 
+	[ $# -gt 0 ] && CMD="$CMD | grep --color=auto -i -E \": .*($*)\""
+		[ "$DEBUG" = true ] && echo "file_magic: CMD='$CMD'" 1>&9
+	eval "$CMD")
+}
+
 unset INCLUDE_DIRS
 GREP_ARGS=""
 
@@ -46,6 +106,7 @@ usage()
   -x, --debug              Show debug messages
   -e, --exists             Show only existing files
   -f, --want-file         Return only files
+  -F, --file              File magic
   -i, --case-insensitive  Case insensitive search
   -I, --case-sensitive    Case sensitive search
       --color             Return colored list
@@ -53,6 +114,9 @@ usage()
   -x, --exclude=DIR       Exclude results from DIR
   -c, --class              File type class
   -m, --mixed             Mixed paths (see cygpath)
+  -l, --list              List
+  -s, --size              Filter file size
+  -S, --sort              Sort
   One of: 
     bin|exe|prog, archive, audio, fonts, image, incompl|part,
     music, package|pkg, patch|diff, script, software, source, video,
@@ -71,10 +135,41 @@ while :; do
   	-x | --debug) DEBUG=true; shift ;;
   	-e | --exist*) EXIST_FILE=true; shift ;;
   	-m | --mix*) MIXED_PATH=true; shift ;;
+  	-w | --win*) WIN_PATH=true; shift ;;
+  
+	  -s=* | --size=*)  SIZE="${1#*=}"; shift ;;
+	  -s | --size)  
+			while :; do
+				case "$2" in
+					-gt|-lt|-le|-ge|-eq) SIZE="$2 $3"; shift 2 ;;
+					-a|-o) SIZE="$2"; shift ;;
+					*) break ;;
+				esac
+			done
+			;;
+
+
+  	-S=* | --sort=*) 
+			case "${1#*=}" in
+				time*) SORT="time" ;;
+				size*) SORT="size" ;;
+				*) SORT="${1#*=}" ;;
+			esac
+			shift
+		;;
+  	-S | --sort) SORT="size"; shift ;;
+
+  	-l=* | --list=*) LIST="${1#*=}"; shift ;;
+  	-l | --list) LIST='--time-style=+%s -l'; shift ;;
   	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
-  	-f | --*file*) WANT_FILE=true; shift ;;
+  	-f | --want-file*) WANT_FILE=true; shift ;;
+
+  	-F=* | --file*=* | --*magic*=*) FILE_MAGIC="${1#*=}"; shift ;;
+  	-F | --file | --magic) FILE_MAGIC=".*"; shift ;;
+
     -I | --case-sensitive) CASE_SENSITIVE=true ; shift ;;
     -i | --case-insensitive) CASE_SENSITIVE=false; shift ;;
+
     --color) GREP_ARGS="${GREP_ARGS:+$IFS}--color"; shift ;;
   	--include) add_dir INCLUDE_DIRS "$2" ; shift 2 ;; --include=*) add_dir INCLUDE_DIRS "${1#*=}"; shift ;;
   	-[EeXx] |--exclude) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;; -[EeXx]=* | --exclude=*) add_dir EXLUDE_DIRS "${1#*=}"; shift ;;
@@ -203,8 +298,30 @@ set -- $INDEXES
 
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG | $FILTERCMD"
 
-[ "$MIXED_PATH" = true ] && CMD="$CMD | sed 's|^/cygdrive/\(.\)|\\1:|'"
+SED_EXPR=""
+[ "$MIXED_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }s|^/\([[:alnum:]]\)/\(.*\)|\\1:/\\2| ;;  s|^/cygdrive/\(.\)|\\1:|"
+[ "$WIN_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }/^[[:alnum:]]:[\\\\/]/ s|/|\\\\|g"
+[ -n "$SED_EXPR" ] && CMD="$CMD | sed '$SED_EXPR'"
 
+
+[ -n "$LIST" -o -n "$SORT" -o -n "$SIZE" ] && CMD="$CMD | xargs -d \"\$NL\" ls ${LIST:--l --time-style=+%s} -d --"
+
+if [ -n "$SORT" ]; then
+	case "$SORT" in
+		time) SORTARG="6" ;;
+		size) SORTARG="5" ;;
+	esac
+	CMD="$CMD | sort -n ${SORTARG:+-k$SORTARG}"
+
+fi
+if [ -n "$SIZE" ]; then
+	CMD="$CMD | filter_filesize $SIZE"
+fi
+
+[ -n "$SORT" -o -n "$SIZE" ] && [ -z "$LIST" ] && CMD="$CMD | cut_ls_l"
+
+[ -n "$FILE_MAGIC" -a -z "$LIST" ] && CMD="$CMD | (set -f; file_magic \$FILE_MAGIC)"
+	
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 eval "($CMD) 2>/dev/null" 
 
