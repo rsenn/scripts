@@ -60,15 +60,15 @@ filter_filesize() {
   done
 	
 	set -- $OPS
-	IFS=""
+	IFS=" "
 	CMD="test $*" 
-	CMD="while read -r LINE; do
+	CMD="IFS=''; while read -r LINE; do
 	   (IFS=' '
 	    read -r MODE N USERID GROUPID FILESIZE DATETIME PATH <<<\"\$LINE\"
 			if $CMD; then echo \"\$LINE\"; fi)
 	done"
 		[ "$DEBUG" = true ] && echo "filter_filesize: CMD='$CMD'" 1>&9
-	eval "$CMD"
+	eval "($CMD)"
   )
 }
 
@@ -299,7 +299,7 @@ set -- $INDEXES
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG | $FILTERCMD"
 
 SED_EXPR=""
-[ "$MIXED_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }s|^/cygdrive/\(.\)|\\1:|"
+[ "$MIXED_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }s|^/\([[:alnum:]]\)/\(.*\)|\\1:/\\2| ;;  s|^/cygdrive/\(.\)|\\1:|"
 [ "$WIN_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }/^[[:alnum:]]:[\\\\/]/ s|/|\\\\|g"
 [ -n "$SED_EXPR" ] && CMD="$CMD | sed '$SED_EXPR'"
 
