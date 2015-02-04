@@ -134,6 +134,8 @@ while :; do
   	-p | --mediapath) MEDIAPATH="$2"; shift 2 ;; -m=* | --mediapath=*) MEDIAPATH="${1#*=}"; shift ;;
   	-x | --debug) DEBUG=true; shift ;;
   	-e | --exist*) EXIST_FILE=true; shift ;;
+  	-E | --extension) EXTENSION="$2"; shift 2 ;;
+  	-E=* | --extension=*) EXTENSION="${1#*=}"; shift  ;;
   	-m | --mix*) MIXED_PATH=true; shift ;;
   	-w | --win*) WIN_PATH=true; shift ;;
   
@@ -293,6 +295,8 @@ if [ -n "$EXCLUDE_DIRS" ]; then
 fi
 
 set -- $INDEXES 
+
+[ -n "$EXTENSION" ] && EXPR=${EXPR:+${EXPR%".*"}.*}"\\.($EXTENSION)\$"
 
 [ "$DEBUG" = true ] && echo "EXPR is $EXPR" 1>&2
 
