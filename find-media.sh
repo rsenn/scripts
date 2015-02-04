@@ -1,6 +1,4 @@
-w
 #!/bin/bash
-
 
 OS=`uname -o`
 NL='
