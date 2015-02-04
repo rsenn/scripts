@@ -85,6 +85,11 @@ cut_ls_l()
     eval "$CMD" )
 }
 
+file_magic() 
+{ 
+	xargs -d "$NL" file --  | sed 's,:\s\+,: ,'
+}
+
 unset INCLUDE_DIRS
 GREP_ARGS=""
 
@@ -295,7 +300,7 @@ if [ -n "$SIZE" ]; then
 fi
 
 [ -n "$SORT" -o -n "$SIZE" ] && [ -z "$LIST" ] && CMD="$CMD | cut_ls_l"
-[ "$FILE_MAGIC" = true -a -z "$LIST" ] && CMD="$CMD | xargs -d \"\$NL\" file --"
+[ "$FILE_MAGIC" = true -a -z "$LIST" ] && CMD="$CMD | file_magic"
 	
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 eval "($CMD) 2>/dev/null" 
