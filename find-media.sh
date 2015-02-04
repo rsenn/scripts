@@ -87,7 +87,12 @@ cut_ls_l()
 
 file_magic() 
 { 
-	xargs -d "$NL" file --  | sed 's,:\s\+,: ,'
+ (CMD='xargs -d "$NL" file --  | sed "s,:\\s\\+,: ,"'
+  IFS="|$IFS"
+	[ "$*" = ".*" ] && set -- 
+	[ $# -gt 0 ] && CMD="$CMD | grep --color=auto -i -E \": .*($*)\""
+		[ "$DEBUG" = true ] && echo "file_magic: CMD='$CMD'" 1>&9
+	eval "$CMD")
 }
 
 unset INCLUDE_DIRS
@@ -159,7 +164,7 @@ while :; do
   	-f | --want-file*) WANT_FILE=true; shift ;;
 
   	-F=* | --file*=* | --*magic*=*) FILE_MAGIC="${1#*=}"; shift ;;
-  	-F | --file* | --*magic*) FILE_MAGIC=".*"; shift ;;
+  	-F | --file | --magic) FILE_MAGIC=".*"; shift ;;
 
     -I | --case-sensitive) CASE_SENSITIVE=true ; shift ;;
     -i | --case-insensitive) CASE_SENSITIVE=false; shift ;;
@@ -292,10 +297,11 @@ set -- $INDEXES
 
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG | $FILTERCMD"
 
-[ "$MIXED_PATH" = true ] && CMD="$CMD | sed 's|^/cygdrive/\(.\)|\\1:|'"
-[ "$WIN_PATH" = true ] && CMD="$CMD | sed 's|/|\\\\\|g'"
+SED_EXPR=""
+[ "$MIXED_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }s|^/cygdrive/\(.\)|\\1:|"
+[ "$WIN_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }/^[[:alnum:]]:[\\\\/]/ s|/|\\\\|g"
+[ -n "$SED_EXPR" ] && CMD="$CMD | sed '$SED_EXPR'"
 
-[ "$FILE_MAGIC" = true -a -z "$LIST" ] && CMD="$CMD | file_magic"
 
 [ -n "$LIST" -o -n "$SORT" -o -n "$SIZE" ] && CMD="$CMD | xargs -d \"\$NL\" ls ${LIST:--l --time-style=+%s} -d --"
 
@@ -312,6 +318,8 @@ if [ -n "$SIZE" ]; then
 fi
 
 [ -n "$SORT" -o -n "$SIZE" ] && [ -z "$LIST" ] && CMD="$CMD | cut_ls_l"
+
+[ -n "$FILE_MAGIC" -a -z "$LIST" ] && CMD="$CMD | (set -f; file_magic \$FILE_MAGIC)"
 	
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 eval "($CMD) 2>/dev/null" 
