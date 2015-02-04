@@ -39,6 +39,20 @@ add_dir()
   eval "$CMD"
 }
 
+
+cut_ls_l() 
+{ 
+    ( I=${1:-6};
+    set --;
+    while [ "$I" -gt 0 ]; do
+        set -- "ARG$I" "$@";
+        I=`expr $I - 1`;
+    done;
+    IFS=" ";
+    CMD="while read  -r $* P; do  echo \"\${P}\"; done";
+    eval "$CMD" )
+}
+
 unset INCLUDE_DIRS
 GREP_ARGS=""
 
@@ -220,15 +234,16 @@ set -- $INDEXES
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG | $FILTERCMD"
 
 [ "$MIXED_PATH" = true ] && CMD="$CMD | sed 's|^/cygdrive/\(.\)|\\1:|'"
-[ -n "$LIST" ] && CMD="$CMD | xargs -d \"\$NL\" ls ${LIST} -d --"
+[ -n "$LIST" -o -n "$SORT" ] && CMD="$CMD | xargs -d \"\$NL\" ls ${LIST:--l --time-style=+%s} -d --"
 if [ -n "$SORT" ]; then
 	case "$SORT" in
 		time) SORTARG="6" ;;
 		size) SORTARG="5" ;;
 	esac
 	CMD="$CMD | sort -n ${SORTARG:+-k$SORTARG}"
+
+	[ -z "$LIST" ] && CMD="$CMD | cut_ls_l"
 fi
 
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 eval "($CMD) 2>/dev/null" 
-
