@@ -91,7 +91,7 @@ file_magic()
  (CMD='xargs -d "$NL" file --  | sed "s,:\\s\\+,: ,"'
   IFS="|$IFS"
 	[ "$*" = ".*" ] && set -- 
-	[ $# -gt 0 ] && CMD="$CMD | grep --color=auto -i -E \": .*($*)\""
+	[ $# -gt 0 ] && CMD="$CMD | grep -i -E \": .*($*)\""
 		[ "$DEBUG" = true ] && echo "file_magic: CMD='$CMD'" 1>&9
 	eval "$CMD")
 }
