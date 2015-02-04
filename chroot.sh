@@ -4,6 +4,7 @@ MYDIR=`dirname "$0"`
 
 if [ -n "$1" -a -d "$1" ]; then
   ROOT="$1"
+	shift
 else
 	ROOT="$MYDIR"
 fi
