@@ -2,6 +2,8 @@
 
 
 OS=`uname -o`
+NL='
+'
 
 grep-e-expr()
 { 
@@ -207,8 +209,7 @@ set -- $INDEXES
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG | $FILTERCMD"
 
 [ "$MIXED_PATH" = true ] && CMD="$CMD | sed 's|^/cygdrive/\(.\)|\\1:|'"
-[ -n "$LIST" ] && CMD="$CMD | xargs -d '
-' ls ${LIST:+-l -n --time=+%s} -d --"
+[ -n "$LIST" ] && CMD="$CMD | xargs -d \"\$NL\" ls ${LIST} -d --"
 
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 eval "($CMD) 2>/dev/null" 
