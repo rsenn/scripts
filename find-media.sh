@@ -57,6 +57,7 @@ usage()
   -c, --class              File type class
   -m, --mixed             Mixed paths (see cygpath)
   -l, --list              List
+  -S, --sort              Sort
   One of: 
     bin|exe|prog, archive, audio, fonts, image, incompl|part,
     music, package|pkg, patch|diff, script, software, source, video,
@@ -75,16 +76,17 @@ while :; do
   	-x | --debug) DEBUG=true; shift ;;
   	-e | --exist*) EXIST_FILE=true; shift ;;
   	-m | --mix*) MIXED_PATH=true; shift ;;
-  	-s=* | --sort=*) 
+  	-S=* | --sort=*) 
 			case "${1#*=}" in
 				time*) SORT="time" ;;
 				size*) SORT="size" ;;
 				*) SORT="${1#*=}" ;;
 			esac
+			shift
 		;;
-  	-s | --sort) SORT="size"; shift ;;
+  	-S | --sort) SORT="size"; shift ;;
   	-l=* | --list=*) LIST="${1#*=}"; shift ;;
-  	-l | --list) LIST='-n --time-style=+%s -l'; shift ;;
+  	-l | --list) LIST='--time-style=+%s -l'; shift ;;
   	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
   	-f | --*file*) WANT_FILE=true; shift ;;
     -I | --case-sensitive) CASE_SENSITIVE=true ; shift ;;
