@@ -3,6 +3,7 @@
 OS=`uname -o`
 NL='
 '
+exec 9>&2
 
 grep-e-expr()
 { 
@@ -59,11 +60,13 @@ filter_filesize() {
   done
 	
 	set -- $OPS
-	IFS=" "
+	IFS=""
 	CMD="test $*" 
 	echo "CMD: $CMD" 1>&2
-	eval "while read -r MODE N USERID GROUPID FILESIZE DATETIME PATH; do
-		if $CMD; then echo \"\$PATH\"; fi
+	eval "while read -r LINE; do
+	   (IFS=' '
+	    read -r MODE N USERID GROUPID FILESIZE DATETIME PATH <<<\"\$LINE\"
+			if $CMD; then echo \"\$LINE\"; fi)
 	done"
   )
 }
@@ -78,6 +81,7 @@ cut_ls_l()
     done;
     IFS=" ";
     CMD="while read  -r $* P; do  echo \"\${P}\"; done";
+		[ "$DEBUG" = true ] && echo "cut_ls_l: CMD='$CMD'" 1>&9
     eval "$CMD" )
 }
 
@@ -120,7 +124,15 @@ while :; do
   	-e | --exist*) EXIST_FILE=true; shift ;;
   	-m | --mix*) MIXED_PATH=true; shift ;;
   	-s=* | --size=*)  SIZE="${1#*=}"; shift ;;
-  	-s | --size)  SIZE="$2"; shift 2 ;;
+  	-s | --size)  
+			while :; do
+				case "$2" in
+					-gt|-lt|-le|-ge|-eq) SIZE="$2 $3"; shift 2 ;;
+					-a|-o) SIZE="$2"; shift ;;
+					*) break ;;
+				esac
+			done
+			;;
   	-S=* | --sort=*) 
 			case "${1#*=}" in
 				time*) SORT="time" ;;
