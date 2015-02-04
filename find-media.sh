@@ -275,7 +275,7 @@ if [ -n "$SORT" ]; then
 
 fi
 if [ -n "$SIZE" ]; then
-	CMD="$CMD | filter_file_size $SIZE"
+	CMD="$CMD | filter_filesize $SIZE"
 fi
 
 	[ -n "$SORT" -o -n "$SIZE" ] && [ -z "$LIST" ] && CMD="$CMD | cut_ls_l"
