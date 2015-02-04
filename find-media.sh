@@ -37,6 +37,37 @@ add_dir()
   eval "$CMD"
 }
 
+filter_filesize() {
+  (OPS=
+  IFS="
+"; getnum() {
+    N=$1
+    case "$N" in
+      *[Kk]) N=$(( ${N%K} * 1024 )) ;;
+      *[Gg]) N=$(( ${N%G} * 1024 * 1048576)) ;;
+      *[Tt]) N=$(( ${N%T} * 1048576 * 1048576)) ;;
+      *[Mm]) N=$(( ${N%M} * 1048576 )) ;;
+    esac
+    echo "$N"
+  }
+  while :; do
+    case "$1" in
+      -gt | -ge | -lt | -le) OPS="${OPS:+$OPS$IFS}\$FILESIZE${IFS}$1${IFS}\$(($(getnum "$2")))"; shift 2 ;;
+      -a | -o) OPS="${OPS:+$OPS$IFS}${1}"; shift ;;
+      *) break ;;
+    esac
+  done
+	
+	set -- $OPS
+	IFS=" "
+	CMD="test $*" 
+	while read -r MODE N USERID GROUPID FILESIZE DATETIME PATH; do
+	 #echo "$FILESIZE" 1>&2
+		eval "if $CMD; then echo \"\$PATH\"; fi" 
+
+	done
+  )
+}
 
 cut_ls_l() 
 { 
@@ -69,6 +100,7 @@ usage()
   -c, --class              File type class
   -m, --mixed             Mixed paths (see cygpath)
   -l, --list              List
+  -s, --size              Filter file size
   -S, --sort              Sort
   One of: 
     bin|exe|prog, archive, audio, fonts, image, incompl|part,
@@ -88,6 +120,8 @@ while :; do
   	-x | --debug) DEBUG=true; shift ;;
   	-e | --exist*) EXIST_FILE=true; shift ;;
   	-m | --mix*) MIXED_PATH=true; shift ;;
+  	-s=* | --size=*)  SIZE="${1#*=}"; shift ;;
+  	-s | --size)  SIZE="$2"; shift 2 ;;
   	-S=* | --sort=*) 
 			case "${1#*=}" in
 				time*) SORT="time" ;;
@@ -232,7 +266,7 @@ set -- $INDEXES
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG | $FILTERCMD"
 
 [ "$MIXED_PATH" = true ] && CMD="$CMD | sed 's|^/cygdrive/\(.\)|\\1:|'"
-[ -n "$LIST" -o -n "$SORT" ] && CMD="$CMD | xargs -d \"\$NL\" ls ${LIST:--l --time-style=+%s} -d --"
+[ -n "$LIST" -o -n "$SORT" -o -n "$SIZE" ] && CMD="$CMD | xargs -d \"\$NL\" ls ${LIST:--l --time-style=+%s} -d --"
 if [ -n "$SORT" ]; then
 	case "$SORT" in
 		time) SORTARG="6" ;;
@@ -240,8 +274,13 @@ if [ -n "$SORT" ]; then
 	esac
 	CMD="$CMD | sort -n ${SORTARG:+-k$SORTARG}"
 
-	[ -z "$LIST" ] && CMD="$CMD | cut_ls_l"
+fi
+if [ -n "$SIZE" ]; then
+	CMD="$CMD | filter_file_size $SIZE"
 fi
 
+	[ -n "$SORT" -o -n "$SIZE" ] && [ -z "$LIST" ] && CMD="$CMD | cut_ls_l"
+	
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 eval "($CMD) 2>/dev/null" 
+
