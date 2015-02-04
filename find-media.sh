@@ -53,6 +53,7 @@ usage()
   -x, --exclude=DIR       Exclude results from DIR
   -c, --class              File type class
   -m, --mixed             Mixed paths (see cygpath)
+  -l, --list              List
   One of: 
     bin|exe|prog, archive, audio, fonts, image, incompl|part,
     music, package|pkg, patch|diff, script, software, source, video,
@@ -71,6 +72,7 @@ while :; do
   	-x | --debug) DEBUG=true; shift ;;
   	-e | --exist*) EXIST_FILE=true; shift ;;
   	-m | --mix*) MIXED_PATH=true; shift ;;
+  	-l | --list*) LIST=true; shift ;;
   	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
   	-f | --*file*) WANT_FILE=true; shift ;;
     -I | --case-sensitive) CASE_SENSITIVE=true ; shift ;;
@@ -204,6 +206,8 @@ set -- $INDEXES
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG | $FILTERCMD"
 
 [ "$MIXED_PATH" = true ] && CMD="$CMD | sed 's|^/cygdrive/\(.\)|\\1:|'"
+[ "$LIST" = true ] && CMD="$CMD | xargs -d '
+' ls -l -n --time=+%s -d --"
 
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 eval "($CMD) 2>/dev/null" 
