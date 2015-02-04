@@ -129,8 +129,10 @@ while :; do
   	-x | --debug) DEBUG=true; shift ;;
   	-e | --exist*) EXIST_FILE=true; shift ;;
   	-m | --mix*) MIXED_PATH=true; shift ;;
-  	-s=* | --size=*)  SIZE="${1#*=}"; shift ;;
-  	-s | --size)  
+  	-w | --win*) WIN_PATH=true; shift ;;
+  
+	  -s=* | --size=*)  SIZE="${1#*=}"; shift ;;
+	  -s | --size)  
 			while :; do
 				case "$2" in
 					-gt|-lt|-le|-ge|-eq) SIZE="$2 $3"; shift 2 ;;
@@ -139,6 +141,8 @@ while :; do
 				esac
 			done
 			;;
+
+
   	-S=* | --sort=*) 
 			case "${1#*=}" in
 				time*) SORT="time" ;;
@@ -148,13 +152,18 @@ while :; do
 			shift
 		;;
   	-S | --sort) SORT="size"; shift ;;
+
   	-l=* | --list=*) LIST="${1#*=}"; shift ;;
   	-l | --list) LIST='--time-style=+%s -l'; shift ;;
   	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
   	-f | --want-file*) WANT_FILE=true; shift ;;
-  	-F | --file* | --*magic*) FILE_MAGIC=true; shift ;;
+
+  	-F=* | --file*=* | --*magic*=*) FILE_MAGIC="${1#*=}"; shift ;;
+  	-F | --file* | --*magic*) FILE_MAGIC=".*"; shift ;;
+
     -I | --case-sensitive) CASE_SENSITIVE=true ; shift ;;
     -i | --case-insensitive) CASE_SENSITIVE=false; shift ;;
+
     --color) GREP_ARGS="${GREP_ARGS:+$IFS}--color"; shift ;;
   	--include) add_dir INCLUDE_DIRS "$2" ; shift 2 ;; --include=*) add_dir INCLUDE_DIRS "${1#*=}"; shift ;;
   	-[EeXx] |--exclude) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;; -[EeXx]=* | --exclude=*) add_dir EXLUDE_DIRS "${1#*=}"; shift ;;
@@ -284,6 +293,9 @@ set -- $INDEXES
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG | $FILTERCMD"
 
 [ "$MIXED_PATH" = true ] && CMD="$CMD | sed 's|^/cygdrive/\(.\)|\\1:|'"
+[ "$WIN_PATH" = true ] && CMD="$CMD | sed 's|/|\\\\\|g'"
+
+[ "$FILE_MAGIC" = true -a -z "$LIST" ] && CMD="$CMD | file_magic"
 
 [ -n "$LIST" -o -n "$SORT" -o -n "$SIZE" ] && CMD="$CMD | xargs -d \"\$NL\" ls ${LIST:--l --time-style=+%s} -d --"
 
@@ -300,7 +312,6 @@ if [ -n "$SIZE" ]; then
 fi
 
 [ -n "$SORT" -o -n "$SIZE" ] && [ -z "$LIST" ] && CMD="$CMD | cut_ls_l"
-[ "$FILE_MAGIC" = true -a -z "$LIST" ] && CMD="$CMD | file_magic"
 	
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 eval "($CMD) 2>/dev/null" 
