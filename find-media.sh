@@ -1,3 +1,4 @@
+w
 #!/bin/bash
 
 
@@ -74,6 +75,7 @@ while :; do
   	-x | --debug) DEBUG=true; shift ;;
   	-e | --exist*) EXIST_FILE=true; shift ;;
   	-m | --mix*) MIXED_PATH=true; shift ;;
+  	-s | --sort) SORT=true; shift ;;
   	-l=* | --list=*) LIST="${1#*=}"; shift ;;
   	-l | --list) LIST='-n --time-style=+%s -l'; shift ;;
   	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
@@ -210,6 +212,7 @@ CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG | $FILTERCMD"
 
 [ "$MIXED_PATH" = true ] && CMD="$CMD | sed 's|^/cygdrive/\(.\)|\\1:|'"
 [ -n "$LIST" ] && CMD="$CMD | xargs -d \"\$NL\" ls ${LIST} -d --"
+[ -n "$SORT" ] && CMD="$CMD | sort -nk5"
 
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 eval "($CMD) 2>/dev/null" 
