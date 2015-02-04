@@ -61,11 +61,10 @@ filter_filesize() {
 	set -- $OPS
 	IFS=" "
 	CMD="test $*" 
-	while read -r MODE N USERID GROUPID FILESIZE DATETIME PATH; do
-	 #echo "$FILESIZE" 1>&2
-		eval "if $CMD; then echo \"\$PATH\"; fi" 
-
-	done
+	echo "CMD: $CMD" 1>&2
+	eval "while read -r MODE N USERID GROUPID FILESIZE DATETIME PATH; do
+		if $CMD; then echo \"\$PATH\"; fi
+	done"
   )
 }
 
