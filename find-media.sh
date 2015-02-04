@@ -95,6 +95,7 @@ usage()
   -x, --debug              Show debug messages
   -e, --exists             Show only existing files
   -f, --want-file         Return only files
+  -F, --file              File magic
   -i, --case-insensitive  Case insensitive search
   -I, --case-sensitive    Case sensitive search
       --color             Return colored list
@@ -145,7 +146,8 @@ while :; do
   	-l=* | --list=*) LIST="${1#*=}"; shift ;;
   	-l | --list) LIST='--time-style=+%s -l'; shift ;;
   	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
-  	-f | --*file*) WANT_FILE=true; shift ;;
+  	-f | --want-file*) WANT_FILE=true; shift ;;
+  	-F | --file* | --*magic*) FILE_MAGIC=true; shift ;;
     -I | --case-sensitive) CASE_SENSITIVE=true ; shift ;;
     -i | --case-insensitive) CASE_SENSITIVE=false; shift ;;
     --color) GREP_ARGS="${GREP_ARGS:+$IFS}--color"; shift ;;
@@ -277,7 +279,9 @@ set -- $INDEXES
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG | $FILTERCMD"
 
 [ "$MIXED_PATH" = true ] && CMD="$CMD | sed 's|^/cygdrive/\(.\)|\\1:|'"
+
 [ -n "$LIST" -o -n "$SORT" -o -n "$SIZE" ] && CMD="$CMD | xargs -d \"\$NL\" ls ${LIST:--l --time-style=+%s} -d --"
+
 if [ -n "$SORT" ]; then
 	case "$SORT" in
 		time) SORTARG="6" ;;
@@ -290,7 +294,8 @@ if [ -n "$SIZE" ]; then
 	CMD="$CMD | filter_filesize $SIZE"
 fi
 
-	[ -n "$SORT" -o -n "$SIZE" ] && [ -z "$LIST" ] && CMD="$CMD | cut_ls_l"
+[ -n "$SORT" -o -n "$SIZE" ] && [ -z "$LIST" ] && CMD="$CMD | cut_ls_l"
+[ "$FILE_MAGIC" = true -a -z "$LIST" ] && CMD="$CMD | xargs -d \"\$NL\" file --"
 	
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 eval "($CMD) 2>/dev/null" 
