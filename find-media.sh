@@ -285,7 +285,8 @@ case "$MEDIAPATH" in
   *"}") FILEARG="${MEDIAPATH}/files.list" ;;
 esac
 
-FILTERCMD="sed -u 's,/files.list:,/,'"
+#FILTERCMD="sed -u 's,/files.list:,/,'"
+FILTERCMD=
 
 if [ "$EXIST_FILE" = true ]; then
   FILTERCMD="$FILTERCMD | while read -r FILE; do test -e \"\$FILE\" && echo \"\$FILE\"; done"
@@ -294,10 +295,10 @@ if [ -n "$INCLUDE_DIRS" ]; then
   INCLUDE_DIR_EXPR=`grep-e-expr $INCLUDE_DIRS`
   FILTERCMD="$FILTERCMD |grep -E \"^$INCLUDE_DIR_EXPR\""
 fi
-if [ -n "$EXCLUDE_DIRS" ]; then
-  EXCLUDE_DIR_EXPR=`grep-e-expr $EXCLUDE_DIRS`
-  FILTERCMD="$FILTERCMD |grep -v -E \"^$EXCLUDE_DIR_EXPR\""
-fi
+#if [ -n "$EXCLUDE_DIRS" ]; then
+#  EXCLUDE_DIR_EXPR=`grep-e-expr $EXCLUDE_DIRS`
+#  FILTERCMD="$FILTERCMD |grep -v -E \"^$EXCLUDE_DIR_EXPR\""
+#fi
 
 set -- $INDEXES 
 
@@ -305,16 +306,34 @@ set -- $INDEXES
 
 [ "$DEBUG" = true ] && echo "EXPR is $EXPR" 1>&2
 
-CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG | $FILTERCMD"
+CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG ${FILTERCMD:+ | $FILTERCMD}"
 
-SED_EXPR=""
+SED_EXPR="s,/files\\.list:,/,"
+
+# If dirs are to be excluded, add them to $SED_EXPR
+if [ -n "$EXCLUDE_DIRS" ]; then
+	  set -f
+		for EXCLUDE_DIR in $EXCLUDE_DIRS; do
+			SED_EXPR="$SED_EXPR ;; \\:$EXCLUDE_DIR:d"
+		done
+		set +f
+fi
+
+# If results are to be shown as 'mixed paths', add path conversion to $SED_EXPR 
 [ "$MIXED_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }s|^/\([[:alnum:]]\)/\(.*\)|\\1:/\\2| ;;  s|^/cygdrive/\(.\)|\\1:|"
+
+# If results are to be shown as 'windows paths', add path conversion to $SED_EXPR 
 [ "$WIN_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }/^[[:alnum:]]:[\\\\/]/ s|/|\\\\|g"
-[ -n "$SED_EXPR" ] && CMD="$CMD | sed '$SED_EXPR'"
 
 
+# If $SED_EXPR contains a sed script, add it to the pipeline
+[ -n "$SED_EXPR" ] && CMD="$CMD | sed -u '$SED_EXPR'"
+
+
+# If we require an 'ls -l' listing, add an 'xargs ls' command to the pipeline 
 [ -n "$LIST" -o -n "$SORT" -o -n "$SIZE" ] && CMD="$CMD | xargs -d \"\$NL\" ls ${LIST:--l --time-style=+%s} -d --"
 
+# If we require sorting, add a 'sort' command to the pipeline
 if [ -n "$SORT" ]; then
 	case "$SORT" in
 		time) SORTARG="6" ;;
@@ -323,14 +342,23 @@ if [ -n "$SORT" ]; then
 	CMD="$CMD | sort -n ${SORTARG:+-k$SORTARG}"
 
 fi
+
+# If we require filtering by size, add an appropriate filter command to the
+# pipeline
 if [ -n "$SIZE" ]; then
 	CMD="$CMD | filter_filesize $SIZE"
 fi
 
+# If we're either sorting or filtering by size and no 'ls -l' listing is
+# requested, add the 'cut_ls_l' command which removes the details.
 [ -n "$SORT" -o -n "$SIZE" ] && [ -z "$LIST" ] && CMD="$CMD | cut_ls_l"
 
+# If we're matching by 'file' magic, add the corresponding command to the
+# pipeline
 [ -n "$FILE_MAGIC" -a -z "$LIST" ] && CMD="$CMD | (set -f; IFS='|'; file_magic \$FILE_MAGIC)"
 	
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
+
+
 eval "($CMD) 2>/dev/null" 
 
