@@ -140,8 +140,8 @@ while :; do
 		shift 
 			while :; do
 				case "$1" in
-					-gt|-lt|-le|-ge|-eq) SIZE="${SIZE:+$SIZE }$1 $2"; shift 2 ;;
-					-a|-o) SIZE="${SIZE:+$SIZE }$1"; shift ;;
+					-gt | -lt | -le | -ge | -eq) SIZE="${SIZE:+$SIZE }$1 $2"; shift 2 ;;
+					-a | -o | -[0-9]* | [+=][0-9]* | ">"[0-9]* | "<"[0-9]*) SIZE="${SIZE:+$SIZE }$1"; shift ;;
 					*) break ;;
 				esac
 			done
@@ -342,6 +342,15 @@ fi
 # If we require filtering by size, add an appropriate filter command to the
 # pipeline
 if [ -n "$SIZE" ]; then
+	case "$SIZE" in
+		"-"[0-9]*) SIZE="-le ${SIZE#-}" ;;
+		"+"[0-9]*) SIZE="-ge ${SIZE#+}" ;;
+		"<"[0-9]*) SIZE="-lt ${SIZE#-}" ;;
+		">"[0-9]*) SIZE="-gt ${SIZE#+}" ;;
+		"="[0-9]*) SIZE="-eq ${SIZE#=}" ;;
+	esac
+[ "$DEBUG" = true ] && echo "SIZE: $SIZE" 1>&9
+
 	CMD="$CMD | filter_filesize $SIZE"
 fi
 
