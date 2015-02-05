@@ -167,7 +167,12 @@ while :; do
   	-f | --want-file*) WANT_FILE=true; shift ;;
 
   	-F=* | --file*=* | --*magic*=*) FILE_MAGIC="${FILE_MAGIC:+$FILE_MAGIC|}${1#*=}"; shift ;;
-  	-F | --file | --magic) : ${FILE_MAGIC:=".*"}; shift ;;
+  	-F | --file | --magic) 
+			case "$2" in
+				-*) : ${FILE_MAGIC:=".*"}; shift ;;
+				*) FILE_MAGIC="${FILE_MAGIC:+$FILE_MAGIC|}${2}"; shift 2 ;;
+			esac
+		;;
 
     -I | --case-sensitive) CASE_SENSITIVE=true ; shift ;;
     -i | --case-insensitive) CASE_SENSITIVE=false; shift ;;
@@ -324,7 +329,7 @@ fi
 
 [ -n "$SORT" -o -n "$SIZE" ] && [ -z "$LIST" ] && CMD="$CMD | cut_ls_l"
 
-[ -n "$FILE_MAGIC" -a -z "$LIST" ] && CMD="$CMD | (set -f; file_magic \$FILE_MAGIC)"
+[ -n "$FILE_MAGIC" -a -z "$LIST" ] && CMD="$CMD | (set -f; IFS='|'; file_magic \$FILE_MAGIC)"
 	
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 eval "($CMD) 2>/dev/null" 
