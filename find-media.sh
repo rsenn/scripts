@@ -77,7 +77,7 @@ cut_ls_l()
         I=`expr $I - 1`;
     done;
     IFS=" ";
-    CMD="while read  -r $* P; do  echo \"\${P}\"; done";
+    CMD="while read -r ${*:+$* }P; do echo \"\${P}\"; done";
 		[ "$DEBUG" = true ] && echo "cut_ls_l: CMD='$CMD'" 1>&9
     eval "$CMD" )
 }
