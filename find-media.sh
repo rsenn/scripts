@@ -44,10 +44,10 @@ filter_filesize() {
 "; getnum() {
     N=$1
     case "$N" in
-      *[Kk]) N=$(( ${N%K} * 1024 )) ;;
-      *[Gg]) N=$(( ${N%G} * 1024 * 1048576)) ;;
-      *[Tt]) N=$(( ${N%T} * 1048576 * 1048576)) ;;
-      *[Mm]) N=$(( ${N%M} * 1048576 )) ;;
+      *[Kk]) N=$(( ${N%[Kk]} * 1024 )) ;;
+      *[Gg]) N=$(( ${N%[Gg]} * 1024 * 1048576)) ;;
+      *[Tt]) N=$(( ${N%[Tt]} * 1048576 * 1048576)) ;;
+      *[Mm]) N=$(( ${N%[Mm]} * 1048576 )) ;;
     esac
     echo "$N"
   }
@@ -62,11 +62,7 @@ filter_filesize() {
 	set -- $OPS
 	IFS=" "
 	CMD="test $*" 
-	CMD="IFS=''; while read -r LINE; do
-	   (IFS=' '
-	    read -r MODE N USERID GROUPID FILESIZE DATETIME PATH <<<\"\$LINE\"
-			if $CMD; then echo \"\$LINE\"; fi)
-	done"
+	CMD="IFS=''; while read -r LINE; do (IFS=' '; read -r MODE N USERID GROUPID FILESIZE DATETIME PATH <<<\"\$LINE\"; ($CMD) && echo \"\$LINE\"); done"
 		[ "$DEBUG" = true ] && echo "filter_filesize: CMD='$CMD'" 1>&9
 	eval "($CMD)"
   )
@@ -140,16 +136,16 @@ while :; do
   	-w | --win*) WIN_PATH=true; shift ;;
   
 	  -s=* | --size=*)  SIZE="${1#*=}"; shift ;;
-	  -s | --size)  
+	-s | --size)
+		shift 
 			while :; do
-				case "$2" in
-					-gt|-lt|-le|-ge|-eq) SIZE="$2 $3"; shift 2 ;;
-					-a|-o) SIZE="$2"; shift ;;
+				case "$1" in
+					-gt|-lt|-le|-ge|-eq) SIZE="${SIZE:+$SIZE }$1 $2"; shift 2 ;;
+					-a|-o) SIZE="${SIZE:+$SIZE }$1"; shift ;;
 					*) break ;;
 				esac
 			done
 			;;
-
 
   	-S=* | --sort=*) 
 			case "${1#*=}" in
