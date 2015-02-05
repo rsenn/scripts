@@ -1,5 +1,13 @@
 filter-filemagic() {
-(EXPR="s,:\\s\\+,: ,p"
+(
+ while :; do
+	 case "$1" in
+		 -c | --cut) CUT=true; shift ;;
+		 *) break ;;
+	 esac
+ done
+ [ "$CUT" = true ] && EXPR="s,:\\s\\+.*,,p" || EXPR="s,:\\s\\+,: ,p"
+
   [ $# -gt 0 ]  || set -- ".*"
 	 for ARG; do
 		 case "$ARG" in

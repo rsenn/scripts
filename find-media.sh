@@ -134,8 +134,8 @@ while :; do
   	-p | --mediapath) MEDIAPATH="$2"; shift 2 ;; -m=* | --mediapath=*) MEDIAPATH="${1#*=}"; shift ;;
   	-x | --debug) DEBUG=true; shift ;;
   	-e | --exist*) EXIST_FILE=true; shift ;;
-  	-E | --extension) EXTENSION="$2"; shift 2 ;;
-  	-E=* | --extension=*) EXTENSION="${1#*=}"; shift  ;;
+  	-E | --extension) EXTENSION="${EXTENSION:+$EXTENSION|}$2"; shift 2 ;;
+  	-E=* | --extension=*) EXTENSION="${EXTENSION:+$EXTENSION|}${1#*=}"; shift  ;;
   	-m | --mix*) MIXED_PATH=true; shift ;;
   	-w | --win*) WIN_PATH=true; shift ;;
   
@@ -166,8 +166,8 @@ while :; do
   	-c | --class) CLASS="$2"; shift 2 ;; -c=*|--class=*) CLASS="${1#*=}"; shift ;;
   	-f | --want-file*) WANT_FILE=true; shift ;;
 
-  	-F=* | --file*=* | --*magic*=*) FILE_MAGIC="${1#*=}"; shift ;;
-  	-F | --file | --magic) FILE_MAGIC=".*"; shift ;;
+  	-F=* | --file*=* | --*magic*=*) FILE_MAGIC="${FILE_MAGIC:+$FILE_MAGIC|}${1#*=}"; shift ;;
+  	-F | --file | --magic) : ${FILE_MAGIC:=".*"}; shift ;;
 
     -I | --case-sensitive) CASE_SENSITIVE=true ; shift ;;
     -i | --case-insensitive) CASE_SENSITIVE=false; shift ;;
