@@ -147,11 +147,9 @@ while :; do
 			done
 			;;
 
-  	-S=* | --sort=*) 
+  	-S=* | --sort=*)
 			case "${1#*=}" in
-				time*) SORT="time" ;;
-				size*) SORT="size" ;;
-				*) SORT="${1#*=}" ;;
+				time | size | ?time | ?size) SORT="${1#*=}" ;;
 			esac
 			shift
 		;;
@@ -331,11 +329,14 @@ fi
 
 # If we require sorting, add a 'sort' command to the pipeline
 if [ -n "$SORT" ]; then
+	case "$SORT" in 
+		"!"* | [!0-9A-Za-z]*) REV="-r"; SORT=${SORT#?} ;;
+	esac
 	case "$SORT" in
 		time) SORTARG="6" ;;
 		size) SORTARG="5" ;;
 	esac
-	CMD="$CMD | sort -n ${SORTARG:+-k$SORTARG}"
+	CMD="$CMD | sort -n ${REV:+$REV }${SORTARG:+-k$SORTARG}"
 
 fi
 
