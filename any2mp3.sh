@@ -1,5 +1,8 @@
 #!/bin/bash
 
+MYNAME=`basename "${0%.sh}"`
+MYDIR=`dirname "$0"`
+
 . require.sh
 
 require info
@@ -54,7 +57,8 @@ duration()
 
 for ARG; do
 #    WAV="${ARG%.*}.wav"
-    WAV=`mktemp "${0##*/}XXXXXX.wav"`
+    DIR=`dirname "$ARG"`
+    WAV=`mktemp "${MYNAME}-XXXXXX.wav"`
 
     OUTPUT="${ARG%.*}.mp3"
     if [ "$DIR" ]; then
@@ -63,7 +67,8 @@ fi
 
     (set -x; 
 trap 'R=$?; rm -vf "$WAV"; exit $R' EXIT QUIT INT TERM
-mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="$WAV" -vc null -vo null "$ARG"  2>/dev/null &&
+#(cd "$DIR"; mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV##*/}" -vc null -vo null "${ARG##*/}"  2>/dev/null) &&
+(mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV}" -vc null -vo null "${ARG}"  2>/dev/null) &&
 lame --alt-preset "$ABR" -h "$WAV" "$OUTPUT" &&
 if $REMOVE; then rm -vf "$ARG"; fi) ||break
 done
