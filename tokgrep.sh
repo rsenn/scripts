@@ -59,43 +59,55 @@ shift_refs()
   done
 }
 
-for arg; do
-  if [ "$((count++))" = 0 ]; then
-    set --
-  fi
+main() {
 
-  if [ -n "${prev+set}" ]; then
-    set -- "$@" "$prev" "$arg"
-    unset prev
-    continue
-  fi
+  opts=
+  while :; do
+    case "$1" in
+      -*) opts="${opts:+$opts${IFS}}$1"; shift ;;
+      *) break ;;
+    esac
+  done
+  for arg; do
+    if [ "$((count++))" = 0 ]; then
+      set --
+    fi
 
-  case $arg in
-    -e|-f|-l|-m|-d|-D|-A|-B|-C) 
-      prev=$arg
+    if [ -n "${prev+set}" ]; then
+      set -- "$@" "$prev" "$arg"
+      unset prev
       continue
-    ;;
-    
-    -*) 
-      set -- "$@" "$arg" 
-    ;;
-    
-    *)
-      if test -z "${pattern+set}"; then
-        pattern=$arg
-        check_chars pattern "$charset.?*+()" pattern
-        subst_chars pattern '.' "[$charset]"
-        subst_chars pattern '(' "\\("
-        subst_chars pattern ')' "\\)"
+    fi
 
-        script="([^$charset]$pattern[^$charset]|[^$charset]$pattern\$|^$pattern[^$charset]|^$pattern\$)"
-        set -- "$@" -E -e "$script"
-      else
-        set -- "$@" "$arg"
-      fi
-    ;;
-  esac
-  
-done
+    case $arg in
+      -e|-f|-l*|-m|-d|-D|-A|-B|-C|-r*) 
+        prev=$arg
+        continue
+      ;;
+      
+      -*) 
+        set -- "$@" "$arg" 
+      ;;
+      
+      *)
+        if test -z "${pattern+set}"; then
+          pattern=$arg
+          check_chars pattern "$charset.?*+()" pattern
+          subst_chars pattern '.' "[$charset]"
+          subst_chars pattern '(' "\\("
+          subst_chars pattern ')' "\\)"
+
+          script="([^$charset]$pattern[^$charset]|[^$charset]$pattern\$|^$pattern[^$charset]|^$pattern\$)"
+          set -- "$@" -E -e "$script"
+        else
+          set -- "$@" "$arg"
+        fi
+      ;;
+    esac
+    
+  done
+
+  exec grep $opts "$@"
+}
 #set -x
-exec grep "$@"
+main "$@"
