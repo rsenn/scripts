@@ -15,7 +15,7 @@ IP=$3
 if [ $# -gt 1 ]; then
   CONFIG=`mktemp -p /tmp/ wpa_supplicant.conf-XXXXXX` 
   trap 'rm -f "$CONFIG"' EXIT
-  wpa_passphrase "$ESSID" "$PASS" >"$CONFIG"||exit $?
+  wpa_passphrase "$ESSID" "$PASS" | tee "$CONFIG" | sed "s|^|$CONFIG: |" ||exit $?
 fi
 
 set -x
