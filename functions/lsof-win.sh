@@ -9,8 +9,12 @@ lsof-win()
   IFS="$CR"
   while read -r LINE; do
     case "$LINE" in
-      *"pid: "*) LSOF_PID=${LINE##*"pid: "}; LSOF_PID=${LSOF_PID%%" "*} ;;
-      *) printf "%d\t%s\n" "$LSOF_PID" "$LINE" ;;
+      *"pid: "*) 
+        LSOF_PID=${LINE##*"pid: "}
+        LSOF_PID=${LSOF_PID%%" "*}
+        EXE=${LINE%": "*}
+      ;;
+      *) printf "%s\t%d\t%s\n" "$EXE" "$LSOF_PID" "$LINE" ;;
     esac
   done; })
 }
