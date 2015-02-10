@@ -1,6 +1,6 @@
 #!/bin/sh
 CONFIG="$HOME/wpa_supplicant.conf"
-IF=`iwconfig 2>&1 |grep IEEE.802 | sed 's,\s.*,,'`
+IF=`iwconfig 2>&1 |grep IEEE.802 | sed 's,\s.*,,' |grep -v ^mon| head -n1`
 
 if [ "$1" = "-l" ]; then
 	ifconfig $IF up
