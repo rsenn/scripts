@@ -2,7 +2,7 @@
 
 [ -n "$MSYSTEM" ] && OS="Msys"
 
-: ${OS=`/bin/uname -o`}
+: ${OS=`uname -o 2>/dev/null || uname -s 2>/dev/null`}
 echo "OS is $OS" 1>&2
 case "$OS" in
    msys* | Msys* | MSYS*)

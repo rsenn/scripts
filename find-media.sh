@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OS=`uname -o`
+: ${OS=`uname -o 2>/dev/null || uname -s 2>/dev/null`}
 NL='
 '
 exec 9>&2

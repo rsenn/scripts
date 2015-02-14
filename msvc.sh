@@ -595,7 +595,9 @@ pathmunge () {
     IFS="$old_IFS"
 }
 
-case ${OS=`uname -o`} in 
+: ${OS=`uname -o 2>/dev/null || uname -s 2>/dev/null`}
+
+case ${OS} in 
   [Mm][Ss][Yy][Ss]*) PATHTOOL=msyspath
 		#if ! type msyspath; then
 			msyspath() {

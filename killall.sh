@@ -23,7 +23,7 @@ IFS=$' \t\r\n'
 #  PATH="$PATH:$DIR:$DIR/wbem"
 #done
 
-OS=`uname -o 2>/dev/null || uname`
+: ${OS=`uname -o 2>/dev/null || uname -s 2>/dev/null`}
 SED=sed
 
 if [ "$OS" = Darwin ]; then

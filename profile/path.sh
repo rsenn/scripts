@@ -7,9 +7,9 @@ pathmunge() {
     esac
   done
   local IFS=":";
-  : ${OS=`uname -o | head -n1`};
+  : ${OS=`uname -o 2>/dev/null || uname -s 2>/dev/null`}
   case "$OS:$1" in
-      [Mm]sys:*[:\\]*)
+      [Mm]sys:*[:\\]* | MSYS*:*)
           tmp="$1";
           shift;
           set -- `$PATHTOOL "$tmp"` "$@"

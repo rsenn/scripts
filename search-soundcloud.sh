@@ -1,5 +1,6 @@
 #!/bin/bash
 
+: ${OS=`uname -o 2>/dev/null || uname -s 2>/dev/null`}
 IFS="
 "
 
@@ -13,7 +14,7 @@ USER_AGENT="Mozilla/5.0 (Windows NT 5.1; rv:21.0) Gecko/20100101 Firefox/21.0 Se
 
 http_get()
 {
-case "${OS=`uname -o`}" in
+case "$OS" in
   Cygwin*) CMD='curl --insecure --location --user-agent "$USER_AGENT" "$@"' ;;
    *) CMD='wget --no-check-certificate -q --user-agent="$USER_AGENT" -O - "$@"' ;;
    esac

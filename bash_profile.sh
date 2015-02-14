@@ -11,6 +11,8 @@ PATH="/bin:$PATH"
 [ "$HOSTNAME" = MSYS -o -n "$MSYSTEM" ] && OS="Msys"
 [ "$OSTYPE" ] && OS="$OSTYPE"
 
+: ${OS=`uname -o 2>/dev/null || uname -s 2>/dev/null`}
+
 pmods='$MEDIAPATH/pmagic*/pmodules'
 drives_upper=$'A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\nO\nP\nQ\nR\nS\nT\nU\nV\nW\nX\nY\nZ'
 drives_lower=$'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
@@ -121,7 +123,7 @@ currentpath()
   echo "$CWD")
 }
 
-case "${OS=`uname -o |head -n1`}" in
+case "${OS}" in
    msys* | Msys* |MSys* | MSYS*)
     MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
     PATHTOOL=msyspath
