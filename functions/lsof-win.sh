@@ -12,9 +12,10 @@ lsof-win()
       *"pid: "*) 
         LSOF_PID=${LINE##*"pid: "}
         LSOF_PID=${LSOF_PID%%" "*}
-        EXE=${LINE%": "*}
+        EXE=${LINE%%" "*}
+        EXE=${EXE%.[Ee][Xx][Ee]}
       ;;
-      *) printf "%s\t%d\t%s\n" "$EXE" "$LSOF_PID" "$LINE" ;;
+      *) printf "%-10s %5d %s\n" "$EXE" "$LSOF_PID" "$LINE" ;;
     esac
   done; })
 }
