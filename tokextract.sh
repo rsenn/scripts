@@ -4,7 +4,7 @@
 NL="
 "
 IFS="${NL} "
-tokcharset="_A-Za-z0-9"$extrachars
+tokcharset=$extrachars"_A-Za-z0-9"
 tokexpr="[${tokcharset}]"
 
 while :; do
