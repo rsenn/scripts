@@ -318,7 +318,7 @@ if [ -n "$EXCLUDE_DIRS" ]; then
 fi
 
 # If results are to be shown as 'mixed paths', add path conversion to $SED_EXPR 
-[ "$MIXED_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }s|^/\([[:alnum:]]\)/\(.*\)|\\1:/\\2| ;;  s|^/cygdrive/\(.\)|\\1:|"
+[ "$MIXED_PATH" = true -o "$WIN_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }s|^/\([[:alnum:]]\)/\(.*\)|\\1:/\\2| ;;  s|^/cygdrive/\(.\)|\\1:|"
 
 # If results are to be shown as 'windows paths', add path conversion to $SED_EXPR 
 [ "$WIN_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }/^[[:alnum:]]:[\\\\/]/ s|/|\\\\|g"
