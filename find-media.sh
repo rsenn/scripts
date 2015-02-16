@@ -284,11 +284,11 @@ esac
 FILTERCMD=
 
 if [ "$EXIST_FILE" = true ]; then
-  FILTERCMD="$FILTERCMD | while read -r FILE; do test -e \"\$FILE\" && echo \"\$FILE\"; done"
+  FILTERCMD="${FILTERCMD:+$FILTERCMD | }while read -r FILE; do test -e \"\$FILE\" && echo \"\$FILE\"; done"
 fi
 if [ -n "$INCLUDE_DIRS" ]; then
   INCLUDE_DIR_EXPR=`grep-e-expr $INCLUDE_DIRS`
-  FILTERCMD="$FILTERCMD |grep -E \"^$INCLUDE_DIR_EXPR\""
+  FILTERCMD="${FILTERCMD:+$FILTERCMD | }grep -E \"^$INCLUDE_DIR_EXPR\""
 fi
 #if [ -n "$EXCLUDE_DIRS" ]; then
 #  EXCLUDE_DIR_EXPR=`grep-e-expr $EXCLUDE_DIRS`
