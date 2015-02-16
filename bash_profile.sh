@@ -314,6 +314,15 @@ if [ -n "$USERPROFILE" -a -n "$PATHTOOL" ]; then
   fi
 fi
 
+if [ -z "$DESKTOP" -a -n "$HOME" ]; then
+	[ -d "$HOME/Desktop" ] && DESKTOP="$HOME/Desktop"
+	[ -d "$HOME/Documents" ] && DOCUMENTS="$HOME/Documents"
+	[ -d "$HOME/Downloads" ] && DOWNLOADS="$HOME/Downloads"
+	[ -d "$HOME/Pictures" ] && PICTURES="$HOME/Pictures"
+	[ -d "$HOME/Videos" ] && VIDEOS="$HOME/Videos"
+	[ -d "$HOME/Music" ] && MUSIC="$HOME/Music"
+fi
+
 case "$MSYSTEM" in
   *MINGW32*) [ -d /mingw/bin ] && pathmunge /mingw/bin ;;
   *MINGW64*) [ -d /mingw64/bin ] && pathmunge /mingw64/bin ;;
