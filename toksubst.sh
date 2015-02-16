@@ -4,7 +4,7 @@
 # 
 # $Id: $
 
-charset='0-9A-Za-z_'$extrachars count=0
+charset=$extrachars'0-9A-Za-z_' count=0
 
 unset pattern replace script prev
 
