@@ -132,6 +132,7 @@ while :; do
   	-e | --exist*) EXIST_FILE=true; shift ;;
   	-E | --extension) EXTENSION="${EXTENSION:+$EXTENSION|}$2"; shift 2 ;;
   	-E=* | --extension=*) EXTENSION="${EXTENSION:+$EXTENSION|}${1#*=}"; shift  ;;
+  	-E*) EXTENSION="${EXTENSION:+$EXTENSION|}${1#-E}"; shift  ;;
   	-m | --mix*) MIXED_PATH=true; shift ;;
   	-w | --win*) WIN_PATH=true; shift ;;
   
