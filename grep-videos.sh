@@ -13,7 +13,7 @@ if [ "$COMPLETE" != true ]; then
   TRAILING="[^/]*"
 fi
 
-EXPR="\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))${TRAILING}\$" 
+EXPR="\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))${TRAILING}\\s?\$" 
 
 exec grep -iE "$EXPR" \
         "$@"
