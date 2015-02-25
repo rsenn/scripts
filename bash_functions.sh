@@ -1363,6 +1363,7 @@ foreach-partition() {
 
 for_each()
 {
+#    old_IFS=$IFS; IFS="$IFS "
     __=$1;
     test "`type -t "$__"`" = function && __="$__ \"\$@\"";
     while shift;
@@ -1370,6 +1371,7 @@ for_each()
         eval "$__";
     done;
     unset __
+#    IFS=$old_IFS
 }
 
 fstab-line()
@@ -2801,7 +2803,20 @@ lsof-win()
 #  (for PID in $(ps -aW | sed 1d |awkp 1); do
 #    handle -p "$PID" |sed "1d;2d;3d;4d;5d; s|^|$PID\\t|"
 #  done)
- (handle -a 2>&1 | { 
+ (while :; do
+    case "$1" in
+      -p) PIDS="${PIDS+$PIDS$IFS}$2"; shift 2 ;;
+      -p=*) PIDS="${PIDS+$PIDS$IFS}${1#*=}"; shift ;;
+      -p*) PIDS="${PIDS+$PIDS$IFS}${1#-p}"; shift ;;
+      *) break ;;
+    esac
+  done
+  if [ -n "$PIDS" ]; then
+    CMD='for PID in $PIDS; do EXE=$(proc-by-pid $PID); echo "${EXE##*[\\/]}.exe pid: $PID"; handle -p $PID; done'
+  else
+    CMD='handle -a'
+  fi
+  eval "$CMD" 2>&1 | { 
   TAB="	"
   CR=""
   IFS="$CR"
@@ -2813,6 +2828,8 @@ lsof-win()
         EXE=${LINE%%" "*}
         EXE=${EXE%.[Ee][Xx][Ee]}
       ;;
+      "" | "Copyright (C) 1997-2014 Mark Russinovich" | "Handle v4.0" | "Sysinternals - www.sysinternals.com") continue ;;
+
       *) printf "%-10s %5d %s\n" "$EXE" "$LSOF_PID" "$LINE" ;;
     esac
   done; })
@@ -3635,15 +3652,15 @@ pid-args()
 
 pid-of() {
    (if ps --help 2>&1 |grep -q '\-W'; then
-       PGREP_CMD='ps -aW |grep "$ARG" | awkp'
+       PGREP_CMD='ps -aW |grep -i "$ARG" | awkp'
     elif type pgrep 2>/dev/null >/dev/null; then
        PGREP_CMD='pgrep -f "$ARG"'
     else
-       PGREP_CMD='ps -ax | grep "$ARG" | awkp'
+       PGREP_CMD='ps -ax | grep -i "$ARG" | awkp'
     fi
     for ARG in "$@"; do
       eval "$PGREP_CMD"
-    done | sed -n "/^[0-9]\+$/p")
+    done | sed -n 's/^\([0-9]\+\)\r\?$/\1/p')
 }
 
 pkg-name()
@@ -3689,6 +3706,15 @@ player-file()
 	done
 	SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }s| ([^)]*)\$||"
 	  lsof -n $(pid-args "${@-mplayer}") 2> /dev/null 2> /dev/null 2> /dev/null 2> /dev/null | grep  -E ' [0-9]+[^ ]* +REG ' | grep --color=auto -vE ' (mem|txt|DEL) ' | cut-lsof NAME |sed "$SED_SCRIPT" )
+}
+
+proc-by-pid() {
+  if ps --help 2>&1 |grep -q '\-W'; then
+    PSARGS="-W"
+  fi
+  for ARG; do
+     ps $PSARGS -p "$ARG" | sed 1d
+  done |cut-ls-l 7
 }
 
 proc-mount()
