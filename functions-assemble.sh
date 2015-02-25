@@ -1,5 +1,6 @@
 #!/bin/bash
 type gsed 1>/dev/null 2>/dev/null && SED=gsed || SED=sed
+MYNAME=`basename "${0%.sh}"`
 MYDIR=`dirname "$0"`
 IFS="
 "
@@ -45,7 +46,9 @@ output() {
     CMD='echo -e "#!/bin/bash\n"
     echo "$FUNCTIONS"'
     if [ -n "$1" ]; then
-      CMD="{ $CMD; } >\"\$1\"; echo \"Wrote '\$1'.\" 1>&2"
+      TMP=`mktemp "${MYNAME}-XXXXXX.tmp"`
+      trap  'rm -f "$TMP"' EXIT
+      CMD="{ $CMD; } >\"\$TMP\"; mv -f \"\$TMP\" \"\$1\"; echo \"Wrote '\$1'.\" 1>&2"
     fi
 #    echo "CMD='$CMD'" 1>&2 
     eval "$CMD"
