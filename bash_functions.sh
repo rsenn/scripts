@@ -2440,14 +2440,31 @@ list-7z() {
 	  ;;
 	  esac
 	if [ -n "PREV" -a "$FN" != "$PREV" -a "$FN" != "$PPREV" ]; then
-	
 	  case "$PREV" in 
 	    */) ;;
 	    *)
+	    DIR="${PREV}"
 	      while :; do
-	        DIR="${PREV%/*}/"
-	        [ "$DIR" = "$PREV" -o "$DIR" = "$PREVDIR" ] && break
-	        output "$DIR"
+	        [ "$DIR" = "${DIR%/*}" ] && break
+	        DIR="${DIR%/*}"
+	       echo "DIR='$DIR' PREVDIR='$PREVDIR'" 1>&2
+	      if [ -z "$PREVDIR" -o "${PREVDIR#$DIR/}" = "$PREVDIR" ]; then
+	       [ -n "$PREVDIR" ] && output "$PREVDIR"
+	       PREVDIR="$DIR/"
+	      fi
+	      
+	      case "$DIR" in
+	        ${PREVDIR%/}/*) continue ;;
+	      esac	      
+	      case "${PREVDIR%/}" in
+	        ${DIR}/*) continue ;;
+	      esac
+	      #[ "$DIR/" != "$PREVDIR" ] &&
+	        output "$DIR/"
+	        case "${PREVDIR%/}" in
+	          $DIR | $DIR/*) ;;
+	          *) PREVDIR="$DIR/" ;;
+	        esac
 	      done	    
 	     ;;
 	  esac
@@ -2506,7 +2523,6 @@ list-7z() {
         esac
         FN="$F$FP"
         DN="${F%/*}"
-        
         output_line 
       done
       output_line 
