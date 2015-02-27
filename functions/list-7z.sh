@@ -36,7 +36,7 @@ list-7z() {
 	      while :; do
 	        [ "$DIR" = "${DIR%/*}" ] && break
 	        DIR="${DIR%/*}"
-	       echo "DIR='$DIR' PREVDIR='$PREVDIR'" 1>&2
+	       #echo "DIR='$DIR' PREVDIR='$PREVDIR'" 1>&2
 	      if [ -z "$PREVDIR" -o "${PREVDIR#$DIR/}" = "$PREVDIR" ]; then
 	       [ -n "$PREVDIR" ] && output "$PREVDIR"
 	       PREVDIR="$DIR/"
