@@ -4334,6 +4334,8 @@ id3get "$1" 'TIT[0-9]'
 
 }
 
+to-expr() { echo "${*//[!-a-zA-Z0-9_=%:\/ <>\']/.}"; }
+
 umount-all()
 {
     for ARG in "$@";
