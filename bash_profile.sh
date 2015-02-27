@@ -76,6 +76,14 @@ fi
 #	 has_cmd "g$BIN" && alias "$BIN=g$BIN"
 #done
 
+if grep --help 2>&1 | grep -q '\--color'; then
+	GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--color=auto"
+fi
+
+if grep --help 2>&1 | grep -q '\--line-buffered'; then
+	GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--line-buffered"
+fi
+
 alias grep="/bin/grep $GREP_ARGS"
 alias grepdiff='grepdiff --output-matching=hunk'
 
