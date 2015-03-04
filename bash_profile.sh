@@ -97,6 +97,7 @@ else
     SUDO=sudo
 fi
 type gvim 2>/dev/null >/dev/null && alias gvim="gvim -p"
+type astyle 2>/dev/null >/dev/null && alias astyle="astyle --style=linux --indent=spaces=2 "
 type yum 2>/dev/null >/dev/null && alias yum="$SUDO yum -y"
 type smart 2>/dev/null >/dev/null && alias smart="$SUDO smart -y"
 type zypper 2>/dev/null >/dev/null && alias zypper="$SUDO zypper"
