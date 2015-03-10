@@ -887,7 +887,7 @@ du-txt()
     TMP="du.tmp$RANDOM";
     echo -n > "$TMP";
     trap 'rm -f "$TMP"' EXIT;
-    CMD='(set -x; du -x -s -- ${@-$(ls-dirs)})';
+    CMD='(du -x -s -- ${@-$(ls-dirs)})';
     if [ -w "$TMP" ]; then
         CMD="$CMD | (tee \"\$TMP\"; sort -n -k1 <\"\$TMP\" >du.txt; rm -f \"\$TMP\"; echo \"Saved list into du.txt\" 1>&2)";
     fi;
@@ -2075,7 +2075,7 @@ index-dir()
 { 
     [ -z "$*" ] && set -- .;
     ( 
-    [ "$(uname -m)" = "x86_64" ] && R64="64"
+    [ "$(uname -m)" = "x86_64" ] && : ${R64="64"}
     for ARG in "$@";
     do
         ( cd "$ARG";
