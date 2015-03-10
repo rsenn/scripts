@@ -2,7 +2,7 @@ index-dir ()
 { 
     [ -z "$*" ] && set -- .;
     ( 
-    [ "$(uname -m)" = "x86_64" ] && R64="64"
+    [ "$(uname -m)" = "x86_64" ] && : ${R64="64"}
     for ARG in "$@";
     do
         ( cd "$ARG";
