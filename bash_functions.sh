@@ -2436,8 +2436,7 @@ list-7z() {
 	case "$PREV" in
 	  */) 
 		case "$FN" in
-		  $PREV/*) ;;
-		  *) unset PREV ;;
+		  $PREV/*) ;; *) unset PREV ;;
 		esac
 	  ;;
 	  esac
@@ -2493,7 +2492,7 @@ list-7z() {
         T=${1%.t?z}
         T=${T%.tbz2} 
         T=$T.tar
-        INPUT="${INPUT:+$INPUT | }7z x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T}\"";  CMD="7z l -slt $OPTS"
+        INPUT="${INPUT:+$INPUT | }7z x -si\"${1}\" -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T}\"";  CMD="7z l -slt $OPTS"
         ;;
       *.tar.*) INPUT="${INPUT:+$INPUT | }7z x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${B%.*}\"";  CMD="7z l -slt $OPTS" ;;
       *) CMD="7z l -slt $OPTS ${ARCHIVE+\"$ARCHIVE\"}" ;;

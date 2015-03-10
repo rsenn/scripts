@@ -1,12 +1,13 @@
 #!/bin/bash
 
 (
-ABITRATE="128"
+VBITRATE=409600
+ABITRATE=96000
 #SAMPLERATE=48000
 #CHANNELS=2
-#VCODEC=h263
-VCODEC=h263p
-SIZE=172x144
+VCODEC=h263
+#VCODEC=h263p
+SIZE=352x288
 
 ACODEC="aac"
 # ACODEC="amrwb"
@@ -49,7 +50,7 @@ ACODEC="aac"
 #ACODEC=roq_dpcm
 #ACODEC=sonic
 #ACODEC=sonicls
-#ACODEC=vorbis
+c#ACODEC=vorbis
 #ACODEC=wmav1
 #ACODEC=wmav2
 
@@ -70,10 +71,10 @@ for ARG; do
         trap 'rm -vf "$TMP"' EXIT QUIT INT TERM
 
 #  (set -x; mplayer -really-quiet -noconsolecontrols -vo null -vc null -ao pcm:waveheader:file="$TMP" "$ARG") &&
-    (set -x; ffmpeg -strict -2 -y -i "$BASE" \
+    (set -x; ffmpeg -y -i "$BASE" \
                         ${SIZE:+-s "$SIZE"} \
-      ${VCODEC:+-vcodec "$VCODEC"} ${VBITRATE:+-b "$VBITRATE"} \
-      ${ACODEC:+-acodec "$ACODEC"} ${ABITRATE:+-ab "$ABITRATE"} ${SAMPLERATE:+-ar "$SAMPLERATE"} ${CHANNELS:+-ac "$CHANNELS"} \
+												${VCODEC:+-vcodec "$VCODEC"} ${VBITRATE:+-b:v $((VBITRATE))} \
+	${ACODEC:+-acodec "$ACODEC"} -strict -2 ${ABITRATE:+-b:a $((ABITRATE))} ${SAMPLERATE:+-ar "$SAMPLERATE"} ${CHANNELS:+-ac "$CHANNELS"} \
        "$OUTPUT")
 
   )
