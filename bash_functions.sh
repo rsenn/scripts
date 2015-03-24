@@ -753,8 +753,6 @@ disk-device-number()
     index-of "$(disk-device-letter "$1")" abcdefghijklmnopqrstuvwxyz
 }
 
-type wmic 2>/dev/null >/dev/null &&
-
 disk-devices() {
   wmic volume get DeviceID /VALUE | while read -r LINE; do
     case "$LINE" in
@@ -2678,10 +2676,20 @@ list-upx()
 
 list()
 {
- (CMD='echo "$LINE"'
-  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
-  eval "$CMD"
- )
+    local n=$1 count=0 choices='';
+    shift;
+    for choice in "$@";
+    do
+        choices="$choices $choice";
+        count=$((count + 1));
+        if $((count)) -eq $((n)); then
+            count=0;
+            choices='';
+        fi;
+    done;
+    if [ -n "${choices# }" ]; then
+        msg $choices;
+    fi
 }
 
 locate-filename()
@@ -3156,7 +3164,6 @@ mounted-devices() {
 	done) </proc/mounts
 }
 
-type wmic 2>/dev/null >/dev/null &&
 mountpoint-by-label() {
  (IFS="
  	"
@@ -4114,6 +4121,62 @@ rpm-cmd() {
   done
 }
 
+rpm-extract() {
+  rpm-cmd -i -d -u -- "$@"
+}
+
+rpm-list() {
+  rpm-cmd -t -- "$@"
+}
+
+rpm-cmd() {
+  OPTS= OUTPUT=
+  while :; do
+    case "$1" in
+      -o) OUTPUT="$2"; shift 2 ;; -o*) OUTPUT="${1#-o}"; shift  ;; --output=*) OUTPUT="${1#*=}"; shift  ;;
+      -*) OPTS="${OPTS:+$OPTS$IFS}$1"; shift ;;
+      --) shift; break ;;
+      *) break ;;
+    esac
+  done
+
+ #CMD="addprefix \"\$ARG: \""
+ CMD="sed \"s|^\\./|| ;; s|^|\$ARG: |\""
+ #N=$#
+
+  while [ $# -gt 0 ]; do
+    ARG="$1"
+    shift
+   (case "$ARG" in
+      #*://*) DLCMD="wget -q -O - \"\$ARG\" | rpm2cpio /dev/stdin" ;;
+      #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
+      #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
+    *://*) 
+      MIRRORLIST=`curl -s "$ARG.mirrorlist" |sed -n 's,\s*<li><a href="\([^"]*\.rpm\)">.*,\1,p'`
+
+      if [ -n "$MIRRORLIST" ]; then
+        set -- $MIRRORLIST 
+      else
+        set -- "$ARG"
+      fi
+      DLCMD='wget -q -O - "$1" | rpm2cpio /dev/stdin'
+      ;;
+      *) set -- "$ARG"
+        DLCMD='rpm2cpio "$ARG"'
+        ;;
+    esac
+    CMD="$DLCMD | (${OUTPUT:+cd \"\$OUTPUT\"; }cpio \${OPTS:--t} 2>/dev/null)${CMD:+ | $CMD}"
+    while [ $# -gt 0 ]; do 
+      eval "( $CMD ) 2>/dev/null" && exit 0
+      #echo continue 1>&2
+      shift
+    done
+    
+    echo "Failed to list $ARG" 1>&2
+    exit 1)
+  done
+}
+
 rpm-list() {
   rpm-cmd -t -- "$@"
 }
@@ -4153,8 +4216,8 @@ some()
 {
     eval "while shift
   do
-  case \"\$1\" in
-    $1 ) return 0 ;;
+  case \"\`str_tolower \"\$1\"\`\" in
+    $(str_tolower "$1") ) return 0 ;;
   esac
   done
   return 1"

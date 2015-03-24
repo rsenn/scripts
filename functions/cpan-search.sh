@@ -1,4 +1,4 @@
-cpan-search () 
+cpan-search()
 { 
     ( for ARG in "$@";
     do

@@ -1,4 +1,3 @@
-type wmic 2>/dev/null >/dev/null &&
 mountpoint-by-label() {
  (IFS="
  	"

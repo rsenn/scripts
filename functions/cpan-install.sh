@@ -1,4 +1,4 @@
-cpan-install () 
+cpan-install()
 { 
     for ARG in "$@";
     do

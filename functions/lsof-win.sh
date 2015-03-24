@@ -34,4 +34,3 @@ lsof-win()
     esac
   done; })
 }
-

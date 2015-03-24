@@ -6,4 +6,3 @@ c256()
   value=$(( ((value & 0x55) << 1) | ((value & 0xAA) >> 1) ))
   echo "$value"
 }
-
