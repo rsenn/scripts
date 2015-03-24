@@ -8,6 +8,5 @@ while :; do
   esac
 done
 
-EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff voc"
-
+                EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669"
 exec grep -i -E "$@" "\\.($(IFS='| '; set -- $EXTS;  echo "$*"))${PARTIAL_EXPR}\$" 
