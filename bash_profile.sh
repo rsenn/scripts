@@ -1,5 +1,5 @@
-echo 'loading /home/roman/.bash_profile' 1>&2
 #!/bin/bash
+echo 'loading /home/roman/.bash_profile' 1>&2
 
 set -o vi
 
@@ -35,6 +35,8 @@ case "$TERM" in
   *256color*) ;;
   konsole|screen|rxvt|vte|Eterm|putty|xterm|mlterm|mrxvt|gnome) TERM="$TERM-256color" ;;
 esac
+
+   
 
 unalias cp mv rm  2>/dev/null
 
@@ -160,6 +162,16 @@ case "${OS}" in
  ;;
 esac
 
+case "$OS" in
+   *cygwin* |Cygwin* | CYGWIN* | msys* | Msys* |MSys* | MSYS*)
+     for PROG_A in notepad notepad2 notepadpp:notepad++; do
+       ALIAS=${PROG_A%%:*}; PROG=${PROG_A#*:}; FN=$ALIAS'() { (IFS="
+"; command '$PROG' `xargs "${PATHTOOL:-cygpath}" -m <<<"$*"`)
+    }'
+    : echo "FN=$FN" 1>&2; eval "$FN"; done
+  ;;
+esac
+ 
 #: ${PS1:='\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '}
 
 pathmunge() {
