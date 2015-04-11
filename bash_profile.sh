@@ -51,10 +51,21 @@ has_cmd() {
   test -e /bin/"$1" -o -e /usr/bin/"$1"
 	#type "$1" >/dev/null 2>/dev/null
 }
+#USERAGENT="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0"
+#USERAGENT="Mozilla/5.0 (Windows; U; Windows NT based; de-CH) AppleWebKit/533.3 (KHTML, like Gecko)  QtWeb Internet Browser/3.7 http://www.QtWeb.net"
+#USERAGENT="Midori/0.3 (Windows; Windows; U; de-ch) WebKit/531.2+"
+#USERAGENT="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+#USERAGENT="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:34.0) Gecko/20100101 Firefox/34.0 SeaMonkey/2.31"
+#USERAGENT="Opera/9.80 (Windows NT 6.1; WOW64) Presto/2.12.388 Version/12.17"
+#USERAGENT="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) QupZilla/1.8.5 Safari/537.21"
+USERAGENT="Mozilla/5.0 (Windows; U; Windows NT 6.1; de-CH) AppleWebKit/532.4 (KHTML, like Gecko) Arora/0.10.2 Safari/532.4"
+
 	
 has_cmd gxargs && alias xargs='gxargs -d "\n"' || alias xargs='xargs -d "\n"'
 
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
+
+has_cmd wget && alias wget="wget --no-check-certificate --user-agent=\"\$USER_AGENT\""
 
 has_cmd gls && alias ls="gls \$LS_ARGS" || alias ls="ls \$LS_ARGS"
 
