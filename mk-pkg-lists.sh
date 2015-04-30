@@ -44,7 +44,7 @@ apt_dpkg_list_all_pkgs()
   require apt
   require dpkg
 
-  apt_list >apt.list
+  apt_list -q >apt.list
   dpkg_list >dpkg.list
 
   dpkg_expr=^$(grep_e_expr $(<dpkg.list))
