@@ -11,13 +11,13 @@ IFS=" ""
 "
 
 : ${IP=192.168.0.10}
-: ${USERNAME=roman}
+: ${CIFSUSER=roman}
 
 if [ "${PASSWORD+set}" != set ]; then
    read -p "Password: " -s PASSWORD
  fi
 
-SMB_OUTPUT=`smbclient -L "$IP" --user "$USERNAME${PASSWORD:+%$PASSWORD}" 2>/dev/null`
+SMB_OUTPUT=`smbclient -L "$IP" --user "$CIFSUSER${PASSWORD:+%$PASSWORD}" 2>/dev/null`
 #echo "$SMB_OUTPUT" |tee o|sed 's,^,output: ,'
 
 : ${SHARES=`echo "$SMB_OUTPUT" | sed -n "/Sharename.*Type/ { :lp1; N; /\n\s*----[^\n]*$/! b lp1; /Workgroup\s\+Master/q; n; :lp2; s,^\s*,, ;; s,\s.*,, ;; /^----/! { /^\s*$/! p; n; $! b lp2; }; b lp1; }" | sed -e '$ { /^Server$/d }' -e '\|\$$|d'`}
@@ -33,12 +33,25 @@ suexec() {
   sudo sh -c "$CMD")
 }
 
-for x in $SHARES
-do (suexec "umount -f '$MNTDIR/$x' || sudo umount -l '$MNTDIR/$x'" \
+get_shares() {
+	[ $# -le 0 ] && set -- $SHARES
+	for A; do
+		for S in $SHARES; do
+		  case "$S" in
+				$A | */${A}) echo "$S" ;;
+		  esac
+		done
+	done
+}
+
+echo "Shares: $SHARES"
+
+for x in $(get_shares "$@")
+do (suexec "umount -f '$MNTDIR/$x'  2>/dev/null || sudo umount -l '$MNTDIR/$x' 2>/dev/null" \
   "mkdir -p '$MNTDIR/$x'"
 
 (
-suexec "mount -t cifs '//$IP/$x' '$MNTDIR/$x' -o 'username=$USERNAME,password=$PASSWORD,uid=$UID,gid=${GROUPS%%[![:alnum:]]*}'"
+suexec "mount -t cifs '//$IP/$x' '$MNTDIR/$x' -o 'username=$CIFSUSER,password=$PASSWORD,uid=$UID,gid=${GROUPS%%[![:alnum:]]*}'"
 
 ) )
 done
