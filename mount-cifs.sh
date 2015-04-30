@@ -6,10 +6,11 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+: ${MNTDIR='/media/cifs/$SERVNAME'}
 IFS=" ""
 "
 
-: ${IP=192.168.0.16}
+: ${IP=192.168.0.10}
 : ${USERNAME=roman}
 
 if [ "${PASSWORD+set}" != set ]; then
@@ -23,6 +24,8 @@ SMB_OUTPUT=`smbclient -L "$IP" --user "$USERNAME${PASSWORD:+%$PASSWORD}" 2>/dev/
 
 : ${SERVNAME=`echo "$SMB_OUTPUT" |sed -n "/^\s*Server\s/ { N; n; s,^\s*\([^ ]\+\).*,\1,p }" | tr "[:"{upper,lower}":]"`}
 
+eval "MNTDIR=\"${MNTDIR}\""
+
 suexec() {
  (unset CMD
   for ARG; do CMD="${CMD+$CMD; }$ARG"; done
@@ -31,11 +34,11 @@ suexec() {
 }
 
 for x in $SHARES
-do (suexec "umount -f '/media/cifs/$SERVNAME/$x' || sudo umount -l '/media/cifs/$SERVNAME/$x'" \
-  "mkdir -p '/media/cifs/$SERVNAME/$x'"
+do (suexec "umount -f '$MNTDIR/$x' || sudo umount -l '$MNTDIR/$x'" \
+  "mkdir -p '$MNTDIR/$x'"
 
 (
-suexec "mount -t cifs '//$IP/$x' '/media/cifs/$SERVNAME/$x' -o 'username=$USERNAME,password=$PASSWORD,uid=$UID,gid=${GROUPS%%[![:alnum:]]*}'"
+suexec "mount -t cifs '//$IP/$x' '$MNTDIR/$x' -o 'username=$USERNAME,password=$PASSWORD,uid=$UID,gid=${GROUPS%%[![:alnum:]]*}'"
 
 ) )
 done
