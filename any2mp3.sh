@@ -68,8 +68,16 @@ fi
     (set -x; 
 trap 'R=$?; rm -vf "$WAV"; exit $R' EXIT QUIT INT TERM
 #(cd "$DIR"; mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV##*/}" -vc null -vo null "${ARG##*/}"  2>/dev/null) &&
-(mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV}" -vc null -vo null "${ARG}"  2>/dev/null) &&
-lame --alt-preset "$ABR" -h "$WAV" "$OUTPUT" &&
+#(mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV}" -vc null -vo null "${ARG}"  2>/dev/null) &&
+
+case "${ARG##*/}" in
+	*.wav) WAV="$ARG" ;;
+	*)
+	(ffmpeg -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV") 
+	;;
+esac && 
+lame --alt-preset "$ABR" --resample 44100 -m j -h "$WAV" "$OUTPUT" &&
+
 if $REMOVE; then rm -vf "$ARG"; fi) ||break
 done
 
