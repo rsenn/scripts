@@ -1673,7 +1673,9 @@ git-set-remote()
 
 grep-e-expr()
 {
-  implode "|" "$@" |sed 's,[().*?|\\],\\&,g ; s,\[,\\[,g ; s,\],\\],g ; s,.*,(&),'
+	[ $# -gt 0 ] && exec <<<"$*"
+
+	sed 's,[().*?|\\],\\&,g ; s,\[,\\[,g ; s,\],\\],g' | implode "|" | sed 's,.*,(&),'
 }
 
 grep-e()
@@ -4358,6 +4360,12 @@ title()
 id3get "$1" 'TIT[0-9]'
 				)
 
+}
+
+to-sed-expr()
+{
+ ([ $# -gt 0 ] && exec <<<"$*"
+  sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
 }
 
 umount-all()
