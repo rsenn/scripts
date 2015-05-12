@@ -25,7 +25,7 @@ output() {
 	OUT="${OUT:+$OUT }$@"
 }
 
-output update-alternatives --install "$BINS_NO_VER_1ST" "${BINS_NO_VER_1ST##*/}" "${BIN_1ST}" "${PRIO:-30}"
+output update-alternatives --install /usr/bin/"${BINS_NO_VER_1ST##*/}" "${BINS_NO_VER_1ST##*/}" "${BIN_1ST}" "${PRIO:-30}"
 
 set -- $BINS
 shift
@@ -34,7 +34,7 @@ for BIN; do
 
 	[ "$BIN" = "$BIN_1ST" ] && continue
 	BIN_NOVER=$(cut-ver <<<"$BIN")
-	output --slave "${BIN_NOVER}" "${BIN_NOVER##*/}" "${BIN}"
+	output --slave /usr/bin/"${BIN_NOVER##*/}" "${BIN_NOVER##*/}" "${BIN}"
 
 done
 
