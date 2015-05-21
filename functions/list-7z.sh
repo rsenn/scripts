@@ -23,7 +23,8 @@ list-7z() {
 	case "$PREV" in
 	  */) 
 		case "$FN" in
-		  $PREV/*) ;; *) unset PREV ;;
+		  $PREV/*) ;;
+		  *) unset PREV ;;
 		esac
 	  ;;
 	  esac
