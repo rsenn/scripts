@@ -4524,6 +4524,15 @@ vlcpid()
     ( ps -aW | grep --color=auto --color=auto --color=auto --color=auto --color=auto --line-buffered --color=auto --line-buffered -i vlc.exe | awkp )
 }
 
+volname () { 
+   ([ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
+    for ARG; do
+	  drive=$(cygpath -m "$ARG")
+	  NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
+	  eval "$ECHO"
+	done)
+}
+
 w2c()
 {
     ch_conv UTF-16 UTF-8 "$@"
