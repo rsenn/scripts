@@ -55,7 +55,7 @@ main() {
    R=$(sed <<<"$A" 's,\(.*\)=\([0-9]\+\)$,\\(\1\\)=\\(\[0-9\]\\+\\),')
    P=$(sed <<<"$A" "s|$R|\2|")
    
-   CMD="extract-urls.sh '$(echo "$URL" | sed "s|$R|\1'{\`seq -s, 1 $P\`}'|")'"
+   CMD="extract-urls.sh '$(echo "$URL" | sed "s|$R|\1='{\`seq -s, 1 $P\`}'|")'"
    
    [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
    
