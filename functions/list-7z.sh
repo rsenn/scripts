@@ -38,7 +38,7 @@ list-7z() {
 	        DIR="${DIR%/*}"
 	       #echo "DIR='$DIR' PREVDIR='$PREVDIR'" 1>&2
 	      if [ -z "$PREVDIR" -o "${PREVDIR#$DIR/}" = "$PREVDIR" ]; then
-	       [ -n "$PREVDIR" ] && output "$PREVDIR"
+	       #[ -n "$PREVDIR" ] && output "$PREVDIR"
 	       PREVDIR="$DIR/"
 	      fi
 	      
@@ -48,8 +48,7 @@ list-7z() {
 	      case "${PREVDIR%/}" in
 	        ${DIR}/*) continue ;;
 	      esac
-	      #[ "$DIR/" != "$PREVDIR" ] &&
-	        output "$DIR/"
+	      [ "$DIR/" != "$PREVDIR" ] && output "$DIR/"
 	        case "${PREVDIR%/}" in
 	          $DIR | $DIR/*) ;;
 	          *) PREVDIR="$DIR/" ;;
