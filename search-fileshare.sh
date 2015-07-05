@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SET1='+"share-online.biz/dl/"|"zippyshare.com/"|"mediafire.com/"|"uploadable.ch/"|"depositfiles.com/files"|"uploaded.net/"'
-SET2='+"netload.in/"|"filefactory.com/file/"|"sendspace.com/file/"|"badongo.com/file/"|"uploadbox.com/files/"|"letitbit.net/download/'
+SET1='+"share-online.biz/dl/"|"zippyshare.com/"|"mediafire.com/"|"uploadable.ch/"|"depositfiles.com/files"|"oron.com/"|"oboom.net/"'
+SET2='+"uploaded.net/"|"netload.in/"|"filefactory.com/file/"|"sendspace.com/file/"|"badongo.com/file/"|"uploadbox.com/files/"|"letitbit.net/download/'
 SET3='+"sharingmatrix.com/file/"|"box.net/shared/"|"kewlshare.com/dl/"|"mega.co.nz/"|"4shared.com/file/"|"ziddu.com/download/"|"zshare.net/download/"'
 
 NAME=`echo "$*" | sed -e 's,[^0-9A-Za-z]\+,-,g' -e 's,^[^0-9A-Za-z]\+,,' -e 's,[^0-9A-Za-z]\+$,,'`
