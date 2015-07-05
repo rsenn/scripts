@@ -9,4 +9,4 @@ while :; do
 done
 
                 EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669 mp4"
-exec grep -i -E "$@" "\\.($(IFS='| '; set -- $EXTS;  echo "$*"))${PARTIAL_EXPR}\$" 
+exec grep -i -E "\\.($(IFS='| '; set -- $EXTS;  echo "$*"))${PARTIAL_EXPR}\$"  "$@"

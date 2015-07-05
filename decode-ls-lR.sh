@@ -31,9 +31,14 @@ decode_ls_lR()
 				 shift 5
 				 FILE="$*"
 				 ;;
-			??????????" "*)
+		    *\ *\ *\ *\ *\ ???\ [0-9][0-9]\ [0-9][0-9]:[0-9][0-9]\ *)
 				 MODE="$1" LINKS="$2" USER="$3" GROUP="$4" SIZE="$5" MONTH="$6" DAY="$7" TIME="$8"
 				 shift 8
+				 FILE="$*"
+				;;
+			*\ *\ *\ *\ *\ [0-9]*\ *)
+				 MODE="$1" LINKS="$2" USER="$3" GROUP="$4" SIZE="$5" UTIME="$6"
+				 shift 6
 				 FILE="$*"
 				;;
 		esac
