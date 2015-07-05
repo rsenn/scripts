@@ -18,6 +18,7 @@ IFS="
 while :; do
   case "$1" in
     -x|--debug) DEBUG=true; shift ;;
+    -v|--verbose) VERBOSE=true; shift ;;
     -t=*|--type=*) TYPE=${1%#*=}; shift ;; -t|--type) TYPE=$2; shift 2 ;;
     -c=*|--class=*) CLASS=${1%#*=}; shift ;; -c|--class) CLASS=$2; shift 2 ;;
     -n=*|--results=*) RESULTS=${1%#*=}; shift ;; -n|--results) RESULTS=$2; shift 2 ;;
@@ -30,7 +31,9 @@ done
 : ${RESULTS=30}
 #HTTP_PROXY="127.0.0.1:8123"
 
-DLCMD="curl -s --insecure --location -A '$USER_AGENT' ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks5 \"${SOCKS_PROXY#*://}\"}"
+[ "$VERBOSE" = true ] || SILENT="-s"
+[ -s "cookie.txt" ] && : ${COOKIE:="cookie.txt"}
+DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location -A '$USER_AGENT' ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks4a \"${SOCKS_PROXY#*://}\"}"
 #DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }wget -q -O - -U '$USER_AGENT'"
 #DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent '$USER_AGENT' 2>/dev/null"
 #DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }links -source"
