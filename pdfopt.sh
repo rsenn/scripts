@@ -26,4 +26,5 @@ if [ $# -ne 2 ]; then
 	exit 1
 fi
 
-exec "$GS_EXECUTABLE" -q -dNODISPLAY $OPTIONS -- "$1" "$2"
+#exec "$GS_EXECUTABLE" -q -dNODISPLAY $OPTIONS -- "$1" "$2"
+exec "$GS_EXECUTABLE" -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$2" "$1"
