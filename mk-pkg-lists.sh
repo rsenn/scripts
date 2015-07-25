@@ -47,6 +47,9 @@ apt_dpkg_list_all_pkgs()
   apt_list -q >apt.list
   dpkg_list >dpkg.list
 
+	dpkg_exprfile=dpkg.expr
+	trap 'rm -rf "$dpkg_exprfile"' EXIT
+
 	for x in $(<dpkg.list); do
     echo "\|^${x}\$|d" 
   done >"$dpkg_exprfile"
