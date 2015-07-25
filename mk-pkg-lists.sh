@@ -124,11 +124,37 @@ zypper_rpm_list_all_pkgs() {
   (set -x; wc -l {zypper,rpm,pkgs,available}.list)
 }
 
+yaourt_pacman_list_all_pkgs() {
+
+	for OPT in e d; do
+		sudo pacman -Q${OPT} 
+		yaourt -Q${OPT} 
+  done \
+		|sed 's|\s\+(.*||' | sort -k1,2 -V -u >installed.list
+
+  {
+		yaourt -Sl
+		sudo pacman -Sl
+  } | sed 's,^[ /]\+[ /],, ; s,\s\+[\[(].*,,' |sort -k1,2 -V -u >pkgs.list
+
+  set -- $(<installed.list)
+
+	exprfile=rpm.expr
+	trap 'rm -rf "$exprfile"' EXIT
+
+  for x; do 
+    echo "\|^${x}\$|d" 
+  done >"$exprfile"
+
+	sed -f "$exprfile" pkgs.list >available.list
+
+}
 require distrib
 
 case $(distrib_get id) in
   [Ff]edora) yum_rpm_list_all_pkgs ;;
   [Dd]ebian|[Uu]buntu) apt_dpkg_list_all_pkgs ;;
   openS[Uu]SE*) zypper_rpm_list_all_pkgs  ;;
+  [Aa]rch*) yaourt_pacman_list_all_pkgs  ;;
 *) echo "No such distribution $(distrib_get id)" 1>&2 ;;
 esac
