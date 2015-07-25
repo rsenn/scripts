@@ -152,9 +152,11 @@ yaourt_pacman_list_all_pkgs() {
 require distrib
 
 case $(distrib_get id) in
-  [Ff]edora) yum_rpm_list_all_pkgs ;;
-  [Dd]ebian|[Uu]buntu) apt_dpkg_list_all_pkgs ;;
-  openS[Uu]SE*) zypper_rpm_list_all_pkgs  ;;
-  [Aa]rch*) yaourt_pacman_list_all_pkgs  ;;
+  [Ff]edora) CMD=yum_rpm_list_all_pkgs ;;
+  [Dd]ebian|[Uu]buntu) CMD=apt_dpkg_list_all_pkgs ;;
+  openS[Uu]SE*) CMD=zypper_rpm_list_all_pkgs  ;;
+  [Aa]rch*) CMD=yaourt_pacman_list_all_pkgs  ;;
 *) echo "No such distribution $(distrib_get id)" 1>&2 ;;
 esac
+
+[ -n "$CMD" ] && (set -x; $CMD)
