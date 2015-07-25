@@ -47,10 +47,15 @@ apt_dpkg_list_all_pkgs()
   apt_list -q >apt.list
   dpkg_list >dpkg.list
 
-  dpkg_expr=^$(grep_e_expr $(<dpkg.list))
+	for x in $(<dpkg.list); do
+    echo "\|^${x}\$|d" 
+  done >"$dpkg_exprfile"
+
+  #dpkg_expr=^$(grep_e_expr $(<dpkg.list))
 
   awkp <apt.list |sort >pkgs.list
-  grep -v -E "$dpkg_expr\$" <pkgs.list  >available.list
+  sed -f "$dpkg_exprfile" pkgs.list >available.list
+	#grep -v -E "$dpkg_expr\$" <pkgs.list  >available.list
 
   (set -x; wc -l {apt,dpkg,pkgs,available}.list)
 }
