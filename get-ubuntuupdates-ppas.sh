@@ -59,20 +59,20 @@ log() {
 	echo "$@" 1>&2
 }
 
-ppa-to-repobase() {
+ppa_to_repobase() {
  (CMD='sed -n "s|\\r*\$|| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://ppa.launchpad.net/\1/\2/ubuntu|p"'
 	[ $# -gt 0 ] && CMD="$CMD <<<\"\$*\""
 	eval "$CMD")
 }
 
-ppa-to-repodist() {
+ppa_to_repodist() {
 (IFS="/"
   #CMD='sed -n "s|\\r*\$|| ;; s|.*/\([^/]\+\)/\([^/]\+\)/ubuntu.*|\1/\2| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://www.ubuntuupdates.org/\1/\2/ubuntu/dists/${codename%/}${*:+/$*}|p"'
   CMD='sed -n "s|\\r*\$|| ;; s|.*/\([^/]\+\)/\([^/]\+\)/ubuntu.*|\1/\2| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://ppa.launchpad.net/\1/\2/ubuntu/dists/${codename%/}${*:+/$*}|p"'
 	eval "$CMD")
 }
 
-release-to-codename() {
+release_to_codename() {
   case "$1" in
     4.10) echo warty ;;
     5.04) echo hoary ;;
@@ -98,7 +98,7 @@ release-to-codename() {
 	esac
 }
 
-codename-to-release() {
+codename_to_release() {
   case "$1" in
     warty) echo 4.10 ;;
     hoary) echo 5.04 ;;
@@ -126,18 +126,18 @@ codename-to-release() {
 
 if [ $# -gt 0 ]; then
 	if [ -n "$1" ]; then
-		if [ -n "$(release-to-codename "$1")" ]; then
+		if [ -n "$(release_to_codename "$1")" ]; then
 		  release="$1"
-		elif [ -n "$(codename-to-release "$1")" ]; then
-			release="$(codename-to-release "$1")"
+		elif [ -n "$(codename_to_release "$1")" ]; then
+			release="$(codename_to_release "$1")"
 		fi
 	fi
 
 	if [ -n "$2" ]; then
-		if [ -n "$(codename-to-release "$2")" ]; then
+		if [ -n "$(codename_to_release "$2")" ]; then
 		  codename="$2"
-		elif [ -n "$(release-to-codename "$2")" ]; then
-			codename="$(release-to-codename "$2")"
+		elif [ -n "$(release_to_codename "$2")" ]; then
+			codename="$(release_to_codename "$2")"
 		fi
 	fi
 else
@@ -150,9 +150,9 @@ else
 fi
 
 if [ -n "$codename" -a -z "$release" ]; then
-	release=$(codename-to-release "$codename")
+	release=$(codename_to_release "$codename")
 elif [ -n "$release" -a -z "$codename" ]; then
-	codename=$(release-to-codename "$release")
+	codename=$(release_to_codename "$release")
 fi
 
 if [ -z "$codename" -o -z "$release" ]; then
@@ -186,8 +186,8 @@ log "Got $(count $URLS) PPAs for ${release}${codename:+ ($codename)}"
 #
 
 http_get $URLS |sed -n "s|^\\s*|| ;; s|\\s*\$|| ;; /add-apt-repository/ s|.*ppa:||p" |
-ppa-to-repobase | 
-ppa-to-repodist "Release" | while read -r RELEASE; do
+ppa_to_repobase | 
+ppa_to_repodist "Release" | while read -r RELEASE; do
 	log "Release: $RELEASE"
 	PACKAGES=$(curl -s "$RELEASE" |  sed -n "\\|/Packages.bz2\$| { s|^\s*[0-9a-f]\+\s\+[0-9]\+\s\+|${RELEASE%/Release}/|p }" )
 	log "Got $(count $PACKAGES) from $RELEASE ..."
