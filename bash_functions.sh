@@ -36,13 +36,11 @@ add-cond-include() {
   )
 }
 
-addprefix()
-{
+addprefix() {
  (PREFIX=$1; shift
   CMD='echo "$PREFIX$LINE"'
   [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
-  eval "$CMD"
- )
+  eval "$CMD")
 }
 
 addsuffix()
@@ -2108,8 +2106,7 @@ incv()
 index-dir()
 { 
     [ -z "$*" ] && set -- .;
-    ( 
-    [ "$(uname -m)" = "x86_64" ] && : ${R64="64"}
+    ( [ "$(uname -m)" = "x86_64" ] && : ${R64="64"};
     for ARG in "$@";
     do
         ( cd "$ARG";
@@ -2118,9 +2115,13 @@ index-dir()
             exit;
         fi;
         echo "Indexing directory $PWD ..." 1>&2;
-        TEMP=`mktemp "$PWD/XXXXXX.list"`;
+        TEMP=`mktemp "/tmp/XXXXXX.list"`;
         trap 'rm -f "$TEMP"; unset TEMP' EXIT;
-        ( if type list-r${R64} 2>/dev/null >/dev/null; then  list-r${R64} 2>/dev/null; else list-recursive; fi) > "$TEMP";
+        ( if type list-r${R64} 2> /dev/null > /dev/null; then
+            list-r${R64} 2> /dev/null;
+        else
+            list-recursive;
+        fi ) > "$TEMP";
         ( install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/files.list";
         wc -l "$PWD/files.list" 1>&2 );
     done )
@@ -2849,7 +2850,7 @@ lsof-win()
   fi
   eval "$CMD" 2>&1 | { 
   TAB="	"
-  CR=""
+  CR=""
   IFS="$CR"
   while read -r LINE; do
     case "$LINE" in
@@ -4525,14 +4526,28 @@ vlcpid()
     ( ps -aW | grep --color=auto --color=auto --color=auto --color=auto --color=auto --line-buffered --color=auto --line-buffered -i vlc.exe | awkp )
 }
 
-volname () { 
-   ([ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
-    for ARG; do
-	  drive=$(cygpath -m "$ARG")
-	  NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
-	  eval "$ECHO"
-	done)
+volname() { 
+ ([ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
+  for ARG in "$@"; do
+      drive="$ARG"
+      case "$drive" in
+        ?) drive="$drive:/" ;;
+        ?:) drive="$drive/" ;;
+        *) drive=$(cygpath -m "$drive") ;;
+      esac  
+      drive=$(cygpath -m "$drive")
+      NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
+      eval "$ECHO"
+  done)
 }
+#volname () { 
+#   ([ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
+#    for ARG; do
+#	  drive=$(cygpath -m "$ARG")
+#	  NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
+#	  eval "$ECHO"
+#	done)
+#}
 
 w2c()
 {
