@@ -77,7 +77,8 @@ PSMATCH=` echo "$PSOUT" | grep -i -E "$PATTERN" `
 PIDS=` echo "$PSMATCH" | $SED -n "/${0##*/}/! s,^[^0-9]*\([0-9][0-9]*\).*,\1,p"`
 
 if [ -z "$PIDS" ]; then
-  echo "No matching process ($@)" 1>&2
+
+ (IFS="|$IFS"; echo "No matching process ($*)" 1>&2I)
   exit 2
 fi
 echo "$PSMATCH"

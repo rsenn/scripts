@@ -56,7 +56,7 @@ done
 grep-scripts()
 {
 
-  exec grep -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))[^/]*\$"  "$@"
+  exec grep -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))[^/]*${cr}?\$"  "$@"
 }
 
 

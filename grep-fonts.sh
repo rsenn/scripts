@@ -58,7 +58,7 @@ grep-fonts()
 {
   EXTS="ttf otf bdf pcf fon"
 
-  exec grep -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))[^/]*\$"  "$@"
+  exec grep -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))[^/]*${cr}?\$"  "$@"
 }
 
 

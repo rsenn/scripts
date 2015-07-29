@@ -10,22 +10,19 @@ unset script
 unset prev
 count=0
 
-check_chars() 
-{
+check_chars() {
   eval local inval='${'$1"%%*[!${2-$charset}]*}"
-  if test -z "$inval"; then
+  if [ -z "$inval" ]; then
     echo "${0##*/}: ${3+$3 }must contain characters from [${2-$charset}] only. ($inval)" 1>&2
     exit 1
   fi
 }
 
-subst_chars()
-{
+subst_chars() {
   eval $1='${'$1"//$2/'$3'}"
 }
 
-num_refs()
-{
+num_refs() {
   local IFS="\\" ref=0 split
   set -- $pattern
   for split; do
@@ -41,8 +38,7 @@ num_refs()
   return $(( ($# - 1) / 2 ))
 }
 
-shift_refs()
-{
+shift_refs() {
   local IFS="\\" x=$1 out=$2
   set -- $replace
   eval $out='$1'
@@ -62,6 +58,12 @@ shift_refs()
 main() {
 
   opts=
+  for arg; do 
+    case "$arg" in
+      --) multitok=true; break ;;
+    esac
+  done
+  
   while :; do
     case "$1" in
       -*) opts="${opts:+$opts${IFS}}$1"; shift ;;

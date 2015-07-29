@@ -1,5 +1,7 @@
 #!/bin/bash
 
+IFS="
+"
 LEVEL=3
 : ${EXCLUDE="*.git* *~ *.stackdump"}
 
@@ -24,16 +26,37 @@ type gnutar 2>/dev/null >/dev/null && TAR=gnutar ||
 [ "$DESTDIR" ] &&
 ABSDESTDIR=`cd "$DESTDIR" && pwd`
 
+
 if [ "$1" ]; then
-  ARCHIVE=$1
+  case "$1" in
+    *.tar*|*.7z|*.rar|*.zip|*.t?z|*.cpio)   ARCHIVE=$1; shift ;;
+  esac
+fi
+
+while [ -d "$1" ]; do
+  DIRS="${DIRS:+$DIRS
+}$1"; shift
+done
+
+DIR1=$(set -- $DIRS; echo "${1##*/}")
+
+WD=${PWD}
+
+if [ -n "$DIR1" -a "${DIR1#$WD}" != "${DIR1}" ]; then
+  DNAME=${DIR1#$WD}
+  DNAME=${DNAME#[\\/]}
 else
-  WD=${PWD}
+  DNAME="${WD}"
+fi
+
+if [ -z "$ARCHIVE" ]; then
+  
   if [ "$DESTDIR" ]; then
-    NAME=${WD#$ABSDESTDIR}
+    NAME=${DNAME#$ABSDESTDIR}
     NAME=${NAME#/}
     NAME=${NAME//[\\/]/-}
   else
-    NAME=${WD##*/}
+    NAME=${DNAME%%/*}
   fi
   NAME=${NAME#.}
 

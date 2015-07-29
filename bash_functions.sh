@@ -629,6 +629,11 @@ d()
     echo "$1" )
 }
 
+datasheet-url()
+{ 
+    RESULTS=1000 google.sh "$1 transistor filetype:pdf" | /bin/grep --color=auto --line-buffered -i "$1[^/]*$"
+}
+
 date2unix()
 {
     date --date "$1" "+%s"
@@ -1492,6 +1497,15 @@ get-dotfiles()
     done )
 }
 
+get-exports() {
+ (N=$#
+  [ "$N" -gt 1 ] && PREFIX='$ARG: ' || PREFIX=''
+  CMD='dumpbin -exports "$ARG" |sed -n "/^\\s*ordinal\\s\\+name/ { n; :lp; n; s|^\\s*[0-9]*\\s\\+\\(.*\\)|'$PREFIX'\\1|p; /^\\s*\$/! b lp; }"'
+  for ARG; do
+    eval "$CMD"
+  done)
+}
+
 get-frags() {
  (while :; do
     case "$1" in
@@ -1675,7 +1689,7 @@ grep-e-expr()
 {
 	[ $# -gt 0 ] && exec <<<"$*"
 
-	sed 's,[().*?|\\],\\&,g ; s,\[,\\[,g ; s,\],\\],g' | implode "|" | sed 's,.*,(&),'
+	sed 's,[().*?|\\+],\\&,g ; s,\[,\\[,g ; s,\],\\],g' | implode "|" | sed 's,.*,(&),'
 }
 
 grep-e()
@@ -2471,7 +2485,7 @@ list-7z() {
 	        DIR="${DIR%/*}"
 	       #echo "DIR='$DIR' PREVDIR='$PREVDIR'" 1>&2
 	      if [ -z "$PREVDIR" -o "${PREVDIR#$DIR/}" = "$PREVDIR" ]; then
-	       [ -n "$PREVDIR" ] && output "$PREVDIR"
+	       #[ -n "$PREVDIR" ] && output "$PREVDIR"
 	       PREVDIR="$DIR/"
 	      fi
 	      
@@ -2481,8 +2495,7 @@ list-7z() {
 	      case "${PREVDIR%/}" in
 	        ${DIR}/*) continue ;;
 	      esac
-	      #[ "$DIR/" != "$PREVDIR" ] &&
-	        output "$DIR/"
+	      [ "$DIR/" != "$PREVDIR" ] && output "$DIR/"
 	        case "${PREVDIR%/}" in
 	          $DIR | $DIR/*) ;;
 	          *) PREVDIR="$DIR/" ;;
@@ -2505,7 +2518,7 @@ list-7z() {
   while [ $# -gt 0 ]; do
    (B=${1##*/}
     case "$1" in 
-      *://*) INPUT="curl -s \"\$1\"" ;;
+      *://*) INPUT="wget -q -O - \"\$1\"" ;;
       *) ARCHIVE=$1  ;;
     esac
     case "$1" in 
@@ -2697,22 +2710,10 @@ list-upx()
     upx -l "$@" 2>&1 | sed '1 { :lp; N; /^\s*--\+/! b lp; d; }' | sed '$ { /[0-9]\sfiles\s\]$/d; } ; /^\s*[- ]\+$/d'
 }
 
-list()
-{
-    local n=$1 count=0 choices='';
-    shift;
-    for choice in "$@";
-    do
-        choices="$choices $choice";
-        count=$((count + 1));
-        if $((count)) -eq $((n)); then
-            count=0;
-            choices='';
-        fi;
-    done;
-    if [ -n "${choices# }" ]; then
-        msg $choices;
-    fi
+list() {
+ (for ARG; do
+    echo "$ARG"
+  done)
 }
 
 locate-filename()
@@ -4522,6 +4523,15 @@ vlcfile()
 vlcpid()
 {
     ( ps -aW | grep --color=auto --color=auto --color=auto --color=auto --color=auto --line-buffered --color=auto --line-buffered -i vlc.exe | awkp )
+}
+
+volname () { 
+   ([ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
+    for ARG; do
+	  drive=$(cygpath -m "$ARG")
+	  NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
+	  eval "$ECHO"
+	done)
 }
 
 w2c()

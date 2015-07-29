@@ -1,12 +1,12 @@
 #!/bin/bash
 
-locate_music()
+locate_books()
 {
     (IFS="
- "; EXTS="mp3 ogg flac mpc m4a m4b wma rm mp4"
+ "; EXTS="pdf epub mobi azw3 djv djvu"
 
  locate -i -r '.*' |grep -iE "\.($(IFS='| '; set -- $EXTS; echo "$*"))\$"
  )
 }
 
-locate_music "$@"
+locate_books "$@"

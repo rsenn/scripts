@@ -214,10 +214,12 @@ fi
 
 case "$CLASS" in
   bin*|exe*|prog*)  EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(exe|msi|dll)\$" ;;
+  playlist*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(m3u|m3u8|pls|asx|xspf|asxini|cue|wpl)\$" ;;
   archive*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(7z|rar|tar\.bz2|tar\.gz|tar\.xz|tar|tar\.lzma|tbz2|tgz|txz|zip)\$" ;;
   *audio*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(aif|aiff|flac|raw|wav)\$" ;;
   fonts*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(bdf|flac|fon|m4a|m4b|mp3|mpc|ogg|otf|pcf|rm|ttf|wma)\$" ;;
   image*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(bmp|cin|cod|dcx|djvu|emf|fig|gif|ico|im1|im24|im8|jin|jpeg|jpg|lss|miff|opc|pbm|pcx|pgm|pgx|png|pnm|ppm|psd|rle|rmp|sgi|shx|svg|tga|tif|tiff|wim|xcf|xpm|xwd)\$" ;;
+  iso*|nero*|cue*|optical*|dvd*|*disk*image*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(bin|cdi|daa|iso|mdf|mds|nrg)\$" ;;
   incompl*|part*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(\*\.!??|\*\.part|INCOMPL\*|\[/\\\]INCOMPL\[^/\\\]\*\$|\\\.!??\$|\\\.part\$)\$" ;;
   *music*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(m4a|m4b|mp3|mpc|ogg|rm|wma)\$" ;;
   package*|pkg*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(deb|rpm|tgz|txz)\$" ;;

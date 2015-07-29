@@ -11,11 +11,11 @@ append()
   eval "shift; ${1}=\${$1:+\${$1}\${NL}}\$*"
 }
 
-find_music()
+find_books()
 {
 	(IFS="
 	 "
-		EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669 mp4"
+		EXTS="pdf epub mobi azw3 djv djvu"
 
 		[ "$#" -le 0 ] && set -- *
 
@@ -58,5 +58,5 @@ if ! ${COMPLETED-false}; then
 fi
 
 for S; do
-  S="$S" find_music $ARGS
+  S="$S" find_books $ARGS
 done
