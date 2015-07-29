@@ -143,7 +143,7 @@ yaourt_pacman_list_all_pkgs() {
   {
 		yaourt -Sl
 		sudo pacman -Sl
-  } | sed 's,^[ /]\+[ /],, ; s,\s\+[\[(].*,,' |sort -k1,2 -V -u >pkgs.list
+  } | sed 's,^[ /]\+[ /],, ; s,\s\+[\[(].*,, ; s, .*,,' |sort -k1,2 -V -u >pkgs.list
 
   set -- $(<installed.list)
 
