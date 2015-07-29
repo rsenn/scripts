@@ -8,6 +8,6 @@ while :; do
   esac
 done
 
-EXTS="vdi vmdk vhd qed qcow qcow2 raw vhdx hdd"
+EXTS="vdi vmdk vhd qed qcow qcow2 vhdx hdd"
 cr=""
 exec grep -i -E "\\.($(IFS='| '; set -- $EXTS;  echo "$*"))${PARTIAL_EXPR}${cr}?\$"  "$@"
