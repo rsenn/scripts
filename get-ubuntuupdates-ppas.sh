@@ -10,6 +10,9 @@ require distrib
 
 eval "$(distrib_release)"
 
+CURL="curl
+-L
+-k"
 addprefix() {
  (P=$1; shift
   C='echo "$P$L"'
@@ -41,11 +44,15 @@ if [ $# -gt 0 ]; then
 	EXPR="($(IFS="|"; echo "$*"))"
 fi
 
-URLS=$(curl -s "http://www.ubuntuupdates.org/ppas" | grep -E "/ppa/.*(dist=|>)${EXPR:-(${release}|${codename})}(['\"]|<)" |
+URLS=$($CURL -s "http://www.ubuntuupdates.org/ppas" | grep -E "/ppa/.*(dist=|>)${EXPR:-(${release}|${codename})}(['\"]|<)" |
 xml_get a href | addprefix "http://www.ubuntuupdates.org")
 
 log "Got $(count $URLS) PPAs for ${release}${codename:+ ($codename)}"
 
-curl -s $URLS |sed -n "s|^\\s*|| ;; s|\\s*\$|| ;; /add-apt-repository/ s|.*ppa:||p" |
+$CURL -s $URLS | sed -n '/>External PPA Homepage</p' | xml_get a href | while read -r URL; do
+(set -x; $CURL -s "$URL")
+
+done|grep 'deb'
+$CURL -s $URLS |sed -n "s|^\\s*|| ;; s|\\s*\$|| ;; /add-apt-repository/ s|.*ppa:||p" |
 ppa-to-repobase | 
 ppa-to-repodist
