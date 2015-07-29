@@ -16,17 +16,17 @@ for METHOD in curl wget lynx w3m links; do
   fi
 done
 
-SED="sed"
-
 if sed --help 2>&1 | grep -q '\-u'; then
-  SED="$SED
+  SED="sed
 -u"
+else
+	SED="sed"
 fi
 
 sed() {
 	(set -- $SED "$@"
 	set -x
-	 "$@")
+	 command "$@")
 }
 
 http_get() {
@@ -61,13 +61,13 @@ log() {
 }
 
 ppa-to-repobase() {
- (CMD='$SED -n "s|\\r*\$|| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://ppa.launchpad.net/\1/\2/ubuntu|p"'
+ (CMD='sed -n "s|\\r*\$|| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://ppa.launchpad.net/\1/\2/ubuntu|p"'
 	[ $# -gt 0 ] && CMD="$CMD <<<\"\$*\""
 	eval "$CMD")
 }
 
 ppa-to-repodist() {
-(IFS="/"; CMD='$SED -n "s|\\r*\$|| ;; s|.*/\([^/]\+\)/\([^/]\+\)/ubuntu.*|\1/\2| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://www.ubuntuupdates.org/\1/\2/ubuntu/dists/${codename}${*:+/$*}|p"'
+(IFS="/"; CMD='sed -n "s|\\r*\$|| ;; s|.*/\([^/]\+\)/\([^/]\+\)/ubuntu.*|\1/\2| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://www.ubuntuupdates.org/\1/\2/ubuntu/dists/${codename}${*:+/$*}|p"'
 	eval "$CMD")
 }
 
@@ -75,15 +75,14 @@ if [ $# -gt 0 ]; then
 	EXPR="($(IFS="|"; echo "$*"))"
 fi
 
-log "SED=\"$SED\""
 URLS=$(http_get "http://www.ubuntuupdates.org/ppas" | grep -E "/ppa/.*(dist=|>)${EXPR:-(${release}|${codename})}(['\"]|<)" |
 xml_get a href | addprefix "http://www.ubuntuupdates.org")
 
 log "Got $(count $URLS) PPAs for ${release}${codename:+ ($codename)}"
 
-#EXT_URLS=$(http_get $URLS | $SED -n '/>External PPA Homepage</p' | xml_get a href)
+#EXT_URLS=$(http_get $URLS | sed -n '/>External PPA Homepage</p' | xml_get a href)
 #log "Got $(count $EXT_URLS) URLs for ${release}${codename:+ ($codename)}"
-#(set -x; http_get $EXT_URLS)|$SED -n "/^deb/ { 
+#(set -x; http_get $EXT_URLS)|sed -n "/^deb/ { 
 #/<span/ {
 #  :lp
 #	  \,</span,! { N; s|\s\+| |g; b lp; }
@@ -92,6 +91,6 @@ log "Got $(count $URLS) PPAs for ${release}${codename:+ ($codename)}"
 #}"
 #
 
-http_get $URLS |$SED -n "s|^\\s*|| ;; s|\\s*\$|| ;; /add-apt-repository/ s|.*ppa:||p" |
+http_get $URLS |sed -n "s|^\\s*|| ;; s|\\s*\$|| ;; /add-apt-repository/ s|.*ppa:||p" |
 ppa-to-repobase | 
 ppa-to-repodist "Release"

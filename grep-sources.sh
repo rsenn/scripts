@@ -20,5 +20,5 @@ done
 
 : ${EXTS="c cc cpp cxx h hh hpp hxx"}
 
-cr=""
+cr=""
 exec grep -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))(${cr}?\$|:)"  "$@"

@@ -2,5 +2,5 @@
 
 PATTERNS="*.part\$ *.!??\$ INCOMPL[^/]\$"
 
-cr=""
+cr=""
 exec grep -iE "($(IFS="| $IFS"; set $PATTERNS; echo "$*"))"  "$@"

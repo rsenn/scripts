@@ -9,5 +9,5 @@ while :; do
 done
 
 EXTS="pdf epub mobi azw3 djv djvu"
-cr=""
+cr=""
 exec grep -i -E "\\.($(IFS='| '; set -- $EXTS;  echo "$*"))${PARTIAL_EXPR}${cr}?\$"  "$@"

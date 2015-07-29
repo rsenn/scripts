@@ -2849,7 +2849,7 @@ lsof-win()
   fi
   eval "$CMD" 2>&1 | { 
   TAB="	"
-  CR=""
+  CR=""
   IFS="$CR"
   while read -r LINE; do
     case "$LINE" in

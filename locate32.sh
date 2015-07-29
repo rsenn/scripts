@@ -20,7 +20,7 @@ usage()
   -s, --size=SIZE      Specify file size
   -t, --extension=EXT  Specify file extension
   -x, --debug          Show debug messages
-"
+"
 }
 
 while :; do
@@ -84,7 +84,7 @@ esac
 if [ -n "$DATABASE" ]; then
   saved_IFS="$IFS"
   IFS=";
-"
+"
   for DB in $DATABASE; do
     #[ -e "$DB" ] && 
     addopt -d "$DB"
