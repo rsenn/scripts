@@ -19,8 +19,15 @@ done
 SED="sed"
 
 if sed --help 2>&1 | grep -q '\-u'; then
-  SED="$SED${IFS}-u"
+  SED="$SED
+-u"
 fi
+
+sed() {
+	(set -- $SED "$@"
+	set -x
+	 "$@")
+}
 
 http_get() {
  (case "$METHOD" in
@@ -68,6 +75,7 @@ if [ $# -gt 0 ]; then
 	EXPR="($(IFS="|"; echo "$*"))"
 fi
 
+log "SED=\"$SED\""
 URLS=$(http_get "http://www.ubuntuupdates.org/ppas" | grep -E "/ppa/.*(dist=|>)${EXPR:-(${release}|${codename})}(['\"]|<)" |
 xml_get a href | addprefix "http://www.ubuntuupdates.org")
 
