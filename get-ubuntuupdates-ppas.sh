@@ -19,13 +19,13 @@ fi
 
 sed() {
 	( #set -- "${@//$IFS/ ;; }"
-	set -x
+	#set -x
 	 command $SED $SEDOPTS "$@")
 }
 
 grep() {
 	(set -- $GREP $GREPOPTS "$@"
-	set -x
+	#set -x
 	 command "$@")
 }
 
@@ -66,7 +66,9 @@ ppa-to-repobase() {
 }
 
 ppa-to-repodist() {
-(IFS="/"; CMD='sed -n "s|\\r*\$|| ;; s|.*/\([^/]\+\)/\([^/]\+\)/ubuntu.*|\1/\2| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://www.ubuntuupdates.org/\1/\2/ubuntu/dists/${codename%/}${*:+/$*}|p"'
+(IFS="/"
+  #CMD='sed -n "s|\\r*\$|| ;; s|.*/\([^/]\+\)/\([^/]\+\)/ubuntu.*|\1/\2| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://www.ubuntuupdates.org/\1/\2/ubuntu/dists/${codename%/}${*:+/$*}|p"'
+  CMD='sed -n "s|\\r*\$|| ;; s|.*/\([^/]\+\)/\([^/]\+\)/ubuntu.*|\1/\2| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://ppa.launchpad.net/\1/\2/ubuntu/dists/${codename%/}${*:+/$*}|p"'
 	eval "$CMD")
 }
 
@@ -185,4 +187,14 @@ log "Got $(count $URLS) PPAs for ${release}${codename:+ ($codename)}"
 
 http_get $URLS |sed -n "s|^\\s*|| ;; s|\\s*\$|| ;; /add-apt-repository/ s|.*ppa:||p" |
 ppa-to-repobase | 
-ppa-to-repodist "Release"
+ppa-to-repodist "Release" | while read -r RELEASE; do
+	log "Release: $RELEASE"
+	PACKAGES=$(curl -s "$RELEASE" |  sed -n "\\|/Packages.bz2\$| { s|^\s*[0-9a-f]\+\s\+[0-9]\+\s\+|${RELEASE%/Release}/|p }" )
+	log "Got $(count $PACKAGES) from $RELEASE ..."
+	for PACKAGE in $PACKAGES ; do
+		curl -s "$PACKAGE"|bzcat |sed -n "/^Filename: / {
+		  s|^[^:]*:\s\+|${RELEASE%%/ubuntu/*}/ubuntu/|
+		  p
+    }"
+	done
+done
