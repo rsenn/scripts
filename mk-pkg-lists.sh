@@ -135,7 +135,7 @@ yaourt_pacman_list_all_pkgs() {
   {
 		yaourt -Sl
 		sudo pacman -Sl
-  } | sed 's,^[ /]\+[ /],, ; s,\s\+[\[(].*,,' |sort -k1,2 -V -u >pkgs.list
+  } | sed 's,^[/ ]*[/ ],, ; s,\s\+[\[(].*,,' |sort -u | sed 's,/, , ; s,^[^ ]* ,,' |sort -V -u >pkgs.list
 
   set -- $(<installed.list)
 
@@ -159,4 +159,4 @@ case $(distrib_get id) in
 *) echo "No such distribution $(distrib_get id)" 1>&2 ;;
 esac
 
-[ -n "$CMD" ] && (set -x; $CMD)
+[ -n "$CMD" ] && (set +x; $CMD)
