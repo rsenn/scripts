@@ -168,8 +168,5 @@ case $(distrib_get id) in
 *) echo "No such distribution $(distrib_get id)" 1>&2 ;;
 esac
 
-<<<<<<< HEAD
-[ -n "$CMD" ] && (set +x; $CMD)
-=======
+#[ -n "$CMD" ] && (set +x; $CMD)
 [ -n "$CMD" ] && $CMD
->>>>>>> 96a61bd279995fbdfa0434917578b0f9126c5e22
