@@ -363,9 +363,11 @@ fi
 case "$MSYSTEM" in
   *MINGW32*) [ -d /mingw/bin ] && pathmunge /mingw/bin ;;
   *MINGW64*) [ -d /mingw64/bin ] && pathmunge /mingw64/bin ;;
-  *) LS_COLORS='di=01;34:ln=01;36:pi=35:so=01;35:do=01;35:bd=35;01:cd=35;01:or=31;01:ex=01;35'; export LS_COLORS
+  *) LS_COLORS='di=01;34:ln=01;36:pi=35:so=01;35:do=01;35:bd=35;01:cd=35;01:or=31;01:ex=01;35'; 
 ;;
 esac
+
+export LS_COLORS
 
 #[ -d /sbin ] && pathmunge /sbin
 #[ -d /usr/sbin ] && pathmunge /usr/sbin
