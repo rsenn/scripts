@@ -539,6 +539,16 @@ msvc_main()
   set -- "$TARGET_compiler" "$@"
   
  
+   old_IFS="$IFS"
+   IFS="
+$IFS"
+  set -- $(echo "$*"|sed "\\|/| { s|\(.\)/|\\1\\\\|g } ;; \\| | { s|.*|\"&\"| }")
+  IFS=" "
+  set -- cmd /c "$*"   
+ 
+#  IFS=" "; set -- cmd /c "$*"
+   IFS="$old_IFS"
+ 
   if $DEBUG
   then
     echo "CMD: $@"
@@ -556,7 +566,12 @@ msvc_main()
   fi
   
   if $DEBUG; then set -x; fi
-  "$@") || exit $?
+  
+#  CMD="cmd /c '$*'" 
+"$@"
+#  (IFS=" "; cmd /c "$*")
+  
+  ) || exit $?
   
   return
   msvc_ret=$?
