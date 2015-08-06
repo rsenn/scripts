@@ -14,7 +14,7 @@ find_incomplete()
 
 		set -f 
 
-		set find "$@" 
+		set find "$@" $EXTRA_ARGS
 
 		CONDITIONS=
 

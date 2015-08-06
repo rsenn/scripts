@@ -17,7 +17,7 @@ find_scripts()
 
 		set -f 
 
-		set find "$@" 
+		set find "$@" $EXTRA_ARGS
 
 		CONDITIONS=
 
