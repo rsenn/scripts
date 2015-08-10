@@ -31,7 +31,8 @@ list-rpm() {
 			*) RPM=$(realpath "$ARG") ;;
 		esac
     cd "$TMPDIR"
-		set -- $( ( list-7z "$RPM" || (exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |grep "\\.cpio")
+		set -- $( (    7z l "$RPM" |sed -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
+		(exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |grep "\\.cpio\$")
 		if [ $# -le 0 ]; then
 			exit 1
 		fi
@@ -42,11 +43,10 @@ list-rpm() {
 			*.gz) CPIOCMD="zcat | $CPIOCMD" ;;
 			*.cpio) ;;
 		esac
-		((set -x; exec_cmd 7z x "$RPM" "$1" ) ||
-	 { exec_cmd "${RPM2CPIO-rpm2cpio}" <"$RPM" >"$1"; test -e "$1"; } 
-		 ) 2>/dev/null
-		# echo "CPIOCMD: $CPIOCMD" 1>&2 
-    eval "$CPIOCMD" <"$1" | while read -r LINE; do
+		((set -x; exec_cmd 7z x -so "$RPM" "$1" ) ||
+	 { exec_cmd "${RPM2CPIO-rpm2cpio}" <"$RPM"; }
+		 ) 2>/dev/null |
+    eval "$CPIOCMD" | while read -r LINE; do
 			case "$LINE" in
 				./) LINE="/" ;;
 				./?*) LINE="${LINE#./}" ;;
