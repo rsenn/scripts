@@ -11,15 +11,23 @@ list-deb() {
     mkdir -p "$TMPDIR"
     ABSPATH=$(realpath "$ARG")
     cd "$TMPDIR"
-    ar x "$ABSPATH"
-    set -- data.*
-    tar -tf "$1" | while read -r LINE; do
+		set -- $("${AR-ar}" t "$ABSPATH" 2>/dev/null |grep '^data\.')
+		if [ $# -le 0 ]; then
+			output "ERROR" 1>&2 
+			continue
+		fi
+		case "$1" in
+			*.bz2) TAR_ARGS="-j" ;;
+			*.xz) TAR_ARGS="-J" ;;
+			*.gz) TAR_ARGS="-z" ;;
+		esac
+    "${AR-ar}" x "$ABSPATH" "$1" 2>/dev/null
+    "${TAR-tar}" $TAR_ARGS -t -f "$1" 2>/dev/null | while read -r LINE; do
 			case "$LINE" in
-				./?*) LINE=${LINE#./}
+				./) LINE=/ ;;
+				./?*) LINE=${LINE#./} ;;
 			esac
-      case "$LINE" in
-        *) output "$LINE" ;;
-      esac
+      output "$LINE"
 		done)
   done
 }
