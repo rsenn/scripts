@@ -2582,6 +2582,7 @@ list-broken-links() {
 }
 
 list-deb() { 
+ (trap 'exit 1' INT 
   NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
@@ -2590,7 +2591,7 @@ list-deb() {
   }
 	for ARG in "$@"; do
    (set -e
-	  trap 'rm -rf "$TMPDIR"' EXIT QUIT TERM INT
+	  trap 'rm -rf "$TMPDIR"' EXIT 
     TMPDIR=$(mktemp -d "$PWD/${0##*/}-XXXXXX")
     mkdir -p "$TMPDIR"
 		case "$ARG" in
@@ -2628,7 +2629,7 @@ list-deb() {
       output "$LINE"
 		done) ||
 		output "ERROR" 1>&2 
-  done
+	done)
 }
 
 list-dotfiles()

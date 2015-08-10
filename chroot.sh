@@ -33,7 +33,7 @@ echo "ABSDIR=$ABSDIR" 1>&2
   for MNT; do
     mkdir -p $MNT
     case "$MNT" in
-        *CDROM*) ;;
+        *CDROM* | *cdrom* | *BERRY*) ;;
         proc) mount -t proc proc proc ;;
         sys) mount -t sysfs sysfs sys ;;
         tmp) umount -f tmp 2>/dev/null; rm -rf tmp/* ;;
@@ -59,13 +59,14 @@ cp -vf /etc/resolv.conf etc/
 
 trap 'rm -f "$ABSDIR/chroot.bashrc"' EXIT
 cat >chroot.bashrc <<EOF
-. root/.bash_profile
-. root/.bash_functions
+. /root/.bash_profile
+. /root/.bash_functions
 PS1="\033[0m${ABSDIR##*/}@\\h < \w > \\\$ "
 cd
 EOF
 
 env - PATH="$PATH:/usr/local/bin" TERM="$TERM" DISPLAY="$DISPLAY" HOME="/root"  PS1="\033[0m${ABSDIR##*/}@\\h < \w > \\\$ " \
- HOSTNAME="${PWD##*/}" chroot . ${@:-/bin/bash --init-file chroot.bashrc}
+ HOSTNAME="${PWD##*/}" chroot . ${@:-/bin/bash
+--login}
 
 bind-mounts -u "$@"
