@@ -1143,7 +1143,7 @@ filter-filesize() {
 "; getnum() {
     N=$1
     case "$N" in
-      *K) N=$(( ${N%K} * 1024 )) ;;
+      *[Kk]) N=$(( ${N%[Kk]} * 1024 )) ;;
       *G) N=$(( ${N%G} * 1024 * 1048576)) ;;
       *T) N=$(( ${N%T} * 1048576 * 1048576)) ;;
       *M) N=$(( ${N%M} * 1048576 )) ;;
@@ -2579,6 +2579,21 @@ list-broken-links() {
 
     test -e "$ABS" || echo "$ARG"
    done)
+}
+
+list-deb()
+{ 
+  (for ARG in "$@";
+  do
+    (trap 'rm -rf "$TMPDIR"' EXIT QUIT TERM INT;
+    TMPDIR=$(mktemp -d);
+    mkdir -p "$TMPDIR";
+    ABSPATH=$(realpath "$ARG");
+    cd "$TMPDIR";
+    ar x "$ABSPATH";
+    set -- data.*;
+    tar -tf "$1" | removeprefix ./ | /bin/grep --color=auto --line-buffered -v '^\s*$');
+  done)
 }
 
 list-dotfiles()
