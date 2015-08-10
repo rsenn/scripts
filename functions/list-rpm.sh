@@ -1,14 +1,15 @@
 list-rpm() { 
-  NARG=$#
+ (NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
       [ "$NARG" -gt 1 ] && echo "$ARG: $*" || echo "$*"
     fi
   }
+	LOG="$PWD/$(basename "$0" .sh).log"
 	exec_cmd() {
 	 (
-	  echo "CMD: $*" 1>&2
-	  echo "CMD: $*" >>log
+	  echo "CMD: $@" 1>&2
+	  echo "CMD: $@" >>"$LOG"
 	  exec "$@")
 	}
 	for ARG in "$@"; do
@@ -53,5 +54,5 @@ list-rpm() {
       output "$LINE"
 		done) ||
 		output "ERROR" 1>&2 
-  done
+	done)
 }
