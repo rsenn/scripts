@@ -2585,7 +2585,7 @@ list-deb() {
   NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
-      [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
+      [ "$NARG" -gt 1 ] && echo "$ARG: $*" || echo "$*"
     fi
   }
 	for ARG in "$@"; do
