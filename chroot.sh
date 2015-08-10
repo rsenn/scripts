@@ -1,16 +1,10 @@
 #!/bin/bash
 
 MYDIR=`dirname "$0"` 
-
-if [ -n "$1" -a -d "$1" ]; then
-  ROOT="$1"
-	shift
-else
-	ROOT="$MYDIR"
-fi
-
-cd "$ROOT"
+cd "$MYDIR"
 ABSDIR=`pwd`
+IFS="
+"
 
 bind-mounts()
 {
@@ -39,6 +33,7 @@ echo "ABSDIR=$ABSDIR" 1>&2
   for MNT; do
     mkdir -p $MNT
     case "$MNT" in
+        *CDROM*) ;;
         proc) mount -t proc proc proc ;;
         sys) mount -t sysfs sysfs sys ;;
         tmp) umount -f tmp 2>/dev/null; rm -rf tmp/* ;;
