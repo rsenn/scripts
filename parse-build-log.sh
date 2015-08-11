@@ -1,21 +1,34 @@
 #!/bin/bash
 
-WS=" "
-CR=""
-TS="	"
-NL="
+ws=" "
+cr=""
+ts="	"
+nl="
 "
-IFS="$NL"
-VS="$NL"
-IFS="$NL"
-SQ="'"
+IFS="$nl"
+vs="$nl"
+IFS="$nl"
+sq="'"
+dq="\""
+sq="\`"
+bs="\\"
+fs="/"
+
+setv() { 
+    eval "shift;$1=\"\$*\""
+}
 
 pushv() { 
-    eval "shift;$1=\"\${$1+\${$1}\${VS}}\$*\""
+    eval "shift;$1=\"\${$1+\${$1}\${vs}}\$*\""
+}
+
+addpath() {
+	cmd="${1}v"; N="$2"; shift 2; A=$*; A=${A//"\\"/"/"}
+	$cmd "$N" "$A"
 }
 
 unshiftv() {
-  eval "shift;$1=\"\$*\${$1+\${VS}\${$1}}\""
+  eval "shift;$1=\"\$*\${$1+\${vs}\${$1}}\""
 }
 
 getv() {
@@ -30,7 +43,7 @@ implode() {
 }
 
 explode() {
- (S="$1"; shift; IFS="$NL"; [ $# -gt 0 ] && exec <<<"$*"; sed "s|${S//\"/\\\"}|\n|g")
+ (S="$1"; shift; IFS="$nl"; [ $# -gt 0 ] && exec <<<"$*"; sed "s|${S//\"/\\\"}|\n|g")
 }
 
 toupper() { 
@@ -41,14 +54,20 @@ toupper() {
 
 str_quote() { 
   case "$1" in 
-		*["$CR$NL$TS"]*) echo "\$'`str_escape "$1"`'" ;; *"$SQ"*) echo "\"`str_escape "$1"`\"" ;; *) echo "'$1'" ;; esac
+		*["$cr$nl$ts"]*) echo "\$'`str_escape "$1"`'" 
+                ;; 
+	         	*"$sq"*) echo "\"`str_escape "$1"`\""  ;;
+                  
+						      *) echo "'$1'" ;;
+	esac
 }
 
 str_escape() { 
  (S=$1
   case $S in 
-    *[$CR$NL$TS"€"]*) S=${S//"\\"/"\\\\"}; S=${S//""/"\\r"}; S=${S//"$NL"/"\\n"}; S=${S//"	"/"\\t"}; S=${S//""/"\\v"}; S=${S//"'"/"\047"}; S=${S//""/"\001"}; S=${S//"€"/"\200"} ;;
-    *$SQ*) S=${S//"\\"/"\\\\"}; S=${S//"\""/"\\\""}; S=${S//"\$"/"\\\$"}; S=${S//"\`"/"\\\`"} ;; 
+    *[$cr$nl$ts"€"]*) S=${S//"$bs"/"$bs$BS"}; S=${S//"$cr"/"\r"}; S=${S//"$nl"/"\n"}; S=${S//"$ts"/"\t"}; S=${S//"$sq"/"\047"}; S=${S//""/"\001"}; S=${S//"€"/"\200"} ;;
+    *$sq*) S=${S//"$bs"/"$bs$BS"}; S=${S//"$dq"/"$bs$dq"}; S=${S//"\$"/"$bs\$"}; S=${S//"$bq"/"$bs$bq"}  ;;
+                  
   esac
 	echo "$S")
 }
@@ -66,71 +85,88 @@ if [ $# -gt 0 ]; then
 fi
 
 out_var() {
- (O= CN=
-  [ $# -gt 1 ] && CN='$(toupper "$VN") = '
-  for VN; do V=$(getv "$VN" " | ")
-		C="O=\"\${O+\$O\$OVS}${CN}${V}\""
-		#echo "C='$C'" 1>&2
+ (O= cn=
+  [ $# -gt 1 ] && cn='$(toupper "$vn") = '
+  for vn; do V=$(getv "$vn" " | ")
+		C="O=\"\${O+\$O\$ovs}${cn}${V}\""
 		eval "$C"
 	done
 	echo "$O"
 	var_dump O 1>&2 )
 }
 
-VIFS=$'\t'
-VIFS=" "
-MYVARS="args
-defines
-depfile
-deptarget
-includes
-libs
-opts
-outfile
-sysincludes"
+vifs=$'\t'
+vifs=" "
+myvars="args${nl}defines${nl}depfile${nl}deptarget${nl}includes${nl}libs${nl}opts${nl}outfile${nl}sysincludes"
 
-while read -r LINE; do
- (IFS="$NL $CR$TS"
-  set -- $LINE
+while read -r line; do
+ (IFS="$nl $cr$ts"
+  set -- $line
 
   if [ $# -le 1 ]; then
 		continue
 	fi
 
-  CMD="$1"
+  cmd="$1"
   shift
-  unset $MYVARS
-#  args="$*"
+  unset $myvars
 
-	mode="preproc+compile+assemble+link"
+	mode="preproc${nl}compile${nl}assemble${nl}link"
   pos=0
 
   while [ $# -gt 0 ]; do
 		pos=`expr $pos + 1`
 		S=1
     case "$1" in
-                 -I  | /I ) unshiftv includes    "$2"         ; S=2 ;; -I* | /I*) unshiftv includes    "${1#[-/]I}"       ;;
+                 -I  | /I ) addpath unshift includes    "$2"         ; S=2 ;;
+								 -I* | /I*) addpath unshift includes    "${1#?I}"          ;;
+                -idirafter) addpath push    includes    "$2"         ; S=2 ;;
+                  -isystem) addpath unshift sysincludes "$2"         ; S=2 ;;
 
-                 -D  | /D ) unshiftv defines     "$2"         ; S=2 ;; -D* | /D*) unshiftv defines     "${1#[-/]D}"       ;;
+                 -D  | /D ) addpath unshift defines     "$2"         ; S=2 ;;
+								 -D* | /D*) addpath unshift defines     "${1#?D}"          ;;
 
-      *.[Ll][Ii][Bb] | -l*) pushv    libs        "$1"               ;; -MF) pushv    depfile     "$2"         ; S=2 ;;                       -MT) pushv    deptarget   "$2"         ; S=2 ;;                     -idirafter) pushv    includes    "$2"         ; S=2 ;;                 -isystem) unshiftv sysincludes "$2"         ; S=2 ;;                   -o | /o) pushv    outfile     "$2"         ; S=2 ;;                        -o* | /o*) pushv    outfile     "${1#[-/]o]}"      ;;                        -E | /E) mode="preproc"                          ;;                       
-								   -c | /c) mode="preproc+compile+assemble"         ;;                        -S | /S) mode="preproc+compile"                  ;;                         -* | /*) pushv    opts        "$1"               ;; *) pushv args_pos "$pos"; pushv    args        "$1"               ;; esac
+            *.[Ll][Ii][Bb]) addpath push    libs        "$1"               ;;
+                       -l*) pushv           libs        "$1"               ;;
+
+			                 -mf) setv            depfile     "$2"         ; S=2 ;;
+			                -mf*) setv            depfile     "${1#?mf}"         ;;
+                       -mt) setv            deptarget   "$2"         ; S=2 ;;
+                      -mt*) setv            deptarget   "${1#?mt}"         ;;
+
+                   -o | /o) setv            outfile     "$2"         ; S=2 ;;
+                 -o* | /o*) setv            outfile     "${1#?o]}"         ;;
+                   
+								   -E | /E) mode="preproc"                                 ;;
+								   -c | /c) mode="preproc${nl}compile${nl}assemble"        ;;
+                   -S | /S) mode="preproc${nl}compile"                     ;;
+                   
+									 -* | /*) 
+													pushv opts_pos "$pos"
+
+													case "$1" in
+														*[\\/]*) addpath push opts "$1" ;;
+														*) pushv opts "$1" ;;
+													esac
+												;;
+									       *) 
+													pushv args_pos "$pos"
+
+													case "$1" in
+														*[\\/]*) addpath push args "$1" ;;
+														*) pushv args "$1" ;;
+													esac
+												;;
+                  esac
 		[ $((S)) -eq 1 ] && unset S
     shift $S
   done
   
-	OUTPUT="CMD = $CMD"
+	output="cmd = $cmd"
 
-	pushv OUTPUT "$(OVS="${NL}${TS}" out_var $MYVARS)"
-#	for VN in $MYVARS; do
-#		pushv OUTPUT "${TS}$(out_var "$VN")"
-##		V=$(getv "$VN" " | ")
-##		[ -n "$V" ] || continue
-##		pushv OUTPUT "${TS}$(toupper "$VN") = $V"
-#	done
+	pushv output "$(ovs="${nl}${ts}" out_var $myvars)"
 
-	echo "$OUTPUT"
- # echo "CMD=$CMD DEFINES=\"$(getv defines "$VIFS")\" DEPFILE=\"$(getv depfile "$VIFS")\" DEPTARGET=\"$(getv deptarget "$VIFS")\" INCLUDES=\"$(getv includes "$VIFS")\" LIBS=\"$(getv libs "$VIFS")\" OPTS=\"$(getv opts "$VIFS")\" OUTFILE=\"$(getv outfile "$VIFS")\" SYSINCLUDES=\"$(getv sysincludes "$VIFS")\""
+	echo "$output"
 
  )
 done
