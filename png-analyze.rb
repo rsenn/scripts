@@ -1,16 +1,16 @@
 require 'rubygems'
 require 'autocolors'
-#require 'capistrano'
+require 'capistrano'
 require 'color-proximity'
 require 'color-rgb' 
 require 'colorscore'
-#require 'paint'
+require 'paint'
 require 'paleta' 
 require 'rmagick'
 #require 'term'
-require 'term-ansicolor' 
+require 'term/ansicolor' 
 #require 'termin'
-#require 'tilt'
+require 'tilt'
 
 file_name = ARGV[0]
 

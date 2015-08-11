@@ -49,6 +49,8 @@ else
   DNAME="${WD}"
 fi
 
+#echo "DNAME=$DNAME" 1>&2 
+
 if [ -z "$ARCHIVE" ]; then
   
   if [ "$DESTDIR" ]; then
@@ -56,9 +58,11 @@ if [ -z "$ARCHIVE" ]; then
     NAME=${NAME#/}
     NAME=${NAME//[\\/]/-}
   else
-    NAME=${DNAME%%/*}
+    NAME=${DNAME##*/}
   fi
   NAME=${NAME#.}
+	NAME=${NAME%/}
+  #echo "NAME=$NAME" 1>&2 
 
   ARCHIVE=${DESTDIR:-..}/${NAME##*/}
   [ "$NODATE" != true ] && ARCHIVE=$ARCHIVE-`date ${DIR:+-r "$DIR"} +%Y%m%d`
@@ -66,33 +70,29 @@ if [ -z "$ARCHIVE" ]; then
 fi
 DIR=${2-"."}
 
-bce()
-{
-    (IFS=" "; echo "$*" | (bc -l || echo "ERROR: Expression '$*'" 1>&2)) | sed -u '/\./ s,\.\?0*$,,'
+bce() {
+ (IFS=" "; echo "$*" | (bc -l || echo "ERROR: Expression '$*'" 1>&2)) | sed -u '/\./ s,\.\?0*$,,'
 }
 
-bci()
-{
-    (IFS=" "; : echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | sed -u 's,\.[0-9]\+$,,'
+bci() {
+ (IFS=" "; : echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | sed -u 's,\.[0-9]\+$,,'
 }
 
-create-list()
-{
+create-list() {
  (OUTPUT=
   SWITCH="$1"
   shift
   for ARG; do
     OUTPUT="${OUTPUT:+$OUTPUT }${SWITCH}'$ARG'"
   done
-  echo "$OUTPUT"
-  )
+  echo "$OUTPUT")
 }
-dir-contents()
-{
-			case "$1" in 
-							.) ls -a -1 |grep -v -E '^(\.|\.\.)$' |sort -u ;;
-			*) echo "$*" ;;
-			esac
+
+dir-contents() {
+	case "$1" in 
+		.) ls -a -1 |grep -v -E '^(\.|\.\.)$' |sort -u ;;
+		*) echo "$*" ;;
+	esac
 }
 
 set -f
