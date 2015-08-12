@@ -1,127 +1,74 @@
 #!/usr/bin/perl
-use vars qw($APP $VERSION);
-$APP     = 'c256';
-$VERSION = '0.131';
+# Author: Todd Larason <jtl@molehill.org>
+# $XFree86: xc/programs/xterm/vttests/256colors2.pl,v 1.2 2002/03/26 01:46:43 dickey Exp $
 
-use strict;
-use Getopt::Long;
-use Data::Dumper;
-use Pod::Usage;
-use Term::ExtendedColor qw(fg bg);
-use Term::ExtendedColor::Xresources qw(get_xterm_color);
-use Data::Dumper;
+# use the resources for colors 0-15 - usually more-or-less a
+# reproduction of the standard ANSI colors, but possibly more
+# pleasing shades
 
-my $unicode = "░▒▓██▓▒░";
-my @colors = map { sprintf("%d", $_) } (0 .. 255);
-
-our($opt_sqsize) = (16);
-our($opt_hex_values);
-@ARGV or square($opt_sqsize);
-
-GetOptions(
-  'col:i'   => \$opt_sqsize,
-  'list'    => \&list,
-  'square'  => \&square,
-  'hex'     => sub { $opt_hex_values++; square(); },
-
-  'h|help'      => sub { print "$APP v$VERSION\n\n"; pod2usage(verbose => 1)},
-  'm|man'       => sub { pod2usage(verbose => 3)},
-  'v|version'   => sub { print "$APP v$VERSION\n" and exit 0; },
-);
-
-square($opt_sqsize);
-
-sub square {
-  my $col = shift;
-  $col = 16 if(!defined($col) or (!$col));
-
-  my $end = int( 256/$col );
-  my @colors = map { sprintf("%d", $_) } (0 .. 255);
-
-
-  if($opt_hex_values) {
-    my $rgb     = get_xterm_color({ index => [@colors] });
-    my $current = $rgb->{$rgb}->{rgb};
-
-    for my $index(sort(keys(%$rgb))) {
-      printf("%03d: %s\n", $index, fg(sprintf("%d", $index), $rgb->{$index}->{rgb}))
-        unless(!exists($rgb->{$index}->{rgb}));
+# colors 16-231 are a 6x6x6 color cube
+for ($red = 0; $red < 6; $red++) {
+    for ($green = 0; $green < 6; $green++) {
+	for ($blue = 0; $blue < 6; $blue++) {
+#	    printf("\x1b]4;%d;rgb:%2.2x/%2.2x/%2.2x\x1b[0m",
+#		   16 + ($red * 36) + ($green * 6) + $blue,
+#		   ($red ? ($red * 40 + 55) : 0),
+#		   ($green ? ($green * 40 + 55) : 0),
+#		   ($blue ? ($blue * 40 + 55) : 0));
+	}
     }
-    exit;
-  }
+}
 
-
-  for my $e(0 .. $end) {
-    my @o;
-    for( my $c = $e; $c < $colors[-1]; $c += $end + 1) {
-      my $esc;
-      if($opt_hex_values) {
-        my $rgb = get_xterm_color({ index => $c });
-        my $current_color = $rgb->{$c}->{rgb};
-
-        $esc = fg($c, $current_color);
-      }
-      else {
-        $esc = sprintf("\e[48;5;$colors[$c]m%3d\e[0m", $colors[$c]);
-      }
-      push(@o, $esc);
-    }
-    print "@o\n";
-  }
-
-  print "\n";
-  exit 0;
+# colors 232-255 are a grayscale ramp, intentionally leaving out
+# black and white
+for ($gray = 0; $gray < 24; $gray++) {
+    $level = ($gray * 10) + 8;
+#    printf("\x1b]4;%d;rgb:%2.2x/%2.2x/%2.2x\x1b[0m",
+#	   232 + $gray, $level, $level, $level);
 }
 
 
-sub list {
-  for my $i(@colors) {
-#    printf("\e[38;5;%d%s %3d \e[48;5;$i%s %s %s %s \e[0m\n",  $i, 'm', $i,  $unicode, $i);
- #   printf("\\\\e[38;5;%d%s %3d \\\\e[48;5;$i%s %s %s %s \\\e[0m\n",  $i, 'm', $i, 'm', $i);
-  }
-  exit 0;
+# display the colors
+
+# first the system ones:
+#print "System colors:";
+for ($color = 0; $color < 8; $color++) {
+    printf("\x1b[48;5;${color}m   \x1b[0m", $color);
+}
+#print "\x1b[0m";
+for ($color = 8; $color < 16; $color++) {
+    printf("\x1b[48;5;${color}m   \x1b[0m", $color);
+}
+#print "\n";
+
+# now the color cube
+#print "Color cube, 6x6x6:";
+$n = 0;
+for ($green = 0; $green < 6; $green++) {
+    for ($red = 0; $red < 6; $red++) {
+	for ($blue = 0; $blue < 6; $blue++) {
+	    $color = 16 + ($red * 36) + ($green * 6) + $blue;
+			if(($n % 16) == 0) {
+			  printf("%s", "\n");
+			}
+			$n = $n + 1;
+
+	    printf("\x1b[48;5;${color}m   \x1b[0m", $color);
+	}
+#	print "\x1b[0m";
+    }
+#    print "";
 }
 
-=pod
 
-=head1 NAME
-
-c256 - print various tables in 256 colors
-
-=head1 USAGE
-
-  c256 [-c columns] [OPTIONS]
-
-=head1 DESCRIPTION
-
-c256 will tell you if your terminal supports 256 colors.
-It can also be used to list the actual hexadecimal RGB values of each mapped
-color.
-
-=head1 OPTIONS
-
-  -s,   --square  square format (default)
-  -l,   --list    list format
-  -c,   --col     n columns
-        --hex     show hexadecimal values of each color
-
-  -h    --help    help message
-  -m    --man     view manpage
-
-=head1 TRIVIA
-
-The background notation to use is <ESC>38;5 - \033[38;5;100m
-
-The foreground notation to use is <ESC>48;5 - \033[48;5;197m
-
-=head1 AUTHOR
-
-Written by Magnus Woldrich
-
-=head1 COPYRIGHT
-
-(C) Copyright 2010 Magnus Woldrich.
-
-License GPLv2.
-
-=cut
+# now the grayscale ramp
+#print "Grayscale ramp:";
+for ($color = 232; $color < 256; $color++) {
+			if(($n % 16) == 0) {
+			  printf("%s", "\n");
+			}
+    $n = $n + 1;
+    printf("\x1b[48;5;${color}m   \x1b[0m", $color);
+}
+			  printf("%s", "\n");
+#print "\x1b[0m";
