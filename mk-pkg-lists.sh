@@ -44,13 +44,21 @@ apt_dpkg_list_all_pkgs()
   require apt
   require dpkg
 
-  apt_list >apt.list
+  apt_list -q >apt.list
   dpkg_list >dpkg.list
 
-  dpkg_expr=^$(grep_e_expr $(<dpkg.list))
+	dpkg_exprfile=dpkg.expr
+	trap 'rm -rf "$dpkg_exprfile"' EXIT
+
+	for x in $(<dpkg.list); do
+    echo "\|^${x}\$|d" 
+  done >"$dpkg_exprfile"
+
+  #dpkg_expr=^$(grep_e_expr $(<dpkg.list))
 
   awkp <apt.list |sort >pkgs.list
-  grep -v -E "$dpkg_expr\$" <pkgs.list  >available.list
+  sed -f "$dpkg_exprfile" pkgs.list >available.list
+	#grep -v -E "$dpkg_expr\$" <pkgs.list  >available.list
 
   (set -x; wc -l {apt,dpkg,pkgs,available}.list)
 }
@@ -124,11 +132,41 @@ zypper_rpm_list_all_pkgs() {
   (set -x; wc -l {zypper,rpm,pkgs,available}.list)
 }
 
+yaourt_pacman_list_all_pkgs() {
+
+	for OPT in e d; do
+		sudo pacman -Q${OPT} 
+		yaourt -Q${OPT} 
+  done \
+		|sed 's|\s\+(.*||' | sort -k1,2 -V -u >installed.list
+
+  {
+		yaourt -Sl
+		sudo pacman -Sl
+  } | sed 's,^[/ ]*[/ ],, ; s,\s\+[\[(].*,,' |sort -u | sed 's,/, , ; s,^[^ ]* ,,' |sort -V -u >pkgs.list
+  #} | sed 's,^[ /]\+[ /],, ; s,\s\+[\[(].*,, ; s, .*,,' |sort -k1,2 -V -u >pkgs.list
+
+  set -- $(<installed.list)
+
+	exprfile=rpm.expr
+	trap 'rm -rf "$exprfile"' EXIT
+
+  for x; do 
+    echo "\|^${x}\$|d" 
+  done >"$exprfile"
+
+	sed -f "$exprfile" pkgs.list >available.list
+
+}
 require distrib
 
 case $(distrib_get id) in
-  [Ff]edora) yum_rpm_list_all_pkgs ;;
-  [Dd]ebian|[Uu]buntu) apt_dpkg_list_all_pkgs ;;
-  openS[Uu]SE*) zypper_rpm_list_all_pkgs  ;;
+  [Ff]edora) CMD=yum_rpm_list_all_pkgs ;;
+  [Dd]ebian|[Uu]buntu) CMD=apt_dpkg_list_all_pkgs ;;
+  openS[Uu]SE*|opensuse*) CMD=zypper_rpm_list_all_pkgs  ;;
+  [Aa]rch*) CMD=yaourt_pacman_list_all_pkgs  ;;
 *) echo "No such distribution $(distrib_get id)" 1>&2 ;;
 esac
+
+#[ -n "$CMD" ] && (set +x; $CMD)
+[ -n "$CMD" ] && $CMD

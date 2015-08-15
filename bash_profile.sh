@@ -68,6 +68,7 @@ has_cmd gxargs && alias xargs='gxargs -d "\n"' || alias xargs='xargs -d "\n"'
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
 
 has_cmd wget && alias wget="wget --no-check-certificate --user-agent=\"\$USERAGENT\""
+has_cmd tar && alias tar="tar --touch"
 has_cmd curl && alias curl="curl --insecure --user-agent \"\$USERAGENT\""
 has_cmd lynx && alias lynx="lynx -force_secure -accept_all_cookies -useragent=\"\$USERAGENT\""
 has_cmd aria2c && alias aria2c="aria2c --check-certificate=false --file-allocation=none --ftp-pasv=true --user-agent=\"\$USERAGENT\""
@@ -112,7 +113,7 @@ if [ "`id -u`" = 0 ]; then
 else
     SUDO=sudo
 fi
-type gvim 2>/dev/null >/dev/null && alias gvim="gvim -p"
+type gvim 2>/dev/null >/dev/null && alias gvim="gvim --remote-tab"
 type astyle 2>/dev/null >/dev/null && alias astyle="astyle --style=linux --indent=spaces=2 "
 type yum 2>/dev/null >/dev/null && alias yum="$SUDO yum -y"
 type smart 2>/dev/null >/dev/null && alias smart="$SUDO smart -y"
@@ -178,11 +179,11 @@ esac
 
 case "$OS" in
    *cygwin* |Cygwin* | CYGWIN* | msys* | Msys* |MSys* | MSYS*)
-     for PROG_A in notepad notepad2 notepadpp:notepad++; do
-       ALIAS=${PROG_A%%:*}; PROG=${PROG_A#*:}; FN=$ALIAS'() { (IFS="
-"; command '$PROG' `xargs "${PATHTOOL:-cygpath}" -m <<<"$*"`)
-    }'
-    : echo "FN=$FN" 1>&2; eval "$FN"; done
+#     for PROG_A in notepad notepad2 notepadpp:notepad++; do
+#       ALIAS=${PROG_A%%:*}; PROG=${PROG_A#*:}; FN=$ALIAS'() { (IFS="
+#"; command '$PROG' `xargs "${PATHTOOL:-cygpath}" -m <<<"$*"`)
+#    }'
+#    : echo "FN=$FN" 1>&2; eval "$FN"; done
   ;;
 esac
  
@@ -362,9 +363,11 @@ fi
 case "$MSYSTEM" in
   *MINGW32*) [ -d /mingw/bin ] && pathmunge /mingw/bin ;;
   *MINGW64*) [ -d /mingw64/bin ] && pathmunge /mingw64/bin ;;
-  *) LS_COLORS='di=01;34:ln=01;36:pi=35:so=01;35:do=01;35:bd=35;01:cd=35;01:or=31;01:ex=01;35:tw=1;34:ow=1;34'; export LS_COLORS
+  *) LS_COLORS='di=01;34:ln=01;36:pi=35:so=01;35:do=01;35:bd=35;01:cd=35;01:or=31;01:ex=01;35'; 
 ;;
 esac
+
+export LS_COLORS
 
 #[ -d /sbin ] && pathmunge /sbin
 #[ -d /usr/sbin ] && pathmunge /usr/sbin

@@ -124,7 +124,10 @@ fi
 for DIR ; do 
 
 
-  echo "Entering directory $DIR ..." 1>&2
+  echo "
+Entering directory $DIR ...
+" 1>&2
+  
   (
   cd "$DIR"
   REMOTES=$(git-get-remote .|awkp)
@@ -134,7 +137,9 @@ for DIR ; do
     git push "$R" $(git-get-branch)
   done
   ) >/dev/null
-  echo "Leaving directory $DIR ..." 1>&2
+  echo "
+Leaving directory $DIR ...
+" 1>&2
   echo 1>&2
 
 

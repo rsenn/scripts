@@ -73,11 +73,12 @@ esac
 
 PATTERN=\(`IFS='|'; echo "$*"`\)
 PSOUT=`eval "(${DEBUG:+set -x; }\"$PS\" $PSARGS) $PSFILTER"`
-PSMATCH=` echo "$PSOUT" | grep -i -E "$PATTERN" `
+PSMATCH=` echo "$PSOUT" | grep -i -E "$PATTERN"  |grep -v -E "(killall\\.sh|\\s$$\\s)"`
 PIDS=` echo "$PSMATCH" | $SED -n "/${0##*/}/! s,^[^0-9]*\([0-9][0-9]*\).*,\1,p"`
 
 if [ -z "$PIDS" ]; then
-  echo "No matching process ($@)" 1>&2
+
+ (IFS="|$IFS"; echo "No matching process ($*)" 1>&2I)
   exit 2
 fi
 echo "$PSMATCH"

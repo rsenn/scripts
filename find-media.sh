@@ -53,6 +53,8 @@ filter_filesize() {
   }
   while :; do
     case "$1" in
+    -depth | -maxdepth | -mindepth | -amin | -anewer | -atime | -cmin | -cnewer | -ctime | -fstype | -gid | -group | -ilname | -iname | -inum | -iwholename | -iregex | -links | -lname | -mmin | -mtime | -name | -newer | -path | -perm | -regex | -wholename | -size | -type | -uid | -used | -user | -xtype | -context | -printf | -fprint0 | -fprint | -fls) EXTRA_ARGS="${EXTRA_ARGS:+$EXTRA_ARGS$NL}$1$NL$2"; shift 2 ;;
+    -print | -daystart | -follow | -regextype | -mount | -noleaf | -xdev | -ignore_readdir_race | -noignore_readdir_race | -empty | -false | -nouser | -nogroup | -readable | -writable | -executable | -true | -delete | -print0 | -ls | -prune | -quit) EXTRA_ARGS="${EXTRA_ARGS:+$EXTRA_ARGS$NL}$1"; shift ;;
       -gt | -ge | -lt | -le) OPS="${OPS:+$OPS$IFS}\$FILESIZE${IFS}$1${IFS}\$(($(getnum "$2")))"; shift 2 ;;
       -a | -o) OPS="${OPS:+$OPS$IFS}${1}"; shift ;;
       *) break ;;
@@ -126,6 +128,8 @@ EXCLUDE_DIRS='.*/\.wine/drive.*/\.wine/drive'
 
 while :; do
 	case "$1" in
+    -depth | -maxdepth | -mindepth | -amin | -anewer | -atime | -cmin | -cnewer | -ctime | -fstype | -gid | -group | -ilname | -iname | -inum | -iwholename | -iregex | -links | -lname | -mmin | -mtime | -name | -newer | -path | -perm | -regex | -wholename | -size | -type | -uid | -used | -user | -xtype | -context | -printf | -fprint0 | -fprint | -fls) EXTRA_ARGS="${EXTRA_ARGS:+$EXTRA_ARGS$NL}$1$NL$2"; shift 2 ;;
+    -print | -daystart | -follow | -regextype | -mount | -noleaf | -xdev | -ignore_readdir_race | -noignore_readdir_race | -empty | -false | -nouser | -nogroup | -readable | -writable | -executable | -true | -delete | -print0 | -ls | -prune | -quit) EXTRA_ARGS="${EXTRA_ARGS:+$EXTRA_ARGS$NL}$1"; shift ;;
 	  -h | --help) usage; shift ;;
   	-p | --mediapath) MEDIAPATH="$2"; shift 2 ;; -m=* | --mediapath=*) MEDIAPATH="${1#*=}"; shift ;;
   	-x | --debug) DEBUG=true; shift ;;
@@ -141,6 +145,8 @@ while :; do
 		shift 
 			while :; do
 				case "$1" in
+    -depth | -maxdepth | -mindepth | -amin | -anewer | -atime | -cmin | -cnewer | -ctime | -fstype | -gid | -group | -ilname | -iname | -inum | -iwholename | -iregex | -links | -lname | -mmin | -mtime | -name | -newer | -path | -perm | -regex | -wholename | -size | -type | -uid | -used | -user | -xtype | -context | -printf | -fprint0 | -fprint | -fls) EXTRA_ARGS="${EXTRA_ARGS:+$EXTRA_ARGS$NL}$1$NL$2"; shift 2 ;;
+    -print | -daystart | -follow | -regextype | -mount | -noleaf | -xdev | -ignore_readdir_race | -noignore_readdir_race | -empty | -false | -nouser | -nogroup | -readable | -writable | -executable | -true | -delete | -print0 | -ls | -prune | -quit) EXTRA_ARGS="${EXTRA_ARGS:+$EXTRA_ARGS$NL}$1"; shift ;;
 					-gt | -lt | -le | -ge | -eq) SIZE="${SIZE:+$SIZE }$1 $2"; shift 2 ;;
 					-a | -o | -[0-9]* | [+=][0-9]* | ">"[0-9]* | "<"[0-9]*) SIZE="${SIZE:+$SIZE }$1"; shift ;;
 					*) break ;;
@@ -214,10 +220,12 @@ fi
 
 case "$CLASS" in
   bin*|exe*|prog*)  EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(exe|msi|dll)\$" ;;
+  playlist*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(m3u|m3u8|pls|asx|xspf|asxini|cue|wpl)\$" ;;
   archive*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(7z|rar|tar\.bz2|tar\.gz|tar\.xz|tar|tar\.lzma|tbz2|tgz|txz|zip)\$" ;;
   *audio*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(aif|aiff|flac|raw|wav)\$" ;;
   fonts*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(bdf|flac|fon|m4a|m4b|mp3|mpc|ogg|otf|pcf|rm|ttf|wma)\$" ;;
   image*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(bmp|cin|cod|dcx|djvu|emf|fig|gif|ico|im1|im24|im8|jin|jpeg|jpg|lss|miff|opc|pbm|pcx|pgm|pgx|png|pnm|ppm|psd|rle|rmp|sgi|shx|svg|tga|tif|tiff|wim|xcf|xpm|xwd)\$" ;;
+  iso*|nero*|cue*|optical*|dvd*|*disk*image*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(bin|cdi|daa|iso|mdf|mds|nrg)\$" ;;
   incompl*|part*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(\*\.!??|\*\.part|INCOMPL\*|\[/\\\]INCOMPL\[^/\\\]\*\$|\\\.!??\$|\\\.part\$)\$" ;;
   *music*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(m4a|m4b|mp3|mpc|ogg|rm|wma)\$" ;;
   package*|pkg*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(deb|rpm|tgz|txz)\$" ;;
