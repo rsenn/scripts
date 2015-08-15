@@ -72,6 +72,9 @@ trap 'R=$?; rm -vf "$WAV"; exit $R' EXIT QUIT INT TERM
 
 case "${ARG##*/}" in
 	*.wav) WAV="$ARG" ;;
+	*.669 | *.amf | *.amf | *.dsm | *.far | *.gdm | *.gt2 | *.it | *.imf | *.mod | *.med | *.mtm | *.okt | *.s3m | *.stm | *.stx | *.ult | *.umx | *.apun | *.xm | *.mod) 
+	  mikmod -q -d 5 -o 16s -i -hq -reverb 1 "${ARG}" 
+	;;
 	*)
 	(ffmpeg -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV") 
 	;;
