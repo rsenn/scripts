@@ -23,10 +23,13 @@ while :; do
   case "$1" in
     -[0-9]) level=${1#-}; shift ;;
     -t) type=$2; shift 2 ;;
-    -d=* | --dest*dir*=*) DESTDIR=${1#*=}; shift ;; -d | --dest*dir*) DESTDIR=$2; shift 2 ;;
+    -d=* | --dest*dir*=*) DESTDIR=${1#*=}; shift ;; 
+    -d | --dest*dir*) DESTDIR=$2; shift 2 ;;
     -D | --no*date*) nodate=true; shift  ;;
-    -[EXx]) pushv exclude "$2"; shift 2 ;; -[EXx]=*) pushv exclude "${1#*=}"; shift ;;
-    -[EXx] | --exclude) pushv exclude "$2"; shift 2 ;; -e=* | --exclude=*) pushv exclude "${1#*=}"; shift ;;
+    -[EXx] | --exclude) pushv exclude "$2"; shift 2 ;; 
+    -[EXx]*) pushv exclude "${1#-?}"; shift ;; 
+    -[EXx]=*) pushv exclude "${1#*=}"; shift ;;
+    -e=* | --exclude=*) pushv exclude "${1#*=}"; shift ;;
     *) break ;;
   esac
 done
