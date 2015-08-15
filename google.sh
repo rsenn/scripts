@@ -32,7 +32,9 @@ done
 #HTTP_PROXY="127.0.0.1:8123"
 
 [ "$VERBOSE" = true ] || SILENT="-s"
-[ -s "cookie.txt" ] && : ${COOKIE:="cookie.txt"}
+for COOKIE in cookie.txt "$HOME"/cookie.txt; do
+  [ -s "$COOKIE" ]  && { echo "Found cookie: $COOKIE" 1>&2; break; } || unset COOKIE
+done
 DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location -A '$USER_AGENT' ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks4a \"${SOCKS_PROXY#*://}\"}"
 #DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }wget -q -O - -U '$USER_AGENT'"
 #DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent '$USER_AGENT' 2>/dev/null"
