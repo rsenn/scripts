@@ -27,8 +27,8 @@ if type ssh-agent 2>/dev/null >/dev/null; then
 }$S"
 				else
 					P=`expr "${S##*.}" + 1`
-					kill $P ${S##*.} >/dev/null 2>/dev/null && {
-						echo "Killed PID $P" 1>&2
+					: kill $P ${S##*.} >/dev/null 2>/dev/null && {
+						: echo "Killed PID $P" 1>&2
 						if [ "$SSH_AUTH_SOCK" = "$S" ]; then
 							unset SSH_AUTH_SOCK
 					  fi

@@ -18,7 +18,7 @@ find_fonts()
 
 		set -f 
 
-		set find "$@" 
+		set find "$@" $EXTRA_ARGS
 
 		CONDITIONS=
 

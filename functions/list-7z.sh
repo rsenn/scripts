@@ -38,7 +38,7 @@ list-7z() {
 	        DIR="${DIR%/*}"
 	       #echo "DIR='$DIR' PREVDIR='$PREVDIR'" 1>&2
 	      if [ -z "$PREVDIR" -o "${PREVDIR#$DIR/}" = "$PREVDIR" ]; then
-	       [ -n "$PREVDIR" ] && output "$PREVDIR"
+	       #[ -n "$PREVDIR" ] && output "$PREVDIR"
 	       PREVDIR="$DIR/"
 	      fi
 	      
@@ -48,8 +48,7 @@ list-7z() {
 	      case "${PREVDIR%/}" in
 	        ${DIR}/*) continue ;;
 	      esac
-	      #[ "$DIR/" != "$PREVDIR" ] &&
-	        output "$DIR/"
+	      [ "$DIR/" != "$PREVDIR" ] && output "$DIR/"
 	        case "${PREVDIR%/}" in
 	          $DIR | $DIR/*) ;;
 	          *) PREVDIR="$DIR/" ;;
@@ -72,7 +71,7 @@ list-7z() {
   while [ $# -gt 0 ]; do
    (B=${1##*/}
     case "$1" in 
-      *://*) INPUT="curl -s \"\$1\"" ;;
+      *://*) INPUT="wget -q -O - \"\$1\"" ;;
       *) ARCHIVE=$1  ;;
     esac
     case "$1" in 
@@ -80,7 +79,7 @@ list-7z() {
         T=${1%.t?z}
         T=${T%.tbz2} 
         T=$T.tar
-        INPUT="${INPUT:+$INPUT | }7z x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T}\"";  CMD="7z l -slt $OPTS"
+        INPUT="${INPUT:+$INPUT | }7z x${INPUT:+ -si\"${1}\"} -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T}\"";  CMD="7z l -slt $OPTS"
         ;;
       *.tar.*) INPUT="${INPUT:+$INPUT | }7z x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${B%.*}\"";  CMD="7z l -slt $OPTS" ;;
       *) CMD="7z l -slt $OPTS ${ARCHIVE+\"$ARCHIVE\"}" ;;

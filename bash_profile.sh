@@ -1,5 +1,5 @@
-echo 'loading /home/roman/.bash_profile' 1>&2
 #!/bin/bash
+echo 'loading /home/roman/.bash_profile' 1>&2
 
 set -o vi
 
@@ -36,6 +36,8 @@ case "$TERM" in
   konsole|screen|rxvt|vte|Eterm|putty|xterm|mlterm|mrxvt|gnome) TERM="$TERM-256color" ;;
 esac
 
+   
+
 unalias cp mv rm  2>/dev/null
 
 case "$TERM" in
@@ -51,10 +53,25 @@ has_cmd() {
   test -e /bin/"$1" -o -e /usr/bin/"$1"
 	#type "$1" >/dev/null 2>/dev/null
 }
+#USERAGENT="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0"
+#USERAGENT="Mozilla/5.0 (Windows; U; Windows NT based; de-CH) AppleWebKit/533.3 (KHTML, like Gecko)  QtWeb Internet Browser/3.7 http://www.QtWeb.net"
+#USERAGENT="Midori/0.3 (Windows; Windows; U; de-ch) WebKit/531.2+"
+#USERAGENT="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+#USERAGENT="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:34.0) Gecko/20100101 Firefox/34.0 SeaMonkey/2.31"
+#USERAGENT="Opera/9.80 (Windows NT 6.1; WOW64) Presto/2.12.388 Version/12.17"
+#USERAGENT="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) QupZilla/1.8.5 Safari/537.21"
+USERAGENT="Mozilla/5.0 (Windows; U; Windows NT 6.1; de-CH) AppleWebKit/532.4 (KHTML, like Gecko) Arora/0.10.2 Safari/532.4"
+
 	
 has_cmd gxargs && alias xargs='gxargs -d "\n"' || alias xargs='xargs -d "\n"'
 
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
+
+has_cmd wget && alias wget="wget --no-check-certificate --user-agent=\"\$USERAGENT\""
+has_cmd tar && alias tar="tar --touch"
+has_cmd curl && alias curl="curl --insecure --user-agent \"\$USERAGENT\""
+has_cmd lynx && alias lynx="lynx -force_secure -accept_all_cookies -useragent=\"\$USERAGENT\""
+has_cmd aria2c && alias aria2c="aria2c --check-certificate=false --file-allocation=none --ftp-pasv=true --user-agent=\"\$USERAGENT\""
 
 has_cmd gls && alias ls="gls \$LS_ARGS" || alias ls="ls \$LS_ARGS"
 
@@ -76,6 +93,14 @@ fi
 #	 has_cmd "g$BIN" && alias "$BIN=g$BIN"
 #done
 
+if grep --help 2>&1 | grep -q '\--color'; then
+	GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--color=auto"
+fi
+
+if grep --help 2>&1 | grep -q '\--line-buffered'; then
+	GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--line-buffered"
+fi
+
 alias grep="/bin/grep $GREP_ARGS"
 alias grepdiff='grepdiff --output-matching=hunk'
 
@@ -88,6 +113,8 @@ if [ "`id -u`" = 0 ]; then
 else
     SUDO=sudo
 fi
+type gvim 2>/dev/null >/dev/null && alias gvim="gvim --remote-tab"
+type astyle 2>/dev/null >/dev/null && alias astyle="astyle --style=linux --indent=spaces=2 "
 type yum 2>/dev/null >/dev/null && alias yum="$SUDO yum -y"
 type smart 2>/dev/null >/dev/null && alias smart="$SUDO smart -y"
 type zypper 2>/dev/null >/dev/null && alias zypper="$SUDO zypper"
@@ -138,7 +165,7 @@ case "${OS}" in
    CYGROOT=`cygpath -m /`
   ;;
 *) 
-  MEDIAPATH="/m*/*/"  
+  MEDIAPATH="{/m*,$HOME/mnt}/*/"  
   if [ -e ~/.bash_prompt ]; then
     set-prompt
   else
@@ -150,6 +177,16 @@ case "${OS}" in
  ;;
 esac
 
+case "$OS" in
+   *cygwin* |Cygwin* | CYGWIN* | msys* | Msys* |MSys* | MSYS*)
+#     for PROG_A in notepad notepad2 notepadpp:notepad++; do
+#       ALIAS=${PROG_A%%:*}; PROG=${PROG_A#*:}; FN=$ALIAS'() { (IFS="
+#"; command '$PROG' `xargs "${PATHTOOL:-cygpath}" -m <<<"$*"`)
+#    }'
+#    : echo "FN=$FN" 1>&2; eval "$FN"; done
+  ;;
+esac
+ 
 #: ${PS1:='\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '}
 
 pathmunge() {
@@ -326,9 +363,11 @@ fi
 case "$MSYSTEM" in
   *MINGW32*) [ -d /mingw/bin ] && pathmunge /mingw/bin ;;
   *MINGW64*) [ -d /mingw64/bin ] && pathmunge /mingw64/bin ;;
-  *) LS_COLORS='di=01;34:ln=01;36:pi=35:so=01;35:do=01;35:bd=35;01:cd=35;01:or=31;01:ex=01;35:tw=1;34:ow=1;34'; export LS_COLORS
+  *) LS_COLORS='di=01;34:ln=01;36:pi=35:so=01;35:do=01;35:bd=35;01:cd=35;01:or=31;01:ex=01;35'; 
 ;;
 esac
+
+export LS_COLORS
 
 #[ -d /sbin ] && pathmunge /sbin
 #[ -d /usr/sbin ] && pathmunge /usr/sbin

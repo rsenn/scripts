@@ -9,11 +9,13 @@ tokexpr="[${tokcharset}]"
 
 while :; do
    case "$1" in
-     -i | --INC) INC="${INC:+$INC$NL}$2"; shift 2 ;;
-     -i=* | --INC=*) INC="${INC:+$INC$NL}${1#*=}"; shift ;;
-     -x | --EXC) EXC="${EXC:+$EXC$NL}$2"; shift 2 ;;
-     -x=* | --EXC=*) EXC="${EXC:+$EXC$NL}${1#*=}"; shift ;;
-     -u | --uniq) UNIQ=true; shift ;;
+     -e | --expr*) tokexpr="$2"; shift 2 ;;
+     -e=* | --expr*=*) tokexpr="${1#*=}"; shift ;;
+     -i | --inc*) INC="${INC:+$INC$NL}$2"; shift 2 ;;
+     -i=* | --inc*=*) INC="${INC:+$INC$NL}${1#*=}"; shift ;;
+     -x | --exc*) EXC="${EXC:+$EXC$NL}$2"; shift 2 ;;
+     -x=* | --exc*=*) EXC="${EXC:+$EXC$NL}${1#*=}"; shift ;;
+     -u | --uniq*) UNIQ=true; shift ;;
      *) break ;;
    esac
 done

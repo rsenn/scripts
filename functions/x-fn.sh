@@ -1,4 +1,4 @@
-x-fn() 
+x-fn()
 { 
  (MATCH=p
   NOMATCH=D
