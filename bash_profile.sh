@@ -67,7 +67,7 @@ has_cmd gxargs && alias xargs='gxargs -d "\n"' || alias xargs='xargs -d "\n"'
 
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
 
-has_cmd wget && alias wget="wget --no-check-certificate --user-agent=\"\$USERAGENT\""
+has_cmd wget && alias wget="wget --no-use-server-timestamps --timeout=30 --tries=3 --no-check-certificate --user-agent=\"\$USERAGENT\""
 has_cmd tar && alias tar="tar --touch"
 has_cmd curl && alias curl="curl --insecure --user-agent \"\$USERAGENT\""
 has_cmd lynx && alias lynx="lynx -force_secure -accept_all_cookies -useragent=\"\$USERAGENT\""
