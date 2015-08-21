@@ -15,7 +15,7 @@ find_archives()
 {
 	(IFS="
 	 "
-		EXTS="rar zip 7z tar tar.Z tar.gz tar.xz tar.bz2 tar.lzma tgz txz tbz2 tlzma"
+		EXTS="rar zip 7z cab tar tar.Z tar.gz tar.xz tar.bz2 tar.lzma tgz txz tbz2 tlzma"
 
 		[ "$#" -le 0 ] && set -- *
 
