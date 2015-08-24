@@ -6,7 +6,7 @@ ABSDIR=`pwd`
 IFS="
 "
 
-bind-mounts()
+bind_mounts()
 {
  (IFS="
  "; while :; do
@@ -53,7 +53,7 @@ esac
 }
 
 
-bind-mounts || exit $? 
+bind_mounts || exit $? 
 
 cp -vf /etc/resolv.conf etc/
 
@@ -69,4 +69,4 @@ env - PATH="$PATH:/usr/local/bin" TERM="$TERM" DISPLAY="$DISPLAY" HOME="/root"  
  HOSTNAME="${PWD##*/}" chroot . ${@:-/bin/bash
 --login}
 
-bind-mounts -u "$@"
+bind_mounts -u "$@"

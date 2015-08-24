@@ -6,10 +6,6 @@ SET1='+"share-online.biz/dl/"|"zippyshare.com/"|"mediafire.com/"|"uploadable.ch/
 SET2='+"uploaded.net/"|"netload.in/"|"filefactory.com/file/"|"sendspace.com/file/"|"badongo.com/file/"|"uploadbox.com/files/"|"letitbit.net/download/'
 SET3='+"sharingmatrix.com/file/"|"box.net/shared/"|"kewlshare.com/dl/"|"mega.co.nz/"|"4shared.com/file/"|"ziddu.com/download/"|"zshare.net/download/"'
 
-NAME=`echo "$*" | sed -e 's,[^0-9A-Za-z]\+,-,g' -e 's,^[^0-9A-Za-z]\+,,' -e 's,[^0-9A-Za-z]\+$,,'`
-
-echo "Canonical name is $NAME" 1>&2
-
 #IFS=" $IFS"
 IFS=" °"
 
@@ -22,6 +18,9 @@ while :; do
     *) break ;;
   esac
 done
+
+NAME=`echo "$*" | sed -e 's,[^0-9A-Za-z]\+,-,g' -e 's,^[^0-9A-Za-z]\+,,' -e 's,[^0-9A-Za-z]\+$,,'`
+echo "Canonical name is $NAME" 1>&2
 
 KEYWORDS="$*"
 OUTPUT="$NAME.list"

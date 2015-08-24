@@ -8,7 +8,7 @@ if [ -s "$1" ]; then
   exec <"$1"
 fi
 
-subst-keyroot()
+subst_keyroot()
 {
 	case "$1" in
 	  HKEY_LOCAL_MACHINE*) echo "HKLM${1#HKEY_LOCAL_MACHINE}" ;;
@@ -49,7 +49,7 @@ while read -r LINE; do
           "(Default)") NAME="@" ;;
        esac
        
-       K=$(subst-keyroot "$KEY")
+       K=$(subst_keyroot "$KEY")
        unset REGVAL
        
        case "$TYPE" in

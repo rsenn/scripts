@@ -3,13 +3,13 @@
 . require.sh
 require archive
 
-grep-e-expr()
+grep_e-expr()
 { 
     echo "($(IFS="|
          $IFS";  set -- $*; echo "$*"))"
 }
 
-grep-e()
+grep_e()
 { 
     ( unset ARGS;
     eval "LAST=\"\${$#}\"";
@@ -32,16 +32,16 @@ grep-e()
             ;;
         esac;
     done;
-    grep --color=auto -E $ARGS "$(grep-e-expr "$@")" ${LAST:+"$LAST"} )
+    grep --color=auto -E $ARGS "$(grep_e-expr "$@")" ${LAST:+"$LAST"} )
 }
 
-grep-e-expr()
+grep_e-expr()
 { 
     echo "($(IFS="|
 	 $IFS";  set -- $*; echo "$*"))"
 }
 
-archiver-cfg()
+archiver_cfg()
 {
   if [ -n "$ARCHIVE" -a -e "$ARCHIVE" ]; then
     EXISTS=true
@@ -102,7 +102,7 @@ done
     PKGS=$(if [ -s "$ARCHIVE" ] ; then archive_list "$ARCHIVE"; fi);  set --  $PKGS; PKG_COUNT=$#
       [ $PKG_COUNT -gt 0 ] &&
         echo "$PKG_COUNT packages already in archive $ARCHIVE ..." 1>&2
-     FILTER_EXPR=$(grep-e-expr $PKGS)
+     FILTER_EXPR=$(grep_e-expr $PKGS)
 	else
 		test -e "$ARCHIVE" && rm -vf "$ARCHIVE" 
 	fi
@@ -154,7 +154,7 @@ echo "$ACTION archive $ARCHIVE ..." 1>&2
     PKGS=$(if [ -s "$ARCHIVE" ] ; then archive_list "$ARCHIVE"; fi);  set --  $PKGS; PKG_COUNT=$#
       [ $PKG_COUNT -gt 0 ] &&
         echo "$PKG_COUNT packages already in archive $ARCHIVE ..." 1>&2
-     FILTER_EXPR=$(grep-e-expr $PKGS)
+     FILTER_EXPR=$(grep_e-expr $PKGS)
 	else
 		test -e "$ARCHIVE" && rm -vf "$ARCHIVE" 
 	fi
@@ -164,7 +164,7 @@ echo "$ACTION archive $ARCHIVE ..." 1>&2
 	else 
 		EXISTS=false
   fi  
-  archiver-cfg
+  archiver_cfg
 
 
 
@@ -178,7 +178,7 @@ echo "$ACTION archive $ARCHIVE ..." 1>&2
   echo "Found $PACKAGE_FILES_COUNT different slackware packages" 1>&2
 
   if [ "$EXISTS" = true -a -n "$PKGS" ]; then
-    FILTER_EXPR="^$(grep-e-expr $PKGS)\$"
+    FILTER_EXPR="^$(grep_e-expr $PKGS)\$"
     set -- $(grep -v -E "$FILTER_EXPR" <<<"$*")
 	fi
 
@@ -208,7 +208,7 @@ PACKAGES_NEW="$*"
     if [ -e "$ARCHIVE" -a -s "$ARCHIVE" ]; then
    echo "Reconfiguring archiver..." 1>&2
   
-     archiver-cfg
+     archiver_cfg
     fi
 	 done
 } 

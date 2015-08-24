@@ -44,7 +44,7 @@ find_scripts()
   )
 }
 
-find-scripts()
+find_scripts()
 {
 
 for S in '' '*.part' '.!ut'; do
@@ -53,14 +53,14 @@ done
 }
 
 
-grep-scripts()
+grep_scripts()
 {
 
   exec grep -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))[^/]*${cr}?\$"  "$@"
 }
 
 
-locate-scripts()
+locate_scripts()
 {
     (IFS="
  "; 

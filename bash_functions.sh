@@ -22,7 +22,7 @@ abspath()
     fi
 }
 
-add-cond-include() {
+add_cond_include() {
  (INC="$1"
   shift
 
@@ -55,7 +55,7 @@ addsuffix()
   eval "$CMD")
 }
 
-all-disks()
+all_disks()
 {
    (case "$1" in
       -l) SHOW_LABEL=true; shift ;;
@@ -100,7 +100,7 @@ aspect()
     echo "$((W / GCD)):$((H / GCD))" )
 }
 
-autorun-shell()
+autorun_shell()
 {
    (EXEC="$1"
      shift
@@ -280,7 +280,7 @@ w2c()
     ch_conv UTF-16 UTF-8 "$@"
 }
 
-check-7z() {
+check_7z() {
  (while :; do 
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
@@ -347,7 +347,7 @@ check-7z() {
   done)
 }
 
-check-link()
+check_link()
 {
   (TARGET=$(readshortcut "$1")
     test -e "$TARGET")
@@ -402,12 +402,12 @@ clamp()
     fi
 }
 
-command-exists()
+command_exists()
 {
     type "$1" 2> /dev/null > /dev/null
 }
 
-compare-dirs()
+compare_dirs()
 {
      diff -ru "$@" | sed -n \
          -e "/^Binary files/ s,^Binary files \(.*\) and \(.*\) differ,\1 \2,p" \
@@ -415,17 +415,17 @@ compare-dirs()
          -e "/^diff/ { N; /\n---/ { N; /\n+++/ { s,\n.*,, ;; s,^diff\s\+,, ;; s,^-[^ ]* ,,g ;; p } } }"
 }
 
-convert-boot-entries()
+convert_boot_entries()
 {
   ([ -z "$FORMAT" ] && FORMAT="$1"
 
     for FILE; do
-      convert-boot-file "$FILE" "$FORMAT"
+      convert_boot_file "$FILE" "$FORMAT"
     done
   )
 }
 
-convert-boot-file()
+convert_boot_file()
 {
   (if [ -e "$1" ]; then
      exec <"$1"
@@ -434,8 +434,8 @@ convert-boot-file()
 
    [ -z "$FORMAT" ] && FORMAT="$1"
 
-   while parse-boot-entry; do
-     output-boot-entry "$FORMAT"
+   while parse_boot_entry; do
+     output_boot_entry "$FORMAT"
    done
 
 
@@ -443,7 +443,7 @@ convert-boot-file()
    )
 }
 
-count-in-dir()
+count_in_dir()
 {
 				 (LIST="$1"; shift; for ARG; do
 				 N=$(grep "^${ARG%/}/." "$LIST" | wc -l)
@@ -451,7 +451,7 @@ count-in-dir()
  done)
 }
 
-count-lines()
+count_lines()
 {
     ( [ $# -le 0 ] && set -- -;
     N=$#;
@@ -469,7 +469,7 @@ count()
     echo $#
 }
 
-cpan-install()
+cpan_install()
 { 
     for ARG in "$@";
     do
@@ -477,7 +477,7 @@ cpan-install()
     done
 }
 
-cpan-search()
+cpan_search()
 { 
     ( for ARG in "$@";
     do
@@ -489,7 +489,7 @@ cpan-search()
     done )
 }
 
-create-shortcut()
+create_shortcut()
 {
  (declare "$@"
   (set -x; mkshortcut ${ARGS:+-a
@@ -530,32 +530,32 @@ ctime()
     ls --color=auto --color=auto --color=auto -l -n -d --time=ctime --time-style="${TS}" "$@" | sed "s/$E/$R/" )
 }
 
-cut-arch()
+cut_arch()
 {
     sed 's,^\([^ ]*\)\.[^ .]*\( - \)\?\(.*\)$,\1\2\3,'
 }
 
-cut-basename()
+cut_basename()
 {
     sed 's,[/\\][^/\\]*[/\\]\?$,,'
 }
 
-cut-dirname()
+cut_dirname()
 {
     sed "s,\\(.*\\)[/\\\\]\\([^/\\\\]\\+[/\\\\]\\?\\)${1//./\\.}\$,\2,"
 }
 
-cut-distver()
+cut_distver()
 {
   cat "$@" | sed 's,\.fc[0-9]\+\(\.\)\?,\1,g'
 }
 
-cut-dotslash()
+cut_dotslash()
 {
   sed -u 's,^\.[/\\],,'
 }
 
-cut-ext() {
+cut_ext() {
     sed '
 /\.gz$/ { s|\.tar\(\.[^.]\+\)$|\1| }
 /\.bz2$/ { s|\.tar\(\.[^.]\+\)$|\1| }
@@ -566,12 +566,12 @@ s,\.[^./]\+$,,
 ' "$@"
 }
 
-cut-hexnum()
+cut_hexnum()
 {
   sed 's,^\s*[0-9a-fA-F]\+\s*,,' "$@"
 }
 
-cut-ls-l()
+cut_ls_l()
 {
     ( I=${1:-6};
     set --;
@@ -585,31 +585,31 @@ cut-ls-l()
     eval "$CMD" )
 }
 
-cut-lsof()
+cut_lsof()
 {
     ( IFS=" ";
     eval "while read -r COMMAND PID USER FD TYPE DEVICE SIZE NODE NAME; do
   if ( ! [ \"\$NODE\" -ge 0 ] 2>/dev/null ) || [ -z \"\$NAME\" ]; then NAME=\"\$NODE\${NAME:+ \$NAME}\"; unset NODE; fi;   echo \"\${${1-NAME}}\"; done" )
 }
 
-cut-num()
+cut_num()
 {
   sed 's,^\s*[0-9]\+\s*,,' "$@"
 }
 
-cut-pkgver()
+cut_pkgver()
 {
     cat "$@" |sed 's,-[0-9]\+$,,g'
 }
 
-cut-trailver()
+cut_trailver()
 {
     cat "$@" |sed 's,-[0-9][^-.]*\(\.[0-9][^-.]*\)*$,,'
 }
 
-cut-ver()
+cut_ver()
 {
-  cat "$@" | cut-trailver |
+  cat "$@" | cut_trailver |
   sed 's,[-.]rc[[:alnum:]~][^-.]*,,g ;; s,[-.]b[[:alnum:]~][^-.]*,,g ;; s,[-.]git[_[:alnum:]~][^-.]*,,g ;; s,[-.]svn[_[:alnum:]~][^-.]*,,g ;; s,[-.]linux[^-.]*,,g ;; s,[-.]v[[:alnum:]~][^-.]*,,g ;; s,[-.]beta[_[:alnum:]~][^-.]*,,g ;; s,[-.]alpha[_[:alnum:]~][^-.]*,,g ;; s,[-.]a[_[:alnum:]~][^-.]*,,g ;; s,[-.]trunk[^-.]*,,g ;; s,[-.]release[_[:alnum:]~][^-.]*,,g ;; s,[-.]GIT[^-.]*,,g ;; s,[-.]SVN[^-.]*,,g ;; s,[-.]r[_[:alnum:]~][^-.]*,,g ;; s,[-.]dnh[_[:alnum:]~][^-.]*,,g' |
   sed 's,[^-.]*git[_0-9][^.].,,g ;; s,[^-.]*svn[_0-9][^.].,,g ;; s,[^-.]*GIT[^.].,,g ;; s,[^-.]*SVN[^.].,,g' |
   sed 's,\.\(P\)\?[[:digit:]][_+[:digit:]]*\.,.,g' |
@@ -632,7 +632,7 @@ d()
     echo "$1" )
 }
 
-datasheet-url()
+datasheet_url()
 { 
     RESULTS=1000 google.sh "$1 datasheet filetype:pdf" | /bin/grep --color=auto --line-buffered -i "$1[^/]*$"
 }
@@ -657,7 +657,7 @@ dec2bin() {
   done | addprefix "${P-0b}")
 }
 
-decompress-7z() {
+decompress_7z() {
  (while :; do 
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
@@ -706,14 +706,14 @@ dec_to_hex()
     printf "%08x\n" "$1"
 }
 
-detect-filesystem()
+detect_filesystem()
 {
     if [ -e "$1" ]; then
-        filesystem-for-device "$(device-of-file "$1")";
+        filesystem_for_device "$(device_of_file "$1")";
     fi
 }
 
-device-of-file() {
+device_of_file() {
  (for ARG in "$@"; do
   (if [ -e "$ARG" ]; then
      if [ -L "$ARG" ]; then
@@ -729,7 +729,7 @@ device-of-file() {
      DEV=`(grep -E "^[^ ]*\s+$ARG\s" /proc/mounts ;  df "$ARG" |sed '1d' )|awkp 1|head -n1`
      [ $# -gt 1 ] && DEV="$ARG: $DEV"
 
-     [ "$DEV" = rootfs -o "$DEV" = /dev/root ] && DEV=`get-rootfs`
+     [ "$DEV" = rootfs -o "$DEV" = /dev/root ] && DEV=`get_rootfs`
 
      echo "$DEV"
   fi)
@@ -774,24 +774,24 @@ diff_plus_minus()
     echo "+$plus" "-$minus"
 }
 
-disk-device-for-partition()
+disk_device_for_partition()
 {
     echo "${1%[0-9]}"
 }
 
-disk-device-letter()
+disk_device_letter()
 {
     DEV="$1";
     DEV=${DEV##*/};
     echo "${DEV:2:1}"
 }
 
-disk-device-number()
+disk_device_number()
 {
-    index-of "$(disk-device-letter "$1")" abcdefghijklmnopqrstuvwxyz
+    index_of "$(disk_device_letter "$1")" abcdefghijklmnopqrstuvwxyz
 }
 
-disk-devices() {
+disk_devices() {
   wmic volume get DeviceID /VALUE | while read -r LINE; do
     case "$LINE" in
       *=*) echo "${LINE##*=}" ;;
@@ -799,11 +799,11 @@ disk-devices() {
   done
 } ||
 
-disk-devices() {
-    foreach-partition 'echo "$DEV"'
+disk_devices() {
+    foreach_partition 'echo "$DEV"'
 }
 
-disk-label()
+disk_label()
 {
     (ESCAPE_ARGS="-e"
     while :; do
@@ -828,7 +828,7 @@ disk-label()
             if [ "$LOWER" = true -o ! -r "$LINK" ]; then
                 echo $ESCAPE_ARGS "$NAME";
             else
-                FS=` filesystem-for-device "$DEV"`;
+                FS=` filesystem_for_device "$DEV"`;
                 case "$FS" in
                     *fat)
                         IFS="
@@ -847,14 +847,14 @@ disk-label()
     exit 1 )
 }
 
-disk-partition-number()
+disk_partition_number()
 {
     DEV="$1";
     DEV=${DEV##*/};
     echo "${DEV:3:1}"
 }
 
-disk-size()
+disk_size()
 {
     ( while :; do
         case "$1" in
@@ -889,14 +889,14 @@ diskfree()
     echo $4
 }
 
-divide-resolution()
+divide_resolution()
 {
     ( WIDTH=${1%%${MULT_CHAR-x}*};
     HEIGHT=${1#*${MULT_CHAR-x}};
     echo $((WIDTH / $2))${MULT_CHAR-x}$((HEIGHT / $2)) )
 }
 
-dl-slackpkg()
+dl_slackpkg()
 {
   (: ${DIR=/tmp}
    for PKG; do
@@ -916,14 +916,14 @@ dospath()
     echo "$1" )
 }
 
-du-txt()
+du_txt()
 {
     ( IFS="
 ";
     TMP="du.tmp$RANDOM";
     echo -n > "$TMP";
     trap 'rm -f "$TMP"' EXIT;
-    CMD='(du -x -s -- ${@-$(ls-dirs)})';
+    CMD='(du -x -s -- ${@-$(ls_dirs)})';
     if [ -w "$TMP" ]; then
         CMD="$CMD | (tee \"\$TMP\"; sort -n -k1 <\"\$TMP\" >du.txt; rm -f \"\$TMP\"; echo \"Saved list into du.txt\" 1>&2)";
     fi;
@@ -979,7 +979,7 @@ each()
     unset __
 }
 
-enable-some-swap()
+enable_some_swap()
 {
     ( SWAPS=` blkid|grep 'TYPE="swap"'|cut -d: -f1 `;
     set -- $SWAPS;
@@ -1059,7 +1059,7 @@ explore()
  )
 }
 
-extract-slackpkg()
+extract_slackpkg()
 {
     : ${DESTDIR=unpack};
     mkdir -p "$DESTDIR";
@@ -1068,7 +1068,7 @@ extract-slackpkg()
     files=$(cut -d: -f2 <<<"$l" |sort -fu);
     for pkg in $pkgs;
     do
-        ( e=$(grep-e-expr $files);
+        ( e=$(grep_e-expr $files);
         test -n "$files" && ( set -x;
         tar -C "$DESTDIR" -xvf "$pkg" $files 2> /dev/null ) );
     done
@@ -1079,7 +1079,7 @@ extract_version()
     echo "$*" | sed 's,^.*\([0-9]\+[-_.][0-9]\+[-_.0-9]\+\).*,\1,'
 }
 
-filesystem-for-device()
+filesystem_for_device()
 {
  (DEV="$1";
   set -- $(grep "^$DEV " /proc/mounts |awkp 3)
@@ -1102,7 +1102,7 @@ filesystem-for-device()
   echo "$1")
 }
 
-filter-cmd()
+filter_cmd()
 {
     ( IFS="
 ";
@@ -1130,7 +1130,7 @@ filter-cmd()
     done )
 }
 
-filter-filemagic() {
+filter_filemagic() {
 (
  while :; do
 	 case "$1" in
@@ -1152,7 +1152,7 @@ filter-filemagic() {
 " file -- | sed -n -u "$EXPR")
 }
 
-filter-filesize() {
+filter_filesize() {
   (OPS=
   IFS="
 "; getnum() {
@@ -1184,7 +1184,7 @@ filter-filesize() {
   )
 }
 
-filter-git-status()
+filter_git_status()
 {
  (unset MATCH SUBST MODIFIER
   while :; do
@@ -1205,12 +1205,12 @@ filter-git-status()
   exec sed $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
 }
 
-filter-quoted-name()
+filter_quoted_name()
 {
   sed -n "s|.*\`\([^']\+\)'.*|\1|p"
 }
 
-filter-test()
+filter_test()
 {
   ( IFS="
   ";
@@ -1290,7 +1290,7 @@ filter_out()
     done )
 }
 
-find-all()
+find_all()
 {
  (CMD="for_each 'locate32.sh -f -d -i \"\$1\"' \"\$@\""
   CMD="${CMD:+$CMD; }find-media.sh -i \"\$@\""
@@ -1321,10 +1321,10 @@ findstring()
 
 find_media()
 {
-    grep --color=auto --color=auto -iE "$(grep-e-expr "$@")" /{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/files.list 2> /dev/null | filter_files_list | filter-test -e
+    grep --color=auto --color=auto -iE "$(grep_e-expr "$@")" /{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/files.list 2> /dev/null | filter_files_list | filter_test -e
 }
 
-first-char()
+first_char()
 {
     echo "${*:0:1}"
 }
@@ -1343,7 +1343,7 @@ fn2re()
     echo "$1" | sed -e 's,\.,\\.,g' -e "s,\\?,${2-.},g" -e "s,\\*,${2-.}*,g" -e 's,\[!\([^\]]\+\)\],[^\1],g'
 }
 
-for-each-char()
+for_each_char()
 {
     x="$1";
     shift;
@@ -1358,7 +1358,7 @@ for-each-char()
     done
 }
 
-for-each-partition()
+for_each_partition()
 {
     ( SCRIPT="$1";
     shift;
@@ -1370,7 +1370,7 @@ for-each-partition()
     done )
 }
 
-foreach-mount()
+foreach_mount()
 {
     local old_IFS="$IFS";
     {
@@ -1383,7 +1383,7 @@ foreach-mount()
     IFS="$old_IFS"
 }
 
-foreach-partition() {
+foreach_partition() {
     local old_IFS="$IFS";
     blkid | {
         IFS="
@@ -1410,7 +1410,7 @@ for_each()
 #    IFS=$old_IFS
 }
 
-fstab-line()
+fstab_line()
 {
     ( while :; do
         case "$1" in
@@ -1428,11 +1428,11 @@ fstab-line()
     do
         ( unset DEVNAME LABEL MNTDIR #FSTYPE;
         DEVNAME=${DEV##*/};
-        LABEL=$(disk-label -E "$DEV");
+        LABEL=$(disk_label -E "$DEV");
         [ -z "$MNTDIR" ] && MNTDIR="$MNT/${LABEL:-$DEVNAME}";
-        : ${FSTYPE=$(filesystem-for-device "$DEV")}
+        : ${FSTYPE=$(filesystem_for_device "$DEV")}
         UUID=$(getuuid "$DEV");
-        set -- $(proc-mount "$DEV");
+        set -- $(proc_mount "$DEV");
         [ -n "$4" ] && : ${OPTS:="$4"};
         [ -n "$5" ] && DUMP="$5";
         [ -n "$6" ] && PASS="$6";
@@ -1480,7 +1480,7 @@ gcd()
     done )
 }
 
-get-bpm() {
+get_bpm() {
   while :; do
     case "$1" in
       -i | --int*) INTEGER=true; shift ;;
@@ -1497,10 +1497,10 @@ get-bpm() {
   done
 }
 
-get-dotfiles()
+get_dotfiles()
 {
     ( UA="curl/7.25.0 (x86_64-suse-linux-gnu) libcurl/7.25.0 OpenSSL/1.0.1c zlib/1.2.7 libidn/1.25 libssh2/1.4.0";
-    list-dotfiles "$@" | while read -r URL; do
+    list_dotfiles "$@" | while read -r URL; do
         NAME=${URL##*/};
         USER=${URL%"/$NAME"};
         USER=${USER##*/};
@@ -1510,7 +1510,7 @@ get-dotfiles()
     done )
 }
 
-get-exports() {
+get_exports() {
  (N=$#
   [ "$N" -gt 1 ] && PREFIX='$ARG: ' || PREFIX=''
   CMD='dumpbin -exports "$ARG" |sed -n "/^\\s*ordinal\\s\\+name/ { n; :lp; n; s|^\\s*[0-9]*\\s\\+\\(.*\\)|'$PREFIX'\\1|p; /^\\s*\$/! b lp; }"'
@@ -1519,7 +1519,7 @@ get-exports() {
   done)
 }
 
-get-frags() {
+get_frags() {
  (while :; do
     case "$1" in
       -l | --left) LEFT=true; shift ;;
@@ -1543,7 +1543,7 @@ get-frags() {
   done")
 }
 
-get-property()
+get_property()
 {
     sed -n "/$1=/ {
    s,.*$1=,,
@@ -1554,11 +1554,11 @@ get-property()
 }"
 }
 
-get-rootfs() {
+get_rootfs() {
 	sed -n 's,.*root=\([^ ]\+\).*,\1,p' /proc/cmdline
 }
 
-get-shortcut()
+get_shortcut()
 {
   (for SHORTCUT; do
   (    set -- TARGET=-t WDIR=-g ARGS=-r ICON=-i ICONOFFSET=-j DESC=-d SHOWCMD=-s
@@ -1583,7 +1583,7 @@ get_ext()
     echo "$*" )
 }
 
-git-branches()
+git_branches()
 {
  (EXPR='\, -> ,d ;; s,^remotes/,,'
   while :; do
@@ -1598,17 +1598,17 @@ git-branches()
  )
 }
 
-git-deep-checkout() {
-  (for BRANCH in $(git-branches -r "$@"); do
+git_deep_checkout() {
+  (for BRANCH in $(git_branches -r "$@"); do
     git branch --track "${BRANCH##*/}" "$BRANCH"
    done)
 }
 
-git-get-branch() {
+git_get_branch() {
   git branch -a |sed -n 's,^\* ,,p'
 }
 
-git-get-remote() {
+git_get_remote() {
  (while :; do
  		case "$1" in
 			-l | --list) LIST=true; shift ;;
@@ -1638,7 +1638,7 @@ git-get-remote() {
 
 }
 
-git-set-remote()
+git_set_remote()
 {
   ( IFS="
 "
@@ -1671,7 +1671,7 @@ git-set-remote()
        eval "${PRECMD}git remote add \"\$NAME\" \"\$REMOTE\""
      fi
    )
-     #   for NAME in $(git-get-remote | awkp ); do :; done
+     #   for NAME in $(git_get_remote | awkp ); do :; done
 
   }
   CMD='gsr-arg $R'
@@ -1698,14 +1698,14 @@ git-set-remote()
   eval "$CMD")
 }
 
-grep-e-expr()
+grep_e-expr()
 {
 	[ $# -gt 0 ] && exec <<<"$*"
 
 	sed 's,[().*?|\\+],\\&,g ; s,\[,\\[,g ; s,\],\\],g' | implode "|" | sed 's,.*,(&),'
 }
 
-grep-e()
+grep_e()
 {
     (IFS="
 ";  unset ARGS;
@@ -1723,19 +1723,19 @@ grep-e()
             *) WORDS="${WORDS+$WORDS$IFS}$1"; shift ;;
         esac;
     done;
-    grep -E $ARGS "$(grep-e-expr $WORDS)" ${LAST:+$LAST} )
+    grep -E $ARGS "$(grep_e-expr $WORDS)" ${LAST:+$LAST} )
 }
 
-grep-v-optpkgs()
+grep_v_optpkgs()
 {
     grep --color=auto -v -E '\-(doc|dev|dbg|extra|lite|prof|extra|manual|data|examples|source|theme|manual|demo|help|artwork|contrib)'
 }
 
-grep-v-unneeded-pkgs()
+grep_v_unneeded_pkgs()
 {
  (set -- common data debuginfo devel doc docs el examples fonts javadoc plugin static theme tests extras demo manual test  help info support demos
 
- grep -v -E "\-$(grep-e-expr "$@")(\$|\\s)")
+ grep -v -E "\-$(grep_e-expr "$@")(\$|\\s)")
 }
 
 grephexnums()
@@ -1757,22 +1757,22 @@ grephexnums()
     grep --color=auto --color=auto --color=auto -E $ARGS "(${*#0x})" )
 }
 
-grub-device-string()
+grub_device_string()
 {
-    ( device_number=` disk-device-number "$1" `;
-    partition_number=` disk-partition-number "$1" `;
+    ( device_number=` disk_device_number "$1" `;
+    partition_number=` disk_partition_number "$1" `;
     [ "$partition_number" ] && partition_number=$((partition_number-1));
     echo "(hd${device_number}${partition_number:+,${partition_number}})" )
 }
 
-grub2-device-string()
+grub2_device_string()
 {
-    ( device_number=` disk-device-number "$1" `;
-    partition_number=` disk-partition-number "$1" `;
+    ( device_number=` disk_device_number "$1" `;
+    partition_number=` disk_partition_number "$1" `;
     echo "(hd${device_number}${partition_number:+,${partition_number}})" )
 }
 
-grub2-menuentry()
+grub2_menuentry()
 {
     ( NAME="$1";
     : ${INDENT="  "};
@@ -1802,16 +1802,16 @@ grub2-menuentry()
     echo "}" )
 }
 
-grub2-modules-for-device()
+grub2_modules_for_device()
 {
     ( ARG="$1";
-    [ ! -b "$ARG" ] && ARG=$(device-of-file "$ARG");
+    [ ! -b "$ARG" ] && ARG=$(device_of_file "$ARG");
     [ ! -b "$ARG" ] && exit 2;
-    FS=$(filesystem-for-device "$ARG");
+    FS=$(filesystem_for_device "$ARG");
     SUFFIX=${1##*/};
     SUFFIX=${SUFFIX#[hs]d[a-z]};
     DISK=${1%"$SUFFIX"};
-    [ "$DISK" ] && PART_TYPE=$(partition-table-type "$DISK");
+    [ "$DISK" ] && PART_TYPE=$(partition_table_type "$DISK");
     case "$PART_TYPE" in
         msdos | mbr*)
             echo "${2}insmod part_msdos"
@@ -1839,17 +1839,17 @@ grub2-modules-for-device()
     esac )
 }
 
-grub2-root-for-device()
+grub2_root_for_device()
 {
     ( [ ! -b "$1" ] && exit 2;
-    ROOT=$(grub2-device-string "$1");
+    ROOT=$(grub2_device_string "$1");
     echo "set root='$ROOT'" )
 }
 
-grub2-search-for-device()
+grub2_search_for_device()
 {
     ( ARG="$1";
-    [ ! -b "$ARG" ] && ARG=$(device-of-file "$ARG");
+    [ ! -b "$ARG" ] && ARG=$(device_of_file "$ARG");
     [ ! -b "$ARG" ] && exit 2;
     BLKID=$(blkid "$ARG");
     eval "${BLKID#*": "}";
@@ -1877,7 +1877,7 @@ hexdump_printfable()
     hexdump -C -v < "$1" | sed "s,^\([0-9a-f]\+\)\s\+\(.*\),\2 #0x\1, ; #s,0x0000,0x," | sed "s,|[^|]*|,, ; s,^, ," | sed "s,\s\+\([0-9a-f][0-9a-f]\), 0x\\1,g" | sed "s,^,printf \"$(str_repeat 16 %c)\\\n\" ,"
 }
 
-hexnums-dash()
+hexnums_dash()
 {
     sed "s,[0-9A-Fa-f][0-9A-Fa-f],&-\\\\?,g"
 }
@@ -2128,7 +2128,7 @@ incv()
     eval "$1=\`expr \"\${$1}\" + \"${2-1}\"\`"
 }
 
-index-dir()
+index_dir()
 { 
     [ -z "$*" ] && set -- .;
     ( [ "$(uname -m)" = "x86_64" ] && : ${R64="64"};
@@ -2145,22 +2145,22 @@ index-dir()
         ( if type list-r${R64} 2> /dev/null > /dev/null; then
             list-r${R64} 2> /dev/null;
         else
-            list-recursive;
+            list_recursive;
         fi ) > "$TEMP";
         ( install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/files.list";
         wc -l "$PWD/files.list" 1>&2 );
     done )
 }
 
-index-of()
+index_of()
 {
     io="$1";
     shift;
     s="$*";
-    for-each-char 'if [ "$io" = "$c" ]; then echo "$i"; return 0; fi' "$s"
+    for_each_char 'if [ "$io" = "$c" ]; then echo "$i"; return 0; fi' "$s"
 }
 
-index-tar()
+index_tar()
 {
     ( while :; do
       case "$1" in
@@ -2223,7 +2223,7 @@ inputf()
     done
 }
 
-inst-slackpkg()
+inst_slackpkg()
 {
     ( . require.sh;
     require array;
@@ -2243,7 +2243,7 @@ inst-slackpkg()
         esac;
     done;
     INSTALLED=;
-    EXPR="$(grep-e-expr "$@")";
+    EXPR="$(grep_e-expr "$@")";
     [ "$FILE" = true ] && EXPR="/$EXPR[^/]*\$";
     PKGS=` grep --color=auto -H -E "$EXPR" $([ "$PWD" = "$HOME" ] && ls -d slackpkg*)  ~/slackpkg* | sed 's,.*:/,/, ; s,/slackpkg[^./]*\.list:,/,'`;
     if [ -z "$PKGS" ]; then
@@ -2284,17 +2284,17 @@ in_path()
     return 127
 }
 
-is-absolute()
+is_absolute()
 {
-    ! is-relative "$@"
+    ! is_relative "$@"
 }
 
-is-mounted()
+is_mounted()
 {
-    isin "$1" $(mounted-devices)
+    isin "$1" $(mounted_devices)
 }
 
-is-relative()
+is_relative()
 {
     case "$1" in
         /*)
@@ -2306,9 +2306,9 @@ is-relative()
     esac
 }
 
-is-upx-packed()
+is_upx_packed()
 {
-    list-upx "$1" | grep --color=auto --color=auto --color=auto -q "\->.*$1"
+    list_upx "$1" | grep --color=auto --color=auto --color=auto -q "\->.*$1"
 }
 
 isin()
@@ -2321,7 +2321,7 @@ isin()
     exit 1 )
 }
 
-iso-extract()
+iso_extract()
 {
     ( NAME=`basename "$1" .iso`;
     DEST=${2:-"$NAME"};
@@ -2404,7 +2404,7 @@ is_var()
     return 0
 }
 
-killall-w32()
+killall_w32()
 {
     ( IFS="
 	 ";
@@ -2417,7 +2417,7 @@ lastarg()
     ( eval echo "\${$#}" )
 }
 
-launch-x11() {
+launch_x11() {
  (IFS=" "
   CMD="$*"
 
@@ -2458,7 +2458,7 @@ lines()
     done
 }
 
-link-mpd-music-dirs()
+link_mpd_music_dirs()
 {
     ( : ${DESTDIR=/var/lib/mpd/music};
     mkdir -p "$DESTDIR";
@@ -2471,7 +2471,7 @@ link-mpd-music-dirs()
     done )
 }
 
-list-7z() {
+list_7z() {
  (while :; do 
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
@@ -2593,7 +2593,7 @@ list-7z() {
   done)
 }
 
-list-broken-links() {
+list_broken_links() {
   (for ARG; do
     DIR=`dirname "$ARG"`
     BASE=`basename "$ARG"`
@@ -2606,7 +2606,7 @@ list-broken-links() {
    done)
 }
 
-list-deb() { 
+list_deb() { 
  (trap 'exit 1' INT 
   NARG=$#
   output() {
@@ -2633,7 +2633,7 @@ list-deb() {
 			*) DEB=$(realpath "$ARG") ;;
 		esac
     cd "$TEMP"
-		set -- $( ("${AR-ar}" t "$DEB" || list-7z "$DEB") 2>/dev/null |uniq |grep "data\.tar\.")
+		set -- $( ("${AR-ar}" t "$DEB" || list_7z "$DEB") 2>/dev/null |uniq |grep "data\.tar\.")
 		if [ $# -le 0 ]; then
 			exit 1
 		fi
@@ -2657,7 +2657,7 @@ list-deb() {
 	done)
 }
 
-list-dotfiles()
+list_dotfiles()
 {
     ( for ARG in "$@";
     do
@@ -2665,7 +2665,7 @@ list-dotfiles()
     done )
 }
 
-list-files()
+list_files()
 {
     ( OUTPUT=">";
     OUTFILE=".files.file.tmp";
@@ -2693,12 +2693,12 @@ list-files()
     done )
 }
 
-list-lastitem()
+list_lastitem()
 {
     sed -n '$p'
 }
 
-list-mediapath()
+list_mediapath()
 {
    (while :; do
       case "$1" in
@@ -2714,17 +2714,17 @@ list-mediapath()
     done)
 }
 
-list-nolastitem()
+list_nolastitem()
 {
     sed '$d'
 }
 
-list-path()
+list_path()
 {
   (IFS=":"; find $PATH -maxdepth 1 -mindepth 1 -not -type d)
 }
 
-list-rar() {
+list_rar() {
  (while :; do 
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
@@ -2763,7 +2763,7 @@ list-rar() {
   done)
 }
 
-list-recursive()
+list_recursive()
 {
     ( NL="
 ";
@@ -2797,7 +2797,7 @@ list-recursive()
     done )
 }
 
-list-rpm() { 
+list_rpm() { 
  (NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
@@ -2856,7 +2856,7 @@ list-rpm() {
 	done)
 }
 
-list-slackpkgs()
+list_slackpkgs()
 {
     ( [ -z "$*" ] && set -- .;
     for ARG in "$@";
@@ -2865,22 +2865,22 @@ list-slackpkgs()
     done | sed 's,^\./,,' )
 }
 
-list-subdirs()
+list_subdirs()
 {
     ( find ${@-.} -mindepth 1 -maxdepth 1 -type d | sed "s|^\./||" )
 }
 
-list-tolower()
+list_tolower()
 {
     tr [:{upper,lower}:]
 }
 
-list-toupper()
+list_toupper()
 {
     tr [:{lower,upper}:]
 }
 
-list-upx()
+list_upx()
 {
     upx -l "$@" 2>&1 | sed '1 { :lp; N; /^\s*--\+/! b lp; d; }' | sed '$ { /[0-9]\sfiles\s\]$/d; } ; /^\s*[- ]\+$/d'
 }
@@ -2891,7 +2891,7 @@ list() {
   done)
 }
 
-locate-filename()
+locate_filename()
 {
     ( IFS="
  ";
@@ -2964,14 +2964,14 @@ locate-filename()
         fi;
         CMD='(set -x; locate $LOCATE_ARGS -r "$EXPR") ';
         if [ -n "$TEST_ARGS" ]; then
-            CMD="$CMD | filter-test \$TEST_ARGS";
+            CMD="$CMD | filter_test \$TEST_ARGS";
         fi;
         CMD="$CMD | (set -x ; grep \$GREP_ARGS \"\${EXPR#/}\") ";
         eval "$CMD";
     done )
 }
 
-ls-dirs()
+ls_dirs()
 {
     ( [ -z "$@" ] && set -- .;
     for ARG in "$@";
@@ -2980,17 +2980,17 @@ ls-dirs()
     done ) | sed 's,^\./,,; s,/$,,'
 }
 
-ls-files()
+ls_files()
 {
     ( [ -z "$@" ] && set -- .;
     for ARG in "$@";
     do
         ls --color=auto -d "$ARG"/*;
-    done ) | filter-test -f| sed 's,^\./,,; s,/$,,'
+    done ) | filter_test -f| sed 's,^\./,,; s,/$,,'
 }
 
-unalias ls-l 2>/dev/null
-ls-l()
+unalias ls_l 2>/dev/null
+ls_l()
 {
     ( I=${1:-6};
     set --;
@@ -3004,7 +3004,7 @@ ls-l()
     eval "$CMD" )
 }
 
-lsof-win()
+lsof_win()
 {
 #  (for PID in $(ps -aW | sed 1d |awkp 1); do
 #    handle -p "$PID" |sed "1d;2d;3d;4d;5d; s|^|$PID\\t|"
@@ -3018,7 +3018,7 @@ lsof-win()
     esac
   done
   if [ -n "$PIDS" ]; then
-    CMD='for PID in $PIDS; do EXE=$(proc-by-pid $PID); echo "${EXE##*[\\/]}.exe pid: $PID"; handle -p $PID; done'
+    CMD='for PID in $PIDS; do EXE=$(proc_by_pid $PID); echo "${EXE##*[\\/]}.exe pid: $PID"; handle -p $PID; done'
   else
     CMD='handle -a'
   fi
@@ -3041,7 +3041,7 @@ lsof-win()
   done; })
 }
 
-make-slackpkg()
+make_slackpkg()
 {
     (IFS="
 "
@@ -3082,17 +3082,17 @@ map()
     unset -v from to
 }
 
-match-devices()
+match_devices()
 {
     ( EXPR="$*";
-    foreach-partition 'case $DEV:$TYPE:$UUID:$LABEL in
+    foreach_partition 'case $DEV:$TYPE:$UUID:$LABEL in
 $EXPR:*:*:* | *:$EXPR:*:* | *:*:$EXPR:* | *:*:*:$EXPR) echo "$DEV: TYPE=\"$TYPE\" UUID=\"$UUID\" LABEL=\"$LABEL\"" ;; esac' )
 }
 
-match-mounted()
+match_mounted()
 {
     ( EXPR="$*";
-    foreach-mount 'case $DEV:$MNT:$TYPE:$OPTS in
+    foreach_mount 'case $DEV:$MNT:$TYPE:$OPTS in
 $EXPR:*:*:* | *:$EXPR:*:* | *:*:$EXPR:* | *:*:*:$EXPR) echo "$DEV $MNT $TYPE $OPTS $A $B" ;; esac' )
 }
 
@@ -3301,7 +3301,7 @@ modules()
     }
 }
 
-mount-all()
+mount_all()
 {
     for ARG in "$@";
     do
@@ -3310,18 +3310,18 @@ mount-all()
     done
 }
 
-mount-matching()
+mount_matching()
 {
     ( MNTDIR="/mnt";
    [ "$UID" != 0 ] && SUDO=sudo
-   blkid | grep-e "$@" | {
+   blkid | grep_e "$@" | {
         IFS=" ";
         while read -r DEV PROPERTIES; do
             DEV=${DEV%:};
             unset LABEL UUID TYPE;
             eval "$PROPERTIES";
             MNT="$MNTDIR/${LABEL:-${DEV##*/}}";
-            if ! is-mounted "$DEV" && ! is-mounted "$MNT"; then
+            if ! is_mounted "$DEV" && ! is_mounted "$MNT"; then
                 $SUDO mkdir -p "$MNT";
                 echo "Mounting $DEV to $MNT ..." 1>&2;
                 $SUDO mount "$DEV" "$MNT" ${MNTOPTS:+-o
@@ -3331,12 +3331,12 @@ mount-matching()
     } )
 }
 
-mount-remaining()
+mount_remaining()
 {
     ( MNT="${1:-/mnt}";
     [ "$UID" != 0 ] && SUDO=sudo
-    for DEV in $(not-mounted-disks); do
-        LABEL=` disk-label "$DEV"`
+    for DEV in $(not_mounted_disks); do
+        LABEL=` disk_label "$DEV"`
 				TYPE=` blkvars "$DEV" TYPE`
 				case "$TYPE" in
 					swap) continue ;;
@@ -3349,12 +3349,12 @@ mount-remaining()
     done )
 }
 
-mounted-devices() {
+mounted_devices() {
   (IFS=" "
 	unset PREV
 	while read -r DEV MNT FSTYPE OPTS A B; do
 		case "$DEV" in
-			rootfs | /dev/root) DEV=`get-rootfs` ;;
+			rootfs | /dev/root) DEV=`get_rootfs` ;;
 			/*) ;;
 			*) continue	;;
 		esac
@@ -3363,7 +3363,7 @@ mounted-devices() {
 	done) </proc/mounts
 }
 
-mountpoint-by-label() {
+mountpoint_by_label() {
  (IFS="
  	"
   for MNT in $(wmic Path win32_volume where "Label='$1'" Get DriveLetter /format:list 2>&1); do
@@ -3378,24 +3378,24 @@ mountpoint-by-label() {
   [ -n "$MNT" ] && { echo "$MNT" | tr "[:"{upper,lower}":]"; })
 } ||
 
-mountpoint-by-label() {
+mountpoint_by_label() {
  (if [ -e /dev/disks/by-label/"$1" ]; then
-    mountpoint-for-device "$1"
+    mountpoint_for_device "$1"
   else
     DEV=$(blkid -L "$1")
     if [ -n "$DEV" -a -e "$DEV" ]; then
-      mountpoint-for-device "$DEV"
+      mountpoint_for_device "$DEV"
     fi
   fi)
 }
 
-mountpoint-for-device()
+mountpoint_for_device()
 {
     ( set -- $(grep "^$1 " /proc/mounts |awkp 2);
     echo "$1" )
 }
 
-mountpoint-for-file()
+mountpoint_for_file()
 {
     ( df "$1" | sed 1d | awkp 6 )
 }
@@ -3528,7 +3528,7 @@ $INDENT$LINE"'
  )
 }
 
-multiply-resolution()
+multiply_resolution()
 {
     ( WIDTH=${1%%x*};
     HEIGHT=${1#*x};
@@ -3566,7 +3566,7 @@ myrealpath()
     fi;
     DIR=` dirname "$FILE"`;
     BASE=`basename "$FILE"`;
-    if is-relative "$ARG"; then
+    if is_relative "$ARG"; then
     DIR="$PWD/$DIR";
     fi;
     DIR=$(cd "$DIR"; pwd -P);
@@ -3582,13 +3582,13 @@ neighbours()
     done
 }
 
-not-mounted-disks()
+not_mounted_disks()
 {
     ( IFS="
 ";
-    for DISK in $(all-disks);
+    for DISK in $(all_disks);
     do
-        is-mounted "$DISK" || echo "$DISK";
+        is_mounted "$DISK" || echo "$DISK";
     done )
 }
 
@@ -3597,7 +3597,7 @@ notice()
     msg "NOTICE: $@"
 }
 
-ntfs-get-uuid()
+ntfs_get_uuid()
 {
     ( IFS=" ";
     set -- $(  dd if="$1" bs=1 skip=$((0x48)) count=8 |hexdump -C -n8);
@@ -3605,7 +3605,7 @@ ntfs-get-uuid()
     echo "${*:2:8}" )
 }
 
-output-boot-entry()
+output_boot_entry()
 {
  (
   [ -z "$FORMAT" ] && FORMAT="$1"
@@ -3650,12 +3650,12 @@ output-boot-entry()
  )
 }
 
-packed-upx-files()
+packed_upx_files()
 {
     upx -l "$@" 2>&1 | sed -n '$ { \,files\s*\]$,d } ;; $! { \,->, s,.*->\s\+[0-9]\+\s\+[.0-9]\+%\s\+[^ ]\+\s\+\(.*\),\1,p }'
 }
 
-parse-boot-entry()
+parse_boot_entry()
 {
   clear-boot-entry() {  TYPE= LABEL= TITLE= KERNEL= INITRD= CMDS=; }
    NL="
@@ -3753,12 +3753,12 @@ parse-boot-entry()
   done
 }
 
-partition-table-type()
+partition_table_type()
 {
-    ( if command-exists "parted"; then
+    ( if command_exists "parted"; then
         parted "$1" p | sed -n 's,.*Table:\s\+,,p';
     else
-        ( eval "$(  gdisk -l "$(disk-device-for-partition "$1")" |sed 's,\s*not present$,,' |sed -n  's,^\s*\([[:upper:]]\+\):\(\s*\)\(.*\),\1="\3",p')";
+        ( eval "$(  gdisk -l "$(disk_device_for_partition "$1")" |sed 's,\s*not present$,,' |sed -n  's,^\s*\([[:upper:]]\+\):\(\s*\)\(.*\),\1="\3",p')";
         if [ "$MBR" -a "$GPT" ]; then
             echo "mbr+gpt";
         else
@@ -3773,7 +3773,7 @@ partition-table-type()
     fi )
 }
 
-path-executables()
+path_executables()
 {
     ( IFS=":;";
     for DIR in $PATH;
@@ -3850,12 +3850,12 @@ pdfpextr()
     )
 }
 
-pid-args()
+pid_args()
 {
-  pid-of "$@" | sed -n  "/^[0-9]\+$/ s,^,-p\n,p"
+  pid_of "$@" | sed -n  "/^[0-9]\+$/ s,^,-p\n,p"
 }
 
-pid-of() {
+pid_of() {
    (if ps --help 2>&1 |grep -q '\-W'; then
        PGREP_CMD='ps -aW |grep -i "$ARG" | awkp'
     elif type pgrep 2>/dev/null >/dev/null; then
@@ -3868,7 +3868,7 @@ pid-of() {
     done | sed -n 's/^\([0-9]\+\)\r\?$/\1/p')
 }
 
-pkg-name()
+pkg_name()
 {
     ( for ARG in "$@";
     do
@@ -3897,7 +3897,7 @@ pkgsearch()
     done | sed -n "/^[^ ]/ s,\..* : , : ,p" | grep --color=auto --color=auto --color=auto --color=auto -vE "($(IFS='| '; set -- $EXCLUDE; echo "$*"))" | uniq )
 }
 
-player-file()
+player_file()
 {
   ( SED_SCRIPT=
 	while :; do
@@ -3910,19 +3910,19 @@ player-file()
 					esac
 	done
 	SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }s| ([^)]*)\$||"
-	  lsof -n $(pid-args "${@-mplayer}") 2> /dev/null 2> /dev/null 2> /dev/null 2> /dev/null | grep  -E ' [0-9]+[^ ]* +REG ' | grep --color=auto -vE ' (mem|txt|DEL) ' | cut-lsof NAME |sed "$SED_SCRIPT" )
+	  lsof -n $(pid_args "${@-mplayer}") 2> /dev/null 2> /dev/null 2> /dev/null 2> /dev/null | grep  -E ' [0-9]+[^ ]* +REG ' | grep --color=auto -vE ' (mem|txt|DEL) ' | cut_lsof NAME |sed "$SED_SCRIPT" )
 }
 
-proc-by-pid() {
+proc_by_pid() {
   if ps --help 2>&1 |grep -q '\-W'; then
     PSARGS="-W"
   fi
   for ARG; do
      ps $PSARGS -p "$ARG" | sed 1d
-  done |cut-ls-l 7
+  done |cut_ls_l 7
 }
 
-proc-mount()
+proc_mount()
 {
     for ARG in "$@";
     do
@@ -4092,7 +4092,7 @@ reload()
     source "$shlibdir/$script"
 }
 
-remove-cond-include() {
+remove_cond_include() {
  (INC="$1"
   shift
 
@@ -4272,7 +4272,7 @@ rm_ver()
     sed 's,-[^-]*$,,' )
 }
 
-rpm-cmd() {
+rpm_cmd() {
   OPTS= OUTPUT=
   while :; do
     case "$1" in
@@ -4320,12 +4320,12 @@ rpm-cmd() {
   done
 }
 
-rpm-list() {
-  rpm-cmd -t -- "$@"
+rpm_list() {
+  rpm_cmd -t -- "$@"
 }
 
-rpm-extract() {
-  rpm-cmd -i -d -u -- "$@"
+rpm_extract() {
+  rpm_cmd -i -d -u -- "$@"
 }
 
 scriptdir()
@@ -4348,7 +4348,7 @@ set_ps1()
     export PS1="$n\\u$g@$n\\h$g<$n\\w$g>$n \\\$ "
 }
 
-shell-functions()
+shell_functions()
 {
     ( . require.sh;
     require script;
@@ -4439,7 +4439,7 @@ subst_script()
     array_implode script ';'
 }
 
-symlink-lib()
+symlink_lib()
 {
     ( while :; do
         case "$1" in
@@ -4476,7 +4476,7 @@ symlink-lib()
     done )
 }
 
-tcp-check() {
+tcp_check() {
         (TIMEOUT=10
         for ARG; do
         HOST=${ARG%:*}
@@ -4539,15 +4539,15 @@ id3get "$1" 'TIT[0-9]'
 
 }
 
-to-expr() { echo "${*//[!-a-zA-Z0-9_=%:\/ <>\']/.}"; }
+to_expr() { echo "${*//[!-a-zA-Z0-9_=%:\/ <>\']/.}"; }
 
-to-sed-expr()
+to_sed_expr()
 {
  ([ $# -gt 0 ] && exec <<<"$*"
   sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
 }
 
-umount-all()
+umount_all()
 {
     for ARG in "$@";
     do
@@ -4555,9 +4555,9 @@ umount-all()
     done
 }
 
-umount-matching()
+umount_matching()
 {
-    ( grep-e "$@" < /proc/mounts | {
+    ( grep_e "$@" < /proc/mounts | {
         IFS=" ";
         while read -r DEV MNT TYPE OPTS N M; do
             echo "Unmounting $DEV, mounted at $MNT ..." 1>&2;
@@ -4586,7 +4586,7 @@ unix2date()
     date --date "@$1" "+%Y/%m/%d %H:%M:%S"
 }
 
-unmount-all()
+unmount_all()
 {
     for ARG in "$@";
     do
@@ -4594,7 +4594,7 @@ unmount-all()
     done
 }
 
-unpack-deb()
+unpack_deb()
 {
     ( for ARG in "$@";
     do
@@ -4666,7 +4666,7 @@ verbose()
     fi
 }
 
-video-height()
+video_height()
 {
     ( for ARG in "$@";
     do
@@ -4675,7 +4675,7 @@ video-height()
     done )
 }
 
-video-width()
+video_width()
 {
     ( for ARG in "$@";
     do
@@ -4749,7 +4749,7 @@ warn()
     msg "WARNING: $@"
 }
 
-x-fn()
+x_fn()
 { 
  (MATCH=p
   NOMATCH=D
@@ -4800,12 +4800,12 @@ x-fn()
   " "$@")
 }
 
-yaourt-pkgnames() {
+yaourt_pkgnames() {
  (NAME='\([^ \t/]\+\)'
  sed -n "s|^${NAME}/${NAME}\s\+\(.*\)|\2|p")
 }
 
-yaourt-joinlines() {
+yaourt_joinlines() {
  (while :; do 
    case "$1" in
 		-n | --num*) CUT_NUM=true ;;
@@ -4829,12 +4829,12 @@ yaourt-joinlines() {
 	[ -n "$PKG" ] && echo "$PKG")
 }
 
-yaourt-cutver() {
+yaourt_cutver() {
  (NAME='\([^ \t/]\+\)'
  sed "s|^${NAME}/${NAME}\s\+\([^ \t]\+\)\s\+\(.*\)|\1/\2 \4|")
 }
 
-yaourt-cutnum() {
+yaourt_cutnum() {
  #(NAME='\([^ \t/]\+\)';  sed "s|^${NAME}/${NAME}\s\+\(.*\)\s\+\(([0-9]\+)\)\(.*\)|\1/\2 \3 \5|")
  sed "s|\s\+\(([0-9]\+)\)\(.*\)| \2|"
 }

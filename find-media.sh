@@ -5,7 +5,7 @@ NL='
 '
 exec 9>&2
 
-grep-e-expr()
+grep_e_expr()
 { 
     echo "($(IFS="|
 	 $IFS";  set -- $*; echo "$*"))"
@@ -295,11 +295,11 @@ if [ "$EXIST_FILE" = true ]; then
   FILTERCMD="${FILTERCMD:+$FILTERCMD | }while read -r FILE; do test -e \"\$FILE\" && echo \"\$FILE\"; done"
 fi
 if [ -n "$INCLUDE_DIRS" ]; then
-  INCLUDE_DIR_EXPR=`grep-e-expr $INCLUDE_DIRS`
+  INCLUDE_DIR_EXPR=`grep_e_expr $INCLUDE_DIRS`
   FILTERCMD="${FILTERCMD:+$FILTERCMD | }grep -E \"^$INCLUDE_DIR_EXPR\""
 fi
 #if [ -n "$EXCLUDE_DIRS" ]; then
-#  EXCLUDE_DIR_EXPR=`grep-e-expr $EXCLUDE_DIRS`
+#  EXCLUDE_DIR_EXPR=`grep_e_expr $EXCLUDE_DIRS`
 #  FILTERCMD="$FILTERCMD |grep -v -E \"^$EXCLUDE_DIR_EXPR\""
 #fi
 

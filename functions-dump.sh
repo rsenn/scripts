@@ -56,7 +56,7 @@ script_nocomments()
     sed -n -e "/^\s*#/! p" "$@"
 }
 
-fn-add-body()
+fn_add_body()
 {
   (if [ $# -le 0 ]; then
      read -r FNBODY
@@ -70,7 +70,7 @@ $2()
 EOF
   )
 }
-fn-remove-body()
+fn_remove_body()
 {
   (if [ $# -le 0 ]; then
      read -r FNBODY
@@ -117,8 +117,8 @@ fi
    OUTPUT_FILE="$OUTPUT_DIR/$FN.sh"
    echo "Dumping function \`$FN' from \`$INPUT_FILE' to $OUTPUT_FILE ..." 1>&2
    FNBODY=$(script_getfn "$FN" <"$INPUT_FILE" )
-   [ "$REMOVE_BODY" = true -o "$REGENERATE_BODY" = true ] && FNBODY=$(fn-remove-body "$FNBODY")
-   [ "$REGENERATE_BODY" = true ] && FNBODY=$(fn-add-body "$FNBODY" "$FN")
+   [ "$REMOVE_BODY" = true -o "$REGENERATE_BODY" = true ] && FNBODY=$(fn_remove_body "$FNBODY")
+   [ "$REGENERATE_BODY" = true ] && FNBODY=$(fn_add_body "$FNBODY" "$FN")
    [ "$UNINDENT" = true ] && FNBODY=$(echo "$FNBODY"|sed -u 's,^\s*,,')
    [ "$PRETTY_PRINT" = true ] && FNBODY=$(echo "$FNBODY"|sed -u '1 s,\s*(),(),')
    [ "$COMPAT_MODE" = true ] && FNBODY=$(echo "$FNBODY"|sed -u 's,^\(\s*\)local\(\s*\),\1\2,')

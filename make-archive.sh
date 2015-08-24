@@ -95,7 +95,7 @@ bci() {
  (IFS=" "; : echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | sed -u 's,\.[0-9]\+$,,'
 }
 
-create-list() {
+create_list() {
  (output=
   SWITCH="$1"
   shift
@@ -136,8 +136,8 @@ implode()
   echo "$DATA")
 }
 
-dir-contents() {
-(echo "dir-contents \"$(implode '" "' "$@")\"" 1>&2
+dir_contents() {
+(echo "dir_contents \"$(implode '" "' "$@")\"" 1>&2
   case "$1" in 
 		. | "." | \".\" | .*) 
 			EXCLUDE="$(implode "|" $exclude)" 
@@ -152,15 +152,15 @@ dir-contents() {
 
 set -f
 case "$archive" in
-  *.7z) cmd="${sevenzip:-7za} a -mx=$(( $level * 5 / 9 )) \"\$archive\" $(create-list "-x!" $exclude) \"$dir\"" ;;
-  *.zip) cmd="zip -${level} -r \"\$archive\" \"$dir\" $(create-list "-x " $exclude) " ;;
-  *.rar) cmd="rar a -m$(($level * 5 / 9)) -r $(create-list "-x" $exclude) \"\$archive\" \"$dir\"" ;;
-  *.txz|*.tar.xz) cmd="$TAR -cv $(create-list --exclude= $exclude) $(dir-contents \"$dir\") | xz -$level >\"\$archive\"" ;;
-  *.tlzma|*.tar.lzma) cmd="$TAR -cv $(create-list --exclude= $exclude) $(dir-contents "$dir") | lzma -$level >\"\$archive\"" ;;
-  *.tlzip|*.tar.lzip) cmd="$TAR -cv $(create-list --exclude= $exclude) $(dir-contents "$dir") | lzip -$level >\"\$archive\"" ;;
-  *.tlzo|*.tar.lzo) cmd="$TAR -cv $(create-list --exclude= $exclude) $(dir-contents "$dir") | lzop -$level >\"\$archive\"" ;;
-  *.tgz|*.tar.gz) cmd="$TAR -cv $(create-list --exclude= $exclude) $(dir-contents "$dir") | gzip -$level >\"\$archive\"" ;;
-  *.tbz2|*.tbz|*.tar.bz2) cmd="$TAR -cv $(create-list --exclude= $exclude) $(dir-contents "$dir") | bzip2 -$level >\"\$archive\"" ;;
+  *.7z) cmd="${sevenzip:-7za} a -mx=$(( $level * 5 / 9 )) \"\$archive\" $(create_list "-x!" $exclude) \"$dir\"" ;;
+  *.zip) cmd="zip -${level} -r \"\$archive\" \"$dir\" $(create_list "-x " $exclude) " ;;
+  *.rar) cmd="rar a -m$(($level * 5 / 9)) -r $(create_list "-x" $exclude) \"\$archive\" \"$dir\"" ;;
+  *.txz|*.tar.xz) cmd="$TAR -cv $(create_list --exclude= $exclude) $(dir_contents \"$dir\") | xz -$level >\"\$archive\"" ;;
+  *.tlzma|*.tar.lzma) cmd="$TAR -cv $(create_list --exclude= $exclude) $(dir_contents "$dir") | lzma -$level >\"\$archive\"" ;;
+  *.tlzip|*.tar.lzip) cmd="$TAR -cv $(create_list --exclude= $exclude) $(dir_contents "$dir") | lzip -$level >\"\$archive\"" ;;
+  *.tlzo|*.tar.lzo) cmd="$TAR -cv $(create_list --exclude= $exclude) $(dir_contents "$dir") | lzop -$level >\"\$archive\"" ;;
+  *.tgz|*.tar.gz) cmd="$TAR -cv $(create_list --exclude= $exclude) $(dir_contents "$dir") | gzip -$level >\"\$archive\"" ;;
+  *.tbz2|*.tbz|*.tar.bz2) cmd="$TAR -cv $(create_list --exclude= $exclude) $(dir_contents "$dir") | bzip2 -$level >\"\$archive\"" ;;
 esac
 cmd='rm -vf "$archive";'$cmd
 cmd="($cmd) 2>&1"

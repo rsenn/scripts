@@ -8,7 +8,7 @@ IFS="
 USER="roman.l.senn@gmail.com"
 PASS="lalala"
 
-curl-upload()
+curl_upload()
 { for ARG; do
   (set -x; 
     BASE=${ARG##*/}; 
@@ -16,5 +16,5 @@ curl-upload()
 done
 }
 
-curl-upload "$@"
+curl_upload "$@"
 

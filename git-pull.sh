@@ -1,7 +1,7 @@
 #!/bin/bash
 MYDIR=`dirname "$0"` 
 
-git-get-remote () 
+git_get_remote () 
 { 
     ( while :; do
         case "$1" in 
@@ -69,7 +69,7 @@ awkp ()
     esac;
     "$@" "{ print \$${N:-1} }" )
 }
-git-get-remote () 
+git_get_remote () 
 { 
     ( while :; do
         case "$1" in 
@@ -110,7 +110,7 @@ git-get-remote ()
         ( cd "${DIR%/.git}" > /dev/null && eval "$CMD" );
     done )
 }
-git-get-branch () 
+git_get_branch () 
 { 
     git branch -a | sed -n 's,^\* ,,p'
 }
@@ -118,7 +118,7 @@ git-get-branch ()
 if [ $# -gt 0 ]; then
   set -- $(find "$@"  -type d -name ".git"|removesuffix /.git)
 else
-  set -- $(git-get-remote "$MYDIR"/*/|grep -E ' (/var/lib/git|github\.com/|ssh://.*crowdguard.org)'|cut -d: -f1|removesuffix / )
+  set -- $(git_get_remote "$MYDIR"/*/|grep -E ' (/var/lib/git|github\.com/|ssh://.*crowdguard.org)'|cut -d: -f1|removesuffix / )
 fi
 
 for DIR ; do 
@@ -130,11 +130,11 @@ Entering directory $DIR ...
   
   (
   cd "$DIR"
-  REMOTES=$(git-get-remote .|awkp)
+  REMOTES=$(git_get_remote .|awkp)
     git commit -m ... -a
   for R in $REMOTES; do
-    git pull "$R" $(git-get-branch)
-    git push "$R" $(git-get-branch)
+    git pull "$R" $(git_get_branch)
+    git push "$R" $(git_get_branch)
   done
   ) >/dev/null
   echo "

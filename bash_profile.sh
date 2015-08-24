@@ -135,7 +135,7 @@ alias lsof='lsof 2>/dev/null'
 
 [ "$PS1" = '\s-\v\$ ' ] && unset PS1
 
-set-prompt()
+set_prompt()
 { [ -r "$HOME/.bash_prompt" ] && eval "PS1=\"$(<$HOME/.bash_prompt)\"" || PS1="$*"; }
 
 [ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; : ${OS="Cygwin"}; }
@@ -156,22 +156,22 @@ case "${OS}" in
     PATHTOOL=msyspath
     MSYSROOT=`msyspath -m / 2>/dev/null`
 
-    set-prompt '\e[32m\]\u@\h \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
+    set_prompt '\e[32m\]\u@\h \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-   set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
+   set_prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
    PATHTOOL=cygpath
    CYGROOT=`cygpath -m /`
   ;;
 *) 
   MEDIAPATH="{/m*,$HOME/mnt}/*/"  
   if [ -e ~/.bash_prompt ]; then
-    set-prompt
+    set_prompt
   else
     case "$PS1" in
       *\\033*) ;;
-      *) : set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ " ;;
+      *) : set_prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ " ;;
     esac
   fi
  ;;
@@ -235,17 +235,17 @@ pathremove() {
   unset NEWPATH old_IFS
 	return $RET
 }
-list-mediapath()
+list_mediapath()
 {
   for ARG; do
     eval "ls -1 -d  -- $MEDIAPATH/\$ARG 2>/dev/null"
   done
 }
 
-add-mediapath()
+add_mediapath()
 {
   for ARG; do
-    set -- $(eval "list-mediapath $ARG"); while [ "$1" ]; do 
+    set -- $(eval "list_mediapath $ARG"); while [ "$1" ]; do 
         D="${1%/}"; [ -d "$D" ] || D=${D%/*}; 
       if [ -d "$D" ]; then
          [ "$ADD" = before ] && PATH="$D:$PATH" || PATH="$PATH:$D"
@@ -257,12 +257,12 @@ add-mediapath()
 
 #is-cmd() { type "$1" >/dev/null 2>/dev/null; }
 
-#echo -n "Adding mediapaths ... " 1>&2; add-mediapath "I386/" "I386/system32/" "Windows/" "Tools/" "HBCD/" "Program*/{Notepad2,WinRAR,Notepad++,SDCC/bin,gputils/bin}/"; echo "done" 1>&2
-#is-cmd "notepad2" || add-mediapath "Prog*/Notepad2"
+#echo -n "Adding mediapaths ... " 1>&2; add_mediapath "I386/" "I386/system32/" "Windows/" "Tools/" "HBCD/" "Program*/{Notepad2,WinRAR,Notepad++,SDCC/bin,gputils/bin}/"; echo "done" 1>&2
+#is-cmd "notepad2" || add_mediapath "Prog*/Notepad2"
 
-ADD=after add-mediapath Tools/
+ADD=after add_mediapath Tools/
 
-#for DIR in $(list-mediapath "Prog*"/{UniExtract,Notepad*,WinRAR,7-Zip,WinZip}/ "Tools/" "I386/" "Windows"/{,system32/} "*.lnk"); do
+#for DIR in $(list_mediapath "Prog*"/{UniExtract,Notepad*,WinRAR,7-Zip,WinZip}/ "Tools/" "I386/" "Windows"/{,system32/} "*.lnk"); do
 #  DIR=${DIR%/}
 #  [ -d "$DIR" ] || DIR=${DIR%/*}
 #  pathmunge "${DIR}" after
