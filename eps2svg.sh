@@ -48,7 +48,7 @@ if [ $VERBOSE ]; then
 fi
 
 MYNAME=eps2svg
-TMPDIR=/tmp
+TEMP=/tmp
 SCRATCH="/tmp/eps2svg-$$"
 
 if [ ! -r $FROM ]; then
@@ -59,7 +59,7 @@ fi
 if [ -e $SCRATCH ]; then
 	echo "ERROR: Scratch file $SCRATCH already exists." 1>&2
 	echo "  Please delete all files beginning with $MYNAME in" 1>&2
-	echo "  $TMPDIR that belong to you and try again." 1>&2
+	echo "  $TEMP that belong to you and try again." 1>&2
 	echo 1>&2
 	exit
 fi

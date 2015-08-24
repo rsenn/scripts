@@ -8,23 +8,23 @@ list-deb() {
   }
 	for ARG in "$@"; do
    (set -e
-	  trap 'rm -rf "$TMPDIR"' EXIT 
-    TMPDIR=$(mktemp -d "$PWD/${0##*/}-XXXXXX")
-    mkdir -p "$TMPDIR"
+	  trap 'rm -rf "$TEMP"' EXIT 
+    TEMP=$(mktemp -d "$PWD/${0##*/}-XXXXXX")
+    mkdir -p "$TEMP"
 		case "$ARG" in
 			*://*) 
 			  if type wget >/dev/null 2>/dev/null; then
-				  wget -P "$TMPDIR" -q "$ARG"
+				  wget -P "$TEMP" -q "$ARG"
 				elif type curl >/dev/null 2>/dev/null; then
-					curl -s -k -L -o "$TMPDIR/${ARG##*/}" "$ARG"
+					curl -s -k -L -o "$TEMP/${ARG##*/}" "$ARG"
 				elif type lynx >/dev/null 2>/dev/null; then
-					lynx -source >"$TMPDIR/${ARG##*/}" "$ARG"
+					lynx -source >"$TEMP/${ARG##*/}" "$ARG"
 				fi || exit $?
 				DEB="${ARG##*/}"
 			;;
 			*) DEB=$(realpath "$ARG") ;;
 		esac
-    cd "$TMPDIR"
+    cd "$TEMP"
 		set -- $( ("${AR-ar}" t "$DEB" || list-7z "$DEB") 2>/dev/null |uniq |grep "data\.tar\.")
 		if [ $# -le 0 ]; then
 			exit 1

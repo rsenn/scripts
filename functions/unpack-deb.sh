@@ -2,12 +2,12 @@ unpack-deb()
 {
     ( for ARG in "$@";
     do
-        ( TMPDIR=` mktemp -d `;
-        trap 'rm -rf "$TMPDIR"' EXIT;
+        ( TEMP=` mktemp -d `;
+        trap 'rm -rf "$TEMP"' EXIT;
         ARG=` realpath "$ARG"`;
         DIR=${DESTDIR-"$PWD"};
         DEST="$DIR"/$(basename "$ARG" .deb);
-        cd "$TMPDIR";
+        cd "$TEMP";
         ar x "$ARG";
         mkdir -p "$DEST";
         tar -C "$DEST" -xf data.tar.gz;

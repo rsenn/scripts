@@ -1,5 +1,7 @@
 #!/bin/sh
 
+: ${TEMP=/tmp}
+
 urlescape()
 {
   echo "$1" | 
@@ -19,6 +21,8 @@ while :; do
   case "$1" in
     -x|--debug) DEBUG=true; shift ;;
     -v|--verbose) VERBOSE=true; shift ;;
+    -s=*|--save*=*) SAVE_TMP=${1#*=}; shift ;;
+    -s|--save*) SAVE_TMP=$TEMP/`basename "${0%.sh}"`$$.txt; echo -n >"$SAVE_TMP" ; shift ;;
     -t=*|--type=*) TYPE=${1%#*=}; shift ;; -t|--type) TYPE=$2; shift 2 ;;
     -c=*|--class=*) CLASS=${1%#*=}; shift ;; -c|--class) CLASS=$2; shift 2 ;;
     -n=*|--results=*) RESULTS=${1%#*=}; shift ;; -n|--results) RESULTS=$2; shift 2 ;;
@@ -29,17 +33,25 @@ done
 
 : ${USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0"}
 : ${RESULTS=30}
-#HTTP_PROXY="127.0.0.1:8123"
+#http_proxy="127.0.0.1:8123"
 
 [ "$VERBOSE" = true ] || SILENT="-s"
-for COOKIE in cookie.txt "$HOME"/cookie.txt; do
+for COOKIE in $(ls -td -- {,"$HOME"/,"$TEMP"/,"$TEMPDIR"/,"$TMP"/}{cookie.txt,cookies.txt} 2>/dev/null); do
   [ -s "$COOKIE" ]  && { echo "Found cookie: $COOKIE" 1>&2; break; } || unset COOKIE
 done
-DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location -A '$USER_AGENT' ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks4a \"${SOCKS_PROXY#*://}\"}"
-#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }wget -q -O - -U '$USER_AGENT'"
-#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent '$USER_AGENT' 2>/dev/null"
-#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }links -source"
-#DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null"
+if [ -n "$http_proxy" ]; then
+  echo "Have HTTP proxy: $http_proxy" 1>&2
+fi
+if [ -n "$socks_proxy" ]; then
+  echo "Have SOCKS proxy: $socks_proxy" 1>&2
+fi
+DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location ${http_proxy:+--proxy \"http://${http_proxy#*://}\"} ${socks_proxy:+--socks4a \"${socks_proxy#*://}\"} -A '$USER_AGENT'"
+
+[ "$DEBUG" = true ] && echo "DLCMD=$DLCMD" 1>&2
+#DLCMD="${http_proxy:+http_proxy=\"http://${http_proxy#*://}\" }wget -q -O - -U '$USER_AGENT'"
+#DLCMD="${http_proxy:+http_proxy=\"http://${http_proxy#*://}\" https_proxy=\"http://${http_proxy#*://}\" }lynx -source -useragent '$USER_AGENT' 2>/dev/null"
+#DLCMD="${http_proxy:+http_proxy=\"http://${http_proxy#*://}\" }links -source"
+#DLCMD="${http_proxy:+http_proxy=\"http://${http_proxy#*://}\" }w3m -dump_source 2>/dev/null"
 
 ARGS="$*"
 
@@ -79,6 +91,10 @@ done
 
 #echo "URL is $URL" 1>&2
 CMD="$DLCMD \$URLS"
+
+if [ -n "$SAVE_TMP" ]; then
+  CMD="$CMD | { tee -a \"\$SAVE_TMP\"; echo \"Temporary data saved as \$SAVE_TMP\" 1>&2; }"
+fi
 
 [ "$DEBUG" = true ] && CMD="set -x; $CMD"
 
