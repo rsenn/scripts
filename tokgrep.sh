@@ -6,7 +6,7 @@ charset='0-9A-Za-z_'$extrachars
 
 unset pattern
 unset replace
-unset script
+unset toklist
 unset prev
 count=0
 
@@ -54,22 +54,51 @@ shift_refs() {
     eval $out='"$'$out"\\"$((n+x))'$strip"'
   done
 }
+count() {
+        echo $#
+}
+pushv()
+{
+    eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
+}
+
 
 main() {
 
   opts=
-  for arg; do 
+  ntoks=0
+  multitok=false
+  
+  for arg; do
+    [ "$debug" = "true" ] && echo "arg=\"$arg\" ntoks=$ntoks" 1>&2
+    [ "$arg" = "--" ] && break
     case "$arg" in
-      --) multitok=true; break ;;
+      -x) debug=true ;;
+      -*) ;;
+      "--" | -- | \-\-) #multitok=true;
+        break  2 ;;
+      *) ntoks=$((ntoks+1)) ;;
     esac
   done
   
+  [ "$debug" = "true" ] && echo "multitok=$multitok" 1>&2
+  #if [ "${multitok:-false}" = false ]; then
+  #  ntoks=1
+  #fi
+  
   while :; do
     case "$1" in
+      -x) debug=true; shift ;;
       -*) opts="${opts:+$opts${IFS}}$1"; shift ;;
       *) break ;;
     esac
   done
+  
+  if "${debug:-false}"; then
+    echo "@=$@" 1>&2 
+    echo "ntoks=$ntoks" 1>&2 
+  fi  
+
   for arg; do
     if [ "$((count++))" = 0 ]; then
       set --
@@ -82,6 +111,11 @@ main() {
     fi
 
     case $arg in
+    
+      -x)
+        debug=true
+        continue
+      ;;
       -e|-f|-l*|-m|-d|-D|-A|-B|-C|-r*) 
         prev=$arg
         continue
@@ -92,23 +126,31 @@ main() {
       ;;
       
       *)
-        if test -z "${pattern+set}"; then
+        if [ "$(count $tokens)" -lt $((ntoks)) ]; then
+          pushv tokens "$arg"
           pattern=$arg
           check_chars pattern "$charset.?*+()" pattern
           subst_chars pattern '.' "[$charset]"
           subst_chars pattern '(' "\\("
           subst_chars pattern ')' "\\)"
 
-          script="([^$charset]$pattern[^$charset]|[^$charset]$pattern\$|^$pattern[^$charset]|^$pattern\$)"
-          set -- "$@" -E -e "$script"
+          toklist="${toklist:+$toklist|}[^$charset]$pattern[^$charset]|[^$charset]$pattern\$|^$pattern[^$charset]|^$pattern\$"
+          set -- "$@" -E -e "($toklist)"
         else
-          set -- "$@" "$arg"
+          pushv files "$arg"
+          set -- "$@" -- "$arg"
         fi
       ;;
     esac
     
   done
-
+  
+  set -- $opts -E -e "($toklist)" --  $files
+  
+  if "${debug:-false}"; then
+  echo "@=$@" 1>&2
+    set -x
+  fi
   exec grep $opts "$@"
 }
 #set -x

@@ -1,13 +1,13 @@
 #!/bin/bash
 
+IFS="
+"
 ws=" "
 cr=""
 ts="	"
 nl="
 "
-IFS="$nl"
 vs="$nl"
-IFS="$nl"
 sq="'"
 dq="\""
 sq="\`"
@@ -95,6 +95,7 @@ out_var() {
 	var_dump O 1>&2 )
 }
 
+
 vifs=$'\t'
 vifs=" "
 myvars="args${nl}defines${nl}depfile${nl}deptarget${nl}includes${nl}libs${nl}opts${nl}outfile${nl}sysincludes"
@@ -164,10 +165,10 @@ while read -r line; do
   unset output 
 #	output="cmd = $cmd"
  
- if ! (test -n "$CMD" && type "$CMD" >/dev/null 2>/dev/null); then
-    exit 1
- fi
- 
+# if ! (test -n "$CMD" && type "$CMD" >/dev/null 2>/dev/null); then
+#    exit 1
+# fi
+# 
 	 pushv output "
         CMD = $CMD$(ovs="${nl}${ts}" out_var $myvars)"
 
