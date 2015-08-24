@@ -97,34 +97,34 @@ file_magic()
 unset INCLUDE_DIRS
 GREP_ARGS=""
 
-usage()
-{
-  echo "Usage: ${0##*/} [OPTIONS] ARGUMENTS...
-  -p, --mediapath=PATH     List of search paths.
-  -x, --debug              Show debug messages
-  -e, --exists             Show only existing files
-  -f, --want-file         Return only files
-  -F, --file              File magic
-  -i, --case-insensitive  Case insensitive search
-  -I, --case-sensitive    Case sensitive search
-      --color             Return colored list
-      --include=DIR       Include results in DIR
-  -x, --exclude=DIR       Exclude results from DIR
-  -c, --class              File type class
-  -m, --mixed             Mixed paths (see cygpath)
-  -l, --list              List
-  -s, --size              Filter file size
-  -S, --sort              Sort
-  One of: 
-    bin|exe|prog, archive, audio, fonts, image, incompl|part,
-    music, package|pkg, patch|diff, script, software, source, video,
-    vmware|vbox|virt|vdisk|vdi|qed|qcow|qemu|vmdk|vdisk, pdf|doc,
-    book|epub|mobi, font|truetype
-"
+usage() {
+  echo "Usage: ${0##*/} [OPTIONS] ARGUMENTS..."
+	echo "  -p, --mediapath=PATH     List of search paths."
+	echo "  -x, --debug              Show debug messages"
+	echo "  -e, --exists             Show only existing files"
+	echo "  -f, --want-file         Return only files"
+	echo "  -F, --file              File magic"
+	echo "  -i, --case-insensitive  Case insensitive search"
+	echo "  -I, --case-sensitive    Case sensitive search"
+	echo "      --color             Return colored list"
+	echo "      --include=DIR       Include results in DIR"
+	echo "  -x, --exclude=DIR       Exclude results from DIR"
+	echo "  -c, --class              File type class"
+	#echo "  -m, --mixed             Mixed paths (see cygpath)"
+	echo "  -l, --list              List"
+	echo "  -s, --size              Filter file size"
+	echo "  -S, --sort              Sort"
+	echo "  One of: "
+	echo "    bin|exe|prog, archive, audio, fonts, image, incompl|part,"
+	echo "    music, package|pkg, patch|diff, script, software, source, video,"
+	echo "    vmware|vbox|virt|vdisk|vdi|qed|qcow|qemu|vmdk|vdisk, pdf|doc,"
+	echo "    book|epub|mobi, font|truetype"
+	echo ""
   exit 0
 }
 
 EXCLUDE_DIRS='.*/\.wine/drive.*/\.wine/drive'
+MIXED_PATH=true
 
 while :; do
 	case "$1" in
@@ -137,7 +137,7 @@ while :; do
   	-E | --extension) EXTENSION="${EXTENSION:+$EXTENSION|}$2"; shift 2 ;;
   	-E=* | --extension=*) EXTENSION="${EXTENSION:+$EXTENSION|}${1#*=}"; shift  ;;
   	-E*) EXTENSION="${EXTENSION:+$EXTENSION|}${1#-E}"; shift  ;;
-  	-m | --mix*) MIXED_PATH=true; shift ;;
+  	#-m | --mix*) MIXED_PATH=true; shift ;;
   	-w | --win*) WIN_PATH=true; shift ;;
   
 	  -s=* | --size=*)  SIZE="${1#*=}"; shift ;;
