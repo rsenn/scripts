@@ -3,6 +3,8 @@
 # match name token
 
 CHARSET='0-9A-Za-z_'$EXTRACHARS
+IFS="
+"
 
 unset PATTERN
 unset REPLACE
@@ -11,7 +13,7 @@ unset PREV
 count=0
 
 check_chars() {
-  eval local INVAL='${'$1"%%*[!${2-$CHARSET}]*}"
+  eval local INVAL='${'$1"%%*[!${2-$CHARSET}\$IFS]*}"
   if [ -z "$INVAL" ]; then
     echo "${0##*/}: ${3+$3 }must contain characters from [${2-$CHARSET}] only. ($INVAL)" 1>&2
     exit 1
@@ -95,7 +97,7 @@ main() {
   done
   
   if "${DEBUG:-false}"; then
-    echo "@=$@" 1>&2 
+    echo "@=${@:1:3} ..." 1>&2 
     echo "NTOKS=$NTOKS" 1>&2 
   fi  
 
@@ -128,14 +130,14 @@ main() {
       *)
         if [ "$(count $TOKENS)" -lt $((NTOKS)) ]; then
           pushv TOKENS "$ARG"
-          PATTERN=$ARG
-          check_chars PATTERN "$CHARSET.?*+()" PATTERN
-          subst_chars PATTERN '.' "[$CHARSET]"
-          subst_chars PATTERN '(' "\\("
-          subst_chars PATTERN ')' "\\)"
-
-          TOKLIST="${TOKLIST:+$TOKLIST|}[^$CHARSET]$PATTERN[^$CHARSET]|[^$CHARSET]$PATTERN\$|^$PATTERN[^$CHARSET]|^$PATTERN\$"
-          set -- "$@" -E -e "($TOKLIST)"
+#          PATTERN=$ARG
+#          check_chars PATTERN "$CHARSET.?*+()" PATTERN
+#          subst_chars PATTERN '.' "[$CHARSET]"
+#          subst_chars PATTERN '(' "\\("
+#          subst_chars PATTERN ')' "\\)"
+#
+#          TOKLIST="${TOKLIST:+$TOKLIST|}[^$CHARSET]$PATTERN[^$CHARSET]|[^$CHARSET]$PATTERN\$|^$PATTERN[^$CHARSET]|^$PATTERN\$"
+#          set -- "$@" -E -e "($TOKLIST)"
         else
           pushv FILES "$ARG"
           set -- "$@" -- "$ARG"
@@ -145,11 +147,16 @@ main() {
     
   done
   
-  set -- $OPTS -E -e "($TOKLIST)" --  $FILES
+  check_chars TOKENS "$CHARSET.?*+()" TOKENS
+  subst_chars TOKENS '.' "[$CHARSET]"
+  subst_chars TOKENS '(' "\\("
+  subst_chars TOKENS ')' "\\)"
+  subst_chars TOKENS "$IFS" "|"
+
+  set -- $OPTS -E -e "([^$CHARSET]|^)($TOKENS)([^$CHARSET]|\$)" --  $FILES
   
   if "${DEBUG:-false}"; then
-  echo "TOKLIST=$TOKLIST
-FILES="$FILES 1>&2
+  echo "TOKLIST=$TOKLIST" 1>&2
     set -x
   fi
   exec grep $OPTS "$@"
