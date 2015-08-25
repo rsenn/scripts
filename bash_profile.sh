@@ -372,11 +372,9 @@ export LS_COLORS
 #[ -d /sbin ] && pathmunge /sbin
 #[ -d /usr/sbin ] && pathmunge /usr/sbin
 
-pathremove /bin && pathmunge /bin
-pathremove /sbin && pathmunge /sbin
-pathremove /usr/bin && pathmunge /usr/bin
-pathremove /usr/sbin && pathmunge /usr/sbin
-
-pathremove /usr/local/bin && pathmunge /usr/local/bin 
 pathremove /usr/local/sbin && pathmunge /usr/local/sbin
-
+pathremove /usr/local/bin && pathmunge /usr/local/bin 
+pathremove /usr/sbin && pathmunge /usr/sbin after
+pathremove /usr/bin && pathmunge /usr/bin after
+pathremove /sbin && pathmunge /sbin after 
+pathremove /bin && pathmunge /bin after
