@@ -6,7 +6,7 @@ ABSDIR=`pwd`
 IFS="
 "
 
-bind_mounts()
+bind-mounts()
 {
  (IFS="
  "; while :; do
@@ -53,20 +53,28 @@ esac
 }
 
 
-bind_mounts || exit $? 
+bind-mounts || exit $? 
 
 cp -vf /etc/resolv.conf etc/
 
-trap 'rm -f "$ABSDIR/chroot.bashrc"' EXIT
-cat >chroot.bashrc <<EOF
+trap 'rm -f "$ABSDIR/.bashrc"' EXIT
+cat >.bashrc <<EOF
 . /root/.bash_profile
 . /root/.bash_functions
 PS1="\033[0m${ABSDIR##*/}@\\h < \w > \\\$ "
 cd
 EOF
 
-env - PATH="$PATH:/usr/local/bin" TERM="$TERM" DISPLAY="$DISPLAY" HOME="/root"  PS1="\033[0m${ABSDIR##*/}@\\h < \w > \\\$ " \
- HOSTNAME="${PWD##*/}" chroot . ${@:-/bin/bash
---login}
+PS1='chroot|${MYDIR##*/}:($PWD) \$ '
+cat >.bash_prompt <<EOF
+$PS1
+EOF
 
-bind_mounts -u "$@"
+#SHELL_ARGS="--login"
+
+#PS1="\033[0m${ABSDIR##*/}@\\h < \w > \\\$ "
+env - PATH="$PATH:/usr/local/bin" HOME=/ TERM="$TERM" DISPLAY="$DISPLAY" PS1="$PS1" \
+ HOSTNAME="${PWD##*/}" chroot . ${@:-/bin/bash
+$SHELL_ARGS}
+
+bind-mounts -u "$@"
