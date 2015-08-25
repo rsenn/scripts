@@ -61,11 +61,11 @@ trap 'rm -f "$ABSDIR/.bashrc"' EXIT
 cat >.bashrc <<EOF
 . /root/.bash_profile
 . /root/.bash_functions
-PS1="\033[0m${ABSDIR##*/}@\\h < \w > \\\$ "
+#PS1="\033[0m${ABSDIR##*/}@\\h < \w > \\\$ "
 cd
 EOF
 
-PS1='chroot|${MYDIR##*/}:($PWD) \$ '
+PS1="chroot%(${MYDIR##*/}){ \$PWD } # "
 cat >.bash_prompt <<EOF
 $PS1
 EOF
