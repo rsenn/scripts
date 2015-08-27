@@ -310,6 +310,13 @@ if [ -n "$EXTENSION" ]; then
 	EXPR=${EXPR:+${EXPR%".*"}.*}"\\.($EXTENSION)\$"
 fi
 
+#if [ "$WANT_FILE" = true ]; then
+#  case "$EXPR" in
+#     *'$') ;;
+#     *) EXPR="$EXPR\$" ;;
+#  esac
+#fi
+
 [ "$DEBUG" = true ] && echo "EXPR is $EXPR" 1>&2
 
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG ${FILTERCMD:+ | $FILTERCMD}"
