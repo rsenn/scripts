@@ -553,14 +553,9 @@ cut-dotslash()
 }
 
 cut-ext() {
-    sed '
-/\.gz$/ { s|\.tar\(\.[^.]\+\)$|\1| }
-/\.bz2$/ { s|\.tar\(\.[^.]\+\)$|\1| }
-/\.lzma$/ { s|\.tar\(\.[^.]\+\)$|\1| }
-/\.xz$/ { s|\.tar\(\.[^.]\+\)$|\1| }
-/\.Z$/ { s|\.tar\(\.[^.]\+\)$|\1| }
-s,\.[^./]\+$,,
-' "$@"
+ (CMD='sed -e "/\\.exe\$/ { s|\\.paf\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.gz\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.bz2\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.lzma\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.xz\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.Z\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "s,\\.[^./]\\+\$,,"'
+  CMD="$CMD${@:+ \"\$@\"}"
+  eval "$CMD")
 }
 
 cut-hexnum()
@@ -599,9 +594,10 @@ cut-pkgver()
     cat "$@" |sed 's,-[0-9]\+$,,g'
 }
 
-cut-trailver()
-{
-    cat "$@" |sed 's,-[0-9][^-.]*\(\.[0-9][^-.]*\)*$,,'
+cut-trailver() {
+ (CMD='sed -e "s|[-_][0-9][^-_.]*\\(\\.[0-9][^-.]*\\)*\$||" -e "s|[-_.]\\?[0-9]\\+\.[.0-9]\+\$||"'
+  CMD="$CMD${@:+ \"\$@\"}"
+  eval "$CMD")
 }
 
 cut-ver()
@@ -2713,20 +2709,22 @@ list-lastitem()
     sed -n '$p'
 }
 
-list-mediapath()
-{
-   (while :; do
-      case "$1" in
-        -*) OPTS="${OPTS+$OPTS
-}$1"; shift ;;
-          --) shift; break ;;
-        *) break ;;
-        esac
-     done
-    for ARG in "$@";
-    do
-        eval "ls -1 -d \$OPTS -- $MEDIAPATH/\$ARG 2>/dev/null";
-    done)
+list-mediapath() {
+ (while :; do
+		case "$1" in
+		  -b|-c|-d|-e|-f|-g|-h|-k|-L|-N|-O|-p|-r|-s|-x) FILTER="${FILTER:+$FILTER | }filter-test $1"; shift ;;
+		  -m|--mixed|-M|--mode|-u|--unix|-w|--windows|-a|--absolute|-l|--long-name) PATHTOOL_OPTS="${PATHTOOL_OPTS:+PATHTOOL_OPTS }$1"; shift ;;
+			-*) OPTS="${OPTS:+$OPTS }$1"; shift ;;
+			--) shift; break ;;
+			*) break ;;
+			esac
+	done
+  CMD="ls -1 -d $OPTS -- $MEDIAPATH/\${ARG#/} 2>/dev/null";
+	[ "$PATHTOOL_OPTS" ] && CMD="${PATHTOOL:+$PATHTOOL ${PATHTOOL_OPTS:--m} \$(}$CMD${PATHTOOL:+)}"
+	CMD="for ARG; do $CMD; done"
+	CMD="$CMD${FILTER:+ | $FILTER}"
+	#echo "CMD: $CMD" 1>&2
+	eval "$CMD")
 }
 
 list-nolastitem()
