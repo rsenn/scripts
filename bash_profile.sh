@@ -260,7 +260,7 @@ add_mediapath()
 #echo -n "Adding mediapaths ... " 1>&2; add_mediapath "I386/" "I386/system32/" "Windows/" "Tools/" "HBCD/" "Program*/{Notepad2,WinRAR,Notepad++,SDCC/bin,gputils/bin}/"; echo "done" 1>&2
 #is-cmd "notepad2" || add_mediapath "Prog*/Notepad2"
 
-ADD=after add_mediapath Tools/
+#ADD=after add_mediapath Tools/
 
 #for DIR in $(list_mediapath "Prog*"/{UniExtract,Notepad*,WinRAR,7-Zip,WinZip}/ "Tools/" "I386/" "Windows"/{,system32/} "*.lnk"); do
 #  DIR=${DIR%/}
