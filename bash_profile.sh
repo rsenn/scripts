@@ -156,7 +156,9 @@ case "${OS}" in
     PATHTOOL=msyspath
     MSYSROOT=`msyspath -m / 2>/dev/null`
 
-    set_prompt '\e[32m\]\u@\h \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
+    set_prompt '\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '
+
+#    set_prompt '\e[32m\]\u@\h \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
