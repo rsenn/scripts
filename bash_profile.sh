@@ -305,17 +305,6 @@ FNS="$HOME/.bash_functions"
 [ -d "x:/Windows" ] && : ${SystemRoot='x:\Windows'}
 [ -d "x:/I386" ] && : ${SystemRoot='x:\I386'}
 
-explore()
-{
- (r=`realpath "$1" 2>/dev/null`; [ "$r" ] || r=$1
-  r=${r%/.}
-  r=${r#./}
-  p=`$PATHTOOL -w "$r"`
-  set -x
-  "${SystemRoot:+$SystemRoot\\}explorer.exe" "/n,/e,$p"
- )
-}
-
 msiexec()
 {
     (  while :; do
