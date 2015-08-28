@@ -13,6 +13,6 @@ list-mediapath() {
 	[ -n "$PATHTOOL_OPTS" ] && CMD="$PATHTOOL ${PATHTOOL_OPTS:--m} \$($CMD)"
 	#CMD="for ARG; do $CMD; done"
 	[ -n "$FILTER" ] &&	 CMD="($CMD) | $FILTER"
-	echo "CMD: $CMD" 1>&2
+#	echo "CMD: $CMD" 1>&2
 	eval "$CMD")
 }

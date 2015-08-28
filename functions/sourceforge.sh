@@ -3,10 +3,10 @@ sf-get-cvs-modules() {
 }
 sf-get-svn-modules() { 
   require xml
- (for ARG; do curl -s "http://sourceforge.net/p/$ARG/code/HEAD/tree/" |xml_get a data-url; done)
+ (for ARG; do curl -s http://sourceforge.net/p/"$ARG"/{svn,code}/HEAD/tree/ |xml_get a data-url | head -n1; done | sed "s|-svn\$|| ;; s|-code\$||")
 }
 sf-get-git-repos() {
   require xml
- (for ARG; do curl -s  "http://sourceforge.net/p/$ARG/code-git/ci/master/tree/"  |xml_get a data-url; done)
+ (for ARG; do curl -s  "http://sourceforge.net/p/$ARG/code-git/ci/master/tree/"  |xml_get a data-url | head -n1; done | sed "s|-git\$|| ;; s|-code\$||")
 }
 

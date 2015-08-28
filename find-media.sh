@@ -180,7 +180,7 @@ while :; do
 
     --color) GREP_ARGS="${GREP_ARGS:+$IFS}--color"; shift ;;
   	--include) add_dir INCLUDE_DIRS "$2" ; shift 2 ;; --include=*) add_dir INCLUDE_DIRS "${1#*=}"; shift ;;
-  	-[EeXx] |--exclude) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;; -[EeXx]=* | --exclude=*) add_dir EXLUDE_DIRS "${1#*=}"; shift ;;
+  	-[EX] |--exclude) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;; -[EX]=* | --exclude=*) add_dir EXLUDE_DIRS "${1#*=}"; shift ;;
   -*) echo "No such option '$1'." 1>&2; exit 1 ;;
   --) shift; break ;;	*) break ;;
 	esac

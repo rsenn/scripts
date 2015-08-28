@@ -2724,7 +2724,7 @@ list-mediapath() {
 	[ -n "$PATHTOOL_OPTS" ] && CMD="$PATHTOOL ${PATHTOOL_OPTS:--m} \$($CMD)"
 	#CMD="for ARG; do $CMD; done"
 	[ -n "$FILTER" ] &&	 CMD="($CMD) | $FILTER"
-	echo "CMD: $CMD" 1>&2
+#	echo "CMD: $CMD" 1>&2
 	eval "$CMD")
 }
 
@@ -4378,6 +4378,18 @@ some()
   esac
   done
   return 1"
+}
+
+sf-get-cvs-modules() {
+ (PREFIX="cvs -z3 -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG co -P "; for ARG; do CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | sed -n \"s|^\\([^<>/]\+\\)/</a>\$|$PREFIX\\1|p\""; : echo "CMD: $CMD" 1>&2; eval "$CMD"; done)
+}
+sf-get-svn-modules() { 
+  require xml
+ (for ARG; do curl -s http://sourceforge.net/p/"$ARG"/{svn,code}/HEAD/tree/ |xml_get a data-url | head -n1; done | sed "s|-svn\$|| ;; s|-code\$||")
+}
+sf-get-git-repos() {
+  require xml
+ (for ARG; do curl -s  "http://sourceforge.net/p/$ARG/code-git/ci/master/tree/"  |xml_get a data-url | head -n1; done | sed "s|-git\$|| ;; s|-code\$||")
 }
 
 split()
