@@ -30,14 +30,14 @@
 	done
 	unset QT_PREFIXES
 
-	if ! echo ${PATH} | /bin/grep -q $QTDIR/bin ; then
+	if ! echo ${PATH} | grep -q $QTDIR/bin ; then
 		 PATH=$QTDIR/bin:${PATH}
 	fi
 
 	QTCREATORDIR=${QTDIR%%/[0-9].*}
 	[ "$QTCREATORDIR" != "$QTDIR" ] && QTCREATORDIR="$QTCREATORDIR/Tools/QtCreator"
   if [ -d "$QTCREATORDIR" ]; then
-		if ! echo ${PATH} | /bin/grep -q $QTCREATORDIR/bin ; then
+		if ! echo ${PATH} | grep -q $QTCREATORDIR/bin ; then
 			 PATH=$QTCREATORDIR/bin:${PATH}
 		fi
 	fi
