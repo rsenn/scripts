@@ -1283,7 +1283,7 @@ filter_out()
     done )
 }
 
-find-all() { (locate32.sh "$@" ; find-media.sh -m "$@") |sort -u ; }
+find-all() { (locate32.sh "$@" ; find-media.sh "$@") |sort -u ; }
 
 findstring()
 {
