@@ -265,7 +265,7 @@ add_mediapath()
 #for DIR in $(list_mediapath "Prog*"/{UniExtract,Notepad*,WinRAR,7-Zip,WinZip}/ "Tools/" "I386/" "Windows"/{,system32/} "*.lnk"); do
 #  DIR=${DIR%/}
 #  [ -d "$DIR" ] || DIR=${DIR%/*}
-#  pathmunge "${DIR}" after
+#  pathmunge "${DIR}"
 # done
 #
 #[ -d "$CYGDRIVE/c/Program Files/WinRAR" ] && PATH="$PATH:$CYGDRIVE/c/Program Files/WinRAR"
@@ -340,14 +340,14 @@ CDPATH="."
 if [ -n "$USERPROFILE" -a -n "$PATHTOOL" ]; then
   USERPROFILE=`$PATHTOOL -m "$USERPROFILE"`
   if [ -d "$USERPROFILE" ]; then
-     pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`" after
+     pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`"
   
     DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" DOWNLOADS="$USERPROFILE/Downloads" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos"    MUSIC="$USERPROFILE/Music"
     
     [ -d "$DOCUMENTS/Sources" ] && SOURCES="$DOCUMENTS/Sources"
     
-    pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")" after
-    pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")" after
+    pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")"
+    pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")"
   fi
 fi
 
@@ -374,7 +374,7 @@ export LS_COLORS
 
 pathremove /usr/local/sbin && pathmunge /usr/local/sbin
 pathremove /usr/local/bin && pathmunge /usr/local/bin 
-pathremove /usr/sbin && pathmunge /usr/sbin after
-pathremove /usr/bin && pathmunge /usr/bin after
-pathremove /sbin && pathmunge /sbin after 
-pathremove /bin && pathmunge /bin after
+pathremove /usr/sbin && pathmunge /usr/sbin
+pathremove /usr/bin && pathmunge /usr/bin
+pathremove /sbin && pathmunge /sbin 
+pathremove /bin && pathmunge /bin
