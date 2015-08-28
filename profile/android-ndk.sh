@@ -6,7 +6,7 @@ JAVA_HOME=/usr/lib/jvm/java-openjdk
 
 for DIR in $ANDROID_NDK_ROOT/toolchains/{arm,x86,mipsel}*-4.8/prebuilt/linux-`uname -i`/bin; do
   test -d "$DIR" || continue
-	if ! echo ${PATH} | /bin/grep -q "$DIR"; then
+	if ! echo ${PATH} | grep -q "$DIR"; then
 		 PATH="$PATH:$DIR"
 	fi
 done

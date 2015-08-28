@@ -101,7 +101,7 @@ if grep --help 2>&1 | grep -q '\--line-buffered'; then
 	GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--line-buffered"
 fi
 
-alias grep="/bin/grep $GREP_ARGS"
+alias grep="grep $GREP_ARGS"
 alias grepdiff='grepdiff --output-matching=hunk'
 
 #unalias cp  2>/dev/null
@@ -205,7 +205,7 @@ pathmunge() {
           set -- `$PATHTOOL "$tmp"` "$@"
       ;;
   esac;
-  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | /bin/grep -E -q "(^|:)$1($|:)"; then
+  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | grep -E -q "(^|:)$1($|:)"; then
       if test "$2" = "after"; then
           eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
       else

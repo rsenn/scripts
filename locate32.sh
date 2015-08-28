@@ -1,11 +1,16 @@
 #!/bin/bash
 
+MYNAME=`basename "$0" .sh` 
 IFS=$'\n\r'
 
 OPTS=
 REGEX= NOCASE=
 LOOKDIR= LOOKFILE= 
 WHOLE= SIZE=
+
+msg() {
+	echo "${MYNAME}: $@" 1>&2
+}
 
 usage()
 {
@@ -43,9 +48,23 @@ while :; do
 done
 set -f
 
-#: ${DATABASE=$(reg query 'HKCU\Software\Update\Databases\1_default' -v ArchiveName |sed -n 's,\\,/,g ;; s,.*REG_SZ\s\+,,p')}
-: ${DATABASE="$(for key in $(reg query 'HKCU\Software\Update\Databases' #| sed 's,\r$,,'
+if type reg 2>/dev/null >/dev/null; then
+	REG="reg"
+fi
+
+
+#: ${DATABASE=$("$REG" query 'HKCU\Software\Update\Databases\1_default' -v ArchiveName |sed -n 's,\\,/,g ;; s,.*REG_SZ\s\+,,p')}
+
+if [ -n "$REG" ]; then
+: ${DATABASE="$(for key in $("$REG" query 'HKCU\Software\Update\Databases' #| sed 's,\r$,,'
 ); do key=${key%$'\r'}; test -z "$key" || reg query "$key" -v ArchiveName |sed -n '/ArchiveName/ { s,\r$,,; s,.*REG_SZ\s\+,,; s,\\,/,g; p; }'; done)"}
+fi
+
+if [ -z "$DATABASE" ]; then
+	msg "Missing database!"
+	exit 1
+fi
+
 
 #: ${DATABASE="$USERPROFILE/AppData/Roaming/Locate32/files.dbs"}
 
