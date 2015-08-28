@@ -146,7 +146,7 @@ bitrate()
     test -n "$KBPS" && echo "$KBPS" || (
     R=0
     set -- $(mminfo "$ARG"  |sed -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*Kbps\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
-		#echo "BR: $*" 1>&2
+[ "$DEBUG" = true ] && echo "BR: $*" 1>&2
    #echo "$*" 1>&2
    # for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
 	 R=${*##*:}
@@ -341,7 +341,7 @@ check-7z() {
       OPTS="$OPTS${IFS:0:1}-si${1##*/}"
     fi 
       CMD="($CMD) 2>&1 | (cd \"\$OUTDIR\" >/dev/null; process${FILTER:+ | $FILTER})"
-#    echo "CMD: $CMD" 1>&2 
+[ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2 
      eval "$CMD") || exit $?
     shift
   done)
@@ -2724,7 +2724,7 @@ list-mediapath() {
 	[ -n "$PATHTOOL_OPTS" ] && CMD="$PATHTOOL ${PATHTOOL_OPTS:--m} \$($CMD)"
 	#CMD="for ARG; do $CMD; done"
 	[ -n "$FILTER" ] &&	 CMD="($CMD) | $FILTER"
-#	echo "CMD: $CMD" 1>&2
+[ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
 	eval "$CMD")
 }
 
@@ -4381,15 +4381,47 @@ some()
 }
 
 sf-get-cvs-modules() {
- (PREFIX="cvs -z3 -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG co -P "; for ARG; do CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | sed -n \"s|^\\([^<>/]\+\\)/</a>\$|$PREFIX\\1|p\""; : echo "CMD: $CMD" 1>&2; eval "$CMD"; done)
+ (CVSCMD="cvs -z3 -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG co"
+#  CVSPASS="cvs -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG login"
+CVSPASS='echo "grep -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <<\\EOF >>~/.cvspass
+\1 :pserver:anonymous@$ARG.cvs.sourceforge.net:2401/cvsroot/$ARG A
+EOF"'
+  for ARG; do
+    CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | sed -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
+	 (set -- $(eval "$CMD")
+		test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
+		CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
+		#[ -n "$DSTDIR" ] && CMD="(cd ${DSTDIR%/} && $CMD)"
+		CMD="echo \"$CMD\""
+		
+		CMD="for MODULE; do $CMD; done"
+		[ -n "$DSTDIR" ] && CMD="echo \"mkdir -p ${DSTDIR%/}\"; $CMD"
+		[ -n "$CVSPASS" ] && CMD="$CVSPASS; $CMD"
+		[ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
+		eval "$CMD")
+  done)
 }
+
 sf-get-svn-modules() { 
   require xml
- (for ARG; do curl -s http://sourceforge.net/p/"$ARG"/{svn,code}/HEAD/tree/ |xml_get a data-url | head -n1; done | sed "s|-svn\$|| ;; s|-code\$||")
+ (for ARG; do
+    curl -s http://sourceforge.net/p/"$ARG"/{svn,code}/HEAD/tree/ | 
+      xml_get a data-url |
+      head -n1
+  done |
+    sed "s|-svn\$|| ;; s|-code\$||" |
+    addsuffix "-svn")
 }
+
 sf-get-git-repos() {
   require xml
- (for ARG; do curl -s  "http://sourceforge.net/p/$ARG/code-git/ci/master/tree/"  |xml_get a data-url | head -n1; done | sed "s|-git\$|| ;; s|-code\$||")
+ (for ARG; do
+    curl -s  "http://sourceforge.net/p/$ARG/code-git/ci/master/tree/" |
+			xml_get a data-url |
+			head -n1
+  done |
+    sed "s|-git\$|| ;; s|-code\$||" |
+    addsuffix "-git")
 }
 
 split()

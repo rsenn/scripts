@@ -17,8 +17,25 @@ urlescape()
 IFS="
 "
 
+showhelp() {
+echo "Usage: ${0%.sh} [OPTIONS] <QUERIES...>
+
+  -h, --help              Show this help
+  -x, --debug             Show debug messages
+  -v, --verbose           Show debug messages
+  -n=NUM, --results=NUM   Set number of results
+  
+Environment variables:
+
+  USER_AGENT              User-agent string
+  HTTP_PROXY              Use this HTTP proxy
+  SOCKS_PROXY             Use this SOCKS v4 proxy
+"
+}
+
 while :; do
   case "$1" in
+    -h|--help) showhelp "${0##*/}"; exit 0 ;;
     -x|--debug) DEBUG=true; shift ;;
     -v|--verbose) VERBOSE=true; shift ;;
     -s=*|--save*=*) SAVE_TMP=${1#*=}; shift ;;
@@ -33,25 +50,25 @@ done
 
 : ${USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0"}
 : ${RESULTS=30}
-#http_proxy="127.0.0.1:8123"
+#HTTP_PROXY="127.0.0.1:8123"
 
 [ "$VERBOSE" = true ] || SILENT="-s"
 for COOKIE in $(ls -td -- {,"$HOME"/,"$TEMP"/,"$TEMPDIR"/,"$TMP"/}{cookie.txt,cookies.txt} 2>/dev/null); do
   [ -s "$COOKIE" ]  && { echo "Found cookie: $COOKIE" 1>&2; break; } || unset COOKIE
 done
-if [ -n "$http_proxy" ]; then
-  echo "Have HTTP proxy: $http_proxy" 1>&2
+if [ -n "$HTTP_PROXY" ]; then
+  echo "Have HTTP proxy: $HTTP_PROXY" 1>&2
 fi
-if [ -n "$socks_proxy" ]; then
-  echo "Have SOCKS proxy: $socks_proxy" 1>&2
+if [ -n "$SOCKS_PROXY" ]; then
+  echo "Have SOCKS proxy: $SOCKS_PROXY" 1>&2
 fi
-DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location ${http_proxy:+--proxy \"http://${http_proxy#*://}\"} ${socks_proxy:+--socks4a \"${socks_proxy#*://}\"} -A '$USER_AGENT'"
+DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks4a \"${SOCKS_PROXY#*://}\"} -A '$USER_AGENT'"
 
 [ "$DEBUG" = true ] && echo "DLCMD=$DLCMD" 1>&2
-#DLCMD="${http_proxy:+http_proxy=\"http://${http_proxy#*://}\" }wget -q -O - -U '$USER_AGENT'"
-#DLCMD="${http_proxy:+http_proxy=\"http://${http_proxy#*://}\" https_proxy=\"http://${http_proxy#*://}\" }lynx -source -useragent '$USER_AGENT' 2>/dev/null"
-#DLCMD="${http_proxy:+http_proxy=\"http://${http_proxy#*://}\" }links -source"
-#DLCMD="${http_proxy:+http_proxy=\"http://${http_proxy#*://}\" }w3m -dump_source 2>/dev/null"
+#DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }wget -q -O - -U '$USER_AGENT'"
+#DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent '$USER_AGENT' 2>/dev/null"
+#DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }links -source"
+#DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null"
 
 ARGS="$*"
 
