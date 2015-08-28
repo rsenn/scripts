@@ -1035,8 +1035,7 @@ explode()
  )
 }
 
-explore()
-{
+explore() {
  (r=`realpath "$1" 2>/dev/null`; [ "$r" ] || r=$1
   case "$r" in
     */*) ;;
@@ -1048,8 +1047,7 @@ explore()
   fs="/"
   p=`$PATHTOOL -w "$r"`
   set -x
-  "${SystemRoot:+$SystemRoot\\}cmd.exe" /c "explorer.exe /n,/e,\"${p//$bs/$fs}\""
- )
+  "${SystemRoot:+$SystemRoot\\}cmd.exe" /c "explorer.exe /e,/root,${p//$bs/$fs}")
 }
 
 extract-slackpkg()
@@ -1284,6 +1282,7 @@ filter_out()
 }
 
 find-all() { (locate32.sh "$@" ; find-media.sh "$@") |sort -u ; }
+
 
 findstring()
 {
