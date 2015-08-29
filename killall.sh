@@ -1,4 +1,12 @@
 #!/bin/bash
+
+usage() {
+  echo "${0##*/} [OPTIONS] <PATTERNS...>
+  
+  -x, --debug  Show debug messages
+" 1>&2
+}
+
 while :; do
 	case "$1" in
 	   -x) DEBUG=true; shift ;;
@@ -59,17 +67,23 @@ case `uname -o 2>/dev/null || uname` in
   *Darwin*) ;;
   *Linux*) ;;
   *)
-  if type taskkill.exe 2>/dev/null >/dev/null; then
+  if type kill.exe 2>/dev/null >/dev/null && (kill.exe --help 2>&1 | grep -q '\-f.*win32'); then
+    KILL="kill.exe"
+    KILLARGS="${KILLARGS:+
+}-f"
+  elif type taskkill.exe 2>/dev/null >/dev/null; then
     KILL="taskkill"
     KILLARGS="-F -PID"
-  elif type kill.exe 2>/dev/null >/dev/null; then
-    KILL="kill.exe"
-    KILLARGS="$KILLARGS
-  -f"
   fi
 ;;
 esac
+if [ $# -le 0 ]; then
+  echo "No pattern given!" 1>&2
+  usage
+  exit 1
+fi
 
+[ "$DEBUG" = true ] && echo "+ PS=$PS PSARGS=${PSARGS:+'$PSARGS'} ${PSFILTER:+PSFILTER='$PSFILTER' }KILL=$KILL KILLARGS=${KILLARGS:+'$KILLARGS'}" 1>&2
 
 PATTERN=\(`IFS='|'; echo "$*"`\)
 PSOUT=`eval "(${DEBUG:+set -x; }\"$PS\" $PSARGS) $PSFILTER"`
