@@ -67,6 +67,7 @@ else
 fi
 
 #echo "dname=$dname" 1>&2 
+dir=${2:-.}
 
 if [ -z "$archive" ]; then
   
@@ -82,10 +83,9 @@ if [ -z "$archive" ]; then
   #echo "name=$name" 1>&2 
 
   archive=${DESTDIR:-..}/${name##*/}
-  [ "$nodate" != true ] && archive=$archive-`date ${dir:+-r "$dir"} +%Y%m%d`
+  [ "$nodate" != true ] && archive=$archive-$(isodate.sh -r ${dir:-.})   #`date ${dir:+-r "$dir"} +%Y%m%d`
   archive=$archive.${type:-7z}
 fi
-dir=${2-.}
 
 bce() {
  (IFS=" "; echo "$*" | (bc -l || echo "ERROR: Expression '$*'" 1>&2)) | sed -u '/\./ s,\.\?0*$,,'
