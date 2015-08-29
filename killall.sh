@@ -88,7 +88,8 @@ fi
 PATTERN=\(`IFS='|'; echo "$*"`\)
 PSOUT=`eval "(${DEBUG:+set -x; }\"$PS\" $PSARGS) $PSFILTER"`
 PSMATCH=` echo "$PSOUT" | grep -i -E "$PATTERN"  |grep -v -E "(killall\\.sh|\\s$$\\s)"`
-PIDS=` echo "$PSMATCH" | $SED -n "/${0##*/}/! s,^[^0-9]*\([0-9][0-9]*\).*,\1,p"`
+set -- $(echo "$PSMATCH" | $SED -n "/${0##*/}/! s,^[^0-9]*\([0-9][0-9]*\).*,\1,p")
+PIDS="$*"
 
 if [ -z "$PIDS" ]; then
 
@@ -97,6 +98,8 @@ if [ -z "$PIDS" ]; then
 fi
 echo "$PSMATCH"
 
-for PID in $PIDS; do
-  eval "(${DEBUG:+set -x; }${KILL:-kill} \$KILLARGS \$PID)"
-done
+CMD="(${DEBUG:+set -x; }${KILL:-kill} \$KILLARGS \$PID)"
+
+CMD="for PID in $PIDS; do $CMD; done"
+[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+eval "$CMD"
