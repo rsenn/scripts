@@ -1,7 +1,7 @@
 #!/bin/bash
 
 usage() {
-  echo "${0##*/} [OPTIONS] <PATTERNS...>
+  echo "Usage: ${0##*/} [OPTIONS] <PATTERNS...>
   
   -x, --debug  Show debug messages
 " 1>&2
