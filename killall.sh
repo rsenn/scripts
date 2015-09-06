@@ -93,7 +93,7 @@ PIDS="$*"
 
 if [ -z "$PIDS" ]; then
 
- (IFS="|$IFS"; echo "No matching process ($*)" 1>&2I)
+ (IFS="|$IFS"; echo "No matching process ($*)" 1>&2)
   exit 2
 fi
 echo "$PSMATCH"
