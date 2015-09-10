@@ -369,3 +369,7 @@ pathremove /usr/sbin && pathmunge /usr/sbin
 pathremove /usr/bin && pathmunge /usr/bin
 pathremove /sbin && pathmunge /sbin 
 pathremove /bin && pathmunge /bin
+
+if type gcc 2>/dev/null >/dev/null; then
+  builddir=build/`gcc -dumpmachine | sed 's,\r*$,,'`
+fi
