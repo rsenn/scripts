@@ -2,7 +2,7 @@
 
 IFS="
 "
-level=3
+: ${level=3}
 : ${exclude="*.git*
 *~
 *.stackdump
