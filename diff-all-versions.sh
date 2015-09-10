@@ -65,7 +65,10 @@ main() {
 		NEW_VERSION=`get_version "$1"`
 		CMD="$DIFF${DIFFOPTS:+ $DIFFOPTS} "$(make_filename "$PREV")" "$(make_filename "$THIS")
 		
-		CMD="$CMD >"$(make_filename "$NAME-${OLD_VERSION}-to-${NEW_VERSION}.diff")
+		DIFFNAME="$NAME-${OLD_VERSION}-to-${NEW_VERSION}"
+		[ "$WHITESPACE" = ignore ] && DIFFNAME="$DIFFNAME-w"
+		
+		CMD="$CMD >"$(make_filename "${DIFFNAME}.diff")
 		
 		[ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
 		if [ "$PRINT_ONLY" = true ]; then
