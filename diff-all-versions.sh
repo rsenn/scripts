@@ -39,15 +39,21 @@ make_filename() {
 main() {
 #  : ${DIFF:="udiff.sh"}
   : ${DIFF:="diff"}
-  : ${DIFFOPTS:="-ru -x{'.git*','.cvs*','.svn*','*#*','*.rej','*.orig','*~'}"}
+
+  : ${DIFFOPTS:="-U1 -r -N -x{'.git*','.cvs*','.svn*','*#*','*.rej','*.orig','*~'}"}
 
   while :; do
     case "$1" in
       -p | --print*) PRINT_ONLY=true; shift ;;
       -x | --debug*) DEBUG=true; shift ;;
+      -w | --whitespace*) WHITESPACE=ignore; shift ;;
+      -u | --unified*) FORMAT=unified; shift ;;
       *) break ;;
     esac
   done
+  
+  [ "$WHITESPACE" = ignore ] && DIFFOPTS="$DIFFOPTS -w"
+  [ "$FORMAT" = unified ] && DIFFOPTS="$DIFFOPTS -u"
   
 	NAME=`get_name "$1"`
 	OLD_VERSION=`get_version "$1"`
@@ -65,6 +71,8 @@ main() {
 		if [ "$PRINT_ONLY" = true ]; then
 		  echo "$CMD"
 		else
+		  
+		  	[ "$DEBUG" = true ]  || echo "$CMD" 1>&2
 		  eval "$CMD"
 		fi
 		
