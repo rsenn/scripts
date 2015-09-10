@@ -11,10 +11,12 @@ filter-git-status()
   shift
   ARGS="-n"
   case "$WHAT" in
-    untracked) MATCH="/^??\\s/" ;;
-    merge*) MATCH="/^\\s\\?M/" ;;
+    untracked) PATTERN='?? ' ;;
+    merge*) PATTERN=' M ' ;;
+    delete*) PATTERN=' D ' ;;
     #*) echo "No such git status specifier: $WHAT" 1>&2; exit 1 ;;
   esac
+  : ${MATCH="\\|^$PATTERN|"}
   : ${SUBST="s|^...||p"}
   exec sed $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
 }

@@ -156,7 +156,9 @@ case "${OS}" in
     PATHTOOL=msyspath
     MSYSROOT=`msyspath -m / 2>/dev/null`
 
-    set_prompt '\e[32m\]\u@\h \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
+    set_prompt '\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '
+
+#    set_prompt '\e[32m\]\u@\h \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
@@ -303,17 +305,6 @@ FNS="$HOME/.bash_functions"
 [ -d "x:/Windows" ] && : ${SystemRoot='x:\Windows'}
 [ -d "x:/I386" ] && : ${SystemRoot='x:\I386'}
 
-explore()
-{
- (r=`realpath "$1" 2>/dev/null`; [ "$r" ] || r=$1
-  r=${r%/.}
-  r=${r#./}
-  p=`$PATHTOOL -w "$r"`
-  set -x
-  "${SystemRoot:+$SystemRoot\\}explorer.exe" "/n,/e,$p"
- )
-}
-
 msiexec()
 {
     (  while :; do
@@ -378,3 +369,7 @@ pathremove /usr/sbin && pathmunge /usr/sbin
 pathremove /usr/bin && pathmunge /usr/bin
 pathremove /sbin && pathmunge /sbin 
 pathremove /bin && pathmunge /bin
+
+if type gcc 2>/dev/null >/dev/null; then
+  builddir=build/`gcc -dumpmachine | sed 's,\r*$,,'`
+fi

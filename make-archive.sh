@@ -2,7 +2,7 @@
 
 IFS="
 "
-level=3
+: ${level=3}
 : ${exclude="*.git*
 *~
 *.stackdump
@@ -152,6 +152,7 @@ dir_contents() {
 
 set -f
 case "$archive" in
+  *.iso) cmd="${genisoimage:-mkisofs} -f -l -R -J -o \"\$archive\"  $(create_list "-exclude " $exclude) \"$dir\"" ;;
   *.7z) cmd="${sevenzip:-7za} a -mx=$(( $level * 5 / 9 )) \"\$archive\" $(create_list "-x!" $exclude) \"$dir\"" ;;
   *.zip) cmd="zip -${level} -r \"\$archive\" \"$dir\" $(create_list "-x " $exclude) " ;;
   *.rar) cmd="rar a -m$(($level * 5 / 9)) -r $(create_list "-x" $exclude) \"\$archive\" \"$dir\"" ;;
