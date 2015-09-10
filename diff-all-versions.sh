@@ -37,7 +37,8 @@ make_filename() {
 
 
 main() {
-  : ${DIFF:="udiff.sh"}
+#  : ${DIFF:="udiff.sh"}
+  : ${DIFF:="diff"}
   : ${DIFFOPTS:="-ru -x{'.git*','.cvs*','.svn*','*#*','*.rej','*.orig','*~'}"}
 
   while :; do
