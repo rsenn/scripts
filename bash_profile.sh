@@ -6,7 +6,8 @@ set -o vi
 IFS="
 "
 
-PATH="/bin:$PATH"
+PATH="/usr/bin:/bin:$PATH"
+PATH="/usr/sbin:/sbin:$PATH"
 
 [ "$HOSTNAME" = MSYS -o -n "$MSYSTEM" ] && OS="Msys"
 [ "$OSTYPE" ] && OS="$OSTYPE"
