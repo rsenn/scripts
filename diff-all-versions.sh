@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 SQ="'"
 DQ='"'
@@ -35,26 +35,52 @@ make_filename() {
   echo "$NAME")
 }
 
+set_list() {
+  local IFS="
+"
+  eval "shift; $1=\"\$*\""
+}
+
+implode() {
+ (unset DATA SEPARATOR;
+  SEPARATOR="$1"; shift
+  CMD='DATA="${DATA+$DATA$SEPARATOR}$ITEM"'
+  if [ $# -gt 0 ]; then
+    CMD="for ITEM; do $CMD; done"
+  else
+    CMD="while read -r ITEM; do $CMD; done"
+  fi
+  eval "$CMD"
+  echo "$DATA")
+}
 
 main() {
 #  : ${DIFF:="udiff.sh"}
   : ${DIFF:="diff"}
 
-  : ${DIFFOPTS:="-U1 -r -N -x{'.git*','.cvs*','.svn*','*#*','*.rej','*.orig','*~'}"}
+  : ${DIFFOPTS:="-r -N"}
+
+  set_list EXCLUDE ".git*" ".cvs*" ".svn*" "*#*" "*.rej" "*.orig" "*~"
 
   while :; do
     case "$1" in
       -p | --print*) PRINT_ONLY=true; shift ;;
       -x | --debug*) DEBUG=true; shift ;;
       -w | --whitespace*) WHITESPACE=ignore; shift ;;
+      -U[0-9]* ) FORMAT=unified${1#-?}; shift ;; -U=[0-9]* ) FORMAT=unified${1#*=}; shift ;; -U) FORMAT=unified${2}; shift 2 ;; 
       -u | --unified*) FORMAT=unified; shift ;;
       *) break ;;
     esac
   done
   
   [ "$WHITESPACE" = ignore ] && DIFFOPTS="$DIFFOPTS -w"
-  [ "$FORMAT" = unified ] && DIFFOPTS="$DIFFOPTS -u"
+  case "$FORMAT" in
+     unified) DIFFOPTS="$DIFFOPTS -u" ;;
+     unified*) DIFFOPTS="$DIFFOPTS -U${FORMAT#unified}" ;;
+  esac     
   
+  DIFFOPTS="$DIFFOPTS -x{"$(sed "s|.*|'&'|" <<<"$EXCLUDE" | implode ",")"}"
+
 	NAME=`get_name "$1"`
 	OLD_VERSION=`get_version "$1"`
 
