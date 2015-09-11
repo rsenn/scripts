@@ -386,11 +386,11 @@ fi
 
 CMD="$CMD${FILTERCMD:+ | $FILTERCMD}"
 
-eval "($CMD) 2>/dev/null &" 
+eval "($CMD) 2>/dev/null &; cpid=\$\$" 
 
-for SIG in  INT EXIT QUIT TERM; do
-trap 'echo "'$SIG'"; kill %% ; exit $?' $SIG
+for SIG in  INT QUIT TERM; do
+  trap 'echo "'$SIG'"; kill $cpid ; kill %% 2>&/dev/null; exit $?' $SIG
 done
-
-wait %%
+fg
+#wait %% 2>/dev/null
 
