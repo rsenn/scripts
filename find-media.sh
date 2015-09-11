@@ -386,5 +386,11 @@ fi
 
 CMD="$CMD${FILTERCMD:+ | $FILTERCMD}"
 
-eval "($CMD) 2>/dev/null" 
+eval "($CMD) 2>/dev/null &" 
+
+for SIG in  INT EXIT QUIT TERM; do
+trap 'echo "'$SIG'"; kill %% ; exit $?' $SIG
+done
+
+wait %%
 
