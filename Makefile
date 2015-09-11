@@ -12,9 +12,6 @@ profiledir = ${sysconfdir}/profile.d
 INSTALL = install
 
 all:
-install: $(SCRIPTS)
-	$(INSTALL) -d $(DESTDIR)$(bindir)
-	$(INSTALL) -m 755 $(SCRIPTS) $(DESTDIR)$(bindir)/
 
 install-profile: $(PROFILE)
 	$(INSTALL) -d $(DESTDIR)$(profiledir)
@@ -43,4 +40,25 @@ inst-slackpkg: slackpkg
   done
 
 PROFILE = $(wildcard profile/*.sh profile/*.zsh profile/*.bash)
-SCRIPTS = $(wildcard *.awk *.bash *.fontforge *.pl *.rb *.sh)
+SCRIPTS = $(AWK_SCRIPTS) $(BASH_SCRIPTS) $(FONTFORGE_SCRIPTS) $(PL_SCRIPTS) $(RB_SCRIPTS) $(SH_SCRIPTS)
+AWK_SCRIPTS = $(wildcard *.awk)
+BASH_SCRIPTS = $(wildcard *.bash)
+FONTFORGE_SCRIPTS = $(wildcard *.fontforge)
+PL_SCRIPTS = $(wildcard *.pl)
+RB_SCRIPTS = $(wildcard *.rb)
+#SH_SCRIPTS = $(wildcard *.sh)
+SH_SCRIPTS = $(shell ls -t -- *.sh)
+
+install: $(SCRIPTS)
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL) -m 755 $(AWK_SCRIPTS) $(DESTDIR)$(bindir)/
+	$(INSTALL) -m 755 $(BASH_SCRIPTS) $(DESTDIR)$(bindir)/
+	$(INSTALL) -m 755 $(FONTFORGE_SCRIPTS) $(DESTDIR)$(bindir)/
+	$(INSTALL) -m 755 $(PL_SCRIPTS) $(DESTDIR)$(bindir)/
+	$(INSTALL) -m 755 $(RB_SCRIPTS) $(DESTDIR)$(bindir)/
+	@N=30; set -- $(SH_SCRIPTS); while :; do \
+	  echo "$(INSTALL) -m 755 $${@:1:$$N} $(DESTDIR)$(bindir)/"; \
+	  $(INSTALL) -m 755 $${@:1:$$N} $(DESTDIR)$(bindir)/; \
+	  [ $$# -lt $$N ] && break; \
+	  shift $$N; \
+	done

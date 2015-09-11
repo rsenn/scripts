@@ -319,7 +319,7 @@ fi
 
 [ "$DEBUG" = true ] && echo "EXPR is $EXPR" 1>&2
 
-CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG ${FILTERCMD:+ | $FILTERCMD}"
+CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG"
 
 SED_EXPR="s,/files\\.list:,/,"
 
@@ -384,6 +384,7 @@ fi
 	
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 
+CMD="$CMD${FILTERCMD:+ | $FILTERCMD}"
 
 eval "($CMD) 2>/dev/null" 
 

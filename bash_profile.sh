@@ -305,17 +305,6 @@ FNS="$HOME/.bash_functions"
 [ -d "x:/Windows" ] && : ${SystemRoot='x:\Windows'}
 [ -d "x:/I386" ] && : ${SystemRoot='x:\I386'}
 
-explore()
-{
- (r=`realpath "$1" 2>/dev/null`; [ "$r" ] || r=$1
-  r=${r%/.}
-  r=${r#./}
-  p=`$PATHTOOL -w "$r"`
-  set -x
-  "${SystemRoot:+$SystemRoot\\}explorer.exe" "/n,/e,$p"
- )
-}
-
 msiexec()
 {
     (  while :; do
@@ -372,9 +361,13 @@ esac
 export LS_COLORS
 
 
-pathremove /sbin && pathmunge /sbin 
-pathremove /bin && pathmunge /bin
-pathremove /usr/sbin && pathmunge /usr/sbin
-pathremove /usr/bin && pathmunge /usr/bin
-pathremove /usr/local/sbin && pathmunge /usr/local/sbin
-pathremove /usr/local/bin && pathmunge /usr/local/bin 
+#pathremove /sbin && pathmunge /sbin 
+#pathremove /bin && pathmunge /bin
+#pathremove /usr/sbin && pathmunge /usr/sbin
+#pathremove /usr/bin && pathmunge /usr/bin
+#pathremove /usr/local/sbin && pathmunge /usr/local/sbin
+#pathremove /usr/local/bin && pathmunge /usr/local/bin 
+
+if type gcc 2>/dev/null >/dev/null; then
+  builddir=build/`gcc -dumpmachine | sed 's,\r*$,,'`
+fi

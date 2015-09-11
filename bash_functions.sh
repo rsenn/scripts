@@ -110,19 +110,22 @@ Shell\\Option1\\Command=$EXEC
 ")
 }
 
-awkp()
-{
-    ( IFS="
-	";
-    N=${1};
-    set -- awk;
-    case $1 in
-        -[A-Za-z]*)
-            set -- "$@" "$1";
-            shift
-        ;;
-    esac;
-    "$@" "{ print \$${N:-1} }" )
+awkp() {
+ (IFS="
+	"; N=${1}
+	CMD="awk"
+	[ $# -le 0 ] && set -- 1
+	SCRIPT=""
+
+  while :; do
+		case "$1" in
+			-[A-Za-z]*) CMD="$CMD $1"; shift ;;
+			[0-9]) SCRIPT="${SCRIPT:+$SCRIPT\" \"}\$$1"; shift ;;
+			[0-9]*) SCRIPT="${SCRIPT:+$SCRIPT\" \"}\$($1)"; shift ;;
+			*) break ;;
+		esac
+	done
+	eval "$CMD \"{ print \$SCRIPT }\"")
 }
 
 bheader()
@@ -198,19 +201,6 @@ bpm() {
   }"
 }
 
-#bpm()
-#{
-#    ( unset NAME;
-#    if [ $# -gt 1 ]; then
-#        NAME=":";
-#    fi;
-#    for ARG in "$@";
-#    do
-#        BPM=` id3v2 -l "$ARG" |sed -n 's,TBPM[^:]*:\s*,,p' `;
-#        echo "${NAME+$ARG: }${BPM%.*}";
-#    done )
-#}
-
 c256()
 {
   value=$1
@@ -258,26 +248,6 @@ canonicalize()
    echo "$OUT"
 
    )
-}
-
-ch_conv()
-{
-    FROM="$1" TO="$2";
-    shift 2;
-    for ARG in "$@";
-    do
-        ( trap 'rm -f "$TMP"' EXIT;
-        TMP=$(mktemp);
-        iconv -f "$FROM" -t "$TO" <"$ARG" >"$TMP" && mv -vf "$TMP" "$ARG" );
-    done
-}
-c2w()
-{
-    ch_conv UTF-8 UTF-16 "$@"
-}
-w2c()
-{
-    ch_conv UTF-16 UTF-8 "$@"
 }
 
 check-7z() {
@@ -625,8 +595,7 @@ d()
     echo "$1" )
 }
 
-datasheet-url()
-{ 
+datasheet-url() { 
     RESULTS=1000 google.sh "$1 datasheet filetype:pdf" | grep --color=auto --line-buffered -i "$1[^/]*$"
 }
 
@@ -796,48 +765,48 @@ disk-devices() {
     foreach-partition 'echo "$DEV"'
 }
 
-disk-label()
-{
-    (ESCAPE_ARGS="-e"
-    while :; do
-       case "$1" in
-         -E | --no-escape) ESCAPE_ARGS=; shift ;;
-       *) break ;;
-     esac
-   done
-    DEV=${1};
-    test -L "$DEV" && DEV=` myrealpath "$DEV"`;
-    cd /dev/disk/by-label;
-    find . -type l | while read -r LINK; do
-        TARGET=`readlink "$LINK"`;
-        if [ "${DEV##*/}" = "${TARGET##*/}" ]; then
-            NAME=${LINK##*/};
-            NAME=${NAME//'\x20'/'\040'}
-            case "$NAME" in
-                *[[:lower:]]*)
-                    LOWER=true
-                ;;
-            esac;
-            if [ "$LOWER" = true -o ! -r "$LINK" ]; then
-                echo $ESCAPE_ARGS "$NAME";
-            else
-                FS=` filesystem-for-device "$DEV"`;
-                case "$FS" in
-                    *fat)
-                        IFS="
-";
-                        set -- $(dosfslabel "$LINK");
-                        test $# = 1 && echo "$1"
-                    ;;
-                    *)
-                        echo $ESCAPE_ARGS "$NAME"
-                    ;;
-                esac;
-            fi;
-            exit 0;
-        fi;
-    done;
-    exit 1 )
+disk-label() {
+ (LABEL=`volname "$1"`
+  if [ -n "$1" -a -e "$1" -a -n "$LABEL" ]; then
+    echo "$LABEL"
+    exit 0
+  fi      
+  ESCAPE_ARGS="-e"
+  while :; do
+    case "$1" in
+      -E | --no-escape) ESCAPE_ARGS=; shift ;;
+      *) break ;;
+    esac
+  done
+  DEV=${1}
+  test -L "$DEV" && DEV=` myrealpath "$DEV"`
+  cd /dev/disk/by-label
+  find . -type l | while read -r LINK; do
+		TARGET=`readlink "$LINK"`
+		if [ "${DEV##*/}" = "${TARGET##*/}" ]; then
+			NAME=${LINK##*/}
+			NAME=${NAME//'\x20'/'\040'}
+			case "$NAME" in
+				*[[:lower:]]*) LOWER=true ;;
+			esac
+			if [ "$LOWER" = true -o ! -r "$LINK" ]; then
+				echo $ESCAPE_ARGS "$NAME"
+			else
+				FS=` filesystem-for-device "$DEV"`
+				case "$FS" in
+					*fat)
+							IFS="
+"
+						set -- $(dosfslabel "$LINK")
+						test $# = 1 && echo "$1"
+					;;
+					*) echo $ESCAPE_ARGS "$NAME" ;;
+				esac
+			fi
+			exit 0
+		fi
+  done
+  exit 1)
 }
 
 disk-partition-number()
@@ -1188,10 +1157,12 @@ filter-git-status()
   shift
   ARGS="-n"
   case "$WHAT" in
-    untracked) MATCH="/^??\\s/" ;;
-    merge*) MATCH="/^\\s\\?M/" ;;
+    untracked) PATTERN='?? ' ;;
+    merge*) PATTERN=' M ' ;;
+    delete*) PATTERN=' D ' ;;
     #*) echo "No such git status specifier: $WHAT" 1>&2; exit 1 ;;
   esac
+  : ${MATCH="\\|^$PATTERN|"}
   : ${SUBST="s|^...||p"}
   exec sed $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
 }
@@ -1282,6 +1253,19 @@ filter_out()
 }
 
 find-all() { (locate32.sh "$@" ; find-media.sh "$@") |sort -u ; }
+
+findstring()
+{
+    ( STRING="$1";
+    while shift;
+    [ "$#" -gt 0 ]; do
+        if [ "$STRING" = "$1" ]; then
+            echo "$1";
+            exit 0;
+        fi;
+    done;
+    exit 1 )
+}
 
 findstring()
 {
@@ -2444,15 +2428,6 @@ linedelay()
     test "${o+set}" = set && echo "$o"
 }
 
-lines()
-{
-    for ARG in "$@";
-    do
-        N=$( set -- $ARG; (xzcat "$1" || bzcat "$1" || zcat "$1" || cat "$1") 2>/dev/null | wc -l);
-        test "$#" -gt 1 && printf "%10d %s\n" $N $ARG || echo "$N";
-    done
-}
-
 link-mpd-music-dirs()
 {
     ( : ${DESTDIR=/var/lib/mpd/music};
@@ -2883,10 +2858,22 @@ list-upx()
     upx -l "$@" 2>&1 | sed '1 { :lp; N; /^\s*--\+/! b lp; d; }' | sed '$ { /[0-9]\sfiles\s\]$/d; } ; /^\s*[- ]\+$/d'
 }
 
-list() {
- (for ARG; do
-    echo "$ARG"
-  done)
+list()
+{
+    local n=$1 count=0 choices='';
+    shift;
+    for choice in "$@";
+    do
+        choices="$choices $choice";
+        count=$((count + 1));
+        if $((count)) -eq $((n)); then
+            count=0;
+            choices='';
+        fi;
+    done;
+    if [ -n "${choices# }" ]; then
+        msg $choices;
+    fi
 }
 
 locate-filename()
@@ -2985,21 +2972,6 @@ ls-files()
     do
         ls --color=auto -d "$ARG"/*;
     done ) | filter-test -f| sed 's,^\./,,; s,/$,,'
-}
-
-unalias ls-l 2>/dev/null
-ls-l()
-{
-    ( I=${1:-6};
-    set --;
-    while [ "$I" -gt 0 ]; do
-        set -- "ARG$I" "$@";
-        I=`expr $I - 1`;
-    done;
-    IFS=" ";
-    CMD="while read  -r $* P; do  echo \"\${P}\"; done";
-    echo "+ $CMD" 1>&2;
-    eval "$CMD" )
 }
 
 lsof-win()
@@ -3139,17 +3111,6 @@ matchany()
         esac;
     done;
     exit 1 )
-}
-
-match_some()
-{
-    eval "while shift
-  do
-  case \"\$1\" in
-    $1 ) return 0 ;;
-  esac
-  done
-  return 1"
 }
 
 max()
@@ -3431,11 +3392,6 @@ mountpoints()
     CMD="lsmnt \"\$@\"";
     [ "$USER" = true ] && CMD="$CMD | grep -vE '^(/\$|/proc|/sys|/dev)'";
     eval "$CMD" )
-}
-
-msg()
-{
-    echo "${me:+$me: }$@" 1>&2
 }
 
 msgbegin()
@@ -4166,11 +4122,6 @@ require()
     return 127
 }
 
-resolution()
-{  
-	(minfo "$@"|sed -n "/Width\s*: / { N; /Height\s*:/ { s,Width\s*:,, ; s,[^:\n0-9]\+: \+\([^:]*\)\$,\1,g; s|^\s*||; s|\([0-9]\)\s\+\([0-9]\)|\1\2|g; s|\s*pixels||g;  s|\n\([^:]*:\)\?|x|g; p } }")
-}
-
 retcode()
 {
     "$@";
@@ -4318,12 +4269,12 @@ rpm-cmd() {
   done
 }
 
-rpm-list() {
-  rpm-cmd -t -- "$@"
-}
-
 rpm-extract() {
   rpm-cmd -i -d -u -- "$@"
+}
+
+rpm-list() {
+  rpm-cmd -t -- "$@"
 }
 
 scriptdir()
@@ -4344,24 +4295,6 @@ set_ps1()
 {
     local b="\\[\\e[37;1m\\]" d="\\[\\e[0;38m\\]" g="\\[\\e[1;36m\\]" n="\\[\\e[0m\\]";
     export PS1="$n\\u$g@$n\\h$g<$n\\w$g>$n \\\$ "
-}
-
-shell-functions()
-{
-    ( . require.sh;
-    require script;
-    declare -f | script_fnlist )
-}
-
-some()
-{
-    eval "while shift
-  do
-  case \"\`str_tolower \"\$1\"\`\" in
-    $(str_tolower "$1") ) return 0 ;;
-  esac
-  done
-  return 1"
 }
 
 sf-get-cvs-modules() {
@@ -4386,6 +4319,17 @@ EOF"'
   done)
 }
 
+sf-get-git-repos() {
+  require xml
+ (for ARG; do
+    curl -s  "http://sourceforge.net/p/$ARG/code-git/ci/master/tree/" |
+			xml_get a data-url |
+			head -n1
+  done |
+    sed "s|-git\$|| ;; s|-code\$||" |
+    addsuffix "-git")
+}
+
 sf-get-svn-modules() { 
   require xml
  (for ARG; do
@@ -4397,15 +4341,22 @@ sf-get-svn-modules() {
     addsuffix "-svn")
 }
 
-sf-get-git-repos() {
-  require xml
- (for ARG; do
-    curl -s  "http://sourceforge.net/p/$ARG/code-git/ci/master/tree/" |
-			xml_get a data-url |
-			head -n1
-  done |
-    sed "s|-git\$|| ;; s|-code\$||" |
-    addsuffix "-git")
+shell-functions()
+{
+    ( . require.sh;
+    require script;
+    declare -f | script_fnlist )
+}
+
+some()
+{
+    eval "while shift
+  do
+  case \"\`str_tolower \"\$1\"\`\" in
+    $(str_tolower "$1") ) return 0 ;;
+  esac
+  done
+  return 1"
 }
 
 split()
@@ -4589,6 +4540,12 @@ to-sed-expr()
   sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
 }
 
+to-sed-expr()
+{
+ ([ $# -gt 0 ] && exec <<<"$*"
+  sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
+}
+
 umount-all()
 {
     for ARG in "$@";
@@ -4758,14 +4715,6 @@ volname() {
       eval "$ECHO"
   done)
 }
-#volname () { 
-#   ([ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
-#    for ARG; do
-#	  drive=$(cygpath -m "$ARG")
-#	  NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
-#	  eval "$ECHO"
-#	done)
-#}
 
 w2c()
 {
@@ -4842,9 +4791,14 @@ x-fn()
   " "$@")
 }
 
-yaourt-pkgnames() {
+yaourt-cutnum() {
+ #(NAME='\([^ \t/]\+\)';  sed "s|^${NAME}/${NAME}\s\+\(.*\)\s\+\(([0-9]\+)\)\(.*\)|\1/\2 \3 \5|")
+ sed "s|\s\+\(([0-9]\+)\)\(.*\)| \2|"
+}
+
+yaourt-cutver() {
  (NAME='\([^ \t/]\+\)'
- sed -n "s|^${NAME}/${NAME}\s\+\(.*\)|\2|p")
+ sed "s|^${NAME}/${NAME}\s\+\([^ \t]\+\)\s\+\(.*\)|\1/\2 \4|")
 }
 
 yaourt-joinlines() {
@@ -4871,14 +4825,9 @@ yaourt-joinlines() {
 	[ -n "$PKG" ] && echo "$PKG")
 }
 
-yaourt-cutver() {
+yaourt-pkgnames() {
  (NAME='\([^ \t/]\+\)'
- sed "s|^${NAME}/${NAME}\s\+\([^ \t]\+\)\s\+\(.*\)|\1/\2 \4|")
-}
-
-yaourt-cutnum() {
- #(NAME='\([^ \t/]\+\)';  sed "s|^${NAME}/${NAME}\s\+\(.*\)\s\+\(([0-9]\+)\)\(.*\)|\1/\2 \3 \5|")
- sed "s|\s\+\(([0-9]\+)\)\(.*\)| \2|"
+ sed -n "s|^${NAME}/${NAME}\s\+\(.*\)|\2|p")
 }
 
 yes()

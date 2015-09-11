@@ -1,4 +1,3 @@
 count() {
         echo $#
 }
-
