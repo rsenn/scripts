@@ -8,8 +8,8 @@ find_software()
 	(
    IFS="
 	 "
-		EXTS="*setup*.exe *install*.exe *.msi *.run *.dmg *.app *.apk"
-    EXTS="$EXTS 7z app bin daa deb dmg exe iso msi nrg pkg rar rpm run sh tar.Z tar.bz2 tar.gz tar.xz tbz2 tgz txz zip"
+		EXTS="*setup*.exe *install*.exe *.msi *.msu *.cab *.vbox-extpack *.apk *.run *.dmg *.app *.apk"
+    EXTS="$EXTS 7z app bin daa deb dmg exe iso msi msu cab vbox-extpack apk nrg pkg rar rpm run sh tar.Z tar.bz2 tar.gz tar.xz tbz2 tgz txz zip"
 		
 		[ "$#" -le 0 ] && set -- *
 

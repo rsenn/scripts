@@ -23,6 +23,7 @@ while :; do
   case "$1" in
     -[0-9]) level=${1#-}; shift ;;
     -t) type=$2; shift 2 ;;
+    -q | --quiet) QUIET=true; shift ;;
     -d=* | --dest*dir*=*) DESTDIR=${1#*=}; shift ;; 
     -d | --dest*dir*) DESTDIR=$2; shift 2 ;;
     -D | --no*date*) nodate=true; shift  ;;
@@ -164,7 +165,7 @@ case "$archive" in
   *.tbz2|*.tbz|*.tar.bz2) cmd="$TAR -cv $(create_list --EXCLUDE= $EXCLUDE) $(dir_contents "$dir") | bzip2 -$level >\"\$archive\"" ;;
 esac
 cmd='rm -vf "$archive";'$cmd
-cmd="($cmd) 2>&1"
+[ "$QUIET" = true ] && cmd="($cmd) 2>/dev/null" || cmd="($cmd) 2>&1"
 echo "cmd='$cmd'" 1>&2
 eval "(set -x; $cmd)" &&
 echo "Created archive '$archive'"
