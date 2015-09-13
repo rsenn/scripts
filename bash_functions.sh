@@ -562,11 +562,11 @@ cut-lsof() {
     if [ "$LINE" -le 2 ]; then
       case "$TYPE" in
         TTY) set -- PID PARENT PGID WINPID TTY USERID STIME NAME; unset SIZE; LINE=$((LINE+1)); continue ;;
-        "("*")") set -- COMMAND PID FD TYPE MODE NAME ;;
+        "("*")") set -- COMMAND PID FD TYPE NAME; FD="$USER" TYPE="$FD" MODE="$TYPE" NAME="$DEVICE${SIZE:+ $SIZE}${NODE:+ $NODE}${NAME:+ $NAME}" ;;
          *)
 					if is_num "$COMMAND" "$PID" "$USER" "$FD" || [ "$COMMAND" = I ]; then
 					  set -- PID PARENT PGID WINPID TTY USERID STIME NAME
-					elif (! is_num "$NODE" || [ -z "$NAME" ]); then
+					elif [ "$LINE" -le 1 ] && (! is_num "$NODE" || [ -z "$NAME" ]); then
 						NAME="$NODE${NAME:+ $NAME}"; unset NODE
 						set -- COMMAND PID USER FD TYPE DEVICE SIZE NAME
 					fi
@@ -574,6 +574,10 @@ cut-lsof() {
 				  ;;
 			esac
 		fi
+		case "$NAME" in
+		  "("*") "*) MODE=${NAME%%" "*}; NAME=${NAME#"("*") "} ;;
+		  [0-2][0-9]:[0-5][0-9]:[0-5][0-9]" "*) STIME=${NAME%%" "*}; 		NAME=${NAME#[0-2][0-9]:[0-5][0-9]:[0-5][0-9]" "} ;;
+		esac
 		case "$PID" in
 		  I) PID="$PARENT" PARENT="$PGID" PGID="$WINPID" WINPID="$TTY" TTY="$USERID" USERID="$STIME" STIME="${NAME%% *}" NAME="${NAME#* }" ;;
 		esac
@@ -582,7 +586,7 @@ cut-lsof() {
 		    NAME=${NAME#*" "}
 		  ;;
 		esac
-		NAME=${NAME#[0-2][0-9]:[0-5][0-9]:[0-5][0-9]" "}
+		while [ "$NAME" != "${NAME# }" ]; do NAME=${NAME#" "}; done		
     print
     LINE=$((LINE + 1))
   done)
@@ -1538,18 +1542,19 @@ foreach-partition() {
     IFS="$old_IFS"
 }
 
-	for_each() {
+for_each() {
 	CMD=$1
 	if [ "$(type -t "$CMD")" = function ]; then
 	  CMD="$CMD \"\$@\""
 	fi
 	shift
+	[ "$DEBUG" = true ] && CMD="echo \"+ $CMD\" 1>&2; $CMD"
 	if [ $# -gt 0 ]; then
-	  CMD='while shift; [ "$#" -gt 0 ]; do '$CMD'; done'
+	  CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; } || return $?; done'
 	else
-	  CMD='while read -r LINE; do set -- $LINE; '$CMD'; done'
+	  CMD='while read -r LINE; do set -- $LINE; { '$CMD'; } || return $?; done'
 	fi
-	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+#	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
 	eval "$CMD"
 	unset CMD
 }
