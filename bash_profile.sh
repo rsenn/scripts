@@ -6,7 +6,8 @@ set -o vi
 IFS="
 "
 
-PATH="/bin:$PATH"
+PATH="/usr/bin:/bin:$PATH"
+PATH="/usr/sbin:/sbin:$PATH"
 
 [ "$HOSTNAME" = MSYS -o -n "$MSYSTEM" ] && OS="Msys"
 [ "$OSTYPE" ] && OS="$OSTYPE"
@@ -360,15 +361,13 @@ esac
 
 export LS_COLORS
 
-#[ -d /sbin ] && pathmunge /sbin
-#[ -d /usr/sbin ] && pathmunge /usr/sbin
 
-pathremove /usr/local/sbin && pathmunge /usr/local/sbin
-pathremove /usr/local/bin && pathmunge /usr/local/bin 
-pathremove /usr/sbin && pathmunge /usr/sbin
-pathremove /usr/bin && pathmunge /usr/bin
-pathremove /sbin && pathmunge /sbin 
-pathremove /bin && pathmunge /bin
+#pathremove /sbin && pathmunge /sbin 
+#pathremove /bin && pathmunge /bin
+#pathremove /usr/sbin && pathmunge /usr/sbin
+#pathremove /usr/bin && pathmunge /usr/bin
+#pathremove /usr/local/sbin && pathmunge /usr/local/sbin
+#pathremove /usr/local/bin && pathmunge /usr/local/bin 
 
 if type gcc 2>/dev/null >/dev/null; then
   builddir=build/`gcc -dumpmachine | sed 's,\r*$,,'`
