@@ -13,11 +13,11 @@ cut-lsof() {
     if [ "$LINE" -le 2 ]; then
       case "$TYPE" in
         TTY) set -- PID PARENT PGID WINPID TTY USERID STIME NAME; unset SIZE; LINE=$((LINE+1)); continue ;;
-        "("*")") set -- COMMAND PID FD TYPE MODE NAME ;;
+        "("*")") set -- COMMAND PID FD TYPE MODE NAME; FD="$USER" TYPE="$FD" MODE="$TYPE" NAME="$DEVICE${SIZE:+ $SIZE}${NODE:+ $NODE}${NAME:+ $NAME}" ;;
          *)
 					if is_num "$COMMAND" "$PID" "$USER" "$FD" || [ "$COMMAND" = I ]; then
 					  set -- PID PARENT PGID WINPID TTY USERID STIME NAME
-					elif (! is_num "$NODE" || [ -z "$NAME" ]); then
+					elif [ "$LINE" -le 1 ] && (! is_num "$NODE" || [ -z "$NAME" ]); then
 						NAME="$NODE${NAME:+ $NAME}"; unset NODE
 						set -- COMMAND PID USER FD TYPE DEVICE SIZE NAME
 					fi
