@@ -125,6 +125,7 @@ usage() {
 
 EXCLUDE_DIRS='.*/\.wine/drive.*/\.wine/drive'
 MIXED_PATH=true
+DEBUG=false 
 
 while :; do
 	case "$1" in
