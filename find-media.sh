@@ -386,7 +386,7 @@ fi
 
 CMD="$CMD${FILTERCMD:+ | $FILTERCMD}"
 
-eval "($CMD) 2>/dev/null &; cpid=\$\$" 
+eval "($CMD) 2>/dev/null & cpid=\$\$" 
 
 for SIG in  INT QUIT #TERM EXIT
 do
