@@ -388,8 +388,9 @@ CMD="$CMD${FILTERCMD:+ | $FILTERCMD}"
 
 eval "($CMD) 2>/dev/null &; cpid=\$\$" 
 
-for SIG in  INT QUIT TERM; do
-  trap 'echo "'$SIG'"; kill $cpid ; kill %% 2>&/dev/null; exit $?' $SIG
+for SIG in  INT QUIT #TERM EXIT
+do
+  trap 'R=$?; trap "exit \$?" $SIG; echo "'$SIG'"; kill $cpid ; kill %% 2>&/dev/null; exit $R' $SIG
 done
 fg
 #wait %% 2>/dev/null
