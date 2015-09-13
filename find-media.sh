@@ -392,6 +392,6 @@ for SIG in  INT QUIT #TERM EXIT
 do
   trap 'R=$?; trap "exit \$?" $SIG; echo "'$SIG'"; kill $cpid ; kill %% 2>&/dev/null; exit $R' $SIG
 done
-fg
+#fg
 #wait %% 2>/dev/null
-
+wait
