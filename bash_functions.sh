@@ -4838,6 +4838,20 @@ uuid_hexnums()
     getuuid "$1" | sed "s,[0-9A-Fa-f][0-9A-Fa-f], ${2:-0x}&,g" | sed "s,^\s*,, ; s,\s\+,\n,g"
 }
 
+vs2vc() {
+ (for ARG; do
+   case "$ARG" in
+     8 | 8.0) echo 2005 ;;
+     9 | 9.0) echo 2008 ;;
+     10 | 10.0) echo 2010 ;;
+     11 | 11.0) echo 2012 ;;
+     12 | 12.0) echo 2013 ;;
+     14 | 14.0) echo 2015 ;;
+     *) echo "No such Visual Studio version: $ARG" 1>&2; exit 1 ;;
+   esac
+  done)
+}
+
 verbose()
 {
     local msg="$*" a=`eval "echo \"\${$#}\""` IFS="
@@ -4915,6 +4929,20 @@ volname() {
 				eval "$ECHO"
 		done
 fi)
+}
+
+vs2vc() {
+ (for ARG; do
+   case "$ARG" in
+     2005) echo 8.0 ;; 
+     2008) echo 9.0 ;; 
+     2010) echo 10.0 ;; 
+     2012) echo 11.0 ;; 
+     2013) echo 12.0 ;; 
+     2015) echo 14.0 ;; 
+     *) echo "No such Visual Studio version: $ARG" 1>&2; exit 1 ;;
+   esac
+  done)
 }
 
 w2c()
