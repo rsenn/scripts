@@ -13,5 +13,5 @@ cut-num() {
     EXPR="$EXPR[0-9]\\+\\s*"
     : $((N--))
   done
-  sed "s|^\\s*$EXPR||" "$@")
+  sed "s|^${EXPR:+\\s*$EXPR}||" "$@")
 }
