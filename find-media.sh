@@ -322,7 +322,7 @@ fi
 
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG"
 
-SED_EXPR="s,/files\\.list:,/,"
+SED_EXPR='s|\r$|| ;; s|/files\\.list:|/|'
 
 # If dirs are to be excluded, add them to $SED_EXPR
 if [ -n "$EXCLUDE_DIRS" ]; then
