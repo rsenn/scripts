@@ -9,7 +9,7 @@ decode_ls_lR()
 		case "$1" in
 			-n) N="$2" ; shift 2 ;;
 			-n*) N="${1#-n}" ; shift ;;
-			-p) PREFIX="$2"; shift 2 ;;
+			-p) PREFIX="${2%/}"; shift 2 ;;
 			-p*) PREFIX="${1#-p}"; shift ;;
 			*) break ;;
 		esac
@@ -31,8 +31,14 @@ decode_ls_lR()
 				 shift 5
 				 FILE="$*"
 				 ;;
+				 *\ *\ *\ *\ *\ ???\ *\ [0-9][0-9][0-9][0-9]\ * | \
+				*\ *\ *\ *\ *\ ???\ [0-9][0-9]\ [0-9][0-9][0-9][0-9]\ * )
+				 MODE="$1" LINKS="$2" USER="$3" GROUP="$4" SIZE="$5" MONTH="$6" DAY="$7" YEAR="$8" TIME=
+				 shift 8
+				 FILE="$*"
+				;;
 		    *\ *\ *\ *\ *\ ???\ [0-9][0-9]\ [0-9][0-9]:[0-9][0-9]\ *)
-				 MODE="$1" LINKS="$2" USER="$3" GROUP="$4" SIZE="$5" MONTH="$6" DAY="$7" TIME="$8"
+				 MODE="$1" LINKS="$2" USER="$3" GROUP="$4" SIZE="$5" MONTH="$6" DAY="$7" YEAR= TIME="$8"
 				 shift 8
 				 FILE="$*"
 				;;
