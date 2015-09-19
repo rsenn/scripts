@@ -80,6 +80,16 @@ all-disks()
     )
 }
 
+arch2bit() {
+ (for ARG; do
+   case "$ARG" in
+     *x64* | *x86?64*) echo 64 ;;
+     *x86* | *i[3-6]86*) echo 32 ;;
+     *) echo "No such arch: $ARG" 1>&2; exit 1 ;;
+   esac
+  done)
+}
+
 array()
 {
     local IFS="$ARRAY_s";
@@ -131,6 +141,16 @@ awkp() {
 bheader()
 {
     quiet dd count="${1:-1}" bs="${2:-512}"
+}
+
+bit2arch() {
+ (for ARG; do
+   case "$ARG" in
+     32 | 32[!0-9]* | *[!0-9]32 | *[!0-9]32[!0-9]*) echo x86 ;;
+     64 | 64[!0-9]* | *[!0-9]64 | *[!0-9]64[!0-9]*) echo x64 ;;
+     *) echo "No such bit count: $ARG" 1>&2; exit 1 ;;
+   esac
+  done)
 }
 
 bitrate()
@@ -199,6 +219,22 @@ bpm() {
     s|^id3v2 tag info for \([^\n]*\) *: *\n *|\1: |
     p
   }"
+}
+bpm() {
+  while :; do
+    case "$1" in
+      -i | --int*) INTEGER=true; shift ;;
+      *) break ;;
+    esac
+  done
+  [ $# -gt 1 ] && PFX="\$1: " || PFX=
+  [ "$INTEGER" = true ] && DOT= || DOT="."
+    CMD="sed -n \"/TBPM/ { s|.*TBPM\\x00\\x00\\x00\\x07\\x00*|| ;; s,[^${DOT}0-9].*,, ;; s|^|$PFX| ;;  p }\" \"\$1\""
+  while [ $# -gt 0 ]; do
+    #echo "+ $CMD" 1>&2 
+    eval "$CMD"
+    shift
+  done
 }
 bpm() {
   while :; do
@@ -1074,6 +1110,22 @@ each() {
   eval "$CMD"
   unset CMD
 }
+each() {
+  CMD=$1
+  if [ "$(type -t "$CMD")" = function ]; then
+    CMD="$CMD \"\$@\""
+  fi
+  shift
+  [ "$DEBUG" = true ] && CMD="echo \"+ $CMD\" 1>&2; $CMD"
+  if [ $# -gt 0 ]; then
+    CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; } || return $?; done'
+  else
+    CMD='while read -r LINE; do set -- $LINE; { '$CMD'; } || return $?; done'
+  fi
+#	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+  eval "$CMD"
+  unset CMD
+}
 
 enable-some-swap()
 {
@@ -1492,6 +1544,18 @@ findstring()
     exit 1 )
 }
 
+findstring()
+{
+    ( STRING="$1";
+    while shift;
+    [ "$#" -gt 0 ]; do
+        if [ "$STRING" = "$1" ]; then
+            echo "$1";
+            exit 0;
+        fi;
+    done;
+    exit 1 )
+}
 findstring()
 {
     ( STRING="$1";
@@ -3139,6 +3203,50 @@ list()
 }
 list()
 {
+    sed "s|/files\.list:|/|"
+}
+list()
+{
+    local n=$1 count=0 choices='';
+    shift;
+    for choice in "$@";
+    do
+        choices="$choices $choice";
+        count=$((count + 1));
+        if $((count)) -eq $((n)); then
+            count=0;
+            choices='';
+        fi;
+    done;
+    if [ -n "${choices# }" ]; then
+        msg $choices;
+    fi
+}
+list()
+{
+ (IFS="
+ "
+  : ${INDENT='  '}
+  while :; do
+    case "$1" in
+      -i) INDENT=$2 && shift 2 ;;
+      -i*) INDENT=${2#-i} && shift
+      ;;
+      *) break ;;
+    esac
+  done
+
+  CMD='echo -n " \\
+$INDENT$LINE"'
+  [ $# -ge 1 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD"
+ )
+}
+list() {
+  rpm-cmd -t -- "$@"
+}
+list()
+{
  (IFS="
  "
   : ${INDENT='  '}
@@ -3575,6 +3683,37 @@ modules() {
     sed "s|-svn\$|| ;; s|-code\$||" |
     addsuffix "-svn")
 }
+modules() {
+ (CVSCMD="cvs -z3 -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG co"
+#  CVSPASS="cvs -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG login"
+CVSPASS='echo "grep -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <<\\EOF >>~/.cvspass
+\1 :pserver:anonymous@$ARG.cvs.sourceforge.net:2401/cvsroot/$ARG A
+EOF"'
+  for ARG; do
+    CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | sed -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
+   (set -- $(eval "$CMD")
+    test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
+    CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
+    #[ -n "$DSTDIR" ] && CMD="(cd ${DSTDIR%/} && $CMD)"
+    CMD="echo \"$CMD\""
+    
+    CMD="for MODULE; do $CMD; done"
+    [ -n "$DSTDIR" ] && CMD="echo \"mkdir -p ${DSTDIR%/}\"; $CMD"
+    [ -n "$CVSPASS" ] && CMD="$CVSPASS; $CMD"
+    [ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
+    eval "$CMD")
+  done)
+}
+modules() { 
+  require xml
+ (for ARG; do
+    curl -s http://sourceforge.net/p/"$ARG"/{svn,code}/HEAD/tree/ | 
+      xml_get a data-url |
+      head -n1
+  done |
+    sed "s|-svn\$|| ;; s|-code\$||" |
+    addsuffix "-svn")
+}
 
 mount-all()
 {
@@ -3775,6 +3914,42 @@ msyspath()
   fi
   eval "$CMD"
   exit $?)
+}
+msyspath()
+{
+ (add_to_script() { while [ "$1" ]; do SCRIPT="${SCRIPT:+$SCRIPT ;; }$1"; shift; done; }
+
+  case $MODE in
+    win*|mix*) #add_to_script "s|^${SYSDRIVE}[\\\\/]\(.\)[\\\\/]|\1:/|" "s|^${SYSDRIVE}[\\\\/]\([A-Za-z0-9]\)\([\\\\/]\)|\\1:\\2|" ;;
+      add_to_script "s|^${SYSDRIVE}[\\\\/]\\([^\\\\/]\\)\\([\\\\/]\\)\\([^\\\\/]\\)\\?|\\1:\\2\\3|" "s|^${SYSDRIVE}[\\\\/]\\([^\\\\/]\\)\$|\\1:/|" ;;
+    *) add_to_script "s|^\([A-Za-z0-9]\):|${SYSDRIVE}/\\1|" ;;
+  esac
+  case $MODE in
+    win*|mix*)
+      for MOUNT in $(mount | sed -n 's|\\|\\\\|g ;; s,\(.\):\\\(.\+\) on \(.*\) type .*,\1:\\\2|\3,p'); do
+        DEV=${MOUNT%'|'*}
+        MNT=${MOUNT##*'|'}
+        test "$MNT" = / && DEV="$DEV\\\\"
+
+        add_to_script "/^.:/! s|^${MNT}|${DEV}|"
+       done
+
+       #ROOT=$(mount | sed -n 's,\\,\\\\,g ;; s|\s\+on\s\+/\s\+.*||p')
+      #add_to_script "/^.:/!  s|^|$ROOT|"
+    ;;
+  esac
+  case "$MODE" in
+    win32) add_to_script "s|/|\\\\|g" ;;
+    *) add_to_script "s|\\\\|/|g" ;;
+  esac
+  case "$MODE" in
+    msys*) add_to_script "s|^${SYSDRIVE}/A/|${SYSDRIVE}/a/|" "s|^${SYSDRIVE}/B/|${SYSDRIVE}/b/|" "s|^${SYSDRIVE}/C/|${SYSDRIVE}/c/|" "s|^${SYSDRIVE}/D/|${SYSDRIVE}/d/|" "s|^${SYSDRIVE}/E/|${SYSDRIVE}/e/|" "s|^${SYSDRIVE}/F/|${SYSDRIVE}/f/|" "s|^${SYSDRIVE}/G/|${SYSDRIVE}/g/|" "s|^${SYSDRIVE}/H/|${SYSDRIVE}/h/|" "s|^${SYSDRIVE}/I/|${SYSDRIVE}/i/|" "s|^${SYSDRIVE}/J/|${SYSDRIVE}/j/|" "s|^${SYSDRIVE}/K/|${SYSDRIVE}/k/|" "s|^${SYSDRIVE}/L/|${SYSDRIVE}/l/|" "s|^${SYSDRIVE}/M/|${SYSDRIVE}/m/|" "s|^${SYSDRIVE}/N/|${SYSDRIVE}/n/|" "s|^${SYSDRIVE}/O/|${SYSDRIVE}/o/|" "s|^${SYSDRIVE}/P/|${SYSDRIVE}/p/|" "s|^${SYSDRIVE}/Q/|${SYSDRIVE}/q/|" "s|^${SYSDRIVE}/R/|${SYSDRIVE}/r/|" "s|^${SYSDRIVE}/S/|${SYSDRIVE}/s/|" "s|^${SYSDRIVE}/T/|${SYSDRIVE}/t/|" "s|^${SYSDRIVE}/U/|${SYSDRIVE}/u/|" "s|^${SYSDRIVE}/V/|${SYSDRIVE}/v/|" "s|^${SYSDRIVE}/W/|${SYSDRIVE}/w/|" "s|^${SYSDRIVE}/X/|${SYSDRIVE}/x/|" "s|^${SYSDRIVE}/Y/|${SYSDRIVE}/y/|" "s|^${SYSDRIVE}/Z/|${SYSDRIVE}/z/|"
+    ;;
+    win*)  add_to_script "s|^a:|A:|" "s|^b:|B:|" "s|^c:|C:|" "s|^d:|D:|" "s|^e:|E:|" "s|^f:|F:|" "s|^g:|G:|" "s|^h:|H:|" "s|^i:|I:|" "s|^j:|J:|" "s|^k:|K:|" "s|^l:|L:|" "s|^m:|M:|" "s|^n:|N:|" "s|^o:|O:|" "s|^p:|P:|" "s|^q:|Q:|" "s|^r:|R:|" "s|^s:|S:|" "s|^t:|T:|" "s|^u:|U:|" "s|^v:|V:|" "s|^w:|W:|" "s|^x:|X:|" "s|^y:|Y:|" "s|^z:|Z:|" ;;
+  esac
+  #echo "SCRIPT=$SCRIPT" 1>&2
+ (sed "$SCRIPT" "$@")
+ )
 }
 msyspath()
 {
@@ -4738,6 +4913,16 @@ some()
   done
   return 1"
 }
+some()
+{
+    eval "while shift
+  do
+  case \"\`str_tolower \"\$1\"\`\" in
+    $(str_tolower "$1") ) return 0 ;;
+  esac
+  done
+  return 1"
+}
 
 split()
 {
@@ -4942,6 +5127,11 @@ to-sed-expr()
  ([ $# -gt 0 ] && exec <<<"$*"
   sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
 }
+to-sed-expr()
+{
+ ([ $# -gt 0 ] && exec <<<"$*"
+  sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
+}
 
 umount-all()
 {
@@ -5126,8 +5316,11 @@ volname() {
 fi)
 }
 
-vs2vc() {
+vc2vs() {
  (for ARG; do
+   ARG=${ARG#*msvc}
+   ARG=${ARG#-}
+   ARG=${ARG%%[!0-9.]*}
    case "$ARG" in
      8 | 8.0 | 8.00) echo 2005 ;;
      9 | 9.0 | 9.00) echo 2008 ;;
@@ -5154,12 +5347,12 @@ vs2vc() {
   done
   for ARG; do
    case "$ARG" in
-     2005) echo 8${N:+.$N} ;; 
-     2008) echo 9${N:+.$N} ;; 
-     2010) echo 10${N:+.$N} ;; 
-     2012) echo 11${N:+.$N} ;; 
-     2013) echo 12${N:+.$N} ;; 
-     2015) echo 14${N:+.$N} ;; 
+     *2005*) echo 8${N:+.$N} ;; 
+     *2008*) echo 9${N:+.$N} ;; 
+     *2010*) echo 10${N:+.$N} ;; 
+     *2012*) echo 11${N:+.$N} ;; 
+     *2013*) echo 12${N:+.$N} ;; 
+     *2015*) echo 14${N:+.$N} ;; 
      *) echo "No such Visual Studio version: $ARG" 1>&2; exit 1 ;;
    esac
   done)
