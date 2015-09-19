@@ -9,6 +9,8 @@ filter-num() {
   while :; do
     case "$1" in
       -[0-9]) I=${1#-}; shift ;;
+      -f) I=${2}; shift 2 ;; -f=*) I=${1#-?=}; shift ;; -f[0-9]*) I=${1#-?}; shift ;;
+      
       -eq | -ne | -lt | -le | -gt | -ge)
         push COND "${NEG:+$NEG }\$((N)) $1 $(suffix-num "$2")"
         shift 2
