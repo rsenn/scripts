@@ -1323,23 +1323,23 @@ filter-num() {
     case "$1" in
       -[0-9]) I=${1#-}; shift ;;
       -eq | -ne | -lt | -le | -gt | -ge)
-        push COND "${NEG:+$NEG }\$((N)) $1 $2"
+        push COND "${NEG:+$NEG }\$((N)) $1 $(suffix-num "$2")"
         shift 2
         NEG=""
       ;;
-      ">=") push COND "${NEG:+$NEG }\$((N)) -ge $2"; NEG=""; shift ;;
-      "<=") push COND "${NEG:+$NEG }\$((N)) -le $2"; NEG=""; shift ;;
-      "=="* | "=") push COND "\$((N)) -eq $2"; NEG=""; shift ;;
-      "!=") push COND "${NEG:+$NEG }\$((N)) -ne $2"; NEG=""; shift ;;
-      ">") push COND "${NEG:+$NEG }\$((N)) -gt $2"; NEG=""; shift ;;
-      "<") push COND "${NEG:+$NEG }\$((N)) -lt $2"; NEG=""; shift ;;
+      ">=") push COND "${NEG:+$NEG }\$((N)) -ge $(suffix-num "$2")"; NEG=""; shift ;;
+      "<=") push COND "${NEG:+$NEG }\$((N)) -le $(suffix-num "$2")"; NEG=""; shift ;;
+      "=="* | "=") push COND "\$((N)) -eq $(suffix-num "$2")"; NEG=""; shift ;;
+      "!=") push COND "${NEG:+$NEG }\$((N)) -ne $(suffix-num "$2")"; NEG=""; shift ;;
+      ">") push COND "${NEG:+$NEG }\$((N)) -gt $(suffix-num "$2")"; NEG=""; shift ;;
+      "<") push COND "${NEG:+$NEG }\$((N)) -lt $(suffix-num "$2")"; NEG=""; shift ;;
       
-      ">="*) push COND "${NEG:+$NEG }\$((N)) -ge ${1#??}"; NEG=""; shift ;;
-      "<="*) push COND "${NEG:+$NEG }\$((N)) -le ${1#??}"; NEG=""; shift ;;
-      "=="* | "="*) push COND "\$((N)) -eq ${1#*=}"; NEG=""; shift ;;
-      "!=") push COND "${NEG:+$NEG }\$((N)) -ne ${1#??}"; NEG=""; shift ;;
-      ">"*) push COND "${NEG:+$NEG }\$((N)) -gt ${1#?}"; NEG=""; shift ;;
-      "<"*) push COND "${NEG:+$NEG }\$((N)) -lt ${1#?}"; NEG=""; shift ;;
+      ">="*) push COND "${NEG:+$NEG }\$((N)) -ge $(suffix-num "${1#??}")"; NEG=""; shift ;;
+      "<="*) push COND "${NEG:+$NEG }\$((N)) -le $(suffix-num "${1#??}")"; NEG=""; shift ;;
+      "=="* | "="*) push COND "\$((N)) -eq $(suffix-num "${1#*=}")"; NEG=""; shift ;;
+      "!=") push COND "${NEG:+$NEG }\$((N)) -ne $(suffix-num "${1#??}")"; NEG=""; shift ;;
+      ">"*) push COND "${NEG:+$NEG }\$((N)) -gt $(suffix-num "${1#?}")"; NEG=""; shift ;;
+      "<"*) push COND "${NEG:+$NEG }\$((N)) -lt $(suffix-num "${1#?}")"; NEG=""; shift ;;
       
       -o | -or | --or | "||") S=" -o "; shift ;;
       -a | -and | --and | "||") S=" -a "; shift ;;
@@ -3683,6 +3683,24 @@ $INDENT$LINE"'
  )
 }
 
+multiply-num() {
+ (for ARG; do
+    case "$ARG" in
+      *[0-9].* | *.[0-9]*) CMD='$(bc -l <<\EOF
+'$ARG'
+EOF
+)'  ;;
+      *) CMD='$(( '$ARG' ))' ;;
+    esac
+    eval "N=$CMD"
+    case "$N" in
+      .*) N="0$N" ;;
+      *.*0) while [ "$N" != "${N%0}" ]; do N=${N%0}; done ;;
+    esac  
+    echo "${N%.}"
+  done)
+}
+
 multiply-resolution()
 {
     ( WIDTH=${1%%x*};
@@ -4631,6 +4649,18 @@ subst_script()
         fi;
     done;
     array_implode script ';'
+}
+
+suffix-num() { 
+ (for N; do
+    case "$N" in
+      [0-9]*P) N=$(multiply-num "${N%P} * 1099511627776") ;;
+      [0-9]*G) N=$(multiply-num "${N%G} * 1073741824") ;;
+      [0-9]*M) N=$(multiply-num "${N%M} * 1048576") ;;
+      [0-9]*[Kk]) N=$(multiply-num "${N%[Kk]} * 1024") ;;
+    esac
+    echo ${N%.*}
+  done)
 }
 
 symlink-lib()
