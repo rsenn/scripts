@@ -115,7 +115,7 @@ list-7z() {
       done
       output_line 
     }
-    )
+    ) || exit $?
     shift
   done)
 }
