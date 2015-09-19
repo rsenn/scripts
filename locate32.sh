@@ -23,6 +23,7 @@ usage()
   -f, --file           Look for a file
   -d, --dir            Look for a directory
   -s, --size=SIZE      Specify file size
+  -b, --database=FILE  Specify database file
   -t, --extension=EXT  Specify file extension
   -x, --debug          Show debug messages
 "
@@ -38,7 +39,12 @@ while :; do
     -f | --file) LOOKFILE=f ;;
     -d | --dir) LOOKDIR=d ;;
     -b | -D | --database) DATABASE="${DATABASE:+$DATABASE;}$2" ; shift ;;
-    -t) EXTENSION="$2" ; shift ;;  --ext*=*) EXTENSION="${1#*=}" ;;
+    -b=* | -D=* | --database=*) DATABASE="${DATABASE:+$DATABASE;}${1#*=}" ;;
+    -t | -E) EXTENSION="${EXTENSION:+$EXTENSION
+}$2" ; shift ;;  -[tE]=* | --ext*=*) EXTENSION="${EXTENSION:+$EXTENSION
+}${1#*=}" ;;
+    -t* | -E*) EXTENSION="${EXTENSION:+$EXTENSION
+}${1#-?}"  ;; 
     -w | --wholename) WHOLE=true ;;
     -s | --size) SIZE="$2"; shift ;; -s=* | --size=*) SIZE="${1#*=}" ;;
     -x | --debug) DEBUG=true ;;
@@ -114,7 +120,9 @@ if [ -n "$DATABASE" ]; then
 fi
 
 if [ -n "$EXTENSION" ]; then
-  addopt -t "$EXTENSION"
+  for E in $EXTENSION; do
+    addopt -t "$E"
+  done
 fi
 
 if [ -z "${LOOKFILE}${LOOKDIR}${LOOKWHOLE}" ]; then
@@ -141,6 +149,9 @@ SED_EXPR="$SED_EXPR; /^ERROR: The system was unable to find the specified regist
 unset ARGS
 for ARG in $PARAMS; do
   case "$ARG" in
+    */* | *\\*) addopt -lW ;;
+  esac
+  case "$ARG" in
     *\[^/\]* | *\[^\\\]* | *\[^\\\\\]*) ;;
     *[/\\]*) addopt -w ;;
   esac
@@ -161,6 +172,8 @@ for ARG in $PARAMS; do
 done
 #ARGS=${ARGS//"**"/"*"}
 ARGS=$(echo "$ARGS" | sed 's,\*\+,*,g')
+
+#[ -n "$EXTENSION" ] && addopt -t "$EXTENSION"
 
 addopt -lw
 set -f
