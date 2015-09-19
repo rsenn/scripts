@@ -3,7 +3,7 @@ filter-num() {
 "
   unset ARGS MODE
   push() {
-	eval 'shift; '$1'=${'$1':+"$'$1'$S"}$*'
+  eval 'shift; '$1'=${'$1':+"$'$1'$S"}$*'
   }
   S=" -and "
   while :; do

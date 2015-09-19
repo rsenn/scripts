@@ -31,9 +31,9 @@ dlynx() {
     OPTS="$OPTS -cfg=\"\$TMPCFG\""
   fi
   
-	CMD="lynx -accept_all_cookies${USER_AGENT:+ -useragent=\"\$USER_AGENT\"}${COOKIE_FILE:+ -cookie_file=\"\$COOKIE_FILE\"} -wrap $OPTS -nonumbers -hiddenlinks=merge \"\$URL\" 2>/dev/null"
+  CMD="lynx -accept_all_cookies${USER_AGENT:+ -useragent=\"\$USER_AGENT\"}${COOKIE_FILE:+ -cookie_file=\"\$COOKIE_FILE\"} -wrap $OPTS -nonumbers -hiddenlinks=merge \"\$URL\" 2>/dev/null"
 
-	CMD="for URL; do $CMD; done"
-	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-	eval "$CMD")
+  CMD="for URL; do $CMD; done"
+  [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+  eval "$CMD")
 }

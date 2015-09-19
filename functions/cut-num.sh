@@ -1,11 +1,11 @@
 cut-num() {
  (while :; do
     case "$1" in
-			-n | --num) N="$2"; shift 2 ;;
-			-n=* | --num=*) N="${1##*=}"; shift ;;
-			-n) N="${1#-n}"; shift ;;
-			*) break ;;
-		esac
+      -n | --num) N="$2"; shift 2 ;;
+      -n=* | --num=*) N="${1##*=}"; shift ;;
+      -n) N="${1#-n}"; shift ;;
+      *) break ;;
+    esac
   done
   : ${N=1}
   EXPR=

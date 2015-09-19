@@ -8,65 +8,65 @@ list-7z() {
   NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
-	  [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
-	fi
+    [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
+  fi
   }
   output_line() {
-	case "$PREV" in
-	  "$DN"/* | "$DN/" | "$DN") ;;
-	  *) : echo "$DN/" ;;
-	  esac
-	#    [ -z "$NAME" ] && unset F FP
-	if [ "$FN" = "$PREV/" ]; then
-	  PREV="$PREV/"
-	fi
-	case "$PREV" in
-	  */) 
-		case "$FN" in
-		  $PREV/*) ;;
-		  *) unset PREV ;;
-		esac
-	  ;;
-	  esac
-	if [ -n "PREV" -a "$FN" != "$PREV" -a "$FN" != "$PPREV" ]; then
-	  case "$PREV" in 
-	    */) ;;
-	    *)
-	    DIR="${PREV}"
-	      while :; do
-	        [ "$DIR" = "${DIR%/*}" ] && break
-	        DIR="${DIR%/*}"
-	       #echo "DIR='$DIR' PREVDIR='$PREVDIR'" 1>&2
-	      if [ -z "$PREVDIR" -o "${PREVDIR#$DIR/}" = "$PREVDIR" ]; then
-	       #[ -n "$PREVDIR" ] && output "$PREVDIR"
-	       PREVDIR="$DIR/"
-	      fi
-	      
-	      case "$DIR" in
-	        ${PREVDIR%/}/*) continue ;;
-	      esac	      
-	      case "${PREVDIR%/}" in
-	        ${DIR}/*) continue ;;
-	      esac
-	      [ "$DIR/" != "$PREVDIR" ] && output "$DIR/"
-	        case "${PREVDIR%/}" in
-	          $DIR | $DIR/*) ;;
-	          *) PREVDIR="$DIR/" ;;
-	        esac
-	      done	    
-	     ;;
-	  esac
-	  output "$PREV"
-	fi   
-	PPREV="$PREV"
-	if [ -n "$FN" -a "$FN" != "$PREV" ]; then
-	  #output "$FN"
-	  PREV="$FN"
-	fi
-	case "$PREV" in
-	  */) PREVDIR="$PREV" ;;
-	esac
-	[ -z "$NAME" ] && unset A F FP PSZ SZ T FN
+  case "$PREV" in
+    "$DN"/* | "$DN/" | "$DN") ;;
+    *) : echo "$DN/" ;;
+    esac
+  #    [ -z "$NAME" ] && unset F FP
+  if [ "$FN" = "$PREV/" ]; then
+    PREV="$PREV/"
+  fi
+  case "$PREV" in
+    */) 
+    case "$FN" in
+      $PREV/*) ;;
+      *) unset PREV ;;
+    esac
+    ;;
+    esac
+  if [ -n "PREV" -a "$FN" != "$PREV" -a "$FN" != "$PPREV" ]; then
+    case "$PREV" in 
+      */) ;;
+      *)
+      DIR="${PREV}"
+        while :; do
+          [ "$DIR" = "${DIR%/*}" ] && break
+          DIR="${DIR%/*}"
+         #echo "DIR='$DIR' PREVDIR='$PREVDIR'" 1>&2
+        if [ -z "$PREVDIR" -o "${PREVDIR#$DIR/}" = "$PREVDIR" ]; then
+         #[ -n "$PREVDIR" ] && output "$PREVDIR"
+         PREVDIR="$DIR/"
+        fi
+        
+        case "$DIR" in
+          ${PREVDIR%/}/*) continue ;;
+        esac	      
+        case "${PREVDIR%/}" in
+          ${DIR}/*) continue ;;
+        esac
+        [ "$DIR/" != "$PREVDIR" ] && output "$DIR/"
+          case "${PREVDIR%/}" in
+            $DIR | $DIR/*) ;;
+            *) PREVDIR="$DIR/" ;;
+          esac
+        done	    
+       ;;
+    esac
+    output "$PREV"
+  fi   
+  PPREV="$PREV"
+  if [ -n "$FN" -a "$FN" != "$PREV" ]; then
+    #output "$FN"
+    PREV="$FN"
+  fi
+  case "$PREV" in
+    */) PREVDIR="$PREV" ;;
+  esac
+  [ -z "$NAME" ] && unset A F FP PSZ SZ T FN
   }
   while [ $# -gt 0 ]; do
    (B=${1##*/}

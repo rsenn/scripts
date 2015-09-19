@@ -52,17 +52,17 @@ CVSPASS='echo "grep -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <
 EOF"'
   for ARG; do
     CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | sed -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
-	 (set -- $(eval "$CMD")
-		test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
-		CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
-		#[ -n "$DSTDIR" ] && CMD="(cd ${DSTDIR%/} && $CMD)"
-		CMD="echo \"$CMD\""
-		
-		CMD="for MODULE; do $CMD; done"
-		[ -n "$DSTDIR" ] && CMD="echo \"mkdir -p ${DSTDIR%/}\"; $CMD"
-		[ -n "$CVSPASS" ] && CMD="$CVSPASS; $CMD"
-		[ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
-		eval "$CMD")
+   (set -- $(eval "$CMD")
+    test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
+    CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
+    #[ -n "$DSTDIR" ] && CMD="(cd ${DSTDIR%/} && $CMD)"
+    CMD="echo \"$CMD\""
+    
+    CMD="for MODULE; do $CMD; done"
+    [ -n "$DSTDIR" ] && CMD="echo \"mkdir -p ${DSTDIR%/}\"; $CMD"
+    [ -n "$CVSPASS" ] && CMD="$CVSPASS; $CMD"
+    [ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
+    eval "$CMD")
   done)
 }
 modules() { 

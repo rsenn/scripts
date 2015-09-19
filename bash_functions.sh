@@ -66,13 +66,13 @@ all-disks()
     fi;
     find "$@" -type l | while read -r FILE; do
        if [ "$SHOW_LABEL" = true ]; then
-	 case "$FILE" in
-	     /dev/disk/by-label/*) echo "LABEL=${FILE##*/}" ;;
-	 esac
+   case "$FILE" in
+       /dev/disk/by-label/*) echo "LABEL=${FILE##*/}" ;;
+   esac
        elif [ "$SHOW_UUID" = true ]; then
-	 case "$FILE" in
-	     /dev/disk/by-uuid/*) echo "UUID=${FILE##*/}" ;;
-	 esac
+   case "$FILE" in
+       /dev/disk/by-uuid/*) echo "UUID=${FILE##*/}" ;;
+   esac
        else
         myrealpath "$FILE";
        fi
@@ -112,20 +112,20 @@ Shell\\Option1\\Command=$EXEC
 
 awkp() {
  (IFS="
-	"; N=${1}
-	CMD="awk"
-	[ $# -le 0 ] && set -- 1
-	SCRIPT=""
+  "; N=${1}
+  CMD="awk"
+  [ $# -le 0 ] && set -- 1
+  SCRIPT=""
 
   while :; do
-		case "$1" in
-			-[A-Za-z]*) CMD="$CMD $1"; shift ;;
-			[0-9]) SCRIPT="${SCRIPT:+$SCRIPT\" \"}\$$1"; shift ;;
-			[0-9]*) SCRIPT="${SCRIPT:+$SCRIPT\" \"}\$($1)"; shift ;;
-			*) break ;;
-		esac
-	done
-	eval "$CMD \"{ print \$SCRIPT }\"")
+    case "$1" in
+      -[A-Za-z]*) CMD="$CMD $1"; shift ;;
+      [0-9]) SCRIPT="${SCRIPT:+$SCRIPT\" \"}\$$1"; shift ;;
+      [0-9]*) SCRIPT="${SCRIPT:+$SCRIPT\" \"}\$($1)"; shift ;;
+      *) break ;;
+    esac
+  done
+  eval "$CMD \"{ print \$SCRIPT }\"")
 }
 
 bheader()
@@ -152,7 +152,7 @@ bitrate()
 [ "$DEBUG" = true ] && echo "BR: $*" 1>&2
    #echo "$*" 1>&2
    # for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
-	 R=${*##*:}
+   R=${*##*:}
    [ "$N" -gt 1 ] && R="$ARG:$R"
       echo "$R"
       )
@@ -168,36 +168,36 @@ blksize()
 blkvars()
 {
   CMD=$(IFS=" "; set -- `blkid "$1"`; shift; echo "$*")
-	shift
-	if [ $# -gt 0 ]; then
-		for V; do
-			CMD="$CMD; echo \"\${$V}\""
-		done
-		CMD="($CMD)"
-	fi
-	eval "$CMD"
+  shift
+  if [ $# -gt 0 ]; then
+    for V; do
+      CMD="$CMD; echo \"\${$V}\""
+    done
+    CMD="($CMD)"
+  fi
+  eval "$CMD"
 }
 
 bpm() {
   id3v2  -l "$@"|sed -n "/^id3v2 tag info for / {
-		:lp     
-		N
-		/\n[[:upper:][:digit:]]\+ ([^\n]*$/ {
-			/\nTBPM[^\n]*$/! {
-				s|\n[^\n]*$||
-				b lp
-			}
-			s|TBPM (.*): ||g
-			b ok
-		}
-		/:\s*$/! {
-			s|\n| |g
-			b lp
-		}
-		:ok     
-		s|\n[^\n]*:\s*$||
-		s|^id3v2 tag info for \([^\n]*\) *: *\n *|\1: |
-		p
+    :lp     
+    N
+    /\n[[:upper:][:digit:]]\+ ([^\n]*$/ {
+      /\nTBPM[^\n]*$/! {
+        s|\n[^\n]*$||
+        b lp
+      }
+      s|TBPM (.*): ||g
+      b ok
+    }
+    /:\s*$/! {
+      s|\n| |g
+      b lp
+    }
+    :ok     
+    s|\n[^\n]*:\s*$||
+    s|^id3v2 tag info for \([^\n]*\) *: *\n *|\1: |
+    p
   }"
 }
 
@@ -267,26 +267,26 @@ check-7z() {
   rm -rf "$OUTDIR"
   mkdir -p "$OUTDIR"
   trap 'rm -rf "$OUTDIR"' EXIT
-	FILTER="xargs -n1 -d \"\${IFS:0:1}\" sha1sum"
-	#FILTER="$FILTER | sed \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\${ARCHIVE}\${SEP:-: }\\2 \\[\\1\\]|\""
-	FILTER="$FILTER | sed \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\\1 \\*\${ARCHIVE}\${SEP:-:}\\2|\""
+  FILTER="xargs -n1 -d \"\${IFS:0:1}\" sha1sum"
+  #FILTER="$FILTER | sed \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\${ARCHIVE}\${SEP:-: }\\2 \\[\\1\\]|\""
+  FILTER="$FILTER | sed \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\\1 \\*\${ARCHIVE}\${SEP:-:}\\2|\""
   process() { IFS="
  "; set +x; 
-		unset PREV; while read -r LINE; do
-		LINE=${LINE//"\\"/"/"}
-		 case "$LINE" in
-		 "Extracting: "*) ARCHIVE=${LINE#"Extracting: "}; echo "Archive=${ARCHIVE}" 1>&2; continue ;;
-			"Extracting  "*)
-					FILE=${LINE#"Extracting  "}
-					if [ -n "$FILE" -a "$FILE" != "$PREV" ]; then
+    unset PREV; while read -r LINE; do
+    LINE=${LINE//"\\"/"/"}
+     case "$LINE" in
+     "Extracting: "*) ARCHIVE=${LINE#"Extracting: "}; echo "Archive=${ARCHIVE}" 1>&2; continue ;;
+      "Extracting  "*)
+          FILE=${LINE#"Extracting  "}
+          if [ -n "$FILE" -a "$FILE" != "$PREV" ]; then
 #				    echo "FILE='$FILE'" 1>&2
-					[ "$FILE" = "$T" ] && continue 			    
-						if [ -e "$FILE" ]; then [ -f "$FILE" ] && echo "$FILE"
-						else echo "File '$FILE' not found!" 1>&2; fi
-					fi
-				PREV="$FILE" ;;
-		 esac; done
-	}
+          [ "$FILE" = "$T" ] && continue 			    
+            if [ -e "$FILE" ]; then [ -f "$FILE" ] && echo "$FILE"
+            else echo "File '$FILE' not found!" 1>&2; fi
+          fi
+        PREV="$FILE" ;;
+     esac; done
+  }
   while [ $# -gt 0 ]; do
    (B=${1##*/}
     case "$1" in 
@@ -299,7 +299,7 @@ check-7z() {
         T=${T%.tbz2} 
         T=$T.tar
         INPUT="${INPUT:+$INPUT | }${SEVENZIP:-7za} x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si${T}";  CMD="${SEVENZIP:-7za} x -o\"$OUTDIR\" $OPTS"
-			  ;;
+        ;;
       *.tar.*) T=${1%.tar*}.tar;
       INPUT="${INPUT:+$INPUT | }${SEVENZIP:-7za} x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si${B%.*}";  CMD="${SEVENZIP:-7za} x -o\"$OUTDIR\" $OPTS" ;;
       *) CMD="${SEVENZIP:-7za} x -o\"$OUTDIR\" -y $OPTS ${ARCHIVE+\"$ARCHIVE\"}" ;;
@@ -415,9 +415,9 @@ convert-boot-file()
 
 count-in-dir()
 {
-				 (LIST="$1"; shift; for ARG; do
-				 N=$(grep "^${ARG%/}/." "$LIST" | wc -l)
-				 echo $N "$ARG"
+         (LIST="$1"; shift; for ARG; do
+         N=$(grep "^${ARG%/}/." "$LIST" | wc -l)
+         echo $N "$ARG"
  done)
 }
 
@@ -564,29 +564,29 @@ cut-lsof() {
         TTY) set -- PID PARENT PGID WINPID TTY USERID STIME NAME; unset SIZE; LINE=$((LINE+1)); continue ;;
         "("*")") set -- COMMAND PID FD TYPE NAME; FD="$USER" TYPE="$FD" MODE="$TYPE" NAME="$DEVICE${SIZE:+ $SIZE}${NODE:+ $NODE}${NAME:+ $NAME}" ;;
          *)
-					if is_num "$COMMAND" "$PID" "$USER" "$FD" || [ "$COMMAND" = I ]; then
-					  set -- PID PARENT PGID WINPID TTY USERID STIME NAME
-					elif [ "$LINE" -le 1 ] && (! is_num "$NODE" || [ -z "$NAME" ]); then
-						NAME="$NODE${NAME:+ $NAME}"; unset NODE
-						set -- COMMAND PID USER FD TYPE DEVICE SIZE NAME
-					fi
-					
-				  ;;
-			esac
-		fi
-		case "$NAME" in
-		  "("*") "*) MODE=${NAME%%" "*}; NAME=${NAME#"("*") "} ;;
-		  [0-2][0-9]:[0-5][0-9]:[0-5][0-9]" "*) STIME=${NAME%%" "*}; 		NAME=${NAME#[0-2][0-9]:[0-5][0-9]:[0-5][0-9]" "} ;;
-		esac
-		case "$PID" in
-		  I) PID="$PARENT" PARENT="$PGID" PGID="$WINPID" WINPID="$TTY" TTY="$USERID" USERID="$STIME" STIME="${NAME%% *}" NAME="${NAME#* }" ;;
-		esac
-		case "${SIZE:-$STIME}" in
-		  Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Dec)
-		    NAME=${NAME#*" "}
-		  ;;
-		esac
-		while [ "$NAME" != "${NAME# }" ]; do NAME=${NAME#" "}; done		
+          if is_num "$COMMAND" "$PID" "$USER" "$FD" || [ "$COMMAND" = I ]; then
+            set -- PID PARENT PGID WINPID TTY USERID STIME NAME
+          elif [ "$LINE" -le 1 ] && (! is_num "$NODE" || [ -z "$NAME" ]); then
+            NAME="$NODE${NAME:+ $NAME}"; unset NODE
+            set -- COMMAND PID USER FD TYPE DEVICE SIZE NAME
+          fi
+          
+          ;;
+      esac
+    fi
+    case "$NAME" in
+      "("*") "*) MODE=${NAME%%" "*}; NAME=${NAME#"("*") "} ;;
+      [0-2][0-9]:[0-5][0-9]:[0-5][0-9]" "*) STIME=${NAME%%" "*}; 		NAME=${NAME#[0-2][0-9]:[0-5][0-9]:[0-5][0-9]" "} ;;
+    esac
+    case "$PID" in
+      I) PID="$PARENT" PARENT="$PGID" PGID="$WINPID" WINPID="$TTY" TTY="$USERID" USERID="$STIME" STIME="${NAME%% *}" NAME="${NAME#* }" ;;
+    esac
+    case "${SIZE:-$STIME}" in
+      Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Dec)
+        NAME=${NAME#*" "}
+      ;;
+    esac
+    while [ "$NAME" != "${NAME# }" ]; do NAME=${NAME#" "}; done		
     print
     LINE=$((LINE + 1))
   done)
@@ -595,11 +595,11 @@ cut-lsof() {
 cut-num() {
  (while :; do
     case "$1" in
-			-n | --num) N="$2"; shift 2 ;;
-			-n=* | --num=*) N="${1##*=}"; shift ;;
-			-n) N="${1#-n}"; shift ;;
-			*) break ;;
-		esac
+      -n | --num) N="$2"; shift 2 ;;
+      -n=* | --num=*) N="${1##*=}"; shift ;;
+      -n) N="${1#-n}"; shift ;;
+      *) break ;;
+    esac
   done
   : ${N=1}
   EXPR=
@@ -833,29 +833,29 @@ disk-label() {
   test -L "$DEV" && DEV=` myrealpath "$DEV"`
   cd /dev/disk/by-label
   find . -type l | while read -r LINK; do
-		TARGET=`readlink "$LINK"`
-		if [ "${DEV##*/}" = "${TARGET##*/}" ]; then
-			NAME=${LINK##*/}
-			NAME=${NAME//'\x20'/'\040'}
-			case "$NAME" in
-				*[[:lower:]]*) LOWER=true ;;
-			esac
-			if [ "$LOWER" = true -o ! -r "$LINK" ]; then
-				echo $ESCAPE_ARGS "$NAME"
-			else
-				FS=` filesystem-for-device "$DEV"`
-				case "$FS" in
-					*fat)
-							IFS="
+    TARGET=`readlink "$LINK"`
+    if [ "${DEV##*/}" = "${TARGET##*/}" ]; then
+      NAME=${LINK##*/}
+      NAME=${NAME//'\x20'/'\040'}
+      case "$NAME" in
+        *[[:lower:]]*) LOWER=true ;;
+      esac
+      if [ "$LOWER" = true -o ! -r "$LINK" ]; then
+        echo $ESCAPE_ARGS "$NAME"
+      else
+        FS=` filesystem-for-device "$DEV"`
+        case "$FS" in
+          *fat)
+              IFS="
 "
-						set -- $(dosfslabel "$LINK")
-						test $# = 1 && echo "$1"
-					;;
-					*) echo $ESCAPE_ARGS "$NAME" ;;
-				esac
-			fi
-			exit 0
-		fi
+            set -- $(dosfslabel "$LINK")
+            test $# = 1 && echo "$1"
+          ;;
+          *) echo $ESCAPE_ARGS "$NAME" ;;
+        esac
+      fi
+      exit 0
+    fi
   done
   exit 1)
 }
@@ -952,11 +952,11 @@ dlynx() {
     OPTS="$OPTS -cfg=\"\$TMPCFG\""
   fi
   
-	CMD="lynx -accept_all_cookies${USER_AGENT:+ -useragent=\"\$USER_AGENT\"}${COOKIE_FILE:+ -cookie_file=\"\$COOKIE_FILE\"} -wrap $OPTS -nonumbers -hiddenlinks=merge \"\$URL\" 2>/dev/null"
+  CMD="lynx -accept_all_cookies${USER_AGENT:+ -useragent=\"\$USER_AGENT\"}${COOKIE_FILE:+ -cookie_file=\"\$COOKIE_FILE\"} -wrap $OPTS -nonumbers -hiddenlinks=merge \"\$URL\" 2>/dev/null"
 
-	CMD="for URL; do $CMD; done"
-	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-	eval "$CMD")
+  CMD="for URL; do $CMD; done"
+  [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+  eval "$CMD")
 }
 
 dospath()
@@ -984,14 +984,14 @@ du-txt() {
       *) break ;;
     esac
   done
-	echo -n > "$TMP"
-	trap 'rm -f "$TMP"' EXIT
-	CMD='(du -x -s $DU_ARGS -- ${@-$(ls-dirs)})'
-	if [ -w "$TMP" ]; then
-			CMD="$CMD | (tee \"\$TMP\"; sort -n -k1 <\"\$TMP\" >du.txt; rm -f \"\$TMP\"; echo \"Saved list into du.txt\" 1>&2)"
-	fi
-	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-	eval "$CMD")
+  echo -n > "$TMP"
+  trap 'rm -f "$TMP"' EXIT
+  CMD='(du -x -s $DU_ARGS -- ${@-$(ls-dirs)})'
+  if [ -w "$TMP" ]; then
+      CMD="$CMD | (tee \"\$TMP\"; sort -n -k1 <\"\$TMP\" >du.txt; rm -f \"\$TMP\"; echo \"Saved list into du.txt\" 1>&2)"
+  fi
+  [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+  eval "$CMD")
 }
 
 duration()
@@ -1195,21 +1195,21 @@ filter-cmd()
 filter-filemagic() {
 (
  while :; do
-	 case "$1" in
-		 -c | --cut) CUT=true; shift ;;
-		 *) break ;;
-	 esac
+   case "$1" in
+     -c | --cut) CUT=true; shift ;;
+     *) break ;;
+   esac
  done
  [ "$CUT" = true ] && EXPR="s,:\\s\\+.*,,p" || EXPR="s,:\\s\\+,: ,p"
 
   [ $# -gt 0 ]  || set -- ".*"
-	 for ARG; do
-		 case "$ARG" in
-			 "!"*) NOT="!" ARG=${ARG#$NOT} ;;
-		   *) NOT="" ;;
-		esac
-		 EXPR="\\|:\\s\\+${ARG%%|*}|$NOT { $EXPR }"
-	 done
+   for ARG; do
+     case "$ARG" in
+       "!"*) NOT="!" ARG=${ARG#$NOT} ;;
+       *) NOT="" ;;
+    esac
+     EXPR="\\|:\\s\\+${ARG%%|*}|$NOT { $EXPR }"
+   done
   xargs -d "
 " file -- | sed -n -u "$EXPR")
 }
@@ -1251,7 +1251,7 @@ filter-foreach() {
 "
   unset ARGS MODE
   push() {
-	eval 'shift; '$1'=${'$1':+"$'$1'$S"}$*'
+  eval 'shift; '$1'=${'$1':+"$'$1'$S"}$*'
   }
   S=" -and "
   while :; do
@@ -1327,7 +1327,7 @@ filter-num() {
 "
   unset ARGS MODE
   push() {
-	eval 'shift; '$1'=${'$1':+"$'$1'$S"}$*'
+  eval 'shift; '$1'=${'$1':+"$'$1'$S"}$*'
   }
   S=" -and "
   while :; do
@@ -1387,15 +1387,15 @@ filter-test() {
 " EXCLAM='! '
   unset ARGS NEG
   while :; do
-		case "$1" in
-			-X | --debug) DEBUG=true; shift ;;
-			-b | -c | -d | -e | -f | -g | -h | -k | -L | -N | -O | -p | -r | -s | -u | -w | -x)
-					ARGS="${ARGS:+$ARGS }${NEG+$EXCLAM}$1 \"\$LINE\""; shift; unset NEG ;;
-			-E) ARGS="${ARGS:+$ARGS }${NEG+$EXCLAM}-f \"\$LINE\" -a ${NEG-$EXCLAM}-s \"\$LINE\""; shift; unset NEG ;;
-			-a | -o) ARGS="${ARGS:+$ARGS }$1"; shift; unset NEG ;;
-			'!') [ "${NEG-false}" = false ] && NEG="" || unset NEG; shift ;;
-			*) break ;;
-		esac
+    case "$1" in
+      -X | --debug) DEBUG=true; shift ;;
+      -b | -c | -d | -e | -f | -g | -h | -k | -L | -N | -O | -p | -r | -s | -u | -w | -x)
+          ARGS="${ARGS:+$ARGS }${NEG+$EXCLAM}$1 \"\$LINE\""; shift; unset NEG ;;
+      -E) ARGS="${ARGS:+$ARGS }${NEG+$EXCLAM}-f \"\$LINE\" -a ${NEG-$EXCLAM}-s \"\$LINE\""; shift; unset NEG ;;
+      -a | -o) ARGS="${ARGS:+$ARGS }$1"; shift; unset NEG ;;
+      '!') [ "${NEG-false}" = false ] && NEG="" || unset NEG; shift ;;
+      *) break ;;
+    esac
   done
 #  [ -z "$ARGS" ] && exit 2
 #  IFS=" "
@@ -1403,7 +1403,7 @@ filter-test() {
 #  IFS="
 #" ARGN=$#; ARGS="$*"
   CMD='while read -r LINE; do
-	[ '$ARGS' ] && echo "$LINE"
+  [ '$ARGS' ] && echo "$LINE"
 done' 
 
   [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
@@ -1552,20 +1552,20 @@ foreach-partition() {
 }
 
 for_each() {
-	CMD=$1
-	if [ "$(type -t "$CMD")" = function ]; then
-	  CMD="$CMD \"\$@\""
-	fi
-	shift
-	[ "$DEBUG" = true ] && CMD="echo \"+ $CMD\" 1>&2; $CMD"
-	if [ $# -gt 0 ]; then
-	  CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; } || return $?; done'
-	else
-	  CMD='while read -r LINE; do set -- $LINE; { '$CMD'; } || return $?; done'
-	fi
+  CMD=$1
+  if [ "$(type -t "$CMD")" = function ]; then
+    CMD="$CMD \"\$@\""
+  fi
+  shift
+  [ "$DEBUG" = true ] && CMD="echo \"+ $CMD\" 1>&2; $CMD"
+  if [ $# -gt 0 ]; then
+    CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; } || return $?; done'
+  else
+    CMD='while read -r LINE; do set -- $LINE; { '$CMD'; } || return $?; done'
+  fi
 #	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-	eval "$CMD"
-	unset CMD
+  eval "$CMD"
+  unset CMD
 }
 
 fstab-line()
@@ -1608,9 +1608,9 @@ fstab-line()
 
         [ "${FSTYPE}" = fuseblk ] && unset FSTYPE
 
-				OPTS=${OPTS//,relatime/,noatime}
-				OPTS=${OPTS//,blksize=[0-9]*/}
-				OPTS=${OPTS//,errors=remount-ro/}
+        OPTS=${OPTS//,relatime/,noatime}
+        OPTS=${OPTS//,blksize=[0-9]*/}
+        OPTS=${OPTS//,errors=remount-ro/}
         printf "%-40s %-24s %-6s %-6s %6d %6d\n" "$DEV" "$MNTDIR" "${FSTYPE:-auto}" "${OPTS:-auto}" "${DUMP:-0}" "${PASS:-0}" );
     done )
 }
@@ -1713,7 +1713,7 @@ get-property()
 }
 
 get-rootfs() {
-	sed -n 's,.*root=\([^ ]\+\).*,\1,p' /proc/cmdline
+  sed -n 's,.*root=\([^ ]\+\).*,\1,p' /proc/cmdline
 }
 
 get-shortcut()
@@ -1787,30 +1787,30 @@ git-get-branch() {
 git-get-remote() {
  (while :; do
  		case "$1" in
-			-l | --list) LIST=true; shift ;;
-		  -n | --name) NAME=$2; shift 2 ;; -n=* | --name=*) NAME=${1#*=}; shift ;; 
-			*) break ;;
-		esac
-	done
-	[ $# -lt 1 ] && set -- .
+      -l | --list) LIST=true; shift ;;
+      -n | --name) NAME=$2; shift 2 ;; -n=* | --name=*) NAME=${1#*=}; shift ;; 
+      *) break ;;
+    esac
+  done
+  [ $# -lt 1 ] && set -- .
   [ $# -gt 1 ] && FILTER="sed \"s|^|\$DIR: |\"" || FILTER=
 
-	EXPR="s|\\s\\+| |g"
-	if [ -n "$NAME" ]; then
-		EXPR="$EXPR ;; \\|^$NAME\s|!d"
-	fi
-	if [ "$LIST" = true ]; then
-		EXPR="$EXPR ;; s| .*||"
-	else
-		EXPR="$EXPR ;; s|\\s*([^)]*)||"
-	fi
+  EXPR="s|\\s\\+| |g"
+  if [ -n "$NAME" ]; then
+    EXPR="$EXPR ;; \\|^$NAME\s|!d"
+  fi
+  if [ "$LIST" = true ]; then
+    EXPR="$EXPR ;; s| .*||"
+  else
+    EXPR="$EXPR ;; s|\\s*([^)]*)||"
+  fi
   CMD="REMOTE=\`git remote -v 2>/dev/null"
-	CMD="$CMD | sed \"$EXPR\""
-	CMD="$CMD |uniq ${FILTER:+|$FILTER}\`;"
+  CMD="$CMD | sed \"$EXPR\""
+  CMD="$CMD |uniq ${FILTER:+|$FILTER}\`;"
   CMD=$CMD'echo "$REMOTE"'
   for DIR; do
-					(cd "${DIR%/.git}" >/dev/null &&	eval "$CMD")
-		done)
+          (cd "${DIR%/.git}" >/dev/null &&	eval "$CMD")
+    done)
 
 }
 
@@ -1876,9 +1876,9 @@ git-set-remote()
 
 grep-e-expr()
 {
-	[ $# -gt 0 ] && exec <<<"$*"
+  [ $# -gt 0 ] && exec <<<"$*"
 
-	sed 's,[().*?|\\+],\\&,g ; s,\[,\\[,g ; s,\],\\],g' | implode "|" | sed 's,.*,(&),'
+  sed 's,[().*?|\\+],\\&,g ; s,\[,\\[,g ; s,\],\\],g' | implode "|" | sed 's,.*,(&),'
 }
 
 grep-e()
@@ -2209,21 +2209,21 @@ http_head()
 id3()
 {
     $ID3V2 -l "$@" | sed "
-	s,^\([^ ]\+\) ([^:]*):\s\?\(.*\),\1=\2,
-	 s,.* info for s\?,,
-	/:$/! { /^[0-9A-Z]\+=/! { s/ *\([^ ]\+\) *: */\n\1=/g; s,\s*\n\s*,\n,g; s,^\n,,; s,\n$,,; s,\n\n,,g; }; }" | sed "/:$/ { p; n; :lp; N; /:\$/! { s,\n, ,g;  b lp; }; P }"
+  s,^\([^ ]\+\) ([^:]*):\s\?\(.*\),\1=\2,
+   s,.* info for s\?,,
+  /:$/! { /^[0-9A-Z]\+=/! { s/ *\([^ ]\+\) *: */\n\1=/g; s,\s*\n\s*,\n,g; s,^\n,,; s,\n$,,; s,\n\n,,g; }; }" | sed "/:$/ { p; n; :lp; N; /:\$/! { s,\n, ,g;  b lp; }; P }"
 }
 
 id3dump()
 {
     ( IFS="
-	";
+  ";
     unset FLAGS;
     while :; do
         case "$1" in
             -*)
                 FLAGS="${FLAGS+$FLAGS
-	}$1";
+  }$1";
                 shift
             ;;
             *)
@@ -2231,8 +2231,8 @@ id3dump()
             ;;
         esac;
     done;
-		id3v2 $FLAGS  -l "$@" | sed -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
-		)
+    id3v2 $FLAGS  -l "$@" | sed -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
+    )
 }
 
 id3get()
@@ -2242,19 +2242,19 @@ id3get()
 
 imagedate()
 {
-				(
-				case "$1" in
-								 -u | --unix*) UT=true ; shift ;;
-				 esac
-				N=$#
-				 for ARG; do
-				TS=$(exiv2 pr "$ARG" 2>&1| sed -n '/No\sExif/! s,.*timestamp\s\+:\s\+,,p' | sed 's,\([0-9][0-9][0-9][0-9]\):\([0-9]\+\):\([0-9][0-9]\),\1/\2/\3,')
-				[ "$UT" = true ] && TS=$(date2unix "$TS" 2>/dev/null)
-				O="$TS"
+        (
+        case "$1" in
+                 -u | --unix*) UT=true ; shift ;;
+         esac
+        N=$#
+         for ARG; do
+        TS=$(exiv2 pr "$ARG" 2>&1| sed -n '/No\sExif/! s,.*timestamp\s\+:\s\+,,p' | sed 's,\([0-9][0-9][0-9][0-9]\):\([0-9]\+\):\([0-9][0-9]\),\1/\2/\3,')
+        [ "$UT" = true ] && TS=$(date2unix "$TS" 2>/dev/null)
+        O="$TS"
 
-				[ $N -gt 1 ] && O="$ARG:$O"
-				echo "$O"
-		done)
+        [ $N -gt 1 ] && O="$ARG:$O"
+        echo "$O"
+    done)
 }
 
 imatch_some()
@@ -2583,7 +2583,7 @@ is_var()
 killall-w32()
 {
     ( IFS="
-	 ";
+   ";
     PIDS=$(IFS="|"; ps.exe -aW |grep -i -E "($*)" | awk '{ print $1 }');
     kill.exe -f $PIDS )
 }
@@ -2648,65 +2648,65 @@ list-7z() {
   NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
-	  [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
-	fi
+    [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
+  fi
   }
   output_line() {
-	case "$PREV" in
-	  "$DN"/* | "$DN/" | "$DN") ;;
-	  *) : echo "$DN/" ;;
-	  esac
-	#    [ -z "$NAME" ] && unset F FP
-	if [ "$FN" = "$PREV/" ]; then
-	  PREV="$PREV/"
-	fi
-	case "$PREV" in
-	  */) 
-		case "$FN" in
-		  $PREV/*) ;;
-		  *) unset PREV ;;
-		esac
-	  ;;
-	  esac
-	if [ -n "PREV" -a "$FN" != "$PREV" -a "$FN" != "$PPREV" ]; then
-	  case "$PREV" in 
-	    */) ;;
-	    *)
-	    DIR="${PREV}"
-	      while :; do
-	        [ "$DIR" = "${DIR%/*}" ] && break
-	        DIR="${DIR%/*}"
-	       #echo "DIR='$DIR' PREVDIR='$PREVDIR'" 1>&2
-	      if [ -z "$PREVDIR" -o "${PREVDIR#$DIR/}" = "$PREVDIR" ]; then
-	       #[ -n "$PREVDIR" ] && output "$PREVDIR"
-	       PREVDIR="$DIR/"
-	      fi
-	      
-	      case "$DIR" in
-	        ${PREVDIR%/}/*) continue ;;
-	      esac	      
-	      case "${PREVDIR%/}" in
-	        ${DIR}/*) continue ;;
-	      esac
-	      [ "$DIR/" != "$PREVDIR" ] && output "$DIR/"
-	        case "${PREVDIR%/}" in
-	          $DIR | $DIR/*) ;;
-	          *) PREVDIR="$DIR/" ;;
-	        esac
-	      done	    
-	     ;;
-	  esac
-	  output "$PREV"
-	fi   
-	PPREV="$PREV"
-	if [ -n "$FN" -a "$FN" != "$PREV" ]; then
-	  #output "$FN"
-	  PREV="$FN"
-	fi
-	case "$PREV" in
-	  */) PREVDIR="$PREV" ;;
-	esac
-	[ -z "$NAME" ] && unset A F FP PSZ SZ T FN
+  case "$PREV" in
+    "$DN"/* | "$DN/" | "$DN") ;;
+    *) : echo "$DN/" ;;
+    esac
+  #    [ -z "$NAME" ] && unset F FP
+  if [ "$FN" = "$PREV/" ]; then
+    PREV="$PREV/"
+  fi
+  case "$PREV" in
+    */) 
+    case "$FN" in
+      $PREV/*) ;;
+      *) unset PREV ;;
+    esac
+    ;;
+    esac
+  if [ -n "PREV" -a "$FN" != "$PREV" -a "$FN" != "$PPREV" ]; then
+    case "$PREV" in 
+      */) ;;
+      *)
+      DIR="${PREV}"
+        while :; do
+          [ "$DIR" = "${DIR%/*}" ] && break
+          DIR="${DIR%/*}"
+         #echo "DIR='$DIR' PREVDIR='$PREVDIR'" 1>&2
+        if [ -z "$PREVDIR" -o "${PREVDIR#$DIR/}" = "$PREVDIR" ]; then
+         #[ -n "$PREVDIR" ] && output "$PREVDIR"
+         PREVDIR="$DIR/"
+        fi
+        
+        case "$DIR" in
+          ${PREVDIR%/}/*) continue ;;
+        esac	      
+        case "${PREVDIR%/}" in
+          ${DIR}/*) continue ;;
+        esac
+        [ "$DIR/" != "$PREVDIR" ] && output "$DIR/"
+          case "${PREVDIR%/}" in
+            $DIR | $DIR/*) ;;
+            *) PREVDIR="$DIR/" ;;
+          esac
+        done	    
+       ;;
+    esac
+    output "$PREV"
+  fi   
+  PPREV="$PREV"
+  if [ -n "$FN" -a "$FN" != "$PREV" ]; then
+    #output "$FN"
+    PREV="$FN"
+  fi
+  case "$PREV" in
+    */) PREVDIR="$PREV" ;;
+  esac
+  [ -z "$NAME" ] && unset A F FP PSZ SZ T FN
   }
   while [ $# -gt 0 ]; do
    (B=${1##*/}
@@ -2781,47 +2781,47 @@ list-deb() {
       [ "$NARG" -gt 1 ] && echo "$ARG: $*" || echo "$*"
     fi
   }
-	for ARG in "$@"; do
+  for ARG in "$@"; do
    (set -e
-	  trap 'rm -rf "$TEMP"' EXIT 
+    trap 'rm -rf "$TEMP"' EXIT 
     TEMP=$(mktemp -d "$PWD/${0##*/}-XXXXXX")
     mkdir -p "$TEMP"
-		case "$ARG" in
-			*://*) 
-			  if type wget >/dev/null 2>/dev/null; then
-				  wget -P "$TEMP" -q "$ARG"
-				elif type curl >/dev/null 2>/dev/null; then
-					curl -s -k -L -o "$TEMP/${ARG##*/}" "$ARG"
-				elif type lynx >/dev/null 2>/dev/null; then
-					lynx -source >"$TEMP/${ARG##*/}" "$ARG"
-				fi || exit $?
-				DEB="${ARG##*/}"
-			;;
-			*) DEB=$(realpath "$ARG") ;;
-		esac
+    case "$ARG" in
+      *://*) 
+        if type wget >/dev/null 2>/dev/null; then
+          wget -P "$TEMP" -q "$ARG"
+        elif type curl >/dev/null 2>/dev/null; then
+          curl -s -k -L -o "$TEMP/${ARG##*/}" "$ARG"
+        elif type lynx >/dev/null 2>/dev/null; then
+          lynx -source >"$TEMP/${ARG##*/}" "$ARG"
+        fi || exit $?
+        DEB="${ARG##*/}"
+      ;;
+      *) DEB=$(realpath "$ARG") ;;
+    esac
     cd "$TEMP"
-		set -- $( ("${AR-ar}" t "$DEB" || list-7z "$DEB") 2>/dev/null |uniq |grep "data\.tar\.")
-		if [ $# -le 0 ]; then
-			exit 1
-		fi
-		case "$1" in
-			*.bz2) TAR_ARGS="-j" ;;
-			*.xz) TAR_ARGS="-J" ;;
-			*.gz) TAR_ARGS="-z" ;;
-			*.tar) TAR_ARGS="" ;;
-		esac
+    set -- $( ("${AR-ar}" t "$DEB" || list-7z "$DEB") 2>/dev/null |uniq |grep "data\.tar\.")
+    if [ $# -le 0 ]; then
+      exit 1
+    fi
+    case "$1" in
+      *.bz2) TAR_ARGS="-j" ;;
+      *.xz) TAR_ARGS="-J" ;;
+      *.gz) TAR_ARGS="-z" ;;
+      *.tar) TAR_ARGS="" ;;
+    esac
 
    ( { "${AR-ar}" x "$DEB" "$1"; test -e "$1"; } ||
-		7z x "$DEB" "$1") 2>/dev/null
+    7z x "$DEB" "$1") 2>/dev/null
     "${TAR-tar}" $TAR_ARGS -t -f "$1" 2>/dev/null | while read -r LINE; do
-			case "$LINE" in
-				./) LINE="/" ;;
-				./?*) LINE="${LINE#./}" ;;
-			esac
+      case "$LINE" in
+        ./) LINE="/" ;;
+        ./?*) LINE="${LINE#./}" ;;
+      esac
       output "$LINE"
-		done) ||
-		output "ERROR" 1>&2 
-	done)
+    done) ||
+    output "ERROR" 1>&2 
+  done)
 }
 
 list-dotfiles()
@@ -2867,21 +2867,21 @@ list-lastitem()
 
 list-mediapath() {
  (while :; do
-		case "$1" in
-		  -b|-c|-d|-e|-f|-g|-h|-k|-L|-N|-O|-p|-r|-s|-x) FILTER="${FILTER:+$FILTER | }filter-test $1"; shift ;;
-		  -m|--mixed|-M|--mode|-u|--unix|-w|--windows|-a|--absolute|-l|--long-name) PATHTOOL_OPTS="${PATHTOOL_OPTS:+PATHTOOL_OPTS }$1"; shift ;;
-			-*) OPTS="${OPTS:+$OPTS }$1"; shift ;;
-			--) shift; break ;;
-			*) break ;;
-			esac
-	done
-	for ARG; do CMD="${CMD:+$CMD; }ls -1 -d $OPTS -- $MEDIAPATH/${ARG#/} 2>/dev/null"; done
-	
-	[ -n "$PATHTOOL_OPTS" ] && CMD="$PATHTOOL ${PATHTOOL_OPTS:--m} \$($CMD)"
-	#CMD="for ARG; do $CMD; done"
-	[ -n "$FILTER" ] &&	 CMD="($CMD) | $FILTER"
+    case "$1" in
+      -b|-c|-d|-e|-f|-g|-h|-k|-L|-N|-O|-p|-r|-s|-x) FILTER="${FILTER:+$FILTER | }filter-test $1"; shift ;;
+      -m|--mixed|-M|--mode|-u|--unix|-w|--windows|-a|--absolute|-l|--long-name) PATHTOOL_OPTS="${PATHTOOL_OPTS:+PATHTOOL_OPTS }$1"; shift ;;
+      -*) OPTS="${OPTS:+$OPTS }$1"; shift ;;
+      --) shift; break ;;
+      *) break ;;
+      esac
+  done
+  for ARG; do CMD="${CMD:+$CMD; }ls -1 -d $OPTS -- $MEDIAPATH/${ARG#/} 2>/dev/null"; done
+  
+  [ -n "$PATHTOOL_OPTS" ] && CMD="$PATHTOOL ${PATHTOOL_OPTS:--m} \$($CMD)"
+  #CMD="for ARG; do $CMD; done"
+  [ -n "$FILTER" ] &&	 CMD="($CMD) | $FILTER"
 [ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
-	eval "$CMD")
+  eval "$CMD")
 }
 
 list-nolastitem()
@@ -2904,8 +2904,8 @@ list-rar() {
   NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
-	  [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
-	fi
+    [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
+  fi
   }
   for ARG; do
    (IFS="/\\"
@@ -2974,56 +2974,56 @@ list-rpm() {
       [ "$NARG" -gt 1 ] && echo "$ARG: $*" || echo "$*"
     fi
   }
-	LOG="$PWD/$(basename "$0" .sh).log"
-	exec_cmd() {
-	 (
-	  echo "CMD: $@" 1>&2
-	  echo "CMD: $@" >>"$LOG"
-	  exec "$@")
-	}
-	for ARG in "$@"; do
+  LOG="$PWD/$(basename "$0" .sh).log"
+  exec_cmd() {
+   (
+    echo "CMD: $@" 1>&2
+    echo "CMD: $@" >>"$LOG"
+    exec "$@")
+  }
+  for ARG in "$@"; do
    (set -e
-	  trap 'rm -rf "$TEMP"' EXIT QUIT TERM INT
+    trap 'rm -rf "$TEMP"' EXIT QUIT TERM INT
     TEMP=$(mktemp -d "$PWD/${0##*/}-XXXXXX")
     mkdir -p "$TEMP"
-		case "$ARG" in
-			*://*) 
-			  if type wget >/dev/null 2>/dev/null; then
-				  exec_cmd wget -P "$TEMP" -q "$ARG"
-				elif type curl >/dev/null 2>/dev/null; then
-					exec_cmd curl -s -k -L -o "$TEMP/${ARG##*/}" "$ARG"
-				elif type lynx >/dev/null 2>/dev/null; then
-					exec_cmd lynx -source >"$TEMP/${ARG##*/}" "$ARG"
-				fi || exit $?
-				RPM="${ARG##*/}"
-			;;
-			*) RPM=$(realpath "$ARG") ;;
-		esac
+    case "$ARG" in
+      *://*) 
+        if type wget >/dev/null 2>/dev/null; then
+          exec_cmd wget -P "$TEMP" -q "$ARG"
+        elif type curl >/dev/null 2>/dev/null; then
+          exec_cmd curl -s -k -L -o "$TEMP/${ARG##*/}" "$ARG"
+        elif type lynx >/dev/null 2>/dev/null; then
+          exec_cmd lynx -source >"$TEMP/${ARG##*/}" "$ARG"
+        fi || exit $?
+        RPM="${ARG##*/}"
+      ;;
+      *) RPM=$(realpath "$ARG") ;;
+    esac
     cd "$TEMP"
-		set -- $( (    7z l "$RPM" |sed -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
-		(exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |grep "\\.cpio\$")
-		if [ $# -le 0 ]; then
-			exit 1
-		fi
-		CPIOCMD="exec_cmd cpio -t 2>/dev/null"
-		case "$1" in
-			*.bz2) CPIOCMD="bzcat | $CPIOCMD" ;;
-			*.xz) CPIOCMD="xzcat | $CPIOCMD" ;;
-			*.gz) CPIOCMD="zcat | $CPIOCMD" ;;
-			*.cpio) ;;
-		esac
-		((set -x; exec_cmd 7z x -so "$RPM" "$1" ) ||
-	 { exec_cmd "${RPM2CPIO-rpm2cpio}" <"$RPM"; }
-		 ) 2>/dev/null |
+    set -- $( (    7z l "$RPM" |sed -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
+    (exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |grep "\\.cpio\$")
+    if [ $# -le 0 ]; then
+      exit 1
+    fi
+    CPIOCMD="exec_cmd cpio -t 2>/dev/null"
+    case "$1" in
+      *.bz2) CPIOCMD="bzcat | $CPIOCMD" ;;
+      *.xz) CPIOCMD="xzcat | $CPIOCMD" ;;
+      *.gz) CPIOCMD="zcat | $CPIOCMD" ;;
+      *.cpio) ;;
+    esac
+    ((set -x; exec_cmd 7z x -so "$RPM" "$1" ) ||
+   { exec_cmd "${RPM2CPIO-rpm2cpio}" <"$RPM"; }
+     ) 2>/dev/null |
     eval "$CPIOCMD" | while read -r LINE; do
-			case "$LINE" in
-				./) LINE="/" ;;
-				./?*) LINE="${LINE#./}" ;;
-			esac
+      case "$LINE" in
+        ./) LINE="/" ;;
+        ./?*) LINE="${LINE#./}" ;;
+      esac
       output "$LINE"
-		done) ||
-		output "ERROR" 1>&2 
-	done)
+    done) ||
+    output "ERROR" 1>&2 
+  done)
 }
 
 list-slackpkgs()
@@ -3493,10 +3493,10 @@ mount-remaining()
     [ "$UID" != 0 ] && SUDO=sudo
     for DEV in $(not-mounted-disks); do
         LABEL=` disk-label "$DEV"`
-				TYPE=` blkvars "$DEV" TYPE`
-				case "$TYPE" in
-					swap) continue ;;
-				esac
+        TYPE=` blkvars "$DEV" TYPE`
+        case "$TYPE" in
+          swap) continue ;;
+        esac
         MNTDIR="$MNT/${LABEL:-${DEV##*/}}"
         $SUDO mkdir -p "$MNTDIR";
         echo "Mounting $DEV to $MNTDIR ..." 1>&2
@@ -3507,16 +3507,16 @@ mount-remaining()
 
 mounted-devices() {
   (IFS=" "
-	unset PREV
-	while read -r DEV MNT FSTYPE OPTS A B; do
-		case "$DEV" in
-			rootfs | /dev/root) DEV=`get-rootfs` ;;
-			/*) ;;
-			*) continue	;;
-		esac
-		[ "$DEV" != "$PREV" ] && echo "$DEV"
-		PREV="$DEV"
-	done) </proc/mounts
+  unset PREV
+  while read -r DEV MNT FSTYPE OPTS A B; do
+    case "$DEV" in
+      rootfs | /dev/root) DEV=`get-rootfs` ;;
+      /*) ;;
+      *) continue	;;
+    esac
+    [ "$DEV" != "$PREV" ] && echo "$DEV"
+    PREV="$DEV"
+  done) </proc/mounts
 }
 
 mountpoint-by-label() {
@@ -3863,15 +3863,15 @@ parse-boot-entry()
     [ -z "$CMD" ] && continue
     if [ -z "$T"  ]; then
       clear-boot-entry
-	    case "$CMD" in
-	      menuentry) T=grub; TITLE=${LINE#*\"}; TITLE=${TITLE%\"*\{} ;;
-	      title) T=oldgrub; TITLE=${ARG}; TITLE=${TITLE//"\\n"/"$NL"} ;;
-	      label) T=syslinux LABEL=${ARG} ;;
+      case "$CMD" in
+        menuentry) T=grub; TITLE=${LINE#*\"}; TITLE=${TITLE%\"*\{} ;;
+        title) T=oldgrub; TITLE=${ARG}; TITLE=${TITLE//"\\n"/"$NL"} ;;
+        label) T=syslinux LABEL=${ARG} ;;
 #	      menu | *MENU*LABEL*) T=syslinux; TITLE=${LINE#*MENU}; TITLE=${TITLE#*LABEL}; TITLE=${TITLE#*label}; TITLE=${TITLE/^/} ;;
-	      *) continue ;;
-	    esac
-	    LABEL=${LABEL#' '}
-	    TITLE=${TITLE#' '}
+        *) continue ;;
+      esac
+      LABEL=${LABEL#' '}
+      TITLE=${TITLE#' '}
     else
     TYPE="$T"
     ARG=${ARG//"\\n"/"$NL"}
@@ -3985,7 +3985,7 @@ pathmunge()
 pathremove() {
   old_IFS="$IFS"
   IFS=":"
-	RET=1
+  RET=1
   unset NEWPATH
 
   for DIR in $PATH; do
@@ -4000,7 +4000,7 @@ pathremove() {
   PATH="$NEWPATH"
   IFS="$old_IFS"
   unset NEWPATH old_IFS
-	return $RET
+  return $RET
 }
 
 pdfpextr()
@@ -4069,17 +4069,17 @@ pkgsearch()
 player-file()
 {
   ( SED_SCRIPT=
-	while :; do
-					case "$1" in
-									-H|--no*hidden) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|/\\.|d" ; shift ;;
-									-P|--no*proc) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|^/proc|d" ; shift ;;
-					-x|--exclude) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|${2//*/.*}|d" ; shift 2  ;;
-					-x=*|--exclude=*) P=${1#*=}; SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|^"${P//"*"/".*"}"\$|d" ; shift   ;;
-					*) break ;;
-					esac
-	done
-	SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }s| ([^)]*)\$||"
-	  lsof -n $(pid-args "${@-mplayer}") 2> /dev/null 2> /dev/null 2> /dev/null 2> /dev/null | grep  -E ' [0-9]+[^ ]* +REG ' | grep --color=auto -vE ' (mem|txt|DEL) ' | cut-lsof NAME |sed "$SED_SCRIPT" )
+  while :; do
+          case "$1" in
+                  -H|--no*hidden) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|/\\.|d" ; shift ;;
+                  -P|--no*proc) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|^/proc|d" ; shift ;;
+          -x|--exclude) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|${2//*/.*}|d" ; shift 2  ;;
+          -x=*|--exclude=*) P=${1#*=}; SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|^"${P//"*"/".*"}"\$|d" ; shift   ;;
+          *) break ;;
+          esac
+  done
+  SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }s| ([^)]*)\$||"
+    lsof -n $(pid-args "${@-mplayer}") 2> /dev/null 2> /dev/null 2> /dev/null 2> /dev/null | grep  -E ' [0-9]+[^ ]* +REG ' | grep --color=auto -vE ' (mem|txt|DEL) ' | cut-lsof NAME |sed "$SED_SCRIPT" )
 }
 
 proc-by-pid() {
@@ -4520,17 +4520,17 @@ CVSPASS='echo "grep -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <
 EOF"'
   for ARG; do
     CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | sed -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
-	 (set -- $(eval "$CMD")
-		test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
-		CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
-		#[ -n "$DSTDIR" ] && CMD="(cd ${DSTDIR%/} && $CMD)"
-		CMD="echo \"$CMD\""
-		
-		CMD="for MODULE; do $CMD; done"
-		[ -n "$DSTDIR" ] && CMD="echo \"mkdir -p ${DSTDIR%/}\"; $CMD"
-		[ -n "$CVSPASS" ] && CMD="$CVSPASS; $CMD"
-		[ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
-		eval "$CMD")
+   (set -- $(eval "$CMD")
+    test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
+    CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
+    #[ -n "$DSTDIR" ] && CMD="(cd ${DSTDIR%/} && $CMD)"
+    CMD="echo \"$CMD\""
+    
+    CMD="for MODULE; do $CMD; done"
+    [ -n "$DSTDIR" ] && CMD="echo \"mkdir -p ${DSTDIR%/}\"; $CMD"
+    [ -n "$CVSPASS" ] && CMD="$CVSPASS; $CMD"
+    [ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
+    eval "$CMD")
   done)
 }
 
@@ -4538,8 +4538,8 @@ sf-get-git-repos() {
   require xml
  (for ARG; do
     curl -s  "http://sourceforge.net/p/$ARG/code-git/ci/master/tree/" |
-			xml_get a data-url |
-			head -n1
+      xml_get a data-url |
+      head -n1
   done |
     sed "s|-git\$|| ;; s|-code\$||" |
     addsuffix "-git")
@@ -4753,9 +4753,9 @@ tgz2txz()
 
 title()
 {
-				(
+        (
 id3get "$1" 'TIT[0-9]'
-				)
+        )
 
 }
 
@@ -4943,30 +4943,30 @@ vlcpid()
 }
 
 volname() { 
-	(
-		[ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
-	if [ -d /dev/disk/by-label ]; then
-	  for ARG; do 
-			for link in /dev/disk/by-label/*; do
-				NAME=${link##*/}
-				dev=$(realpath "$link")
-				if [ "$dev" = "$ARG" ]; then
-					eval "$ECHO"
-				fi
-			 done
-		done
-	else
-		for ARG in "$@"; do
-				drive="$ARG"
-				case "$drive" in
-					?) drive="$drive:/" ;;
-					?:) drive="$drive/" ;;
-					*) drive=$(cygpath -m "$drive") ;;
-				esac  
-				drive=$(cygpath -m "$drive")
-				NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
-				eval "$ECHO"
-		done
+  (
+    [ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
+  if [ -d /dev/disk/by-label ]; then
+    for ARG; do 
+      for link in /dev/disk/by-label/*; do
+        NAME=${link##*/}
+        dev=$(realpath "$link")
+        if [ "$dev" = "$ARG" ]; then
+          eval "$ECHO"
+        fi
+       done
+    done
+  else
+    for ARG in "$@"; do
+        drive="$ARG"
+        case "$drive" in
+          ?) drive="$drive:/" ;;
+          ?:) drive="$drive/" ;;
+          *) drive=$(cygpath -m "$drive") ;;
+        esac  
+        drive=$(cygpath -m "$drive")
+        NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
+        eval "$ECHO"
+    done
 fi)
 }
 
@@ -5084,25 +5084,25 @@ yaourt-cutver() {
 yaourt-joinlines() {
  (while :; do 
    case "$1" in
-		-n | --num*) CUT_NUM=true ;;
-		-s | --state) CUT_STATE=true ;;
-		*) break ;;
-		esac 
-		shift
-	done
-		while read -r LINE; do
+    -n | --num*) CUT_NUM=true ;;
+    -s | --state) CUT_STATE=true ;;
+    *) break ;;
+    esac 
+    shift
+  done
+    while read -r LINE; do
     case "$LINE" in
-			"   "*) PKG="${PKG:+$PKG - }${LINE#    }" ;;
+      "   "*) PKG="${PKG:+$PKG - }${LINE#    }" ;;
       *) 
-				[ -n "$PKG" ] && echo "$PKG"
-				PKG="${LINE}"
-				${CUT_STATE:-false} && 
-				PKG="${PKG% \[*\]}"
-				${CUT_NUM:-false} && PKG="${PKG% (*)}"
-				;;
-		esac
-	done
-	[ -n "$PKG" ] && echo "$PKG")
+        [ -n "$PKG" ] && echo "$PKG"
+        PKG="${LINE}"
+        ${CUT_STATE:-false} && 
+        PKG="${PKG% \[*\]}"
+        ${CUT_NUM:-false} && PKG="${PKG% (*)}"
+        ;;
+    esac
+  done
+  [ -n "$PKG" ] && echo "$PKG")
 }
 
 yaourt-pkgnames() {

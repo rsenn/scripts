@@ -8,8 +8,8 @@ list-rar() {
   NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
-	  [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
-	fi
+    [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
+  fi
   }
   for ARG; do
    (IFS="/\\"

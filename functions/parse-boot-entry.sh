@@ -37,15 +37,15 @@ parse-boot-entry()
     [ -z "$CMD" ] && continue
     if [ -z "$T"  ]; then
       clear-boot-entry
-	    case "$CMD" in
-	      menuentry) T=grub; TITLE=${LINE#*\"}; TITLE=${TITLE%\"*\{} ;;
-	      title) T=oldgrub; TITLE=${ARG}; TITLE=${TITLE//"\\n"/"$NL"} ;;
-	      label) T=syslinux LABEL=${ARG} ;;
+      case "$CMD" in
+        menuentry) T=grub; TITLE=${LINE#*\"}; TITLE=${TITLE%\"*\{} ;;
+        title) T=oldgrub; TITLE=${ARG}; TITLE=${TITLE//"\\n"/"$NL"} ;;
+        label) T=syslinux LABEL=${ARG} ;;
 #	      menu | *MENU*LABEL*) T=syslinux; TITLE=${LINE#*MENU}; TITLE=${TITLE#*LABEL}; TITLE=${TITLE#*label}; TITLE=${TITLE/^/} ;;
-	      *) continue ;;
-	    esac
-	    LABEL=${LABEL#' '}
-	    TITLE=${TITLE#' '}
+        *) continue ;;
+      esac
+      LABEL=${LABEL#' '}
+      TITLE=${TITLE#' '}
     else
     TYPE="$T"
     ARG=${ARG//"\\n"/"$NL"}

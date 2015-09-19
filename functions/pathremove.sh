@@ -1,7 +1,7 @@
 pathremove() {
   old_IFS="$IFS"
   IFS=":"
-	RET=1
+  RET=1
   unset NEWPATH
 
   for DIR in $PATH; do
@@ -16,5 +16,5 @@ pathremove() {
   PATH="$NEWPATH"
   IFS="$old_IFS"
   unset NEWPATH old_IFS
-	return $RET
+  return $RET
 }
