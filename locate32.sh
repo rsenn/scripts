@@ -48,6 +48,7 @@ while :; do
     -w | --wholename) WHOLE=true ;;
     -s | --size) SIZE="$2"; shift ;; -s=* | --size=*) SIZE="${1#*=}" ;;
     -x | --debug) DEBUG=true ;;
+    -c | --class) CLASS="$2"; shift ;; -c=* | --class=*) CLASS="${1#*=}" ;; -c*) CLASS="${1#-c}" ;;
     *) break ;;
   esac
   shift
@@ -118,6 +119,31 @@ if [ -n "$DATABASE" ]; then
   done
   IFS="$saved_IFS"
 fi
+
+
+case "$CLASS" in
+  bin*|exe*|prog*)  EXTENSION="${EXTENSION:+$EXTENSION$NL}exe${NL}msi${NL}dll" ;;
+  playlist*) EXTENSION="${EXTENSION:+$EXTENSION$NL}m3u${NL}m3u8${NL}pls${NL}asx${NL}xspf${NL}asxini${NL}cue${NL}wpl" ;;
+  archive*) EXTENSION="${EXTENSION:+$EXTENSION$NL}7z${NL}rar${NL}tar\.bz2${NL}tar\.gz${NL}tar\.xz${NL}tar${NL}tar\.lzma${NL}tbz2${NL}tgz${NL}txz${NL}zip" ;;
+  *audio*) EXTENSION="${EXTENSION:+$EXTENSION$NL}aif${NL}aiff${NL}flac${NL}raw${NL}wav" ;;
+  fonts*) EXTENSION="${EXTENSION:+$EXTENSION$NL}bdf${NL}flac${NL}fon${NL}m4a${NL}m4b${NL}mp3${NL}mpc${NL}ogg${NL}otf${NL}pcf${NL}rm${NL}ttf${NL}wma" ;;
+  image*) EXTENSION="${EXTENSION:+$EXTENSION$NL}bmp${NL}cin${NL}cod${NL}dcx${NL}djvu${NL}emf${NL}fig${NL}gif${NL}ico${NL}im1${NL}im24${NL}im8${NL}jin${NL}jpeg${NL}jpg${NL}lss${NL}miff${NL}opc${NL}pbm${NL}pcx${NL}pgm${NL}pgx${NL}png${NL}pnm${NL}ppm${NL}psd${NL}rle${NL}rmp${NL}sgi${NL}shx${NL}svg${NL}tga${NL}tif${NL}tiff${NL}wim${NL}xcf${NL}xpm${NL}xwd" ;;
+  iso*|nero*|cue*|optical*|dvd*|*disk*image*) EXTENSION="${EXTENSION:+$EXTENSION$NL}bin${NL}cdi${NL}daa${NL}iso${NL}mdf${NL}mds${NL}nrg" ;;
+  incompl*|part*) EXTENSION="${EXTENSION:+$EXTENSION$NL}\*\.!??${NL}\*\.part${NL}INCOMPL\*${NL}\[/\\\]INCOMPL\[^/\\\]\*\$${NL}\\\.!??\$${NL}\\\.part\$" ;;
+  *music*) EXTENSION="${EXTENSION:+$EXTENSION$NL}m4a${NL}m4b${NL}mp3${NL}mpc${NL}ogg${NL}rm${NL}wma" ;;
+  package*|pkg*) EXTENSION="${EXTENSION:+$EXTENSION$NL}deb${NL}rpm${NL}tgz${NL}txz" ;;
+  patch*|diff*) EXTENSION="${EXTENSION:+$EXTENSION$NL}diff${NL}patch)[^/]*$" ;;
+  script*) EXTENSION="${EXTENSION:+$EXTENSION$NL}bat${NL}cmd${NL}py${NL}rb${NL}sh" ;;
+  software*) EXTENSION="${EXTENSION:+$EXTENSION$NL}\*\.msi${NL}\*install\*\.exe${NL}\*setup\*\.exe${NL}\.msi${NL}7z${NL}deb${NL}exe${NL}install\*\.exe${NL}msi${NL}rar${NL}rpm${NL}setup\*\.exe${NL}tar\.bz2${NL}tar\.gz${NL}tar\.xz${NL}tbz2${NL}tgz${NL}txz${NL}zip" ;;
+  source*) EXTENSION="${EXTENSION:+$EXTENSION$NL}c${NL}cpp${NL}cxx${NL}h${NL}hpp${NL}hxx" ;;
+  video*) EXTENSION="${EXTENSION:+$EXTENSION$NL}3gp${NL}avi${NL}f4v${NL}flv${NL}m2v${NL}mkv${NL}mov${NL}mp4${NL}mpeg${NL}mpg${NL}ogm${NL}vob${NL}wmv" ;;
+  vmware*|vbox*|virt*|v*disk*|vdi*|qed*|qcow*|qemu*|vmdk*|vdisk*) EXTENSION="${EXTENSION:+$EXTENSION$NL}vdi${NL}vmdk${NL}vhd${NL}qed${NL}qcow${NL}qcow2${NL}raw${NL}vhdx${NL}hdd" ;;
+  pdf|doc*) EXTENSION="${EXTENSION:+$EXTENSION$NL}pdf${NL}epub${NL}mobi${NL}azw3${NL}djv${NL}djvu" ;;
+  *book*|epub|mobi) EXTENSION="${EXTENSION:+$EXTENSION$NL}epub${NL}mobi${NL}azw3${NL}djv${NL}djvu" ;;
+font*|truetype*) EXTENSION="${EXTENSION:+$EXTENSION$NL}ttf${NL}otf${NL}bdf${NL}pcf${NL}fon${NL}pfa${NL}pfb${NL}pt3${NL}t42${NL}sfd${NL}otb${NL}cff${NL}cef${NL}gai${NL}woff${NL}pf3${NL}ttc${NL}gsf${NL}cid${NL}dfont${NL}mf${NL}ik${NL}fnt${NL}pcf${NL}pmf" ;;
+	'') ;;
+  *) echo "No such class '$CLASS'." 1>&2; exit 2 ;;
+esac
 
 if [ -n "$EXTENSION" ]; then
   for E in $EXTENSION; do
