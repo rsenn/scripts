@@ -9,12 +9,8 @@ list-mingw-toolchains() {
 "
 
   vdump() {
-     ( : ${S:="${IFS:0:1}"}
-      CMD= 
-#      NL='\\n'
-      #NL='\\n'
-      
-    for __VN; do 
+   (  CMD= 
+     for __VN; do 
       SQ="\\\"" TQ="\\\"" SEP=" "
       case "$__VN" in
         [!A-Za-z_]*) CMD="${CMD:+$CMD\\n}"; continue ;;
@@ -22,18 +18,12 @@ list-mingw-toolchains() {
       eval "__VV=\${$__VN}"
       
       case "$__VV" in
-        #*[$IFS]* | 
         *"$NL"*) SQ="(" TQ=")" SEP=" " ;;
         *"\\"*) SQ="'" TQ="'" SEP=";" ;;
-        #*) SQ="\\\"" TQ="\\\"" SEP=" " ;;
       esac
-      #[ "$SEP" ] && 
-      #__VV=${__VV//"$NL"/"\\n"}
-      CMD="${CMD:+$CMD\\\\n}${ansi_none}${ansi_yellow}$__VN${ansi_cyan}=${SQ:-\"}\"\${$__VN${SEP:+//\$NL/\$SEP}}\"${ansi_none}"
+      CMD="${CMD:+$CMD\\\\n}${ansi_none}${ansi_yellow}$__VN${ansi_cyan}=${SQ:-\"}\"\${$__VN${SEP:+//\"\$NL\"/\"$SEP\"}}\"${ansi_none}"
     done
-    CMD=${CMD//"\\["/""}
-    CMD=${CMD//"\\]"/""}
-    CMD=${CMD//"$NL"/"\\n"}
+    CMD=${CMD//"\\["/""}; CMD=${CMD//"\\]"/""}; CMD=${CMD//"$NL"/"\\n"}
     
     CMD="echo -e \"$CMD\" 1>&2"
     eval "$CMD"
@@ -176,7 +166,6 @@ list-mingw-toolchains() {
     [ "$DEBUG" = true ] && #echo -e  "${ARCH:+${S}ARCH${EQ}${DQ}$ARCH${DQ}}${BASEDIR:+${S}BASEDIR${EQ}${DQ}$BASEDIR${DQ}}${CC:+${S}CC${EQ}${DQ}$CC${DQ}}${CFLAGS:+${S}CFLAGS${EQ}${DQ}$CFLAGS${DQ}}${CMD:+${S}CMD${EQ}${DQ}$CMD${DQ}}${DEBUG:+${S}DEBUG${EQ}${DQ}$DEBUG${DQ}}${DIR:+${S}DIR${EQ}${DQ}$DIR${DQ}}${DQ:+${S}DQ${EQ}${DQ}$DQ${DQ}}${EQ:+${S}EQ${EQ}${DQ}$EQ${DQ}}${EXCEPTIONS:+${S}EXCEPTIONS${EQ}${DQ}$EXCEPTIONS${DQ}}${HOST:+${S}HOST${EQ}${DQ}$HOST${DQ}}${HOSTDIR:+${S}HOSTDIR${EQ}${DQ}$HOSTDIR${DQ}}${I:+${S}I${EQ}${DQ}$I${DQ}}${IFS:+${S}IFS${EQ}${DQ}$IFS${DQ}}${L:+${S}L${EQ}${DQ}$L${DQ}}${LIBS:+${S}LIBS${EQ}${DQ}$LIBS${DQ}}${MINGW:+${S}MINGW${EQ}${DQ}$MINGW${DQ}}${NAME:+${S}NAME${EQ}${DQ}$NAME${DQ}}${NL:+${S}NL${EQ}${DQ}$NL${DQ}}${O:+${S}O${EQ}${DQ}$O${DQ}}${PATHCONV:+${S}PATHCONV${EQ}${DQ}$PATHCONV${DQ}}${PATHTOOL:+${S}PATHTOOL${EQ}${DQ}$PATHTOOL${DQ}}${PFX:+${S}PFX${EQ}${DQ}$PFX${DQ}}${PROGRAMFILES:+${S}PROGRAMFILES${EQ}${DQ}$PROGRAMFILES${DQ}}${REV:+${S}REV${EQ}${DQ}$REV${DQ}}${ROOTS:+${S}ROOTS${EQ}${DQ}$ROOTS${DQ}}${RTVER:+${S}RTVER${EQ}${DQ}$RTVER${DQ}}${SNAPSHOT:+${S}SNAPSHOT${EQ}${DQ}$SNAPSHOT${DQ}}${T:+${S}T${EQ}${DQ}$T${DQ}}${TARGET:+${S}TARGET${EQ}${DQ}$TARGET${DQ}}${THREADS:+${S}THREADS${EQ}${DQ}$THREADS${DQ}}${TOOL:+${S}TOOL${EQ}${DQ}$TOOL${DQ}}${TOOLEXE:+${S}TOOLEXE${EQ}${DQ}$TOOLEXE${DQ}}${TPATH:+${S}TPATH${EQ}${DQ}$TPATH${DQ}}${V:+${S}V${EQ}${DQ}$V${DQ}}${VARS:+${S}VARS${EQ}${DQ}$VARS${DQ}}${VER:+${S}VER${EQ}${DQ}$VER${DQ}}" 1>&2
     vdump " " ROOTS  O BASEDIR HOSTDIR VER $O " "
     echo 1>&2
-    #ARCH BASEDIR CC CFLAGS    EXCEPTIONS HOST HOSTDIR LIBS MINGW NAME O  REV RTVER SNAPSHOT TARGET THREADS TOOL TOOLEXE   VER
     NAME="MinGW ${VER}${ARCH:+ $ARCH}"
    
    
