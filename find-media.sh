@@ -3,6 +3,9 @@
 : ${OS=`uname -o 2>/dev/null || uname -s 2>/dev/null`}
 NL='
 '
+TS='	'
+BS=\\
+
 exec 9>&2
 
 grep_e_expr()
@@ -209,10 +212,12 @@ else
 					EXPR="$EXPR$ARG"
 					case "$ARG" in
 							*\$) ;; 
-						*) if [ "$WANT_FILE" = true ]; then
+						*) EXPR=${EXPR//"^[:print:]"/"^[:print:][:cntrl:]"}
+							 if [ "$WANT_FILE" = true ]; then
 						   EXPR=${EXPR//'.*'/'[^/]*'}
-						   EXPR="$EXPR[^/]*\$"
-
+						   EXPR="$EXPR[^/]*\\r*\$"
+#             else
+#							 EXPR="$EXPR.*\\r*\$"
 						 fi ;;
 					esac
 				done
@@ -322,7 +327,7 @@ fi
 
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG"
 
-SED_EXPR="s,/files\\.list:,/,"
+SED_EXPR='s|\r$|| ;; s|/files\.list:|/|'
 
 # If dirs are to be excluded, add them to $SED_EXPR
 if [ -n "$EXCLUDE_DIRS" ]; then
@@ -383,7 +388,7 @@ fi
 # pipeline
 [ -n "$FILE_MAGIC" -a -z "$LIST" ] && CMD="$CMD | (set -f; IFS='|'; file_magic \$FILE_MAGIC)"
 	
-[ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
+[ "$DEBUG" = true ] && eval "echo \"Command is ${CMD}\" 1>&2"
 
 CMD="$CMD${FILTERCMD:+ | $FILTERCMD}"
 
