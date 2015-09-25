@@ -3,6 +3,8 @@
 MYNAME=`basename "$0" .sh` 
 IFS=$'\n\r'
 
+NL="
+"
 OPTS=
 REGEX= NOCASE=
 LOOKDIR= LOOKFILE= 
