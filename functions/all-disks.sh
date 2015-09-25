@@ -9,13 +9,13 @@ all-disks()
     fi;
     find "$@" -type l | while read -r FILE; do
        if [ "$SHOW_LABEL" = true ]; then
-	 case "$FILE" in
-	     /dev/disk/by-label/*) echo "LABEL=${FILE##*/}" ;;
-	 esac
+   case "$FILE" in
+       /dev/disk/by-label/*) echo "LABEL=${FILE##*/}" ;;
+   esac
        elif [ "$SHOW_UUID" = true ]; then
-	 case "$FILE" in
-	     /dev/disk/by-uuid/*) echo "UUID=${FILE##*/}" ;;
-	 esac
+   case "$FILE" in
+       /dev/disk/by-uuid/*) echo "UUID=${FILE##*/}" ;;
+   esac
        else
         myrealpath "$FILE";
        fi

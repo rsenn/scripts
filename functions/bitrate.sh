@@ -17,7 +17,7 @@ bitrate()
 [ "$DEBUG" = true ] && echo "BR: $*" 1>&2
    #echo "$*" 1>&2
    # for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
-	 R=${*##*:}
+   R=${*##*:}
    [ "$N" -gt 1 ] && R="$ARG:$R"
       echo "$R"
       )
