@@ -3,6 +3,7 @@ list-visual-studios() {
 "
   IFS="$NL"
   SP=" "
+  
   while :; do
     case "$1" in
       -c | -cl | --cl | --compiler) pushv O "CL" ; shift ;;
@@ -10,9 +11,9 @@ list-visual-studios() {
       -d | -vcdir | --vcdir) pushv O "VCDIR" ; shift ;;
       -v | -vcvars | --vcvars) pushv O "VCVARS"; shift ;;
       -e | -devenv | --devenv) pushv O "DEVENV"; shift ;;
-      -t | -tool | --tool) pushv T "$2"; pushv O "TOOL_$2"; shift 2 ;; -t=* | -tool=* | --tool=*) pushv T "${1#*=}"; pushv O "TOOL_${1#*=}"; shift ;;
+      -t | -tool | --tool) pushv T "$(str_toupper "$2")"; pushv O "$(str_toupper "$2")"; shift 2 ;; -t=* | -tool=* | --tool=*) pushv T "$(str_toupper "${1#*=}")"; pushv O "$(str_toupper "${1#*=}")"; shift ;;
       -p | -pathconv | --pathconv) PATHCONV="$2";  shift 2 ;; -p=* | -pathconv=* | --pathconv=*) PATHCONV="${1#*=}"; shift ;;
-      -t*) pushv T "${1#-?}"; pushv O "TOOL_${1#-t}"; shift ;;
+      -t*) pushv T "${1#-?}"; pushv O "$(str_toupper TOOL_${1#-t})"; shift ;;
 
       *) break ;;
     esac
@@ -45,7 +46,11 @@ list-visual-studios() {
     #echo "VSDIR: $VSDIR VSVER: $VSVER" 1>&2
    VSNAME="Visual Studio $(vc2vs "${VSVER}")${ARCH:+ $ARCH}"
    for VAR in $O; do
-     eval "\${PATHCONV:-echo} \"\${$VAR}\""
+   case "$VAR" in
+     DEVENV ) EXT=".exe" ;;
+     *) EXT="" ;;
+   esac
+     eval "\${PATHCONV:-echo} \"\${$VAR}\$EXT\""
    done
   done
   
