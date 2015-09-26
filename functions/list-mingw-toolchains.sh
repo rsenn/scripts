@@ -50,16 +50,10 @@ list-mingw-toolchains() {
       esac
       
       case "$__VV" in
-        [A-Z]*) SQ='(' TQ=')'
-        SEP=' ' ;;  
-        /*) SQ='(\\n  ' TQ='\n)'
-        SEP='\\n  ' ;;
-        -* | *" -"* | *"$NL-"*) SQ=' ' TQ='   '
-        SEP='\\n\\t' ;;
-        #*"$NL"*) SQ='(' TQ=')'
-        SEP='\\n\\t' ;;
-        *"\\"*) SQ=\' TQ=\'
-        SEP=';' ;;
+        [A-Z]*) SQ='(' TQ=')'; SEP=' ' ;;  
+        /*) SQ='(\\n  ' TQ='\n)'; SEP='\\n  ' ;;
+        -* | *" -"* | *"$NL-"*) SQ=' ' TQ='   '; SEP='\\n\\t' ;;
+        *"\\"*) SQ=\' TQ=\'; SEP=';' ;;
       esac
       CMD="${CMD:+$CMD${LINESPACE:-\\\\n}}${ansi_none}${ansi_yellow}$__VN${ansi_cyan}=${SQ:-\"}\${$__VN${SEP:+//\$NL/$SEP}}${TQ:-\"}${ansi_none}"
     done
@@ -72,42 +66,26 @@ list-mingw-toolchains() {
  (unset ROOTS
   while :; do
     case "$1" in
-      -C | --nocolor)
-      NOCOLOR=true; shift ;;
-      -x | --debug)
-      DEBUG=true; shift ;;
-      -r | -rootdir | --rootir) shift; while [ "$1" = "${1#-}" ]; do
-      IFS=" " pushv ROOTS "${1%[/\\]}/*/mingw??/bin/gcc"; shift; done ;;
-      -r=* | -rootdir=* | --rootir=*) V=${1#*=}
-      IFS=" " pushv ROOTS "${V%/}/*/mingw??/bin/gcc"; shift ;;
-      -r) V=${1#-?}
-      IFS=" " pushv ROOTS "${V%/}/*/mingw??/bin/gcc"; shift ;;
-      -c | -cc | --cc | --compiler)
-      IFS=$nl pushv O CC ; shift ;;
-      -b | -basedir | --basedir)
-      IFS=$nl pushv O BASEDIR ; shift ;;
-      -d | -hostdir | --hostdir)
-      IFS=$nl pushv O HOSTDIR ; shift ;;
-      -v | -vars | --vars)
-      IFS=$nl pushv O VARS; shift ;;
+   -C | --nocolor) NOCOLOR=true; shift ;;
+      -x | --debug) DEBUG=true; shift ;;
+      -r | -rootdir | --rootdir) shift; while [ "$1" = "${1#-}" ]; do  IFS=" " pushv ROOTS "${1%[/\\]}/*/mingw??/bin/gcc"; shift; done ;;
+      -r=* | -rootdir=* | --rootir=*) V=${1#*=}; IFS=" " pushv ROOTS "${V%/}/*/mingw??/bin/gcc"; shift ;;
+      -r) V=${1#-?}; IFS=" " pushv ROOTS "${V%/}/*/mingw??/bin/gcc"; shift ;;
+      -c | -cc | --cc | --compiler) IFS=$nl pushv O CC ; shift ;;
+      -b | -basedir | --basedir) IFS=$nl pushv O BASEDIR ; shift ;;
+      -d | -hostdir | --hostdir) IFS=$nl pushv O HOSTDIR ; shift ;;
+      -v | -vars | --vars) IFS=$nl pushv O VARS; shift ;;
       -p | -pathconv | --pathconv) PATHCONV="$2"; shift 2 ;; -p=* | -pathconv=* | --pathconv=*) IFS="$nl "; PATHCONV="${1#-*=}"
       PATHCONV=${PATHCONV//" "/"${NL}"}; shift ;;
       -t | -tool | --tool) IFS=$nl pushv TOOL "$2"; IFS=$nl pushv O TOOL_${2}; shift 2 ;; -t=* | -tool=* | --tool=*) IFS=$nl pushv TOOL "${1#*=}"
       IFS=$nl pushv O TOOL_${1#*=}; shift 1 ;;
-      --defs | -defs)
-      IFS=$nl pushv O DEFS; shift ;;
-      --cflags | -cflags)
-      IFS=$nl pushv O CFLAGS; shift ;;
-      --cppflags | -cppflags)
-      IFS=$nl pushv O CPPFLAGS; shift ;;
-      --cxxflags | -cxxflags)
-      IFS=$nl pushv O CXXFLAGS; shift ;;
-      --includes | -includes)
-      IFS=$nl pushv O INCLUDES; shift ;;
-      --libs | -libs)
-      IFS=$nl pushv O LIBS; shift ;;
-      
-      *) break ;;
+      --defs | -defs) IFS=$nl pushv O DEFS; shift ;;
+      --cflags | -cflags) IFS=$nl pushv O CFLAGS; shift ;;
+      --cppflags | -cppflags) IFS=$nl pushv O CPPFLAGS; shift ;;
+      --cxxflags | -cxxflags) IFS=$nl pushv O CXXFLAGS; shift ;;
+      --includes | -includes) IFS=$nl pushv O INCLUDES; shift ;;
+      --libs | -libs) IFS=$nl pushv O LIBS; shift ;;
+        *) break ;;
     esac
   done
   : ${PATHCONV="${PATHTOOL:-echo}${PATHTOOL:+
