@@ -5263,7 +5263,9 @@ vc2vs() {
  (for ARG; do
    ARG=${ARG#*msvc}
    ARG=${ARG#-}
+   ARG=${ARG##*"Visual Studio "}
    ARG=${ARG%%[!0-9.]*}
+   ARG=${ARG%%[/\\]*}
    case "$ARG" in
      8 | 8.0 | 8.00) echo 2005 ;;
      9 | 9.0 | 9.00) echo 2008 ;;
