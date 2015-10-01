@@ -1,18 +1,14 @@
-
 list-mingw-toolchains() {
   require var
-
  ansicolor() {
    (IFS=";"; echo -n -e "\033[${*}m")
  }
-
  NL="
 "
   TS=$'\t'
   BS="\\"
   FS="/"
   CR=$'\r'
-
   evalcmd() {
     CMD=$1
     [ "$DEBUG" = true ] && {
@@ -27,10 +23,8 @@ list-mingw-toolchains() {
     }
     eval "$CMD"
   }
-
   vdump() {
    (  
-   
     echo -n "-"
    CMD=
    LINESPACE=$'\n>'
@@ -42,13 +36,11 @@ list-mingw-toolchains() {
         CMD="${CMD:+$CMD\\n}"; continue ;;
       esac
       eval "__VV=\${$__VN}"
-      
       case "$__VV" in
         *[!0-9A-Za-z_\ $NL]*) ;;
         *)
         SEP=' ' ;;
       esac
-      
       case "$__VV" in
         [A-Z]*) SQ='(' TQ=')'; SEP=' ' ;;  
         /*) SQ='(\\n  ' TQ='\n)'; SEP='\\n  ' ;;
@@ -59,10 +51,8 @@ list-mingw-toolchains() {
     done
     CMD=${CMD//"\\["/""}; CMD=${CMD//"\\]"/""}
     CMD=${CMD//"$NL"/"\\n"}
-    
     DEBUG= evalcmd "echo -e \"$CMD\" 1>&2" DUMP)    
   }
-
  (unset ROOTS
   while :; do
     case "$1" in
@@ -91,21 +81,15 @@ list-mingw-toolchains() {
   : ${PATHCONV="${PATHTOOL:-echo}${PATHTOOL:+
 -m}"}
   : ${O=NAME}
-
  evalcmd "ROOTS=\$(\${PATHCONV%%[^a-z]*} $ROOTS 2>/dev/null)" ROOTSCMD
-
  if [ "$NOCOLOR" = true ]; then
  unset ansi_{blue,bold,cyan,gray,green,magenta,none,red,yellow} 
  fi
-
  sort -V <<<"$ROOTS" | while read -r CC; do
  CC=${CC%[!A-Za-z0-9.]}
  CC=${CC%"$CR"}
- 
-  
    THREADS= EXCEPTIONS= REV= RTVER= SNAP=
    TOOLEXE=
-  
     case "$CC" in
       *x86_64*)
       ARCH="x86_64" ;;
@@ -120,48 +104,33 @@ list-mingw-toolchains() {
       *)
       ARCH="" ;;
     esac
-    
     TARGET=${CC##*/bin/}; TARGET=${TARGET%%gcc}
     TARGET=${TARGET%/}
-    
     DIR="${CC%/*}"  
-    
     BASEDIR=${DIR%%/bin*}; BASEDIR=${BASEDIR%[!A-Za-z0-9./\\]}; BASEDIR="${BASEDIR%$CR}"
     BASEDIR=${BASEDIR%[\\\\/]} ; 
-        
-    
     STDOUT=$(mktemp "$$-XXXXXX")
     STDERR=$(mktemp "$$-XXXXXX")
     trap 'rm -f "$STDOUT" "$STDERR"' EXIT
-    
     CMD='"$CC" -dumpmachine 1>"$STDOUT" 2>"$STDERR"'
-
     DEBUG= evalcmd  '"$CC" -dumpmachine 1>"$STDOUT" 2>"$STDERR"' DUMPCMD
-    
     OUT=$(<"$STDOUT")
     ERR=$(<"$STDERR")
     OUT=${OUT%"$CR"}
     ERR=${ERR%"$CR"}
-    
     trap '' EXIT;  rm -f "$STDOUT" "$STDERR"
     [ "$DEBUG" = true ] && vdump OUT ERR
-    
     HOST=${OUT%[!0-9A-Za-z]}
     HOST=${HOST%"$CR"}
-   
      [ -z "$HOST" ] && { echo "ERROR: could not determine host" 1>&2
      vdump OUT ERR
      return 1
      }
-       
     MINGW=${BASEDIR##*/}
-    
     HOSTDIR=$BASEDIR/$HOST
-    
      PFX=${DIR%%-[0-9]*}
     VER=${DIR#$PFX}
     VER=${VER%%/*}
-    
     case "$VER" in
       *-win32-*) VER=${VER//-win32-/-}
       THREADS=win32 ;;
@@ -177,8 +146,6 @@ list-mingw-toolchains() {
       EXCEPTIONS=dwarf ;;
     esac
     VER=${VER#[!0-9]}
-    
-    
     case "$VER" in 
       *-rt*) RTVER=${VER##*-rt}; RTVER=${RTVER%%-*} ; VER=${VER//rt$RTVER[!.0-9a-z]/}: RTVER=${RTVER#[!0-9a-z]} 
       RTVER=${RTVER#v} ;;
@@ -191,7 +158,6 @@ list-mingw-toolchains() {
       *-rev*) REV=${VER##*rev}; REV=${REV%%[-/]*} ; VER=${VER//rev$REV/}; REV=${REV#v} ; VER=${VER%-}
       REV=${REV%[!0-9A-Za-z]} ;;
     esac  
-    
     if [ -n "$TOOL" ]; then
     CMD=
       for T in $TOOL; do
@@ -205,19 +171,16 @@ list-mingw-toolchains() {
         esac    
         evalcmd "TPATH=\$(ls -d {\"\$BASEDIR/bin\",\"\$BASEDIR/opt/bin\",\"\$HOSTDIR/bin\",\"\$BASEDIR\"/lib*/gcc/\$HOST/*}/\$T 2>/dev/null | head -n1)" TPATHCMD
         TPATH=${TPATH%"$CR"}
-        
         TPATH=$($PATHCONV "$TPATH")
          evalcmd "TOOL_${TVAR}=\"\$TPATH\"" TOOL_$TVAR
       done
     fi
-
     INCLUDES="-I$($PATHCONV "${BASEDIR}/include") -I$($PATHCONV "${HOSTDIR}/include")"
     DEFS="-DNDEBUG=1"
     CPPFLAGS="$DEFS $INCLUDES"
     CXXFLAGS="-g -O2 -Wall -fexceptions -mthreads $CPPFLAGS"
     CFLAGS="-g -O2 -Wall -fexceptions -mthreads $CPPFLAGS"
     LIBS="-L$($PATHCONV "${BASEDIR}/lib") -L$($PATHCONV "${HOSTDIR}/lib") -lpthread"
-
     S=$'\n\t'
     EQ="="
     DQ="\""
@@ -225,12 +188,9 @@ list-mingw-toolchains() {
     vdump " " ROOTS  O BASEDIR HOSTDIR HOST VER $O " "
     echo 1>&2
     NAME="MinGW ${VER}${ARCH:+ $ARCH}"
-      
-   
     for V in $O; do
     DEBUG=false  evalcmd "echo \"\${${V:-NAME}}\"" OUTVAR
     done
   done
-  
   )
 }

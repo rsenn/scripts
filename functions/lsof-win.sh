@@ -32,5 +32,5 @@ lsof-win()
 
       *) printf "%-10s %5d %s\n" "$EXE" "$LSOF_PID" "$LINE" ;;
     esac
-  done; })
+  done; }) |sed -u 's,\\,/,g'
 }
