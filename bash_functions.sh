@@ -80,6 +80,22 @@ all-disks()
     )
 }
 
+apt_dpkg_list_all_pkgs()
+{
+  require apt
+  require dpkg
+
+  apt_list >apt.list
+  dpkg_list >dpkg.list
+
+  dpkg_expr=^$(grep-e-expr $(<dpkg.list))
+
+  awkp <apt.list >pkgs.list
+  grep -v -E "$dpkg_expr\$" <pkgs.list  >available.list
+
+  (set -x; wc -l {apt,dpkg,pkgs,available}.list)
+}
+
 arch2bit() {
  (for ARG; do
    case "$ARG" in
@@ -440,6 +456,30 @@ clamp()
     fi
 }
 
+cleanup-desktop() {
+ (mv -vf -- "$DESKTOP"/../../*/Desktop/* "$DESKTOP"
+  cd "$DESKTOP"
+  links=$( ls -ltdr --time-style=+%Y%m%d -- *.lnk|grep "$(date +%Y%m%d|removesuffix '[0-9]')"|cut-ls-l )
+  set  -- $( ls -td -- $(ls-files|grep -viE '(\.lnk$|\.ini$)'))
+  touch "$@"
+  mv -vft "$DOCUMENTS" -- "$@" *" - Shortcut"*
+  d=$(ls -d  ../Unused* )
+  
+  for l in $links; do
+    while :; do
+      read -r -p "Move ${l##*/} to $d? " ANS
+			case "$ANS" in
+				y*|j*|Y*|J*) mv -vi -t -- "$l" ;;
+				n*|N*) ;;
+				*) continue ;; 
+			esac
+			break 
+    done
+    
+  done
+  )
+}
+
 command-exists()
 {
     type "$1" 2> /dev/null > /dev/null
@@ -502,6 +542,10 @@ count-lines()
 
 count() {
         echo $#
+}
+
+cpan-inst() {
+ for_each 'verbosecmd -1+=cpan.inst.log -2=1 cpan -i "${1//-/::}" ;  verbosecmd writefile -a cpan.inst.$? "$1"'  ${@:-$(<~/cpan-inst.list)}
 }
 
 cpan-install()
@@ -1790,6 +1834,8 @@ gcd()
     done )
 }
 
+
+
 get-bpm() {
   while :; do
     case "$1" in
@@ -1851,6 +1897,15 @@ get-frags() {
   eval "for ARG; do
    $CMD
   done")
+}
+
+get-installed()
+{ 
+    ( ( set /etc/setup/*.lst*;
+    set -- "${@##*/}";
+    set -- "${@%.lst*}";
+    echo "$*";
+    awkp < /etc/setup/installed.db ) | sort -u )
 }
 
 get-property()
@@ -2356,6 +2411,13 @@ http_head()
             } | nc $HOST $PORT | sed "s/\r//g";
         fi;
     fi )
+}
+
+icacls-r() { 
+ (for ARG; do
+   (set -x
+    icacls "$(cygpath -w "$ARG")" /Q /C /T /RESET)
+  done)
 }
 
 id3()
@@ -3784,7 +3846,16 @@ lsof-win()
 
       *) printf "%-10s %5d %s\n" "$EXE" "$LSOF_PID" "$LINE" ;;
     esac
-  done; })
+  done; }) |sed -u 's,\\,/,g'
+}
+
+make-sizes-tmp()
+{ 
+    sed -n '/ [0-9]\+ /p' $(list-mediapath 'ls-lR.list') | awkp 5 > $TEMP/sizes.tmp;
+    for N in $(histogram.awk <$TEMP/sizes.tmp|grep -v '^1 '|awkp 2|sort -n); do
+      test "$N" -le 0 && continue
+      echo "/^[^ ]\+\s\+[0-9]\+\s\+[0-9]\+\s\+[0-9]\+\s\+$N /p"
+      done |(set -x; tee $TEMP/sizes.sed >/dev/null)
 }
 
 make-slackpkg()
@@ -4491,6 +4562,48 @@ output-boot-entry()
  )
 }
 
+output_mingwvars() {
+ (: ${O=${1:+$1/}mingwvars.cmd}
+ echo "Outputting '${O//$FS/$BS}'..." 1>&2
+ case "$O" in
+   *.cmd | *.bat) 
+	cat <<EOF | unix2dos >"$O"
+@echo off
+set PATH=%~dp0${SUBDIRNAME};%~dp0${SUBDIRNAME}\bin;%PATH%
+if "%1" == "" goto end
+cd "%1"
+:end
+echo Variables are set up for "${SUBDIRNAME}"
+EOF
+     ;;
+   *.sh | *.bash)
+     cat <<EOF >"$O"
+#!/bin/sh
+PATH="\${_}${SUBDIRNAME}:\${_}${SUBDIRNAME}/bin:\$PATH"
+echo "Variables are set up for ${SUBDIRNAME}" 1>&2
+EOF
+    ;;
+  esac
+)
+}
+
+output_startmingwprompt() {
+ (: ${O=${1:+$1/}start-mingw-prompt.bat}
+ echo "Outputting '${O//$FS/$BS}'..." 1>&2
+  cat <<EOF | unix2dos >"$O"
+@echo off
+set PATH=%~dp0${SUBDIRNAME};%~dp0${SUBDIRNAME}\bin;%PATH%
+rem echo %PATH%
+rem cd "%~dp0${SUBDIRNAME};%~dp0${SUBDIRNAME}\bin"
+cd "%~dp0"
+if "%1" == "" goto end
+cd "%1"
+:end
+cmd.exe /k "call %~dp0mingwvars.cmd"
+EOF
+)
+}
+
 packed-upx-files()
 {
     upx -l "$@" 2>&1 | sed -n '$ { \,files\s*\]$,d } ;; $! { \,->, s,.*->\s\+[0-9]\+\s\+[.0-9]\+%\s\+[^ ]\+\s\+\(.*\),\1,p }'
@@ -4674,6 +4787,8 @@ pathremove() {
   unset NEWPATH old_IFS
   return $RET
 }
+
+
 
 pdfpextr()
 {
@@ -5679,31 +5794,18 @@ vlcpid()
 }
 
 volname() { 
-  (
-    [ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
-  if [ -d /dev/disk/by-label ]; then
-    for ARG; do 
-      for link in /dev/disk/by-label/*; do
-        NAME=${link##*/}
-        dev=$(realpath "$link")
-        if [ "$dev" = "$ARG" ]; then
-          eval "$ECHO"
-        fi
-       done
-    done
-  else
-    for ARG in "$@"; do
-        drive="$ARG"
-        case "$drive" in
-          ?) drive="$drive:/" ;;
-          ?:) drive="$drive/" ;;
-          *) drive=$(cygpath -m "$drive") ;;
-        esac  
-        drive=$(cygpath -m "$drive")
-        NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
-        eval "$ECHO"
-    done
-fi)
+ ([ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
+  for ARG in "$@"; do
+      drive="$ARG"
+      case "$drive" in
+        ?) drive="$drive:/" ;;
+        ?:) drive="$drive/" ;;
+        *) drive=$(cygpath -m "$drive") ;;
+      esac  
+      drive=$(cygpath -m "$drive")
+      NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
+      eval "$ECHO"
+  done)
 }
 
 vs2vc() {
@@ -5865,6 +5967,23 @@ yes()
     while :; do
         echo "${1-y}";
     done
+}
+
+yum_rpm_list_all_pkgs()
+{
+  require rpm
+
+  yum list all >yum.list
+  #sed -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1,p' <yum.list >pkgs.list
+  sed -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1\2,p' <yum.list >pkgs.list
+  #rpm_list |sort |sed 's,\.[^.]\+$,, ; s,\.[^.]\+$,, ; s,-[^-]\+$,, ; s,-[^-]\+$,,' >rpm.list
+  rpm_list |sort |sed  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" >rpm.list
+
+  rpm_expr=^$(grep-e-expr $(<rpm.list))
+
+  grep -v -E "$rpm_expr\$" <pkgs.list >available.list
+
+  (set -x; wc -l {yum,rpm,pkgs,available}.list)
 }
 
 _cygpath()
