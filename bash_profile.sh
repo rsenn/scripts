@@ -266,6 +266,17 @@ add_mediapath()
 
 #is-cmd() { type "$1" >/dev/null 2>/dev/null; }
 
+notepad2() {
+ (for ARG; do 
+    P=$(realpath "$ARG"); [ "$ARG" != "$P" ] && echo "realpath \"$ARG\" = $P" 1>&2
+    ARG="$P"
+    P=$(cygpath -m "$ARG"); [ "$ARG" != "$P" ] && echo "cygpath -m \"$ARG\" = $P" 1>&2
+    ARG="$P"    
+ command notepad2 "$ARG" &
+ done)
+}
+alias notepad=notepad2
+
 #echo -n "Adding mediapaths ... " 1>&2; add_mediapath "I386/" "I386/system32/" "Windows/" "Tools/" "HBCD/" "Program*/{Notepad2,WinRAR,Notepad++,SDCC/bin,gputils/bin}/"; echo "done" 1>&2
 #is-cmd "notepad2" || add_mediapath "Prog*/Notepad2"
 
