@@ -53,9 +53,18 @@ done
 #HTTP_PROXY="127.0.0.1:8123"
 
 [ "$VERBOSE" = true ] || SILENT="-s"
-for COOKIE in $(ls -td -- {,"$HOME"/,"$TEMP"/,"$TEMPDIR"/,"$TMP"/}{cookie.txt,cookies.txt} 2>/dev/null); do
-  [ -s "$COOKIE" ]  && { echo "Found cookie: $COOKIE" 1>&2; break; } || unset COOKIE
-done
+
+if [ -z "$COOKIE" ]; then
+  for COOKIE in $(ls -td -- {,"$HOME"/,"$TEMP"/,"$TEMPDIR"/,"$TMP"/}{cookie.txt,cookies.txt} 2>/dev/null); do
+	[ -s "$COOKIE" ]  && break || unset COOKIE
+  done
+fi
+
+if [ -n "$COOKIE" -a -r "$COOKIE" -a -s "$COOKIE" ]; then
+echo "Found cookie: $COOKIE" 1>&2
+fi
+
+
 if [ -n "$HTTP_PROXY" ]; then
   echo "Have HTTP proxy: $HTTP_PROXY" 1>&2
 fi
