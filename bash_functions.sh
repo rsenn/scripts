@@ -1908,10 +1908,20 @@ get-installed()
     awkp < /etc/setup/installed.db ) | sort -u )
 }
 
+var_get () {
+ (while [ $# -gt 0 ]; do 
+    eval "echo \"\$$1\""
+   shift
+  done)
+}
+
+
 get-mingw-properties() {
 (unset PROPS
- while [ $# -gt 0 ]; do 
+ : ${OUTCMD="var_get"}
+  while [ $# -gt 0 ]; do 
    case "$1" in 
+     -x | --debug) OUTCMD="var_dump"; DEBUG=true; shift ;;
      *[-/\\.]*) break ;; 
      --) shift; break ;;
      *) IFS="
@@ -1920,20 +1930,23 @@ get-mingw-properties() {
  done
  if [ -z "$PROPS" ]; then
    IFS="
-" pushv PROPS ARCH BITS DATE EXCEPTIONS MACH REV RTVER SNAPSHOT THREADS VER XBITS SUBDIR EXE VERN DRIVE
+" pushv PROPS ARCH BITS DATE EXCEPTIONS MACH REV RTVER SNAPSHOT THREADS VER XBITS SUBDIR EXE VERN DRIVE VERSTR VERNUM TOOLCHAIN TARGET
  fi
-echo "PROPS:" $PROPS 1>&2
+[ "$DEBUG" = true ] && echo "PROPS:" $PROPS 1>&2
  for ARG; do   
-  (NOVER=${ARG%%-[0-9]*}
+  [ "$ARG" = -- ] && continue
+  (
+  [ "$DEBUG" = true ] && echo "ARG: $ARG" 1>&2
+  NOVER=${ARG%%-[0-9]*}
    VER=${ARG#"$NOVER"}
    VER=${VER#[!0-9]}
 #  VER=${VER%%[/\\]*}
 #  VER=${VER%%-[a-z]*}
-   IFS="-${IFS}/\\"
+   IFS="${IFS:+-$IFS}/\\"
    unset BITS DATE EXCEPTIONS MACH REV RTVER SNAPSHOT THREADS VER VERNUM VERSTR XBITS
    set -- $ARG
    while [ $# -gt 0 ]; do 
-   #echo "+ $1 $2" 1>&2
+   #[ "$DEBUG" = true ] && echo "+ $1 $2" 1>&2
      case "$1" in     
        *snapshot*) SNAPSHOT=$2; IFS="-" pushv VERNUM "snapshot$2"; shift; pushv VERSTR "snapshot$2" ;;
      rev?????? |rev????????) DATE="${1#rev}" ; pushv VERSTR "d$DATE" ;;
@@ -1949,29 +1962,59 @@ echo "PROPS:" $PROPS 1>&2
        #[0-9].[0-9]* |	 [0-9]*) VERNUM="$1"; pushv VERSTR "$VERNUM" ;;
        ???drive) DRIVE="$2"; shift  ;;
        ?:) DRIVE="${1%:}" ;;
-	  mingw | w64 | mingwbuilds) ;;
-       mingw32 | mingw64) ;;
+       w64) MINGWTYPE=mingw-w64 ;;
+	   mingwbuilds) MINGWTYPE=$1 ;;
+	   cygwin | msys) MINGWTYPE=$1-cross ;;
+       mingw32 | mingw64) MINGWBITS=$1 ;;
+       mingw[[:digit:]]*) MINGWVER=${1#mingw}; #pushv VERNUM "${1}" 
+       ;;
        [Bb]in | [Ll]ib | [Ii]nclude) SUBDIR="$1" ;;
        [[:digit:]]*) VERN="$1"; pushv VERNUM "$1" ;;
        *.EXE | *.exe) EXE="${1}" ;;
        # *) IFS="-" pushv VERNUM "$1";  pushv VERSTR "$1" ;;
        "") ;;
-       *) IFS="-" pushv VERNUM "$1";  pushv VERSTR "$1" ; echo "No such version str: '$1'" 1>&2 ;;
+       *) IFS="-" pushv VERNUM "$1";  pushv VERSTR "$1" ; [ "$DEBUG" = true ] && echo "No such version str: '$1'" 1>&2 ;;
       esac
       shift
     done
     IFS="$IFS :-
 "
    VERNUM=${VERNUM#[!0-9a-z]}
+   VERNUM=${VERNUM#mingw-}
+   
 	set -- $VERNUM       
 	while [ -z "$1" -a $# -gt 0 ]; do shift ; done
-
+	
+	   [ -z "$MINGW" -a -n "$MINGWVER" ] && MINGW="mingw${MINGWVER#mingw}"
+	   
+	   if [ -z "$MINGW" ] ; then
+	   #&& MINGW="mingw${XBITS#x}"
+	   
+	   
+	   set -- "${@#mingw}"
+	   case "$*" in
+	    [[:xdigit:]]*) MINGW="mingw${1//./}" ;;
+	    *) 
+	   #[ -n "$VERNUM" ] && MINGW=mingw"${VERNUM#mingw}"
+	   ;;
+	   esac
+	   fi
+	   
+#	   [ -n "$MINGWVER" ] && MINGW="mingw${MINGWVER}"
+    W64ID="${ARCH}-${1}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}${RTVER:+-rt_v$RTVER}${REV:+-rev$REV}"
+    BUILDSID="${XBITS}-${1}${SNAPSHOT:+-snapshot-$SNAPSHOT}${DATE:+-rev$DATE}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}"
+    if [ "$MINGWTYPE" = mingw-w64 ]; then
+      TOOLCHAIN=${W64ID}
+    elif [ "$MINGWTYPE" = mingwbuilds ]; then
+      TOOLCHAIN=${BUILDSID}
+    fi
+    TARGET="${ARCH}-${MINGW:-mingw${1//./}${RTVER:+-rt$RTVER}}${REV:+r$REV}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}"
     VER="${1}${REV:+r$REV}${DATE:+d$DATE}${RTVER:+-rt$RTVER}"
     shift 
     VER="$VER${*:+-$*}"
     #set VERSTR="$VERSTR" 
     #echo "ARCH='$ARCH'${BITS:+ BITS='$BITS'}${DATE:+ DATE='$DATE'}${EXCEPTIONS:+ EXCEPTIONS='$EXCEPTIONS'}${MACH:+ MACH='$MACH'}${REV:+ REV='$REV'}${RTVER:+ RTVER='$RTVER'}${SNAPSHOT:+ SNAPSHOT='$SNAPSHOT'}${THREADS:+ THREADS='$THREADS'}${VER:+ VER='$VER'}${XBITS:+ XBITS='$XBITS'}"
-    var_s=" "  var_dump ${PROPS} VERSTR VERNUM
+    var_s=" "  $OUTCMD ${PROPS}
   )
   done)
 }

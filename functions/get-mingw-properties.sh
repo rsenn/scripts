@@ -55,22 +55,42 @@ get-mingw-properties() {
        w64) MINGWTYPE=mingw-w64 ;;
 	   mingwbuilds) MINGWTYPE=$1 ;;
 	   cygwin | msys) MINGWTYPE=$1-cross ;;
-       mingw32 | mingw64) MINGW=$1 ;;
+       mingw32 | mingw64) MINGWBITS=$1 ;;
+       mingw[[:digit:]]*) MINGWVER=${1#mingw}; #pushv VERNUM "${1}" 
+       ;;
        [Bb]in | [Ll]ib | [Ii]nclude) SUBDIR="$1" ;;
        [[:digit:]]*) VERN="$1"; pushv VERNUM "$1" ;;
        *.EXE | *.exe) EXE="${1}" ;;
        # *) IFS="-" pushv VERNUM "$1";  pushv VERSTR "$1" ;;
        "") ;;
-       *) IFS="-" pushv VERNUM "$1";  pushv VERSTR "$1" ; echo "No such version str: '$1'" 1>&2 ;;
+       *) IFS="-" pushv VERNUM "$1";  pushv VERSTR "$1" ; [ "$DEBUG" = true ] && echo "No such version str: '$1'" 1>&2 ;;
       esac
       shift
     done
     IFS="$IFS :-
 "
    VERNUM=${VERNUM#[!0-9a-z]}
+   VERNUM=${VERNUM#mingw-}
+   
 	set -- $VERNUM       
 	while [ -z "$1" -a $# -gt 0 ]; do shift ; done
-#	   [ -z "$MINGW" ] && MINGW="mingw${XBITS#x}"
+	
+	   [ -z "$MINGW" -a -n "$MINGWVER" ] && MINGW="mingw${MINGWVER#mingw}"
+	   
+	   if [ -z "$MINGW" ] ; then
+	   #&& MINGW="mingw${XBITS#x}"
+	   
+	   
+	   set -- "${@#mingw}"
+	   case "$*" in
+	    [[:xdigit:]]*) MINGW="mingw${1//./}" ;;
+	    *) 
+	   #[ -n "$VERNUM" ] && MINGW=mingw"${VERNUM#mingw}"
+	   ;;
+	   esac
+	   fi
+	   
+#	   [ -n "$MINGWVER" ] && MINGW="mingw${MINGWVER}"
     W64ID="${ARCH}-${1}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}${RTVER:+-rt_v$RTVER}${REV:+-rev$REV}"
     BUILDSID="${XBITS}-${1}${SNAPSHOT:+-snapshot-$SNAPSHOT}${DATE:+-rev$DATE}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}"
     if [ "$MINGWTYPE" = mingw-w64 ]; then
@@ -78,7 +98,7 @@ get-mingw-properties() {
     elif [ "$MINGWTYPE" = mingwbuilds ]; then
       TOOLCHAIN=${BUILDSID}
     fi
-    TARGET="${ARCH}-${MINGW:-mingw${1//./}${REV:+r$REV}${RTVER:+-rt$RTVER}}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}"
+    TARGET="${ARCH}-${MINGW:-mingw${1//./}${RTVER:+-rt$RTVER}}${REV:+r$REV}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}"
     VER="${1}${REV:+r$REV}${DATE:+d$DATE}${RTVER:+-rt$RTVER}"
     shift 
     VER="$VER${*:+-$*}"
