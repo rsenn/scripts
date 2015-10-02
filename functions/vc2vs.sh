@@ -3,9 +3,9 @@ vc2vs() {
    ARG=${ARG#*msvc}
    ARG=${ARG#-}
    ARG=${ARG##*"Visual Studio "}
-   ARG=${ARG%%[!0-9.]*}
    ARG=${ARG%%[/\\]*}
-   case "$ARG" in
+   ARG=${ARG#vc}
+   case "${ARG}" in
      8 | 8.0 | 8.00) echo 2005 ;;
      9 | 9.0 | 9.00) echo 2008 ;;
      10 | 10.0 | 10.00) echo 2010 ;;
