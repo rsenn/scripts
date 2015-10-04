@@ -8,4 +8,3 @@ dump-shortcuts() {
   for_each 'readshortcut $OPTS -t -r "$1" | sed "N ;; s%\s*\n\s*% % ;; s%^%$1: %"' "$@"
  )
 }
-

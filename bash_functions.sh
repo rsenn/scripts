@@ -236,54 +236,6 @@ bpm() {
     p
   }"
 }
-bpm() {
-  while :; do
-    case "$1" in
-      -i | --int*) INTEGER=true; shift ;;
-      *) break ;;
-    esac
-  done
-  [ $# -gt 1 ] && PFX="\$1: " || PFX=
-  [ "$INTEGER" = true ] && DOT= || DOT="."
-    CMD="sed -n \"/TBPM/ { s|.*TBPM\\x00\\x00\\x00\\x07\\x00*|| ;; s,[^${DOT}0-9].*,, ;; s|^|$PFX| ;;  p }\" \"\$1\""
-  while [ $# -gt 0 ]; do
-    #echo "+ $CMD" 1>&2 
-    eval "$CMD"
-    shift
-  done
-}
-bpm() {
-  while :; do
-    case "$1" in
-      -i | --int*) INTEGER=true; shift ;;
-      *) break ;;
-    esac
-  done
-  [ $# -gt 1 ] && PFX="\$1: " || PFX=
-  [ "$INTEGER" = true ] && DOT= || DOT="."
-    CMD="sed -n \"/TBPM/ { s|.*TBPM\\x00\\x00\\x00\\x07\\x00*|| ;; s,[^${DOT}0-9].*,, ;; s|^|$PFX| ;;  p }\" \"\$1\""
-  while [ $# -gt 0 ]; do
-    #echo "+ $CMD" 1>&2 
-    eval "$CMD"
-    shift
-  done
-}
-bpm() {
-  while :; do
-    case "$1" in
-      -i | --int*) INTEGER=true; shift ;;
-      *) break ;;
-    esac
-  done
-  [ $# -gt 1 ] && PFX="\$1: " || PFX=
-  [ "$INTEGER" = true ] && DOT= || DOT="."
-    CMD="sed -n \"/TBPM/ { s|.*TBPM\\x00\\x00\\x00\\x07\\x00*|| ;; s,[^${DOT}0-9].*,, ;; s|^|$PFX| ;;  p }\" \"\$1\""
-  while [ $# -gt 0 ]; do
-    #echo "+ $CMD" 1>&2 
-    eval "$CMD"
-    shift
-  done
-}
 
 c256()
 {
@@ -1071,6 +1023,7 @@ dump-lynx() {
 "
   while :; do
     case "$1" in
+      -x | -debug | --debug) DEBUG=true; shift ;; 
       -d | -dump | --dump)  DUMP=true; shift ;; 
       -w | -wrap | --wrap)  WRAP=true; shift ;; 
       -c | --config) pushv LYNX_CONFIG "$2"; shift 2 ;; -c=* | --config=*) pushv LYNX_CONFIG "${1#*=}"; shift ;; -c*) pushv LYNX_CONFIG "${1#-?}"; shift ;; 
@@ -1085,7 +1038,7 @@ dump-lynx() {
   
   if [ "$DUMP" = true ]; then
      OPTS="-nolist"
-     if [ "$WRAP" = true ]; then
+     if [ "$WRAP" != true ]; then
        OPTS="$OPTS -width=65536"
      fi
   else
@@ -1099,11 +1052,12 @@ dump-lynx() {
     OPTS="$OPTS -cfg=\"\$TMPCFG\""
   fi
   
-  CMD="lynx -accept_all_cookies${USER_AGENT:+ -useragent=\"\$USER_AGENT\"}${COOKIE_FILE:+ -cookie_file=\"\$COOKIE_FILE\"} -wrap $OPTS -nonumbers -hiddenlinks=merge \"\$URL\" 2>/dev/null"
+  CMD="lynx -accept_all_cookies${USER_AGENT:+ -useragent=\"\$USER_AGENT\"}${COOKIE_FILE:+ -cookie_file=\"\$COOKIE_FILE\"} $OPTS -nonumbers -hiddenlinks=merge \"\$URL\" 2>/dev/null"
 
-  CMD="for URL; do $CMD; done"
+  for URL; do 
   [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-  eval "$CMD")
+  eval "$CMD"
+  done)
 }
 
 dump-shortcuts() { 
@@ -1164,54 +1118,6 @@ each()
         eval "$__";
     done;
     unset __
-}
-each() {
-  CMD=$1
-  if [ "$(type -t "$CMD")" = function ]; then
-    CMD="$CMD \"\$@\""
-  fi
-  shift
-  [ "$DEBUG" = true ] && CMD="echo \"+ $CMD\" 1>&2; $CMD"
-  if [ $# -gt 0 ]; then
-    CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; } || return $?; done'
-  else
-    CMD='while read -r LINE; do set -- $LINE; { '$CMD'; } || return $?; done'
-  fi
-#	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-  eval "$CMD"
-  unset CMD
-}
-each() {
-  CMD=$1
-  if [ "$(type -t "$CMD")" = function ]; then
-    CMD="$CMD \"\$@\""
-  fi
-  shift
-  [ "$DEBUG" = true ] && CMD="echo \"+ $CMD\" 1>&2; $CMD"
-  if [ $# -gt 0 ]; then
-    CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; } || return $?; done'
-  else
-    CMD='while read -r LINE; do set -- $LINE; { '$CMD'; } || return $?; done'
-  fi
-#	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-  eval "$CMD"
-  unset CMD
-}
-each() {
-  CMD=$1
-  if [ "$(type -t "$CMD")" = function ]; then
-    CMD="$CMD \"\$@\""
-  fi
-  shift
-  [ "$DEBUG" = true ] && CMD="echo \"+ $CMD\" 1>&2; $CMD"
-  if [ $# -gt 0 ]; then
-    CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; } || return $?; done'
-  else
-    CMD='while read -r LINE; do set -- $LINE; { '$CMD'; } || return $?; done'
-  fi
-#	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-  eval "$CMD"
-  unset CMD
 }
 
 enable-some-swap()
@@ -1631,42 +1537,27 @@ findstring()
     exit 1 )
 }
 
-findstring()
-{
-    ( STRING="$1";
-    while shift;
-    [ "$#" -gt 0 ]; do
-        if [ "$STRING" = "$1" ]; then
-            echo "$1";
-            exit 0;
-        fi;
-    done;
-    exit 1 )
+find-homedirs() {
+ (locate32.sh /home/ |
+  sed 's|/home/\([^/]\+\).*|/home/\1|'|uniq 
+find-media.sh '/home/[^/]+/$'|removesuffix / ) |
+  grep -vE '(/include/|/usr/)' |
+   filter-test -d 
 }
-findstring()
-{
-    ( STRING="$1";
-    while shift;
-    [ "$#" -gt 0 ]; do
-        if [ "$STRING" = "$1" ]; then
-            echo "$1";
-            exit 0;
-        fi;
-    done;
-    exit 1 )
+
+ find-in-index() {
+  (while [ $# -gt 0 ]; do
+    if [ -d  ]; then
+      pushv DIRS "$1"
+    else
+      EXPRS="${EXPRS:+$EXPRS|}$1"
+    fi
+    shift
+  done
+  index-dir -u $DIRS | xargs grep -E "($EXPRS)" -H | sed "s|/files.list:|/|" -u
+)
 }
-findstring()
-{
-    ( STRING="$1";
-    while shift;
-    [ "$#" -gt 0 ]; do
-        if [ "$STRING" = "$1" ]; then
-            echo "$1";
-            exit 0;
-        fi;
-    done;
-    exit 1 )
-}
+
 findstring()
 {
     ( STRING="$1";
@@ -2625,28 +2516,37 @@ incv()
     eval "$1=\`expr \"\${$1}\" + \"${2-1}\"\`"
 }
 
-index-dir()
-{ 
-    [ -z "$*" ] && set -- .;
-    ( [ "$(uname -m)" = "x86_64" ] && : ${R64="64"};
-    for ARG in "$@";
-    do
-        ( cd "$ARG";
-        if ! test -w "$PWD"; then
-            echo "Cannot write to $PWD ..." 1>&2;
-            exit;
-        fi;
-        echo "Indexing directory $PWD ..." 1>&2;
-        TEMP=`mktemp "/tmp/XXXXXX.list"`;
-        trap 'rm -f "$TEMP"; unset TEMP' EXIT;
-        ( if type list-r${R64} 2> /dev/null > /dev/null; then
-            list-r${R64} 2> /dev/null;
-        else
-            list-recursive;
-        fi ) > "$TEMP";
-        ( install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/files.list";
-        wc -l "$PWD/files.list" 1>&2 );
-    done )
+index-dir() { 
+  [ -z "$*" ] && set -- .
+ ([ "$(uname -m)" = "x86_64" ] && : ${R64="64"}
+  while :; do
+    case "$1" in
+      -u | -update | --update) UPDATE="true"; shift ;;
+      *) break ;;
+    esac
+  done
+  for ARG in "$@"; do
+   (cd "$ARG"
+      LIST="$PWD/files.list"
+	  if [ ! -w "$PWD" ]; then
+		echo "Cannot write to $PWD ..." 1>&2
+		exit
+	  fi
+	  if [ "$UPDATE" = true -a -s "$LIST" ]; then
+	    echo "$LIST"
+	    exit
+	  fi
+	  echo "Indexing directory $PWD ..." 1>&2
+	  TEMP=`mktemp "/tmp/XXXXXX.list"`
+	  trap 'rm -f "$TEMP"; unset TEMP' EXIT
+	 (if type list-r${R64} 2> /dev/null > /dev/null; then
+		list-r${R64} 2> /dev/null
+	  else
+			  list-recursive
+	  fi) >"$TEMP"
+	 (install -m 644 "$TEMP" "$LIST" && rm -f "$TEMP" ) || mv -f "$TEMP" "$LIST"
+	  echo "$LIST")
+  done)
 }
 
 index-of()
@@ -2900,6 +2800,8 @@ is_var()
     esac;
     return 0
 }
+
+join-lines() { (c=${1-\\}; sed ':lp; s|\(\s*\)\'$c'\r\?\n\(\s*\)\([^\n]*\)$| \3|;   /\'$c'\r\?$/  { $! { N; b lp;  } ; s,\'$c'$,,; }' ); }
 
 killall-w32()
 {
@@ -3649,138 +3551,6 @@ list()
         msg $choices;
     fi
 }
-list()
-{
-    sed "s|/files\.list:|/|"
-}
-list()
-{
-    local n=$1 count=0 choices='';
-    shift;
-    for choice in "$@";
-    do
-        choices="$choices $choice";
-        count=$((count + 1));
-        if $((count)) -eq $((n)); then
-            count=0;
-            choices='';
-        fi;
-    done;
-    if [ -n "${choices# }" ]; then
-        msg $choices;
-    fi
-}
-list()
-{
-    sed "s|/files\.list:|/|"
-}
-list()
-{
-    local n=$1 count=0 choices='';
-    shift;
-    for choice in "$@";
-    do
-        choices="$choices $choice";
-        count=$((count + 1));
-        if $((count)) -eq $((n)); then
-            count=0;
-            choices='';
-        fi;
-    done;
-    if [ -n "${choices# }" ]; then
-        msg $choices;
-    fi
-}
-list()
-{
-    sed "s|/files\.list:|/|"
-}
-list()
-{
-    local n=$1 count=0 choices='';
-    shift;
-    for choice in "$@";
-    do
-        choices="$choices $choice";
-        count=$((count + 1));
-        if $((count)) -eq $((n)); then
-            count=0;
-            choices='';
-        fi;
-    done;
-    if [ -n "${choices# }" ]; then
-        msg $choices;
-    fi
-}
-list()
-{
- (IFS="
- "
-  : ${INDENT='  '}
-  while :; do
-    case "$1" in
-      -i) INDENT=$2 && shift 2 ;;
-      -i*) INDENT=${2#-i} && shift
-      ;;
-      *) break ;;
-    esac
-  done
-
-  CMD='echo -n " \\
-$INDENT$LINE"'
-  [ $# -ge 1 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
-  eval "$CMD"
- )
-}
-list() {
-  rpm-cmd -t -- "$@"
-}
-list()
-{
- (IFS="
- "
-  : ${INDENT='  '}
-  while :; do
-    case "$1" in
-      -i) INDENT=$2 && shift 2 ;;
-      -i*) INDENT=${2#-i} && shift
-      ;;
-      *) break ;;
-    esac
-  done
-
-  CMD='echo -n " \\
-$INDENT$LINE"'
-  [ $# -ge 1 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
-  eval "$CMD"
- )
-}
-list() {
-  rpm-cmd -t -- "$@"
-}
-list()
-{
- (IFS="
- "
-  : ${INDENT='  '}
-  while :; do
-    case "$1" in
-      -i) INDENT=$2 && shift 2 ;;
-      -i*) INDENT=${2#-i} && shift
-      ;;
-      *) break ;;
-    esac
-  done
-
-  CMD='echo -n " \\
-$INDENT$LINE"'
-  [ $# -ge 1 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
-  eval "$CMD"
- )
-}
-list() {
-  rpm-cmd -t -- "$@"
-}
 
 locate-filename()
 {
@@ -4173,99 +3943,6 @@ modules()
             esac;
         done
     }
-}
-modules() {
- (CVSCMD="cvs -z3 -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG co"
-#  CVSPASS="cvs -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG login"
-CVSPASS='echo "grep -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <<\\EOF >>~/.cvspass
-\1 :pserver:anonymous@$ARG.cvs.sourceforge.net:2401/cvsroot/$ARG A
-EOF"'
-  for ARG; do
-    CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | sed -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
-   (set -- $(eval "$CMD")
-    test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
-    CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
-    #[ -n "$DSTDIR" ] && CMD="(cd ${DSTDIR%/} && $CMD)"
-    CMD="echo \"$CMD\""
-    
-    CMD="for MODULE; do $CMD; done"
-    [ -n "$DSTDIR" ] && CMD="echo \"mkdir -p ${DSTDIR%/}\"; $CMD"
-    [ -n "$CVSPASS" ] && CMD="$CVSPASS; $CMD"
-    [ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
-    eval "$CMD")
-  done)
-}
-modules() { 
-  require xml
- (for ARG; do
-    curl -s http://sourceforge.net/p/"$ARG"/{svn,code}/HEAD/tree/ | 
-      xml_get a data-url |
-      head -n1
-  done |
-    sed "s|-svn\$|| ;; s|-code\$||" |
-    addsuffix "-svn")
-}
-modules() {
- (CVSCMD="cvs -z3 -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG co"
-#  CVSPASS="cvs -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG login"
-CVSPASS='echo "grep -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <<\\EOF >>~/.cvspass
-\1 :pserver:anonymous@$ARG.cvs.sourceforge.net:2401/cvsroot/$ARG A
-EOF"'
-  for ARG; do
-    CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | sed -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
-   (set -- $(eval "$CMD")
-    test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
-    CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
-    #[ -n "$DSTDIR" ] && CMD="(cd ${DSTDIR%/} && $CMD)"
-    CMD="echo \"$CMD\""
-    
-    CMD="for MODULE; do $CMD; done"
-    [ -n "$DSTDIR" ] && CMD="echo \"mkdir -p ${DSTDIR%/}\"; $CMD"
-    [ -n "$CVSPASS" ] && CMD="$CVSPASS; $CMD"
-    [ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
-    eval "$CMD")
-  done)
-}
-modules() { 
-  require xml
- (for ARG; do
-    curl -s http://sourceforge.net/p/"$ARG"/{svn,code}/HEAD/tree/ | 
-      xml_get a data-url |
-      head -n1
-  done |
-    sed "s|-svn\$|| ;; s|-code\$||" |
-    addsuffix "-svn")
-}
-modules() {
- (CVSCMD="cvs -z3 -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG co"
-#  CVSPASS="cvs -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG login"
-CVSPASS='echo "grep -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <<\\EOF >>~/.cvspass
-\1 :pserver:anonymous@$ARG.cvs.sourceforge.net:2401/cvsroot/$ARG A
-EOF"'
-  for ARG; do
-    CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | sed -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
-   (set -- $(eval "$CMD")
-    test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
-    CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
-    #[ -n "$DSTDIR" ] && CMD="(cd ${DSTDIR%/} && $CMD)"
-    CMD="echo \"$CMD\""
-    
-    CMD="for MODULE; do $CMD; done"
-    [ -n "$DSTDIR" ] && CMD="echo \"mkdir -p ${DSTDIR%/}\"; $CMD"
-    [ -n "$CVSPASS" ] && CMD="$CVSPASS; $CMD"
-    [ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
-    eval "$CMD")
-  done)
-}
-modules() { 
-  require xml
- (for ARG; do
-    curl -s http://sourceforge.net/p/"$ARG"/{svn,code}/HEAD/tree/ | 
-      xml_get a data-url |
-      head -n1
-  done |
-    sed "s|-svn\$|| ;; s|-code\$||" |
-    addsuffix "-svn")
 }
 
 mount-all()
@@ -5361,6 +5038,17 @@ scriptdir()
     echo $absdir
 }
 
+set-builddir() {
+  CCPATH=$(which ${CC:-gcc})
+  case "$CCPATH" in
+    */mingw??/*) CCHOST=${CCPATH%%/mingw??/*}; CCHOST=${CCHOST##*/} ;;
+    *) CCHOST=$("$CCPATH" -dumpmachine);	CCHOST=${CCHOST%$r} ;;
+	esac
+	builddir=build/$CCHOST
+	mkdir -p $builddir
+	echo "$builddir"
+}
+
 set_ps1()
 {
     local b="\\[\\e[37;1m\\]" d="\\[\\e[0;38m\\]" g="\\[\\e[1;36m\\]" n="\\[\\e[0m\\]";
@@ -5418,36 +5106,6 @@ shell-functions()
     declare -f | script_fnlist )
 }
 
-some()
-{
-    eval "while shift
-  do
-  case \"\`str_tolower \"\$1\"\`\" in
-    $(str_tolower "$1") ) return 0 ;;
-  esac
-  done
-  return 1"
-}
-some()
-{
-    eval "while shift
-  do
-  case \"\`str_tolower \"\$1\"\`\" in
-    $(str_tolower "$1") ) return 0 ;;
-  esac
-  done
-  return 1"
-}
-some()
-{
-    eval "while shift
-  do
-  case \"\`str_tolower \"\$1\"\`\" in
-    $(str_tolower "$1") ) return 0 ;;
-  esac
-  done
-  return 1"
-}
 some()
 {
     eval "while shift
@@ -5666,21 +5324,6 @@ to-sed-expr()
   sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
 }
 
-to-sed-expr()
-{
- ([ $# -gt 0 ] && exec <<<"$*"
-  sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
-}
-to-sed-expr()
-{
- ([ $# -gt 0 ] && exec <<<"$*"
-  sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
-}
-to-sed-expr()
-{
- ([ $# -gt 0 ] && exec <<<"$*"
-  sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
-}
 to-sed-expr()
 {
  ([ $# -gt 0 ] && exec <<<"$*"

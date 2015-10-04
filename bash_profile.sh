@@ -107,6 +107,12 @@ fi
 if grep --help 2>&1 | grep -q '\--line-buffered'; then
 	GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--line-buffered"
 fi
+if grep --help 2>&1 | grep -q '\--binary-files'; then
+	GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--binary-files=without-match"
+fi
+if grep --help 2>&1 | grep -q '\-D'; then
+	GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }-Dskip"
+fi
 
 alias grep="grep $GREP_ARGS"
 alias grepdiff='grepdiff --output-matching=hunk'
@@ -270,7 +276,7 @@ notepad2() {
  (for ARG; do 
     P=$(realpath "$ARG"); [ "$ARG" != "$P" ] && echo "realpath \"$ARG\" = $P" 1>&2
     ARG="$P"
-    P=$(cygpath -m "$ARG"); [ "$ARG" != "$P" ] && echo "cygpath -m \"$ARG\" = $P" 1>&2
+    P=$(${PATHTOOL:-cygpath} -m "$ARG"); [ "$ARG" != "$P" ] && echo "${PATHTOOL:-cygpath} -m \"$ARG\" = $P" 1>&2
     ARG="$P"    
  command notepad2 "$ARG" &
  done)
@@ -349,15 +355,14 @@ CDPATH="."
 if [ -n "$USERPROFILE" -a -n "$PATHTOOL" ]; then
   USERPROFILE=`$PATHTOOL -m "$USERPROFILE"`
   if [ -d "$USERPROFILE" ]; then
-     pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`"
+     pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`" after
   
     DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" DOWNLOADS="$USERPROFILE/Downloads" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos"    MUSIC="$USERPROFILE/Music"
     
     [ -d "$DOCUMENTS/Sources" ] && SOURCES="$DOCUMENTS/Sources"
     
-    pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")"
-    pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")"
-  fi
+    pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")" after
+    pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")" after
 fi
 
 if [ -z "$DESKTOP" -a -n "$HOME" ]; then
