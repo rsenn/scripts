@@ -1547,7 +1547,7 @@ find-media.sh '/home/[^/]+/$'|removesuffix / ) |
 
  find-in-index() {
   (while [ $# -gt 0 ]; do
-    if [ -d  ]; then
+    if [ -d "$1" ]; then
       pushv DIRS "$1"
     else
       EXPRS="${EXPRS:+$EXPRS|}$1"
