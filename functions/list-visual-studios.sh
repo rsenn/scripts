@@ -6,6 +6,7 @@ list-visual-studios() {
   
   while :; do
     case "$1" in
+      -x | --debug) DEBUG=true; shift ;;
       -c | -cl | --cl | --compiler) pushv O "CL" ; shift ;;
       -b | -vsdir | --vsdir) pushv O "VSDIR" ; shift ;;
       -d | -vcdir | --vcdir) pushv O "VCDIR" ; shift ;;
@@ -50,7 +51,9 @@ list-visual-studios() {
      DEVENV ) EXT=".exe" ;;
      *) EXT="" ;;
    esac
-     eval "\${PATHCONV:-echo} \"\${$VAR}\$EXT\""
+     CMD="\${PATHCONV:-echo} \"\${$VAR}\$EXT\""
+     [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+     eval "$CMD"
    done
   done
   
