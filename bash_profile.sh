@@ -1,5 +1,5 @@
 #!/bin/bash
-echo 'loading /home/roman/.bash_profile' 1>&2
+echo 'loading ${BASH_SOURCE:-$_}' 1>&2
 
 set -o vi
 
@@ -349,14 +349,14 @@ CDPATH="."
 if [ -n "$USERPROFILE" -a -n "$PATHTOOL" ]; then
   USERPROFILE=`$PATHTOOL -m "$USERPROFILE"`
   if [ -d "$USERPROFILE" ]; then
-     pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`"
+     pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`" after
   
     DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" DOWNLOADS="$USERPROFILE/Downloads" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos"    MUSIC="$USERPROFILE/Music"
     
     [ -d "$DOCUMENTS/Sources" ] && SOURCES="$DOCUMENTS/Sources"
     
-    pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")"
-    pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")"
+    pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")" after
+    pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")" after
   fi
 fi
 
