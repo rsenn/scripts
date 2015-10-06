@@ -1,5 +1,5 @@
 #!/bin/bash
-echo 'loading ${BASH_SOURCE:-$_}' 1>&2
+echo "loading ${BASH_SOURCE:-$_}" 1>&2
 
 set -o vi
 

@@ -3539,8 +3539,23 @@ list-visual-studios() {
   : ${PATHCONV="cygpath$NL-w"}
   PATHCONV=${PATHCONV//" "/"$NL"}
 
-  set -- "$($PATHTOOL "${ProgramFiles:-$PROGRAMFILES}")"{," (x86)"}/*Visual\ Studio\ [0-9]*/VC/bin/{,*/}cl.exe
-  ls -d -- "$@" 2>/dev/null |sort -V | while read -r CL; do
+  
+
+  [ -z "$O" ] && O="CL"
+  
+  [ $# -eq 0 ] && PTRN="*" || PTRN="$(set -- $(vs2vc -c -0 "$@"); IFS=","; echo "$*")"
+  
+  case "$PTRN" in
+    *,*) PTRN="{$PTRN}" ;;
+  esac
+
+  PTRN="\"$($PATHCONV "${ProgramFiles:-$PROGRAMFILES}")\"{,\" (x86)\"}/*Visual\ Studio\ ${PTRN}*/VC/bin/{,*/}cl.exe"
+  echo "PTRN=$PTRN" 1>&2
+  eval "ls -d $PTRN" 2>/dev/null |
+  
+#  set -- "$($PATHTOOL "${ProgramFiles:-$PROGRAMFILES}")"{," (x86)"}/*Visual\ Studio\ [0-9]*/VC/bin/{,*/}cl.exe
+  #ls -d -- "$@" 2>/dev/null |
+  sort -V | while read -r CL; do
     case "$CL" in
       *amd64/*) ARCH="Win64" ;;
       *arm/*) ARCH="ARM" ;;
@@ -3554,8 +3569,8 @@ list-visual-studios() {
     
     VSDIR="${CL%%/VC*}"	
     VCDIR="$VSDIR/VC"
-    VCVARS="call \"$($PATHTOOL -w "$VSDIR/VC/vcvarsall.bat")\"${TARGET:+ $TARGET}"
-    VSVER=${VSDIR##*/}
+    VCVARS="call \"$($PATHCONV -w "$VSDIR/VC/vcvarsall.bat")\"${TARGET:+ $TARGET}"
+    VSVER=${VSDIR##*/}	
     VSVER=${VSVER##*"Visual Studio "}
     
     
@@ -3874,6 +3889,47 @@ minfo()
     [ $# -gt 1 ] && CMD="$CMD | addprefix \"\$ARG:\""
     CMD="for ARG; do $CMD; done"
     eval "$CMD")  | sed '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
+}
+
+mkbuilddir() {
+ (Q=\"
+  for DIR; do
+   (B=$(basename "$DIR")
+    
+    CL=$(vcget "$B" CL)
+    CMAKEGEN=$(vcget "$B" CMAKEGEN)
+    
+    ABSDIR=$(cd "$DIR" >/dev/null && pwd -P)
+    SRCDIR=${ABSDIR%/build*}
+    
+    PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|p' "$SRCDIR/CMakeLists.txt")
+    
+    PREFIX="${SRCDIR##*/}\\${DIR##*/}"
+    
+    [ -n "$INSTALLROOT" ] && INSTALLROOT=$(cygpath -w "$INSTALLROOT")
+    
+    if [ -e "$CL" ]; then
+      echo "Generating script $DIR/build.cmd ($(vcget "$B" VCNAME))" 1>&2
+      unix2dos >"$DIR/build.cmd" <<EOF
+@echo off
+
+call $(vcget "$B" VCVARSCMD)
+
+cd %~dp0
+
+cmake -G "$(vcget "$B" CMAKEGEN)" ^
+  -D CMAKE_INSTALL_PREFIX="${INSTALLROOT:-%PROGRAMFILES%}\\$PREFIX" ^
+  -D CMAKE_VERBOSE_MAKEFILE="TRUE" ^
+${__BUILD_TYPE:+  -D CMAKE_BUILD_TYPE=${Q}$BUILD_TYPE${Q} ^
+}  %*
+
+if not "%1"=="" set ARGS=/target:"%1"
+
+msbuild $PROJECT.sln${BUILD_TYPE:+ /p:Configuration=${Q}$BUILD_TYPE${Q}} %ARGS%
+
+EOF
+    fi) || exit $?
+  done)
 }
 
 mktempdata()
@@ -5517,22 +5573,102 @@ var-get() {
 }
 
 vc2vs() {
- (for ARG; do
+ (while :; do
+    case "$1" in
+      -c | --continue) CONT=true; shift ;;
+      -t | --trail*) TRAIL=true; shift ;;
+      *) break ;;
+    esac
+  done
+  for ARG; do
    ARG=${ARG#*msvc}
    ARG=${ARG#-}
    ARG=${ARG##*"Visual Studio "}
    ARG=${ARG%%[/\\]*}
    ARG=${ARG#vc}
-   case "${ARG}" in
-     8 | 8.0 | 8.00) echo 2005 ;;
-     9 | 9.0 | 9.00) echo 2008 ;;
-     10 | 10.0 | 10.00) echo 2010 ;;
-     11 | 11.0 | 11.00) echo 2012 ;;
-     12 | 12.0 | 12.00) echo 2013 ;;
-     14 | 14.0 | 14.00) echo 2015 ;;
-     *) echo "No such Visual Studio version: $ARG" 1>&2; exit 1 ;;
+   NUM=${ARG%%[!0-9.]*}
+   [ "$TRAIL" = true ] && T=${ARG#$NUM} || T=
+   case "${NUM}" in
+     8 | 8.0 | 8.00) echo 2005$T ;;
+     9 | 9.0 | 9.00) echo 2008$T ;;
+     10 | 10.0 | 10.00) echo 2010$T ;;
+     11 | 11.0 | 11.00) echo 2012$T ;;
+     12 | 12.0 | 12.00) echo 2013$T ;;
+     14 | 14.0 | 14.00) echo 2015$T ;;
+     *) [ "$CONT" = true ] && echo "$ARG" || { echo "No such Visual Studio version: $ARG" 1>&2; exit 1; } ;;
    esac
   done)
+}
+
+vcget() { 
+  case "$1" in 
+	*2005* | *2008* | *2010* | *2012* | *2013* | *2015*)
+	  VC=$(vs2vc -0 "$1")
+	  VS=$(vc2vs "$VC")
+      ARCH=${1#*$VS}
+	;;
+	  *)
+	  VS=$(vc2vs "$1")
+	  VC=$(vs2vc -0 "$VS")
+      ARCH=${1#*$VC}
+	;;
+  esac
+  ARCH=${ARCH#[!0-9A-Za-z_]}
+  case "$ARCH" in 
+    x64) ARCH="amd64" ;;
+    amd64|amd64_arm|amd64_x86|arm|ia64|x86_amd64|x86_arm|x86_ia64) ;;
+    *) ARCH= ;;
+  esac
+
+  shift
+  
+  VSINSTALLDIR="$PROGRAMFILES${ProgramW6432:+ (x86)}\\Microsoft Visual Studio $VC"
+  VCINSTALLDIR="$VSINSTALLDIR\\VC"  
+  BINDIR="$VCINSTALLDIR\\bin${ARCH:+\\$ARCH}"
+  CL="$BINDIR\\cl.exe"
+  DevEnvDir="$VCINSTALLDIR\\Common7\\IDE"
+  DEVENV="$DevEnvDir\\devenv.exe"
+  
+  BITS=${ARCH##*[!0-9]}
+  
+  
+  VCVARSALL="$VCINSTALLDIR\\vcvarsall.bat"
+  
+  case "$VC" in
+    9.0) VCVARSARCH="$BINDIR\\vcvars${ARCH:-32}.bat" ;;
+    *) VCVARSARCH="$BINDIR\\vcvars${BITS:-32}.bat" ;;
+  esac
+  
+  VCVARSCMD="\"$VCVARSALL\" ${ARCH:-x86}"
+
+  VCNAME="Microsoft Visual Studio $VC${ARCH:+ ($ARCH)}"
+  CMAKEGEN="Visual Studio ${VC%.0*} ${VS}"
+
+   VSVARS="${ARCH:+$VCVARSARCH}"
+   : ${VSVARS:="$VSINSTALLDIR\\Common7\\Tools\\vsvars32.bat"}
+   
+  WindowsSdkDir=$(reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows" /v "CurrentInstallFolder" | sed -n "s|.*REG_SZ\s\+||p")
+
+  local $(grep -i -E "^\s*@?set \"?(INCLUDE|LIB|LIBPATH|FrameworkDir|FrameworkVersion|Framework35Version)=" "$VSVARS" | sed \
+   -e "s,.*set \"\?\([^\"]\+\)\"\?,\1,i" \
+   -e "s|%VCINSTALLDIR%|${VCINSTALLDIR//"\\"/"\\\\"}|g" \
+   -e "s|%VSINSTALLDIR%|${VSINSTALLDIR//"\\"/"\\\\"}|g" \
+   -e "s|%WindowsSdkDir%|${WindowsSdkDir//"\\"/"\\\\"}|g")
+  
+  case "$ARCH" in
+    *amd64*) CMAKEGEN="$CMAKEGEN Win64" ;;
+  esac
+
+  [ $# -eq 0 ] && set -- VCINSTALLDIR
+  
+  for VAR; do
+    eval "O=\$$VAR"
+    case "$O" in
+      *\;*) echo "$O" ;;
+      ?:\\*) ${PATHTOOL:-echo} "$O" ;;
+      *) echo "$O" ;;
+    esac
+  done
 }
 
 verbose()
@@ -5620,6 +5756,8 @@ vs2vc() {
   while :; do
     case "$1" in
       -0 | -nul | --nul) : $((NUL++)); shift ;;
+      -c | --continue) CONT=true; shift ;;
+      -t | --trail*) TRAIL=true; shift ;;
       *) break ;;
     esac
   done
@@ -5628,15 +5766,17 @@ vs2vc() {
     N="${N}0"
     : $((NUL--))
   done
+     [ "$TRAIL" = true ] && T=${ARG#*20[0-9][0-9]} || T=
+
   for ARG; do
    case "$ARG" in
-     *2005*) echo 8${N:+.$N} ;; 
-     *2008*) echo 9${N:+.$N} ;; 
-     *2010*) echo 10${N:+.$N} ;; 
-     *2012*) echo 11${N:+.$N} ;; 
-     *2013*) echo 12${N:+.$N} ;; 
-     *2015*) echo 14${N:+.$N} ;; 
-     *) echo "No such Visual Studio version: $ARG" 1>&2; exit 1 ;;
+     *2005*) echo 8${N:+.$N}$T ;; 
+     *2008*) echo 9${N:+.$N}$T ;; 
+     *2010*) echo 10${N:+.$N}$T ;; 
+     *2012*) echo 11${N:+.$N}$T ;; 
+     *2013*) echo 12${N:+.$N}$T ;; 
+     *2015*) echo 14${N:+.$N}$T ;; 
+     *) [ "$CONT" = true ] && echo "$ARG" || { echo "No such Visual Studio version: $ARG" 1>&2; exit 1; } ;;
    esac
   done)
 }
