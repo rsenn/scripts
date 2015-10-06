@@ -3921,12 +3921,11 @@ cmake -G "$(vcget "$B" CMAKEGEN)" ^
   -D CMAKE_INSTALL_PREFIX="${INSTALLROOT:-%PROGRAMFILES%}\\$PREFIX" ^
   -D CMAKE_VERBOSE_MAKEFILE="TRUE" ^
 ${__BUILD_TYPE:+  -D CMAKE_BUILD_TYPE=${Q}$BUILD_TYPE${Q} ^
-}  %*
+} ..\\..
 
 if not "%1"=="" set ARGS=/target:"%1"
 
-msbuild $PROJECT.sln${BUILD_TYPE:+ /p:Configuration=${Q}$BUILD_TYPE${Q}} %ARGS%
-
+for %%G in (${BUILD_TYPE:-RelWithDebInfo MinSizeRel Debug Release}) do msbuild $PROJECT.sln /p:Configuration="%%G" %ARGS%
 EOF
     fi) || exit $?
   done)
