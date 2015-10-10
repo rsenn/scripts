@@ -1,5 +1,6 @@
 yaourt-joinlines() {
- (while :; do 
+ (while :
+    do 
    case "$1" in
     -n | --num*) CUT_NUM=true ;;
     -s | --state) CUT_STATE=true ;;
@@ -7,7 +8,8 @@ yaourt-joinlines() {
     esac 
     shift
   done
-    while read -r LINE; do
+    while read -r LINE
+    do
     case "$LINE" in
       "   "*) PKG="${PKG:+$PKG - }${LINE#    }" ;;
       *) 

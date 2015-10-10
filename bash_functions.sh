@@ -2842,7 +2842,19 @@ is-var()
     return 0
 }
 
-join-lines() { (c=${1-\\}; sed ':lp; s|\(\s*\)\'$c'\r\?\n\(\s*\)\([^\n]*\)$| \3|;   /\'$c'\r\?$/  { $! { N; b lp;  } ; s,\'$c'$,,; }' ); }
+join-lines() { 
+ (c=${1-\\};
+  sed '
+	:lp
+    s|\(\s*\)\'$c'\r\?\n\(\s*\)\([^\n]*\)$| \3|
+    /\'$c'\r\?$/  { 
+		    $! {
+				    N
+						b lp
+				} 
+				s,\'$c'$,,
+    }')
+}
 
 killall-w32()
 {
@@ -5922,7 +5934,8 @@ yaourt-cutver() {
 }
 
 yaourt-joinlines() {
- (while :; do 
+ (while :
+    do 
    case "$1" in
     -n | --num*) CUT_NUM=true ;;
     -s | --state) CUT_STATE=true ;;
@@ -5930,7 +5943,8 @@ yaourt-joinlines() {
     esac 
     shift
   done
-    while read -r LINE; do
+    while read -r LINE
+    do
     case "$LINE" in
       "   "*) PKG="${PKG:+$PKG - }${LINE#    }" ;;
       *) 
@@ -5955,6 +5969,11 @@ yes()
     while :; do
         echo "${1-y}";
     done
+}
+
+yum-joinlines()
+{ 
+    sed '/^[^ ]/ { :lp; N; /\n\s.*:\s/ { s,\n\s\+:\s*, , ; b lp };  :lp2; /\n/ { P; D; b  lp2; } }' "$@"
 }
 
 yum-rpm-list-all-pkgs()
