@@ -37,7 +37,7 @@ case "$TERM" in
   konsole|screen|rxvt|vte|Eterm|putty|xterm|mlterm|mrxvt|gnome) TERM="$TERM-256color" ;;
 esac
 
-   
+
 
 unalias cp mv rm  2>/dev/null
 
@@ -63,7 +63,7 @@ has_cmd() {
 #USERAGENT="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.21 (KHTML, like Gecko) QupZilla/1.8.5 Safari/537.21"
 USERAGENT="Mozilla/5.0 (Windows; U; Windows NT 6.1; de-CH) AppleWebKit/532.4 (KHTML, like Gecko) Arora/0.10.2 Safari/532.4"
 
-	
+
 has_cmd gxargs && alias xargs='gxargs -d "\n"' || alias xargs='xargs -d "\n"'
 
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
@@ -130,7 +130,7 @@ type aptitude 2>/dev/null >/dev/null && alias aptitude="$SUDO aptitude -y"
 
 if has_cmd require.sh; then
   . require.sh
-	
+
   require util
   require algorithm
   require list
@@ -159,7 +159,7 @@ currentpath()
 
 case "${OS}" in
    msys* | Msys* |MSys* | MSYS*)
-    MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
+    MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
     PATHTOOL=msyspath
     MSYSROOT=`msyspath -m / 2>/dev/null`
 
@@ -167,14 +167,14 @@ case "${OS}" in
 
 #    set_prompt '\e[32m\]\u@\h \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
    ;;
-  *cygwin* |Cygwin* | CYGWIN*) 
-    MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
+  *cygwin* |Cygwin* | CYGWIN*)
+    MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
    set_prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
    PATHTOOL=cygpath
    CYGROOT=`cygpath -m /`
   ;;
-*) 
-  MEDIAPATH="{/m*,$HOME/mnt}/*/"  
+*)
+  MEDIAPATH="{/m*,$HOME/mnt}/*/"
   if [ -e ~/.bash_prompt ]; then
     set_prompt
   else
@@ -195,7 +195,7 @@ case "$OS" in
 #    : echo "FN=$FN" 1>&2; eval "$FN"; done
   ;;
 esac
- 
+
 #: ${PS1:='\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '}
 
 pathmunge() {
@@ -254,8 +254,8 @@ list_mediapath()
 add_mediapath()
 {
   for ARG; do
-    set -- $(eval "list_mediapath $ARG"); while [ "$1" ]; do 
-        D="${1%/}"; [ -d "$D" ] || D=${D%/*}; 
+    set -- $(eval "list_mediapath $ARG"); while [ "$1" ]; do
+        D="${1%/}"; [ -d "$D" ] || D=${D%/*};
       if [ -d "$D" ]; then
          [ "$ADD" = before ] && PATH="$D:$PATH" || PATH="$PATH:$D"
       fi
@@ -267,11 +267,15 @@ add_mediapath()
 #is-cmd() { type "$1" >/dev/null 2>/dev/null; }
 
 notepad2() {
- (for ARG; do 
-    P=$(realpath "$ARG"); [ "$ARG" != "$P" ] && echo "realpath \"$ARG\" = $P" 1>&2
-    ARG="$P"
-    P=$(cygpath -m "$ARG"); [ "$ARG" != "$P" ] && echo "cygpath -m \"$ARG\" = $P" 1>&2
-    ARG="$P"    
+ (for ARG; do
+    if type realpath 2>/dev/null >/dev/null; then
+      P=$(realpath "$ARG") #; [ "$ARG" != "$P" ] && echo "realpath \"$ARG\" = $P" 1>&2
+      [ -e "$P" -a "$ARG" != "$P" ] && ARG="$P"
+    fi
+    if type cygpath 2>/dev/null >/dev/null; then
+      P=$(cygpath -m "$ARG") #; [ "$ARG" != "$P" ] && echo "cygpath -m \"$ARG\" = $P" 1>&2
+      [ -e "$P" -a "$ARG" != "$P" ] && ARG="$P"
+    fi
  command notepad2 "$ARG" &
  done)
 }
@@ -311,7 +315,7 @@ FNS="$HOME/.bash_functions"
 #{
 #  case "$MEDIAPATH" in
 #    *{*)
-#      MEDIA=$(ls  --color=no -d $MEDIAPATH" 2>/dev/null |sed -n 's,/*$,, ; s,.*/,,; /#[a-z]$/p') 
+#      MEDIA=$(ls  --color=no -d $MEDIAPATH" 2>/dev/null |sed -n 's,/*$,, ; s,.*/,,; /#[a-z]$/p')
 #      MEDIAPATH="/{$(IFS=",$IFS"; set -- $MEDIA; echo "$*")}"
 #      unset MEDIA
 #      ;;
@@ -331,7 +335,7 @@ msiexec()
            *) break ;;
            esac
            done
-    
+
     r=$(realpath "$1");
     r=${r%/.};
     r=${r#./};
@@ -343,18 +347,18 @@ msiexec()
 if [ -e /etc/bash_completion -a "${BASH_COMPLETION-unset}" = unset ]; then
   . /etc/bash_completion
 fi
- 
+
 CDPATH="."
 
 if [ -n "$USERPROFILE" -a -n "$PATHTOOL" ]; then
   USERPROFILE=`$PATHTOOL -m "$USERPROFILE"`
   if [ -d "$USERPROFILE" ]; then
      pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`" after
-  
+
     DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" DOWNLOADS="$USERPROFILE/Downloads" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos"    MUSIC="$USERPROFILE/Music"
-    
+
     [ -d "$DOCUMENTS/Sources" ] && SOURCES="$DOCUMENTS/Sources"
-    
+
     pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")" after
     pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")" after
   fi
@@ -372,19 +376,19 @@ fi
 case "$MSYSTEM" in
   *MINGW32*) [ -d /mingw/bin ] && pathmunge /mingw/bin ;;
   *MINGW64*) [ -d /mingw64/bin ] && pathmunge /mingw64/bin ;;
-  *) LS_COLORS='di=01;34:ln=01;36:pi=35:so=01;35:do=01;35:bd=35;01:cd=35;01:or=31;01:ex=01;35'; 
+  *) LS_COLORS='di=01;34:ln=01;36:pi=35:so=01;35:do=01;35:bd=35;01:cd=35;01:or=31;01:ex=01;35';
 ;;
 esac
 
 export LS_COLORS
 
 
-#pathremove /sbin && pathmunge /sbin 
+#pathremove /sbin && pathmunge /sbin
 #pathremove /bin && pathmunge /bin
 #pathremove /usr/sbin && pathmunge /usr/sbin
 #pathremove /usr/bin && pathmunge /usr/bin
 #pathremove /usr/local/sbin && pathmunge /usr/local/sbin
-#pathremove /usr/local/bin && pathmunge /usr/local/bin 
+#pathremove /usr/local/bin && pathmunge /usr/local/bin
 
 if type gcc 2>/dev/null >/dev/null; then
   builddir=build/`gcc -dumpmachine | sed 's,\r*$,,'`
