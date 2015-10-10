@@ -94,7 +94,7 @@ main()
       FNAME=`apt_info $AVAIL | info_get Filename`
 
       if [ -z "$FNAME" ]; then
-        if is_true "$FLAGS_verbose"; then
+        if is-true "$FLAGS_verbose"; then
           msg "Package $PKG has no Filename"      
         fi
         unset AVAIL
@@ -105,7 +105,7 @@ main()
         continue
       fi
 
-      if is_true "$FLAGS_debug"; then
+      if is-true "$FLAGS_debug"; then
         msg "Package $PKG Filename:" $FNAME
       fi
 

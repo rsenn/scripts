@@ -1,4 +1,4 @@
-escape_required()
+escape-required()
 {
     local b="\\" q="\`\$\'\"${IFS}";
     case "$1" in

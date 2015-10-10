@@ -1,4 +1,4 @@
-imatch_some()
+imatch-some()
 {
     eval "while shift
   do

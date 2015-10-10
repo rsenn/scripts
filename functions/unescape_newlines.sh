@@ -1,4 +1,4 @@
-unescape_newlines()
+unescape-newlines()
 {
     sed -e ':start
   /\$/ {

@@ -1,4 +1,4 @@
-pushv_unique()
+pushv-unique()
 {
     local v=$1 s IFS=${IFS%${IFS#?}};
     shift;

@@ -13,7 +13,7 @@ mkbuilddir() {
     
     PREFIX="${SRCDIR##*/}\\${DIR##*/}"
     
-    [ -n "$INSTALLROOT" ] && INSTALLROOT=$(cygpath -w "$INSTALLROOT")
+    [ -n "$INSTALLROOT" ] && INSTALLROOT=$(${PATHTOOL:-echo} "$INSTALLROOT")
     
     if [ -e "$CL" ]; then
       echo "Generating script $DIR/build.cmd ($(vcget "$B" VCNAME))" 1>&2

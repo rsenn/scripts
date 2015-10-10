@@ -22,7 +22,7 @@ case $FILESIZE in
 esac
 
 
-in_path () 
+in-path () 
 { 
     local dir IFS=:;
     for dir in $PATH;
@@ -57,9 +57,9 @@ duration()
 
 }
 
-in_path mpg321 && MPG321="mpg321"
-in_path sox && SOX="sox"
-in_path mplayer && MPLAYER="mplayer"
+in-path mpg321 && MPG321="mpg321"
+in-path sox && SOX="sox"
+in-path mplayer && MPLAYER="mplayer"
 
 ABR=128
 AR=44100

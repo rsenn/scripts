@@ -1,4 +1,4 @@
-index_of()
+index-of()
 {
     ( needle="$1";
     index=0;

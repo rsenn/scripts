@@ -1,4 +1,4 @@
-subst_script()
+subst-script()
 {
     local var script value IFS="$obj_s";
     for var in "$@";

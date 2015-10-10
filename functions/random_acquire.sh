@@ -1,4 +1,4 @@
-random_acquire()
+random-acquire()
 {
     local n IFS="$newline";
     for n in $(echo "$@" | hexdump -d | sed "s,^[0-9a-f]\+\s*,,;s,\s\+,\n,g");

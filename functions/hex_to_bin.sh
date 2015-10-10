@@ -1,4 +1,4 @@
-hex_to_bin()
+hex-to-bin()
 {
     local chars=`str_to_list "$1"`;
     local bin IFS="$newline" ch;

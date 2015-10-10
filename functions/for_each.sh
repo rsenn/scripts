@@ -1,4 +1,4 @@
-for_each() {
+for-each() {
   CMD=$1
   if [ "$(type -t "$CMD")" = function ]; then
     CMD="$CMD \"\$@\""

@@ -2,7 +2,7 @@
 BS='\'
 FS='/'
 
-output_mingwvars() {
+output-mingwvars() {
  (: ${O=${1:+$1/}mingwvars.cmd}
  echo "Outputting '${O//$FS/$BS}'..." 1>&2
  case "$O" in
@@ -27,7 +27,7 @@ EOF
 )
 }
 
-output_startmingwprompt() {
+output-startmingwprompt() {
  (: ${O=${1:+$1/}start-mingw-prompt.bat}
  echo "Outputting '${O//$FS/$BS}'..." 1>&2
   cat <<EOF | unix2dos >"$O"
@@ -52,7 +52,7 @@ for DIR in "${@:-$PWD}"; do
 
   MINGWDIR=${SUBDIR%/$SUBDIRNAME*}
 
-   O="$MINGWDIR/mingwvars.sh" output_mingwvars "$MINGWDIR"
-   output_startmingwprompt "$MINGWDIR"
+   O="$MINGWDIR/mingwvars.sh" output-mingwvars "$MINGWDIR"
+   output-startmingwprompt "$MINGWDIR"
 done
 

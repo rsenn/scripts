@@ -1,4 +1,4 @@
-is_binary()
+is-binary()
 {
     case `file - <$1` in
         *text*)

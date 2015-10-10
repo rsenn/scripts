@@ -1,4 +1,4 @@
-remove_emptylines()
+remove-emptylines()
 {
     sed -e '/^\s*$/d' "$@"
 }

@@ -1,4 +1,4 @@
-is_object()
+is-object()
 {
     case `file - <$1` in
         *ELF* | *executable*)

@@ -1,4 +1,4 @@
-hexnums_to_bin()
+hexnums-to-bin()
 {
     ( require str;
     unset NL;

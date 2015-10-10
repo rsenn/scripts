@@ -1,4 +1,4 @@
-output_mingwvars() {
+output-mingwvars() {
  (: ${O=${1:+$1/}mingwvars.cmd}
  echo "Outputting '${O//$FS/$BS}'..." 1>&2
  case "$O" in

@@ -1,4 +1,4 @@
-apt_dpkg_list_all_pkgs()
+apt-dpkg-list-all-pkgs()
 {
   require apt
   require dpkg
