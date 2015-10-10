@@ -1,4 +1,4 @@
-regexp_to_fnmatch()
+regexp-to-fnmatch()
 {
     ( expr=$1;
     case $expr in

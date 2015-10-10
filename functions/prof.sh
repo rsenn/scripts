@@ -6,7 +6,7 @@ prof()
             . "$PROF"
         ;;
         edit)
-            "${2:-$EDITOR}" "$(cygpath -m "$PROF")"
+            "${2:-$EDITOR}" "$(${PATHTOOL:-echo} "$PROF")"
         ;;
     esac
 }

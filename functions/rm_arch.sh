@@ -1,4 +1,4 @@
-rm_arch()
+rm-arch()
 {
     ( IFS="
 ";

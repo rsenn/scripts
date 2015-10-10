@@ -1,4 +1,4 @@
-filter_out()
+filter-out()
 {
     ( while read -r LINE; do
         for PATTERN in "$@";

@@ -1,4 +1,4 @@
-yum_rpm_list_all_pkgs()
+yum-rpm-list-all-pkgs()
 {
   require rpm
 

@@ -1,4 +1,4 @@
-is_true()
+is-true()
 {
     case "$*" in
         true | ":" | "${FLAGS_TRUE-0}" | yes | enabled | on)

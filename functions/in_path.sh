@@ -1,4 +1,4 @@
-in_path()
+in-path()
 {
     local dir IFS=:;
     for dir in $PATH;

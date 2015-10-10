@@ -35,6 +35,7 @@ while :; do
   case "$1" in
     --) shift; break ;;
     -h | --help) usage; exit 0 ;;
+    -e | --exist*) EXISTS="true" ;;
     -p | --path) LOOKPATH="$2"; shift ;; -p=* | --path=*) LOOKPATH="${1#*=}" ;;
     -r | --regex) REGEX=true ;;
     -i | --ignore-case) NOCASE=true ;;
@@ -209,4 +210,5 @@ CMD="\"$LOCATE\" $OPTS -- \"\$ARG\" 2>&1"
 CMD="for ARG in \$ARGS; do (${DEBUG:+set -x; }$CMD) done"
 CMD="$CMD | sed \"\${SED_EXPR}\""
 [ "$DEBUG" = true ] && { echo "+ $CMD" 1>&2; : set -x; }
+[ "$EXISTS" = true ] && CMD="$CMD | while read -r R; do test -e \"\$R\" && echo \"\$R\"; done"
 eval "$CMD"

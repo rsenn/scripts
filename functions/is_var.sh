@@ -1,4 +1,4 @@
-is_var()
+is-var()
 {
     case $1 in
         [!_A-Za-z]* | *[!_0-9A-Za-z]*)

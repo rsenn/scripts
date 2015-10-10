@@ -1,4 +1,4 @@
-output_startmingwprompt() {
+output-startmingwprompt() {
  (: ${O=${1:+$1/}start-mingw-prompt.bat}
  echo "Outputting '${O//$FS/$BS}'..." 1>&2
   cat <<EOF | unix2dos >"$O"

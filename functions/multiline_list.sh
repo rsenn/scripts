@@ -1,4 +1,4 @@
-multiline_list()
+multiline-list()
 {
  (IFS="
  "

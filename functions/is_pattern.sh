@@ -1,4 +1,4 @@
-is_pattern()
+is-pattern()
 {
     case "$*" in
         *'['*']'* | *'*'* | *'?'*)

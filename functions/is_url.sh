@@ -1,4 +1,4 @@
-is_url()
+is-url()
 {
     case $1 in
         *://*)

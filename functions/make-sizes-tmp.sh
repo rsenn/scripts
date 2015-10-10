@@ -1,4 +1,4 @@
-make-sizes-tmp() 
+make-sizes-tmp()
 { 
     sed -n '/ [0-9]\+ /p' $(list-mediapath 'ls-lR.list') | awkp 5 > $TEMP/sizes.tmp;
     for N in $(histogram.awk <$TEMP/sizes.tmp|grep -v '^1 '|awkp 2|sort -n); do

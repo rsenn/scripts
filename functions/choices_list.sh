@@ -1,4 +1,4 @@
-choices_list()
+choices-list()
 {
     local n=$1 count=0 choices='';
     shift;

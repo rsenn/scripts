@@ -5,9 +5,9 @@ volname() {
       case "$drive" in
         ?) drive="$drive:/" ;;
         ?:) drive="$drive/" ;;
-        *) drive=$(cygpath -m "$drive") ;;
+        *) drive=$(${PATHTOOL:-echo} "$drive") ;;
       esac  
-      drive=$(cygpath -m "$drive")
+      drive=$(${PATHTOOL:-echo} "$drive")
       NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
       eval "$ECHO"
   done)

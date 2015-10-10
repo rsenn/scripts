@@ -1,4 +1,4 @@
-make_arith()
+make-arith()
 {
     echo '$(('"$@"'))'
 }

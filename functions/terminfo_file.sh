@@ -1,4 +1,4 @@
-terminfo_file()
+terminfo-file()
 {
     ( for ARG in "$@";
     do

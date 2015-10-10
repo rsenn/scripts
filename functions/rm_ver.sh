@@ -1,4 +1,4 @@
-rm_ver()
+rm-ver()
 {
     ( IFS="
 ";

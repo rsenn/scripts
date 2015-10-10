@@ -1,4 +1,4 @@
-is_interactive()
+is-interactive()
 {
     test -n "$PS1"
 }

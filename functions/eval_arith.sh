@@ -1,4 +1,4 @@
-eval_arith()
+eval-arith()
 {
-    eval "echo $(make_arith "$@")"
+    eval "echo $(make-arith "$@")"
 }

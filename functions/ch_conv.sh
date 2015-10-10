@@ -1,4 +1,4 @@
-ch_conv()
+ch-conv()
 {
     FROM="$1" TO="$2";
     shift 2;

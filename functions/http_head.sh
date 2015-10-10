@@ -1,4 +1,4 @@
-http_head()
+http-head()
 {
     ( HOST=${1%%:*};
     PORT=80;
