@@ -1,4 +1,7 @@
 #!/bin/bash
+
+test "$_dot_bash_profile" = 1 || {
+
 echo "loading ${BASH_SOURCE:-$_}" 1>&2
 
 set -o vi
@@ -393,3 +396,4 @@ export LS_COLORS
 if type gcc 2>/dev/null >/dev/null; then
   builddir=build/`gcc -dumpmachine | sed 's,\r*$,,'`
 fi
+}; _dot_bash_profile=1
