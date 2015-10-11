@@ -5958,8 +5958,8 @@ yaourt-joinlines() {
         ${CUT_STATE:-false} &&
         #PKG="${PKG% \[*\]}"
         case "$PKG" in
-          *"[installed"*) INSTALLED="true" ;;
-          *) INSTALLED="false" ;;
+          *"[installed"*) INSTALLED="yes" ;;
+          *) INSTALLED="no" ;;
         esac
 
         PKG="${PKG/ \[*\]/}"
