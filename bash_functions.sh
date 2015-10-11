@@ -2837,7 +2837,19 @@ isodate()
     date +%Y%m%d
 }
 
-join-lines() { (c=${1-\\}; sed ':lp; s|\(\s*\)\'$c'\r\?\n\(\s*\)\([^\n]*\)$| \3|;   /\'$c'\r\?$/  { $! { N; b lp;  } ; s,\'$c'$,,; }' ); }
+join-lines() { 
+ (c=${1-\\};
+  sed '
+	:lp
+    s|\(\s*\)\'$c'\r\?\n\(\s*\)\([^\n]*\)$| \3|
+    /\'$c'\r\?$/  { 
+		    $! {
+				    N
+						b lp
+				} 
+				s,\'$c'$,,
+    }')
+}
 
 killall-w32()
 {
@@ -3699,9 +3711,16 @@ ls-dirs()
 ls-files()
 {
     ( [ -z "$@" ] && set -- .;
+		while :; do 
+			case "$1" in
+			 -*) OPTS="${OPTS:+$OPTS
+}$1"; shift ;;
+      *) break ;;
+		esac
+	done
     for ARG in "$@";
     do
-        ls --color=auto -d "$ARG"/*;
+        ls --color=auto -d $OPTS -- "$ARG"/*;
     done ) | filter-test -f| sed 's,^\./,,; s,/$,,'
 }
 
@@ -5917,26 +5936,38 @@ yaourt-cutver() {
 yaourt-joinlines() {
  (while :; do
    case "$1" in
+    -i | --installed) P_INSTALLED=yes ;;
+    -I | --not-installed) P_INSTALLED=no ;;
     -n | --num*) CUT_NUM=true ;;
     -s | --state) CUT_STATE=true ;;
     *) break ;;
     esac
     shift
   done
+    PKG= INSTALLED=
+    P_CMD='if [ -n "$PKG"'${P_INSTALLED:+' -a "$P_INSTALLED" = "$INSTALLED"'}' ]; then
+        echo "$PKG"
+      fi'
+    eval "p() { $P_CMD; }"
     while read -r LINE; do
     case "$LINE" in
       "   "*) PKG="${PKG:+$PKG - }${LINE#    }" ;;
       *)
-        [ -n "$PKG" ] && echo "$PKG"
+        p
         PKG="${LINE}"
         ${CUT_STATE:-false} &&
         #PKG="${PKG% \[*\]}"
+        case "$PKG" in
+          *"[installed"*) INSTALLED="true" ;;
+          *) INSTALLED="false" ;;
+        esac
+
         PKG="${PKG/ \[*\]/}"
         ${CUT_NUM:-false} && PKG="${PKG% (*)}"
         ;;
     esac
   done
-  [ -n "$PKG" ] && echo "$PKG")
+  p)
 }
 
 yaourt-pkgnames() {
@@ -5949,6 +5980,11 @@ yes()
     while :; do
         echo "${1-y}";
     done
+}
+
+yum-joinlines()
+{ 
+    sed '/^[^ ]/ { :lp; N; /\n\s.*:\s/ { s,\n\s\+:\s*, , ; b lp };  :lp2; /\n/ { P; D; b  lp2; } }' "$@"
 }
 
 yum-rpm-list-all-pkgs()

@@ -167,7 +167,7 @@ fi
 
 case $(distrib_get id) in
   [Mm][Ss][Yy][Ss]) CMD=yaourt_pacman_list_all_pkgs ;;
-  [Ff]edora) CMD=yum-rpm-list-all-pkgs ;;
+  [Ff]edora) YUM_cmd=dnf; CMD=yum-rpm-list-all-pkgs ;;
   [Dd]ebian|[Uu]buntu) CMD=apt-dpkg-list-all-pkgs ;;
   openS[Uu]SE*|opensuse*) CMD=zypper_rpm_list_all_pkgs  ;;
   [Aa]rch*) CMD=yaourt_pacman_list_all_pkgs  ;;
