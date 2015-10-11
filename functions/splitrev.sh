@@ -1,4 +1,4 @@
-splitrev () { 
+splitrev () {
    (IFS=${1-" "};
     S=${IFS%"${IFS#?}"};
     R=${2-"$S"}

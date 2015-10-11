@@ -20,14 +20,14 @@ filter-foreach() {
       "!=") push COND "${NEG:+$NEG }\$((N)) -ne $2"; NEG=""; shift ;;
       ">") push COND "${NEG:+$NEG }\$((N)) -gt $2"; NEG=""; shift ;;
       "<") push COND "${NEG:+$NEG }\$((N)) -lt $2"; NEG=""; shift ;;
-      
+
       ">="*) push COND "${NEG:+$NEG }\$((N)) -ge ${1#??}"; NEG=""; shift ;;
       "<="*) push COND "${NEG:+$NEG }\$((N)) -le ${1#??}"; NEG=""; shift ;;
       "=="* | "="*) push COND "\$((N)) -eq ${1#*=}"; NEG=""; shift ;;
       "!=") push COND "${NEG:+$NEG }\$((N)) -ne ${1#??}"; NEG=""; shift ;;
       ">"*) push COND "${NEG:+$NEG }\$((N)) -gt ${1#?}"; NEG=""; shift ;;
       "<"*) push COND "${NEG:+$NEG }\$((N)) -lt ${1#?}"; NEG=""; shift ;;
-      
+
       -o | -or | --or | "||") S=" -o "; shift ;;
       -a | -and | --and | "||") S=" -a "; shift ;;
       '!')
@@ -44,7 +44,7 @@ filter-foreach() {
   done
   CMD="echo \"$CMD\""
   CMD="[ $COND ] && $CMD"
-    
+
   CMD="while read -r $FIELDS; do N=\$F$I; $CMD; done"
   CMD='IFS=" 	"; '$CMD
   [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2

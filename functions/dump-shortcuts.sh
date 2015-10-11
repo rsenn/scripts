@@ -1,4 +1,4 @@
-dump-shortcuts() { 
+dump-shortcuts() {
  (while :; do
    case "$1" in
     -*) pushv OPTS "$1"; shift ;;

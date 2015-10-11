@@ -23,7 +23,7 @@ git-set-remote()
       *) NAME="$ARG";  shift ;;
     esac
       [ -n "$DIR" ] && echo "Setting git remote '$NAME' in '$DIR' to '$REMOTE'" 1>&2
-      
+
      eval "${PRECMD}git remote rm \"\$NAME\"" #2>/dev/null
      true
 
@@ -40,7 +40,7 @@ git-set-remote()
   if [ $# -le 0 ]; then
     CMD='while read -r R; do '$CMD'; done'
   else
-    CMD='while [ $# -gt 0 ]; do 
+    CMD='while [ $# -gt 0 ]; do
       case "$1|$2|$3" in
         *": "*\|*": "*\|*": "*) R="$1"; S=1 ;;
         *": "*\|?*\|*": "*) R="$1 $2"; S=2 ;;

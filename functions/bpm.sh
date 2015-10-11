@@ -1,6 +1,6 @@
 bpm() {
   id3v2  -l "$@"|sed -n "/^id3v2 tag info for / {
-    :lp     
+    :lp
     N
     /\n[[:upper:][:digit:]]\+ ([^\n]*$/ {
       /\nTBPM[^\n]*$/! {
@@ -14,7 +14,7 @@ bpm() {
       s|\n| |g
       b lp
     }
-    :ok     
+    :ok
     s|\n[^\n]*:\s*$||
     s|^id3v2 tag info for \([^\n]*\) *: *\n *|\1: |
     p

@@ -1,4 +1,4 @@
-shortcut-cmd() { 
+shortcut-cmd() {
     readshortcut -a -f "$1" | sed 's,^Arguments:\s*\(.*\),-a\n"\1",
     s,^Description:\s\+\(.*\),-d\n"\1",g
     s,^Icon Library Offset:\s*\(.*\),-j\n\1,g

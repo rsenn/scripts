@@ -1,4 +1,4 @@
-suffix-num() { 
+suffix-num() {
  (for N; do
     case "$N" in
       [0-9]*P) N=$(multiply-num "${N%P} * 1099511627776") ;;

@@ -3,7 +3,7 @@ disk-label() {
   if [ -n "$1" -a -e "$1" -a -n "$LABEL" ]; then
     echo "$LABEL"
     exit 0
-  fi      
+  fi
   ESCAPE_ARGS="-e"
   while :; do
     case "$1" in

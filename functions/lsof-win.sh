@@ -16,13 +16,13 @@ lsof-win()
   else
     CMD='handle -a'
   fi
-  eval "$CMD" 2>&1 | { 
+  eval "$CMD" 2>&1 | {
   TAB="	"
   CR=""
   IFS="$CR"
   while read -r LINE; do
     case "$LINE" in
-      *"pid: "*) 
+      *"pid: "*)
         LSOF_PID=${LINE##*"pid: "}
         LSOF_PID=${LSOF_PID%%" "*}
         EXE=${LINE%%" "*}

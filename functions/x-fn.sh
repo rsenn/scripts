@@ -1,5 +1,5 @@
 x-fn()
-{ 
+{
  (MATCH=p
   NOMATCH=D
   while :; do
@@ -10,12 +10,12 @@ x-fn()
     esac
     shift
   done
-  
+
   FN="$1";
   shift;
   #: ${XTRA="$XTRA; s/^/-->/; s/\n/\n-->/g"}
-  sed " :lp0 
-   \$ { /\n/! $NOMATCH; } 
+  sed " :lp0
+   \$ { /\n/! $NOMATCH; }
     N
     /\n/! b lp0
 
@@ -25,7 +25,7 @@ x-fn()
       :lp1
       N
       /)/! b lp1
-      
+
       :endargs
 
       /).*;\s*$/ b endfn

@@ -11,7 +11,7 @@ EOF"'
     CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
     #[ -n "$DSTDIR" ] && CMD="(cd ${DSTDIR%/} && $CMD)"
     CMD="echo \"$CMD\""
-    
+
     CMD="for MODULE; do $CMD; done"
     [ -n "$DSTDIR" ] && CMD="echo \"mkdir -p ${DSTDIR%/}\"; $CMD"
     [ -n "$CVSPASS" ] && CMD="$CVSPASS; $CMD"

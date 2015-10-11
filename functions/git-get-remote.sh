@@ -2,7 +2,7 @@ git-get-remote() {
  (while :; do
  		case "$1" in
       -l | --list) LIST=true; shift ;;
-      -n | --name) NAME=$2; shift 2 ;; -n=* | --name=*) NAME=${1#*=}; shift ;; 
+      -n | --name) NAME=$2; shift 2 ;; -n=* | --name=*) NAME=${1#*=}; shift ;;
       *) break ;;
     esac
   done

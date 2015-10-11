@@ -15,7 +15,7 @@ $2"; shift 2 ;;
        *) break ;;
      esac
     done
-  
+
 
   while [ $# -gt 0 ]; do
     if [ -d "$1" ]; then

@@ -1,5 +1,5 @@
 check-7z() {
- (while :; do 
+ (while :; do
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
       *) break ;;
@@ -19,7 +19,7 @@ check-7z() {
   #FILTER="$FILTER | sed \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\${ARCHIVE}\${SEP:-: }\\2 \\[\\1\\]|\""
   FILTER="$FILTER | sed \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\\1 \\*\${ARCHIVE}\${SEP:-:}\\2|\""
   process() { IFS="
- "; set +x; 
+ "; set +x;
     unset PREV; while read -r LINE; do
     LINE=${LINE//"\\"/"/"}
      case "$LINE" in
@@ -28,7 +28,7 @@ check-7z() {
           FILE=${LINE#"Extracting  "}
           if [ -n "$FILE" -a "$FILE" != "$PREV" ]; then
 #				    echo "FILE='$FILE'" 1>&2
-          [ "$FILE" = "$T" ] && continue 			    
+          [ "$FILE" = "$T" ] && continue
             if [ -e "$FILE" ]; then [ -f "$FILE" ] && echo "$FILE"
             else echo "File '$FILE' not found!" 1>&2; fi
           fi
@@ -37,14 +37,14 @@ check-7z() {
   }
   while [ $# -gt 0 ]; do
    (B=${1##*/}
-    case "$1" in 
+    case "$1" in
       *://*) INPUT="curl -s \"\$1\"" ;;
       *) ARCHIVE=$1  ;;
     esac
-    case "$1" in 
+    case "$1" in
       *.t?z | *.tbz2)
         T=${1%.t?z}
-        T=${T%.tbz2} 
+        T=${T%.tbz2}
         T=$T.tar
         INPUT="${INPUT:+$INPUT | }${SEVENZIP:-7za} x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si${T}";  CMD="${SEVENZIP:-7za} x -o\"$OUTDIR\" $OPTS"
         ;;
@@ -57,9 +57,9 @@ check-7z() {
       if [ -n "$INPUT" ]; then
       CMD="${INPUT+$INPUT | }$CMD"
       OPTS="$OPTS${IFS:0:1}-si${1##*/}"
-    fi 
+    fi
       CMD="($CMD) 2>&1 | (cd \"\$OUTDIR\" >/dev/null; process${FILTER:+ | $FILTER})"
-[ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2 
+[ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
      eval "$CMD") || exit $?
     shift
   done)

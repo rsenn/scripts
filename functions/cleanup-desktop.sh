@@ -6,18 +6,18 @@ cleanup-desktop() {
   touch "$@"
   mv -vft "$DOCUMENTS" -- "$@" *" - Shortcut"*
   d=$(ls -d  ../Unused* )
-  
+
   for l in $links; do
     while :; do
       read -r -p "Move ${l##*/} to $d? " ANS
 			case "$ANS" in
 				y*|j*|Y*|J*) mv -vi -t -- "$l" ;;
 				n*|N*) ;;
-				*) continue ;; 
+				*) continue ;;
 			esac
-			break 
+			break
     done
-    
+
   done
   )
 }

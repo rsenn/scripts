@@ -2,7 +2,7 @@ output-mingwvars() {
  (: ${O=${1:+$1/}mingwvars.cmd}
  echo "Outputting '${O//$FS/$BS}'..." 1>&2
  case "$O" in
-   *.cmd | *.bat) 
+   *.cmd | *.bat)
 	cat <<EOF | unix2dos >"$O"
 @echo off
 set PATH=%~dp0${SUBDIRNAME};%~dp0${SUBDIRNAME}\bin;%PATH%

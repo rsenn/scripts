@@ -12,7 +12,7 @@ list-mingw-toolchains() {
   evalcmd() {
     CMD=$1
     [ "$DEBUG" = true ] && {
-      OUT="+ ${ansi_red}${2:-CMD}${ansi_cyan}: ${ansi_none}$CMD" 
+      OUT="+ ${ansi_red}${2:-CMD}${ansi_cyan}: ${ansi_none}$CMD"
       OUT="${OUT//\\[!-0-9A-Za-z_.]/}"
             echo -e "$OUT" 1>&2
       case "$CMD" in
@@ -24,11 +24,11 @@ list-mingw-toolchains() {
     eval "$CMD"
   }
   vdump() {
-   (  
+   (
     echo -n "-"
    CMD=
    LINESPACE=$'\n>'
-     for __VN; do 
+     for __VN; do
       SQ="\\\"" TQ="\\\""
       SEP=" "
       case "$__VN" in
@@ -42,7 +42,7 @@ list-mingw-toolchains() {
         SEP=' ' ;;
       esac
       case "$__VV" in
-        [A-Z]*) SQ='(' TQ=')'; SEP=' ' ;;  
+        [A-Z]*) SQ='(' TQ=')'; SEP=' ' ;;
         /*) SQ='(\\n  ' TQ='\n)'; SEP='\\n  ' ;;
         -* | *" -"* | *"$NL-"*) SQ=' ' TQ='   '; SEP='\\n\\t' ;;
         *"\\"*) SQ=\' TQ=\'; SEP=';' ;;
@@ -51,7 +51,7 @@ list-mingw-toolchains() {
     done
     CMD=${CMD//"\\["/""}; CMD=${CMD//"\\]"/""}
     CMD=${CMD//"$NL"/"\\n"}
-    DEBUG= evalcmd "echo -e \"$CMD\" 1>&2" DUMP)    
+    DEBUG= evalcmd "echo -e \"$CMD\" 1>&2" DUMP)
   }
  (unset ROOTS
   while :; do
@@ -83,7 +83,7 @@ list-mingw-toolchains() {
   : ${O=NAME}
  evalcmd "ROOTS=\$(\${PATHCONV%%[^a-z]*} $ROOTS 2>/dev/null)" ROOTSCMD
  if [ "$NOCOLOR" = true ]; then
- unset ansi_{blue,bold,cyan,gray,green,magenta,none,red,yellow} 
+ unset ansi_{blue,bold,cyan,gray,green,magenta,none,red,yellow}
  fi
  sort -V <<<"$ROOTS" | while read -r CC; do
  CC=${CC%[!A-Za-z0-9.]}
@@ -106,9 +106,9 @@ list-mingw-toolchains() {
     esac
     TARGET=${CC##*/bin/}; TARGET=${TARGET%%gcc}
     TARGET=${TARGET%/}
-    DIR="${CC%/*}"  
+    DIR="${CC%/*}"
     BASEDIR=${DIR%%/bin*}; BASEDIR=${BASEDIR%[!A-Za-z0-9./\\]}; BASEDIR="${BASEDIR%$CR}"
-    BASEDIR=${BASEDIR%[\\\\/]} ; 
+    BASEDIR=${BASEDIR%[\\\\/]} ;
     STDOUT=$(mktemp "$$-XXXXXX")
     STDERR=$(mktemp "$$-XXXXXX")
     trap 'rm -f "$STDOUT" "$STDERR"' EXIT
@@ -146,18 +146,18 @@ list-mingw-toolchains() {
       EXCEPTIONS=dwarf ;;
     esac
     VER=${VER#[!0-9]}
-    case "$VER" in 
-      *-rt*) RTVER=${VER##*-rt}; RTVER=${RTVER%%-*} ; VER=${VER//rt$RTVER[!.0-9a-z]/}: RTVER=${RTVER#[!0-9a-z]} 
+    case "$VER" in
+      *-rt*) RTVER=${VER##*-rt}; RTVER=${RTVER%%-*} ; VER=${VER//rt$RTVER[!.0-9a-z]/}: RTVER=${RTVER#[!0-9a-z]}
       RTVER=${RTVER#v} ;;
-    esac  
-    case "$VER" in 
-      *-snapshot*) SNAP=${VER##*-snapshot}; SNAP=${SNAP%%-*} ; VER=${VER//snapshot$SNAP[!.0-9a-z]/}: SNAP=${SNAP#[!0-9a-z]} 
+    esac
+    case "$VER" in
+      *-snapshot*) SNAP=${VER##*-snapshot}; SNAP=${SNAP%%-*} ; VER=${VER//snapshot$SNAP[!.0-9a-z]/}: SNAP=${SNAP#[!0-9a-z]}
       SNAP=${SNAP#v} ;;
-    esac  
-     case "$VER" in 
+    esac
+     case "$VER" in
       *-rev*) REV=${VER##*rev}; REV=${REV%%[-/]*} ; VER=${VER//rev$REV/}; REV=${REV#v} ; VER=${VER%-}
       REV=${REV%[!0-9A-Za-z]} ;;
-    esac  
+    esac
     if [ -n "$TOOL" ]; then
     CMD=
       for T in $TOOL; do
@@ -168,7 +168,7 @@ list-mingw-toolchains() {
         esac
         case "$T" in
           *"+"*)  O=${O//"$T"/"$TVAR"};  ;;
-        esac    
+        esac
         evalcmd "TPATH=\$(ls -d {\"\$BASEDIR/bin\",\"\$BASEDIR/opt/bin\",\"\$HOSTDIR/bin\",\"\$BASEDIR\"/lib*/gcc/\$HOST/*}/\$T 2>/dev/null | head -n1)" TPATHCMD
         TPATH=${TPATH%"$CR"}
         TPATH=$($PATHCONV "$TPATH")

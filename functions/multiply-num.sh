@@ -11,7 +11,7 @@ EOF
     case "$N" in
       .*) N="0$N" ;;
       *.*0) while [ "$N" != "${N%0}" ]; do N=${N%0}; done ;;
-    esac  
+    esac
     echo "${N%.}"
   done)
 }

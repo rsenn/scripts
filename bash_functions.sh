@@ -5937,7 +5937,8 @@ yaourt-joinlines() {
         [ -n "$PKG" ] && echo "$PKG"
         PKG="${LINE}"
         ${CUT_STATE:-false} && 
-        PKG="${PKG% \[*\]}"
+        #PKG="${PKG% \[*\]}"
+        PKG="${PKG/ \[*\]/}"
         ${CUT_NUM:-false} && PKG="${PKG% (*)}"
         ;;
     esac

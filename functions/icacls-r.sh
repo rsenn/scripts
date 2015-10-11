@@ -1,4 +1,4 @@
-icacls-r() { 
+icacls-r() {
  (for ARG; do
    (CMD="icacls \"$(${PATHTOOL:-echo}${PATHTOOL:+
 -w} "$ARG")\" /Q /C /T /RESET"

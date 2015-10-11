@@ -2,19 +2,19 @@ mkbuilddir() {
  (Q=\"
   for DIR; do
    (B=$(basename "$DIR")
-    
+
     CL=$(vcget "$B" CL)
     CMAKEGEN=$(vcget "$B" CMAKEGEN)
-    
+
     ABSDIR=$(cd "$DIR" >/dev/null && pwd -P)
     SRCDIR=${ABSDIR%/build*}
-    
+
     PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|p' "$SRCDIR/CMakeLists.txt")
-    
+
     PREFIX="${SRCDIR##*/}\\${DIR##*/}"
-    
+
     [ -n "$INSTALLROOT" ] && INSTALLROOT=$(${PATHTOOL:-echo} "$INSTALLROOT")
-    
+
     if [ -e "$CL" ]; then
       echo "Generating script $DIR/build.cmd ($(vcget "$B" VCNAME))" 1>&2
       unix2dos >"$DIR/build.cmd" <<EOF

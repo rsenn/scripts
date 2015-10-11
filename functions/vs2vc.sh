@@ -17,12 +17,12 @@ vs2vc() {
 
   for ARG; do
    case "$ARG" in
-     *2005*) echo 8${N:+.$N}$T ;; 
-     *2008*) echo 9${N:+.$N}$T ;; 
-     *2010*) echo 10${N:+.$N}$T ;; 
-     *2012*) echo 11${N:+.$N}$T ;; 
-     *2013*) echo 12${N:+.$N}$T ;; 
-     *2015*) echo 14${N:+.$N}$T ;; 
+     *2005*) echo 8${N:+.$N}$T ;;
+     *2008*) echo 9${N:+.$N}$T ;;
+     *2010*) echo 10${N:+.$N}$T ;;
+     *2012*) echo 11${N:+.$N}$T ;;
+     *2013*) echo 12${N:+.$N}$T ;;
+     *2015*) echo 14${N:+.$N}$T ;;
      *) [ "$CONT" = true ] && echo "$ARG" || { echo "No such Visual Studio version: $ARG" 1>&2; exit 1; } ;;
    esac
   done)

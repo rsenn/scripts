@@ -6,7 +6,7 @@
        *) break ;;
      esac
     done
-  
+
 
   while [ $# -gt 0 ]; do
     if [ -d "$1" ]; then

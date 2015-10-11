@@ -1,5 +1,5 @@
 list-rar() {
- (while :; do 
+ (while :; do
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
       *) break ;;
@@ -27,11 +27,11 @@ list-rar() {
         ;;
       esac
       "$HEADER_OK" || continue
-        
+
       LINE=${LINE#" "}
       LINE=${LINE%$'\r'}
       #LINE=${LINE//"\\"/"/"}
-      
+
       output $LINE
     done)
   done)

@@ -1,5 +1,5 @@
 get-tempdir() {
- (TEMPDIR= 
+ (TEMPDIR=
   if type reg 2>/dev/null >/dev/null; then
     TEMPDIR=`reg query 'HKCU\Environment' '/v' TEMP | sed -n 's|.*REG_SZ\s\+\(.*\)|\1|p'`
     [ -d "$TEMPDIR" ] || TEMPDIR=

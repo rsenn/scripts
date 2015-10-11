@@ -1,4 +1,4 @@
-list-rpm() { 
+list-rpm() {
  (NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
@@ -18,7 +18,7 @@ list-rpm() {
     TEMP=$(mktemp -d "$PWD/${0##*/}-XXXXXX")
     mkdir -p "$TEMP"
     case "$ARG" in
-      *://*) 
+      *://*)
         if type wget >/dev/null 2>/dev/null; then
           exec_cmd wget -P "$TEMP" -q "$ARG"
         elif type curl >/dev/null 2>/dev/null; then
@@ -53,6 +53,6 @@ list-rpm() {
       esac
       output "$LINE"
     done) ||
-    output "ERROR" 1>&2 
+    output "ERROR" 1>&2
   done)
 }

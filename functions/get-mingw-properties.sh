@@ -1,10 +1,10 @@
 get-mingw-properties() {
  (unset PROPS
   : ${OUTCMD="var-get"}
-  while [ $# -gt 0 ]; do 
-   case "$1" in 
+  while [ $# -gt 0 ]; do
+   case "$1" in
      -x | --debug) OUTCMD="var_dump"; DEBUG=true; shift ;;
-     *[-/\\.]*) break ;; 
+     *[-/\\.]*) break ;;
      --) shift; break ;;
      *) IFS="
  " pushv PROPS "$1"; shift ;;
@@ -15,7 +15,7 @@ get-mingw-properties() {
 " pushv PROPS EXE ARCH BITS DATE THREADS EXCEPTIONS VER TARGET #PROPS ARCH BITS DATE EXCEPTIONS MACH REV RTVER SNAPSHOT THREADS VER XBITS SUBDIR EXE VERN DRIVE VERSTR VERNUM TOOLCHAIN TARGET
  fi
  [ "$DEBUG" = true ] && echo "PROPS:" $PROPS 1>&2
- for ARG; do   
+ for ARG; do
    [ "$ARG" = -- ] && continue
   ([ "$DEBUG" = true ] && echo "ARG: $ARG" 1>&2
    NOVER=${ARG%%-[0-9]*}; VER=${ARG#"$NOVER"}; VER=${VER#[!0-9]}
@@ -24,9 +24,9 @@ get-mingw-properties() {
    unset BITS DATE EXCEPTIONS MACH REV RTVER SNAPSHOT THREADS VER VERNUM VERSTR XBITS
    set -- $ARG
    IFS="$S_IFS"
-   while [ $# -gt 0 ]; do 
+   while [ $# -gt 0 ]; do
    #[ "$DEBUG" = true ] && echo "+ $1 $2" 1>&2
-     case "$1" in     
+     case "$1" in
        *snapshot*) SNAPSHOT=$2; IFS="-" pushv VERNUM "snapshot$2"; shift; pushv VERSTR "snapshot$2" ;;
        rev?????? |rev????????) DATE="${1#rev}" ; pushv VERSTR "d$DATE" ;;
        rev*) REV="${1#rev}" ; pushv VERSTR "r$REV" ;;
@@ -60,14 +60,14 @@ get-mingw-properties() {
 
     S_IFS="$IFS"; IFS="$IFS :-
 "; set -- $VERNUM; IFS="$S_IFS"
-  
+
   while [ -z "$1" -o "${1}" = mingw -a $# -gt 0 ]; do shift ; done
 
   case "$VERNUM" in
     [0-9]*.*) MINGWVER=${VERNUM//"."/} ;;
     [0-9]*) MINGWVER=${VERNUM} ;;
   esac
-	 [ -z "$MINGW" -a -n "$MINGWVER" ] && MINGW="mingw${MINGWVER#mingw}"	 
+	 [ -z "$MINGW" -a -n "$MINGWVER" ] && MINGW="mingw${MINGWVER#mingw}"
 	 if [ -z "$MINGW" ] ; then
 		 set -- "${@#mingw}"
 		 case "$*" in
@@ -75,7 +75,7 @@ get-mingw-properties() {
 				*) #[ -n "$VERNUM" ] && MINGW=mingw"${VERNUM#mingw}"
 			 ;;
 		 esac
-	 fi 
+	 fi
 	 #[ -n "$MINGWVER" ] && MINGW="mingw${MINGWVER}"
 		W64ID="${ARCH}-${1}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}${RTVER:+-rt_v$RTVER}${REV:+-rev$REV}"
 		BUILDSID="${XBITS}-${1}${SNAPSHOT:+-snapshot-$SNAPSHOT}${DATE:+-rev$DATE}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}"
@@ -86,9 +86,9 @@ get-mingw-properties() {
 		fi
 		TARGET="${ARCH}-${MINGW:-mingw${1//./}${RTVER:+-rt$RTVER}}${REV:+r$REV}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}"
 		VER="${1}${REV:+r$REV}${DATE:+d$DATE}${RTVER:+-rt$RTVER}"
-		shift 
+		shift
 		VER="$VER${*:+-$*}"
-		#set VERSTR="$VERSTR" 
+		#set VERSTR="$VERSTR"
 		#echo "ARCH='$ARCH'${BITS:+ BITS='$BITS'}${DATE:+ DATE='$DATE'}${EXCEPTIONS:+ EXCEPTIONS='$EXCEPTIONS'}${MACH:+ MACH='$MACH'}${REV:+ REV='$REV'}${RTVER:+ RTVER='$RTVER'}${SNAPSHOT:+ SNAPSHOT='$SNAPSHOT'}${THREADS:+ THREADS='$THREADS'}${VER:+ VER='$VER'}${XBITS:+ XBITS='$XBITS'}"
 		var_s=" "  $OUTCMD ${PROPS})
   done)
