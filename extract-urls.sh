@@ -22,7 +22,7 @@ http_get() {
 	w3m) CMD=${PROXY+'http_proxy="$PROXY" '}${USER_AGENT+'user_agent="$USER_AGENT" '}'w3m -dump_source $ARGS "$@" 2>/dev/null | zcat -f' ;;
 	links) CMD='links  -source  ${PROXY+-${PROXY%%://*}-proxy'${NL}'"${PROXY#*://}"} ${USER_AGENT+-http.fake-user-agent'${NL}'"$USER_AGENT"}   $ARGS "$@" |zcat -f' ;;
   esac
-  eval "set -x; $CMD")
+  eval ": set -x; $CMD")
 #wget -q -O - "$@"
 }
 extract_urls()
