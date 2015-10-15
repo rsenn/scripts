@@ -371,6 +371,44 @@ check-link()
     test -e "$TARGET")
 }
 
+choco-joinlines() {
+ (LINENO=0
+  while LINENO=$(($LINENO + 1)); IFS=""; 	read -r LINE; do
+    LINE=${LINE%$'\r'}
+    IFS=$' \t'
+    set -- $LINE
+    case "$LINE" in
+      "#"*) LINE=" $LINE" ;;
+      "["*) LINE=" $LINE" ;;
+    esac
+    case "$LINE" in
+      " "*) set -- "" "$@" ;;
+    esac    
+    if [ $# -eq 0 -a -n "$PKG" ]; then
+    #echo "LINENO=$((LINENO)) PKG=$PKG VERSION=$VERSION LINE=$LINE" 1>&2
+    echo "$PKG $VERSION - $DESC"
+      PKG= VERSION= DESC=      
+    elif [ -z "$PKG" -a -z "$VERSION" -a $# -eq 2 -a -n "$1" -a -n "$2" ]; then
+      PKG=$1
+      VERSION=$2
+      DESC=""
+    else
+      test -z "$1" && shift 
+      case "$LINE" in
+        *"Description:"*)
+          DESC=${LINE#*"Description: "}
+          ;;
+        *Tags:* | *Downloads:*)  ;;
+        " "*)
+          if [ -n "$DESC" ]; then
+            DESC="$DESC $*"
+          fi
+        ;;
+      esac
+    fi
+  done)
+}
+
 choices-list()
 {
     local n=$1 count=0 choices='';
@@ -5793,12 +5831,12 @@ volname() {
     for ARG in "$@"; do
         drive="$ARG"
         case "$drive" in
-          ?) drive="$drive:/" ;;
-          ?:) drive="$drive/" ;;
+          ?) drive="$drive:" ;;
+          ?:*) drive=${drive%%:*}: ;;
           *) drive=$(${PATHTOOL:-echo} "$drive") ;;
-        esac
-        drive=$(${PATHTOOL:-echo} "$drive")
-        NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
+        esac  
+        #drive=$(${PATHTOOL:-echo} "$drive")
+        NAME=$(cmd /c "vol ${drive%%[\\/]*}" | sed -n '/Volume in drive/ s,.* is ,,p')
         eval "$ECHO"
     done
   fi)
@@ -5934,36 +5972,52 @@ yaourt-cutver() {
 }
 
 yaourt-joinlines() {
- (while :; do
+ (P_VERSION=' ${VERSION}' P_NUM= P_STATE= P_DESC=' - ${DESC}'
+  while :; do
    case "$1" in
     -i | --installed) P_INSTALLED=yes ;;
     -I | --not-installed) P_INSTALLED=no ;;
-    -n | --num*) CUT_NUM=true ;;
-    -s | --state) CUT_STATE=true ;;
+    -n | --num*) P_NUM='${NUM:+ $NUM}' ;;
+    -s | --state) P_STATE='${STATE:+ $STATE}' ;;
+    -R | --no-repository) R_REPOSITORY='#*/' ;;
+    -V | --no-version) P_VERSION= ;;
+    -D | --no*desc*) P_DESC= ;;
     *) break ;;
     esac
     shift
   done
-    PKG= INSTALLED=
-    P_CMD='if [ -n "$PKG"'${P_INSTALLED:+' -a "$P_INSTALLED" = "$INSTALLED"'}' ]; then
-        echo "$PKG"
+    DESC= INSTALLED=
+    P_CMD='if [ -n "$DESC"'${P_INSTALLED:+' -a "$P_INSTALLED" = "$INSTALLED"'}' ]; then
+        echo "${NAME'$R_REPOSITORY'}'$P_VERSION$P_STATE$P_NUM$P_DESC'"
       fi'
     eval "p() { $P_CMD; }"
     while read -r LINE; do
     case "$LINE" in
-      "   "*) PKG="${PKG:+$PKG - }${LINE#    }" ;;
+      "   "*) 
+				[ "$DEBUG" = true ] && echo "DESC=\"\$DESC    ${LINE#    }\"" 1>&2
+				DESC="${DESC:+$DESC - }${LINE#    }" ;;
       *)
         p
-        PKG="${LINE}"
-        ${CUT_STATE:-false} &&
-        #PKG="${PKG% \[*\]}"
-        case "$PKG" in
-          *"[installed"*) INSTALLED="yes" ;;
-          *) INSTALLED="no" ;;
-        esac
+        DESC="${LINE}"
 
-        PKG="${PKG/ \[*\]/}"
-        ${CUT_NUM:-false} && PKG="${PKG% (*)}"
+				NAME=${DESC%%" "*}; DESC=${DESC#"$NAME "}
+				VERSION=${DESC%%" "*}; DESC=${DESC#"$VERSION "}
+
+				STATE= NUM=
+				while :; do
+					case "$DESC" in
+						"["*"]"*) STATE=${DESC%%"]"*}"]"; DESC=${DESC#*"]"} ;;
+						"("*")"*) NUM=${DESC%%")"*}")"; DESC=${DESC#*")"} ;;
+						*) break ;;
+					esac
+					DESC=${DESC#" "}
+				done
+
+				case "$STATE" in
+				  *installed*) INSTALLED=yes ;;
+					*) INSTALLED=no ;;
+			  esac
+
         ;;
     esac
   done
