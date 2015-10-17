@@ -1610,11 +1610,6 @@ find-media.sh '/home/[^/]+/$'|removesuffix / ) |
 )
 }
 
-find-media()
-{
-    grep --color=auto --color=auto -iE "$(grep-e-expr "$@")" /{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/files.list 2> /dev/null | filter-files-list | filter-test -e
-}
-
 findstring()
 {
     ( STRING="$1";
@@ -2492,11 +2487,20 @@ http-head()
 }
 
 icacls-r() {
- (for ARG; do
-   (CMD="icacls \"$(${PATHTOOL:-echo}${PATHTOOL:+
--w} "$ARG")\" /Q /C /T /RESET"
-    [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-    exec cmd /c "$CMD")
+ (while :; do
+    case "$1" in
+      -o | --own*) TAKEOWN="true"; shift ;;
+      -c | --cmd) CMD="true"; shift ;;
+      *) break ;;
+    esac
+  done
+  for ARG; do
+   (ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -w} '$ARG')\""
+    EXEC="icacls $ARG /Q /C /T /RESET"
+    [ "$TAKEOWN" = true ] && EXEC="takeown /R /D Y /F $ARG >nul & $EXEC"
+    [ "$CMD" = true ] && EXEC="cmd /C \"$EXEC\""
+    [ "$DEBUG" = true ] && echo "+ $EXEC" 1>&2
+    eval "$EXEC")
   done)
 }
 
@@ -2868,11 +2872,6 @@ iso-extract()
     ( NAME=`basename "$1" .iso`;
     DEST=${2:-"$NAME"};
     7z x -o"$DEST" "$1" )
-}
-
-isodate()
-{
-    date +%Y%m%d
 }
 
 join-lines() { 
@@ -4886,23 +4885,6 @@ rangearg()
     echo "$*" )
 }
 
-rcat()
-{
-    local opts= args=;
-    while test -n "$1"; do
-        case $1 in
-            *)
-                pushv args "$1"
-            ;;
-            -*)
-                pushv opts "$1"
-            ;;
-        esac;
-        shift;
-    done;
-    grep --color=auto --color=auto --color=auto --color=no $opts '.*' $args
-}
-
 regexp-to-fnmatch()
 {
     ( expr=$1;
@@ -5017,38 +4999,6 @@ removesuffix()
     CMD="while read -r LINE; do $CMD; done"
   fi
   eval "$CMD")
-}
-
-require()
-{
-    local mask script retcode cmd="source" pre="";
-    while :; do
-        case $1 in
-            -p)
-                cmd="echo"
-            ;;
-            -n)
-                pre="$shlibdir/"
-            ;;
-            *)
-                break
-            ;;
-        esac;
-        shift;
-    done;
-    script=${1%.sh};
-    for mask in $shlibdir/$script.sh $shlibdir/*/${script%.sh}.sh $shlibdir/*/*/${script%.sh}.sh;
-    do
-        if test -r "$mask"; then
-            if test "$cmd" = echo && test -n "$pre"; then
-                mask=${mask#$pre};
-            fi;
-            $cmd "$mask";
-            return 0;
-        fi;
-    done;
-    echo "ERROR: loading shell script library $shlibdir/$script.sh" 1>&2;
-    return 127
 }
 
 retcode()
