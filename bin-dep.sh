@@ -2,7 +2,7 @@
 
 IFS="
 "
-pushv-unique() {
+pushv_unique() {
 	local v=$1 s IFS=${IFS%${IFS#?}};
 	shift;
 	for s in "$@";do
@@ -79,7 +79,7 @@ get_deps() {
 
   for F in $D; do
 			output "$F"
-			IFS="|" pushv-unique DLLS "$F"
+			IFS="|" pushv_unique DLLS "$F"
 		done
 
 		for F in $D; do
