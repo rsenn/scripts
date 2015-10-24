@@ -10,7 +10,7 @@ icacls-r() {
    (ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -w} '$ARG')\""
     EXEC="icacls $ARG /Q /C /T /RESET"
     [ "$TAKEOWN" = true ] && EXEC="takeown /R /D Y /F $ARG >nul & $EXEC"
-    [ "$CMD" = true ] && EXEC="cmd /C \"$EXEC\""
+    [ "$CMD" = true ] && EXEC="cmd /c \"${EXEC//\"/\\\"}\""
     [ "$DEBUG" = true ] && echo "+ $EXEC" 1>&2
     eval "$EXEC")
   done)

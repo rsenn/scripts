@@ -1,6 +1,7 @@
 #!/bin/sh
 
 PARTIAL_EXPR="(\.part|\.!..|)"
+END="(|[\&\?\" ][^/]*)${cr}?\$"
 while :; do
   case "$1" in
     -x | --debug) DEBUG=true; shift ;;
@@ -15,7 +16,7 @@ EXTS="rar zip 7z tar.gz tar.xz tar.bz2 tgz txz tbz2 exe msi msu cab vbox-extpack
 EXTS="$EXTS 7z app bin daa deb dmg exe iso msi msu cab vbox-extpack apk nrg pkg rar rpm run sh tar.Z tar.bz2 tar.gz tar.xz tbz2 tgz txz zip"
 cr=""
 
-CMD='grep $GREP_ARGS -i -E "\\.($(IFS="| "; set -- $EXTS;  echo "$*"))${PARTIAL_EXPR}${cr}?\$"  "$@"'
+CMD='grep $GREP_ARGS -i -E "\\.($(IFS="| "; set -- $EXTS;  echo "$*"))${PARTIAL_EXPR}${END}"  "$@"'
 
 if [ $# -gt 0 ]; then
   GREP_ARGS="-H"
@@ -25,6 +26,6 @@ if [ $# -gt 0 ]; then
 fi
 
 [ -n "$FILTER" ] && CMD="$CMD | $FILTER" || CMD="exec $CMD"
-[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+[ "$DEBUG" = true ] && eval echo "+ $CMD" 1>&2
 
 eval "$CMD"

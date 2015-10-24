@@ -24,6 +24,6 @@ if [ $# -gt 0 ]; then
 fi
 
 [ -n "$FILTER" ] && CMD="$CMD | $FILTER" || CMD="exec $CMD"
-[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+[ "$DEBUG" = true ] && eval echo "+ $CMD" 1>&2
 
 eval "$CMD"
