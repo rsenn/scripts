@@ -3987,6 +3987,33 @@ minfo()
 
 mkbuilddir() {
  (Q=\"
+  FS=/
+  BS=\\	
+  add_def() {
+    V=$1
+    shift
+    old_IFS="$IFS"
+    IFS=";"
+    ARGS="$ARGS ^
+  -D $V=${Q}${*//$FS/$BS}${Q}"
+    IFS="$old_IFS"
+    unset old_IFS
+  }
+  
+  # output_vcbuild <target> <Project|Solution> [Configuration]
+  output_vcbuild() {
+    T=
+    P="$2"
+    case "$1" in
+      *64*) T="x64" ;;
+      *x86*) T="Win32" ;;
+    esac
+    case "$1" in
+      *2008* | *9.0*) echo "vcbuild ${P/vcxproj/vcproj}${3:+ \"$3${T:+|$T}\"}" ;;
+      *) echo "msbuild ${P}${3:+ /p:Configuration=\"$3\"}" ;;
+    esac
+  }
+  
   for DIR; do
    (B=$(basename "$DIR")
 
@@ -4005,20 +4032,36 @@ mkbuilddir() {
       pushv_unique CMAKELISTS $CMAKELISTS_ADD
     fi
 
-    PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|p' "$SRCDIR/CMakeLists.txt")
-
- 
+    PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
 
     PREFIX="${SRCDIR##*/}\\${DIR##*/}"
-
+    
     [ -n "$INSTALLROOT" ] && INSTALLROOT=$(${PATHTOOL:-echo} "$INSTALLROOT")
 
-    if [ -z "$INSTALLROOT" ] && grep -q -i add_library $CMAKELISTS ; then
+    if [ -z "$INSTALLROOT" ] && grep -q -i "add_library\s*(" $CMAKELISTS ; then
 	  case "$SRCDIR" in
 		*-[0-9]*) INSTDIR=${SRCDIR##*/} ;;
 		*) INSTDIR=${SRCDIR##*/}-$(isodate.sh -r "$SRCDIR") ;;
       esac
 		INSTALLROOT="E:/Libraries/${INSTDIR}/${B}"
+    fi
+
+    if grep -q -i "install\s*(" $CMAKELISTS ; then
+      INSTALL_CMD=$(output_vcbuild "$B" INSTALL.vcxproj "Release")
+    fi
+    
+	add_def CMAKE_INSTALL_PREFIX "${INSTALLROOT:-%PROGRAMFILES%\\$PREFIX}"
+    add_def CMAKE_VERBOSE_MAKEFILE "TRUE"
+    
+	for VAR in BUILD_SHARED_LIBS ENABLE_SHARED; do
+	 if grep -q "$VAR" $CMAKELISTS ; then
+	 add_def $VAR "TRUE"
+	   
+	 fi
+	done
+
+    if [ -n "$__BUILD_TYPE" ]; then
+      add_def CMAKE_BUILD_TYPE "$BUILD_TYPE"
     fi
 
     if [ -e "$CL" ]; then
@@ -4030,15 +4073,14 @@ call $(vcget "$B" VCVARSCMD)
 
 cd %~dp0
 
-cmake -G "$(vcget "$B" CMAKEGEN)" ^
-  -D CMAKE_INSTALL_PREFIX="${INSTALLROOT:-%PROGRAMFILES%\\$PREFIX}" ^
-  -D CMAKE_VERBOSE_MAKEFILE="TRUE" ^
-${__BUILD_TYPE:+  -D CMAKE_BUILD_TYPE=${Q}$BUILD_TYPE${Q} ^
-} ..\\..
+cmake -G "$(vcget "$B" CMAKEGEN)"$ARGS ^
+  %* ^
+  ..\\..
 
 if not "%1"=="" set ARGS=/target:"%1"
 
-for %%G in (${BUILD_TYPE:-RelWithDebInfo MinSizeRel Debug Release}) do msbuild $PROJECT.sln /p:Configuration="%%G" %ARGS%
+for %%G in (${BUILD_TYPE:-RelWithDebInfo MinSizeRel Debug Release}) do $(output_vcbuild "$B" $PROJECT.sln %%G)
+${INSTALL_CMD}
 EOF
     fi) || exit $?
   done)
