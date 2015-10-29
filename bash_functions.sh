@@ -2522,7 +2522,7 @@ icacls-r() {
    (ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -w} '$ARG')\""
     EXEC="icacls $ARG /Q /C /T /RESET"
     [ "$TAKEOWN" = true ] && EXEC="takeown /R /D Y /F $ARG >nul & $EXEC"
-    [ "$CMD" = true ] && EXEC="cmd /C \"$EXEC\""
+    [ "$CMD" = true ] && EXEC="cmd /c \"${EXEC//\"/\\\"}\""
     [ "$DEBUG" = true ] && echo "+ $EXEC" 1>&2
     eval "$EXEC")
   done)
@@ -3991,15 +3991,34 @@ mkbuilddir() {
 
     CL=$(vcget "$B" CL)
     CMAKEGEN=$(vcget "$B" CMAKEGEN)
+  
+    ARCH=$(vcget "$B" ARCH)
 
     ABSDIR=$(cd "$DIR" >/dev/null && pwd -P)
     SRCDIR=${ABSDIR%/build*}
+    
+    CMAKELISTS="$SRCDIR/CMakeLists.txt"
+
+    CMAKELISTS_ADD=$( sed -n "s|.*add_subdirectory(\s*\([^ )]*\)\s*).*|$SRCDIR/\1/CMakeLists.txt|p"  "$SRCDIR/CMakeLists.txt" )
+    if [ -n "$CMAKELISTS_ADD" ]; then
+      pushv_unique CMAKELISTS $CMAKELISTS_ADD
+    fi
 
     PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|p' "$SRCDIR/CMakeLists.txt")
+
+ 
 
     PREFIX="${SRCDIR##*/}\\${DIR##*/}"
 
     [ -n "$INSTALLROOT" ] && INSTALLROOT=$(${PATHTOOL:-echo} "$INSTALLROOT")
+
+    if [ -z "$INSTALLROOT" ] && grep -q -i add_library $CMAKELISTS ; then
+	  case "$SRCDIR" in
+		*-[0-9]*) INSTDIR=${SRCDIR##*/} ;;
+		*) INSTDIR=${SRCDIR##*/}-$(isodate.sh -r "$SRCDIR") ;;
+      esac
+		INSTALLROOT="E:/Libraries/${INSTDIR}/${B}"
+    fi
 
     if [ -e "$CL" ]; then
       echo "Generating script $DIR/build.cmd ($(vcget "$B" VCNAME))" 1>&2
@@ -4011,7 +4030,7 @@ call $(vcget "$B" VCVARSCMD)
 cd %~dp0
 
 cmake -G "$(vcget "$B" CMAKEGEN)" ^
-  -D CMAKE_INSTALL_PREFIX="${INSTALLROOT:-%PROGRAMFILES%}\\$PREFIX" ^
+  -D CMAKE_INSTALL_PREFIX="${INSTALLROOT:-%PROGRAMFILES%\\$PREFIX}" ^
   -D CMAKE_VERBOSE_MAKEFILE="TRUE" ^
 ${__BUILD_TYPE:+  -D CMAKE_BUILD_TYPE=${Q}$BUILD_TYPE${Q} ^
 } ..\\..
@@ -5691,7 +5710,7 @@ vcget() {
 
   shift
 
-  VSINSTALLDIR="$PROGRAMFILES${ProgramW6432:+ (x86)}\\Microsoft Visual Studio $VC"
+  VSINSTALLDIR="${PROGRAMFILES% (x86)}${ProgramW6432:+ (x86)}\\Microsoft Visual Studio $VC"
   VCINSTALLDIR="$VSINSTALLDIR\\VC"
   BINDIR="$VCINSTALLDIR\\bin${ARCH:+\\$ARCH}"
   CL="$BINDIR\\cl.exe"
