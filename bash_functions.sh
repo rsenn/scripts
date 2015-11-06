@@ -1456,7 +1456,7 @@ filter-git-status()
     #*) echo "No such git status specifier: $WHAT" 1>&2; exit 1 ;;
   esac
   : ${MATCH="\\|^$PATTERN|"}
-  : ${SUBST="s|^...||p"}
+  : ${SUBST="/\"/ { s,^\(...\)\",\1,; s,\"\$,,; }; s|^...||p"}
   exec sed $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
 }
 
@@ -1710,15 +1710,22 @@ foreach-partition() {
 }
 
 for_each() {
+  ABORT_COND=' || return $?'
+  while :; do 
+    case "$1" in
+      -f | --force) ABORT_COND=; shift ;;
+      *) break ;;
+    esac
+  done
   CMD=$1
   if [ "$(type -t "$CMD")" = function ]; then
     CMD="$CMD \"\$@\""
   fi
   [ "$DEBUG" = true ] && CMD="echo \"+ $CMD\" 1>&2; $CMD"
   if [ $# -gt 1 ]; then
-    CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; } || return $?; done'
+    CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; }'$ABORT_COND'; done'
   else
-    CMD='while read -r LINE; do set -- $LINE; { '$CMD'; } || return $?; done'
+    CMD='while read -r LINE; do set -- $LINE; { '$CMD'; }'$ABORT_COND'; done'
   fi
 #	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
   eval "$CMD"
@@ -4016,8 +4023,8 @@ mkbuilddir() {
       *) : ${T:="Win32"} ;;
     esac
     case "$1" in
-      *2008* | *9.0*) echo "vcbuild ${P/vcxproj/vcproj}${3:+ \"$3${T:+|$T}\"}" ;;
-      *) echo "msbuild ${P}${3:+ /p:Configuration=\"$3\"}" ;;
+      *2008* | *9.0*) echo "vcbuild \"${P/vcxproj/vcproj}\"${3:+ \"$3${T:+|$T}\"}" ;;
+      *) echo "msbuild \"${P}\"${3:+ /p:Configuration=\"$3\"}" ;;
     esac
   }
   for DIR; do
@@ -5821,6 +5828,28 @@ vcget() {
       *) echo "$O" ;;
     esac
   done
+}
+
+vcodec()
+{
+    ( IFS="
+";
+      CMD='echo "${ARG:+$ARG:}$D"'
+    while :; do
+       case "$1" in
+       *) break ;;
+     esac
+   done
+    N="$#";
+    for ARG in "$@"
+    do
+     ( D=$(mminfo "$ARG" |sed -n 's,Codec ID=,,p ;  s,Writing library=,,p' )
+       set -- $D
+       [ $# -gt 1 ] && shift
+#        while [ $# -gt 1 ]; do shift; done
+        D="$1${2:+ $2}"
+        [ "$N" -gt 1 ] && eval "$CMD" || ARG= eval "$CMD") || exit $?
+    done )
 }
 
 verbose()

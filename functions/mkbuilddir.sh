@@ -21,8 +21,8 @@ mkbuilddir() {
       *) : ${T:="Win32"} ;;
     esac
     case "$1" in
-      *2008* | *9.0*) echo "vcbuild ${P/vcxproj/vcproj}${3:+ \"$3${T:+|$T}\"}" ;;
-      *) echo "msbuild ${P}${3:+ /p:Configuration=\"$3\"}" ;;
+      *2008* | *9.0*) echo "vcbuild \"${P/vcxproj/vcproj}\"${3:+ \"$3${T:+|$T}\"}" ;;
+      *) echo "msbuild \"${P}\"${3:+ /p:Configuration=\"$3\"}" ;;
     esac
   }
   for DIR; do
