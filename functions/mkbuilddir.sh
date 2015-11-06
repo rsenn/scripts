@@ -27,10 +27,12 @@ mkbuilddir() {
   }
   for DIR; do
    (B=$(basename "$DIR")
-    CL=$(vcget "$B" CL)
-    CMAKEGEN=$(vcget "$B" CMAKEGEN)
-    ARCH=$(vcget "$B" ARCH)
-    VSA=$(vcget "$B" VS)${ARCH:+-$ARCH}
+   VC=$(vs2vc "$B")
+   
+    CL=$(vcget "$VS" CL)
+    CMAKEGEN=$(vcget "$VS" CMAKEGEN)
+    ARCH=$(vcget "$VS" ARCH)
+    VSA=$(vcget "$VS" VS)${ARCH:+-$ARCH}
     ABSDIR=$(cd "$DIR" >/dev/null && pwd -P)
     SRCDIR=${ABSDIR%/build*}
 	if [ -e "$SRCDIR/CMakeLists.txt" ] ; then
@@ -41,7 +43,7 @@ mkbuilddir() {
 	  fi
 	  PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
 	  CONFIGURE_CMD="
-cmake -G \"$(vcget "$B" CMAKEGEN)\"$ARGS ^
+cmake -G \"$(vcget "$VS" CMAKEGEN)\"$ARGS ^
   %* ^
   ..\\..
 "	  
@@ -83,23 +85,23 @@ cmake -G \"$(vcget "$B" CMAKEGEN)\"$ARGS ^
 	#IF_TARGET="if not \"%1\" == \"\" set ARGS=/target:\"%1\"${nl}"
 	ADD_ARGS=" %ARGS%"
   fi
-	VCBUILDCMD=$(output_vcbuild "$(vcget "$B" VS ARCH)" ${SOLUTION:-$PROJECT.sln} %%G)
+	VCBUILDCMD=$(output_vcbuild "$(vcget "$VS" VS ARCH)" ${SOLUTION:-$PROJECT.sln} %%G)
     pushv ARGS_LOOP 'for %%C in (Debug Release) do if /I "%1" == "%%C" ('${nl}'  set CONFIG=%%C'${nl}'  shift'${nl}'  goto :args'${nl}')'
 	pushv IF_TARGET 'if "%CONFIG%" == "" set CONFIG=Debug Release'
 	case "$VCBUILDCMD" in
 	  *vcbuild*)  pushv ARGS_LOOP 'for %%J in (clean rebuild) do if /I "%1" == "%%J" ('${nl}'  set ARGS= /%%J'${nl}'  shift'${nl}'  goto :args'${nl}')'  ;;
-	  *)  pushv ARGS_LOOP 'for %%J in (clean rebuild) do if /I "%1" == "%%J" ('${nl}'  set ARGS= /target:%%J'${nl}'  shift'${nl}'  goto :args'${nl}')'  ;;
+	  *)  pushv ARGS_LOOP 'for %%J in (clean rebuild) do if /I "%1" == "%%J" ('${nl}'  set ARGS= /t:%%J'${nl}'  shift'${nl}'  goto :args'${nl}')'  ;;
 	esac
 	ADD_ARGS=" %ARGS%"
 	BUILD_TYPE="%CONFIG%"
 	VCVARSCMD=$(vcget "${VS}-x64" VCVARSCMD )
 	VCVARSCMD=${VCVARSCMD/amd64/%ARCH%}
     if [ -e "$CL" ]; then
-      echo "Generating script $DIR/build.cmd ($(vcget "$B" VCNAME))" 1>&2
+      echo "Generating script $DIR/build.cmd ($(vcget "$VS" VCNAME))" 1>&2
       unix2dos >"$DIR/build.cmd" <<EOF
-@echo off
+@echo ${BATCHECHO:-off}
 cd %~dp0
-${ARGS_LOOP:+${nl}:args${nl}$ARGS_LOOP${nl}}${CONFIGURE_CMD:+${nl}$CONFIGURE_CMD${nl}}${IF_TARGET:+${nl}$IF_TARGET${nl}}${VCVARSCMD:+${nl}call $VCVARSCMD${nl}}
+${ARGS_LOOP:+${nl}:args${nl}$ARGS_LOOP${nl}}${CONFIGURE_CMD:+${nl}$CONFIGURE_CMD${nl}}${IF_TARGET:+${nl}$IF_TARGET${nl}}${VCVARSCMD:+${nl}call $VCVARSCMD${nl}${BATCHECHO:+@echo $BATCHECHO${nl}}}
 for %%G in (${BUILD_TYPE:-Debug Release}) do $VCBUILDCMD${ADD_ARGS}
 ${INSTALL_CMD}
 EOF
