@@ -29,10 +29,10 @@ mkbuilddir() {
    (B=$(basename "$DIR")
    VC=$(vs2vc "$B")
    
-    CL=$(vcget "$VS" CL)
-    CMAKEGEN=$(vcget "$VS" CMAKEGEN)
-    ARCH=$(vcget "$VS" ARCH)
-    VSA=$(vcget "$VS" VS)${ARCH:+-$ARCH}
+    CL=$(vcget "$VC" CL)
+    CMAKEGEN=$(vcget "$VC" CMAKEGEN)
+    ARCH=$(vcget "$B" ARCH)
+    VSA=$(vcget "$VC" VS)${ARCH:+-$ARCH}
     ABSDIR=$(cd "$DIR" >/dev/null && pwd -P)
     SRCDIR=${ABSDIR%/build*}
 	if [ -e "$SRCDIR/CMakeLists.txt" ] ; then
@@ -43,7 +43,7 @@ mkbuilddir() {
 	  fi
 	  PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
 	  CONFIGURE_CMD="
-cmake -G \"$(vcget "$VS" CMAKEGEN)\"$ARGS ^
+cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
   %* ^
   ..\\..
 "	  
@@ -85,7 +85,7 @@ cmake -G \"$(vcget "$VS" CMAKEGEN)\"$ARGS ^
 	#IF_TARGET="if not \"%1\" == \"\" set ARGS=/target:\"%1\"${nl}"
 	ADD_ARGS=" %ARGS%"
   fi
-	VCBUILDCMD=$(output_vcbuild "$(vcget "$VS" VS ARCH)" ${SOLUTION:-$PROJECT.sln} %%G)
+	VCBUILDCMD=$(output_vcbuild "$(vcget "$VC" VS ARCH)" ${SOLUTION:-$PROJECT.sln} %%G)
     pushv ARGS_LOOP 'for %%C in (Debug Release) do if /I "%1" == "%%C" ('${nl}'  set CONFIG=%%C'${nl}'  shift'${nl}'  goto :args'${nl}')'
 	pushv IF_TARGET 'if "%CONFIG%" == "" set CONFIG=Debug Release'
 	case "$VCBUILDCMD" in
@@ -94,10 +94,10 @@ cmake -G \"$(vcget "$VS" CMAKEGEN)\"$ARGS ^
 	esac
 	ADD_ARGS=" %ARGS%"
 	BUILD_TYPE="%CONFIG%"
-	VCVARSCMD=$(vcget "${VS}-x64" VCVARSCMD )
+	VCVARSCMD=$(vcget "${VC}-x64" VCVARSCMD )
 	VCVARSCMD=${VCVARSCMD/amd64/%ARCH%}
     if [ -e "$CL" ]; then
-      echo "Generating script $DIR/build.cmd ($(vcget "$VS" VCNAME))" 1>&2
+      echo "Generating script $DIR/build.cmd ($(vcget "$VC" VCNAME))" 1>&2
       unix2dos >"$DIR/build.cmd" <<EOF
 @echo ${BATCHECHO:-off}
 cd %~dp0

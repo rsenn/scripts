@@ -26,6 +26,7 @@ while :; do
   case "$1" in
     -x | --debug) DEBUG=true; shift ;;
     -c | --complete) PARTIAL_EXPR="" ; shift ;;
+    -C | --incomplete) END="" ; shift ;;
     -b | -F | -G | -n | -o | -P | -q | -R | -s | -T | -U | -v | -w | -x | -z) GREP_ARGS="${GREP_ARGS:+$GREP_ARGS
 }$1"; shift ;;
     *) break ;;
