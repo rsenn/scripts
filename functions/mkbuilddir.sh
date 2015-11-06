@@ -12,33 +12,27 @@ mkbuilddir() {
     IFS="$old_IFS"
     unset old_IFS
   }
-  
   # output_vcbuild <target> <Project|Solution> [Configuration]
   output_vcbuild() {
-    T=
+    : ${T=}
     P="$2"
     case "$1" in
-      *64*) T="x64" ;;
-      *) T="Win32" ;;
+      *64*) : ${T:="x64"} ;;
+      *) : ${T:="Win32"} ;;
     esac
     case "$1" in
       *2008* | *9.0*) echo "vcbuild ${P/vcxproj/vcproj}${3:+ \"$3${T:+|$T}\"}" ;;
       *) echo "msbuild ${P}${3:+ /p:Configuration=\"$3\"}" ;;
     esac
   }
-  
   for DIR; do
    (B=$(basename "$DIR")
-
     CL=$(vcget "$B" CL)
     CMAKEGEN=$(vcget "$B" CMAKEGEN)
-  
     ARCH=$(vcget "$B" ARCH)
-
+    VSA=$(vcget "$B" VS)${ARCH:+-$ARCH}
     ABSDIR=$(cd "$DIR" >/dev/null && pwd -P)
     SRCDIR=${ABSDIR%/build*}
-    
-    
 	if [ -e "$SRCDIR/CMakeLists.txt" ] ; then
 	  CMAKELISTS="$SRCDIR/CMakeLists.txt"
       CMAKELISTS_ADD=$( sed -n "s|.*add_subdirectory(\s*\([^ )]*\)\s*).*|$SRCDIR/\1/CMakeLists.txt|p"  "$SRCDIR/CMakeLists.txt" )
@@ -46,7 +40,6 @@ mkbuilddir() {
 		pushv_unique CMAKELISTS $CMAKELISTS_ADD
 	  fi
 	  PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
-	  
 	  CONFIGURE_CMD="
 cmake -G \"$(vcget "$B" CMAKEGEN)\"$ARGS ^
   %* ^
@@ -56,12 +49,8 @@ cmake -G \"$(vcget "$B" CMAKEGEN)\"$ARGS ^
 	else
 	  SOLUTION=$(cd "$DIR" >/dev/null && ls -d *.sln)
 	fi
-	
     PREFIX="${SRCDIR##*/}\\${DIR##*/}"
-    
     [ -n "$INSTALLROOT" ] && INSTALLROOT=$(${PATHTOOL:-echo} "$INSTALLROOT")
-
-    
     if [ -n "$CMAKELISTS" ]; then
 	  if [ -z "$INSTALLROOT" ] && grep -q -i "add_library\s*(" $CMAKELISTS ; then
 		case "$SRCDIR" in
@@ -78,26 +67,40 @@ cmake -G \"$(vcget "$B" CMAKEGEN)\"$ARGS ^
 	  for VAR in BUILD_SHARED_LIBS ENABLE_SHARED; do
 	   if grep -q "$VAR" $CMAKELISTS ; then
 	   add_def $VAR "TRUE"
-		 
 	   fi
 	  done
 	  if [ -n "$__BUILD_TYPE" ]; then
 		add_def CMAKE_BUILD_TYPE "$BUILD_TYPE"
 	  fi
 	fi
-
+  if [ -z "$ARCH" ]; then
+	pushv ARGS_LOOP 'for %%T in (Win32 x86) do if /I "%1" == "%%T" ('${nl}'  set TARGET=Win32'${nl}'  set ARCH=x86'${nl}'  shift'${nl}'  goto :args'${nl}')'
+	pushv ARGS_LOOP 'for %%T in (Win64 x64 AMD64) do if /I "%1" == "%%T" ('${nl}'  set TARGET=x64'${nl}'  set ARCH=amd64'${nl}'  shift'${nl}'  goto :args'${nl}')'
+	pushv IF_TARGET 'if "%TARGET%" == "" set TARGET=Win32'
+	pushv IF_TARGET 'if "%ARCH%" == "" set ARCH=x86'
+	 T="%TARGET%"
+   else
+	#IF_TARGET="if not \"%1\" == \"\" set ARGS=/target:\"%1\"${nl}"
+	ADD_ARGS=" %ARGS%"
+  fi
+	VCBUILDCMD=$(output_vcbuild "$(vcget "$B" VS ARCH)" ${SOLUTION:-$PROJECT.sln} %%G)
+    pushv ARGS_LOOP 'for %%C in (Debug Release) do if /I "%1" == "%%C" ('${nl}'  set CONFIG=%%C'${nl}'  shift'${nl}'  goto :args'${nl}')'
+	pushv IF_TARGET 'if "%CONFIG%" == "" set CONFIG=Debug Release'
+	case "$VCBUILDCMD" in
+	  *vcbuild*)  pushv ARGS_LOOP 'for %%J in (clean rebuild) do if /I "%1" == "%%J" ('${nl}'  set ARGS= /%%J'${nl}'  shift'${nl}'  goto :args'${nl}')'  ;;
+	  *)  pushv ARGS_LOOP 'for %%J in (clean rebuild) do if /I "%1" == "%%J" ('${nl}'  set ARGS= /target:%%J'${nl}'  shift'${nl}'  goto :args'${nl}')'  ;;
+	esac
+	ADD_ARGS=" %ARGS%"
+	BUILD_TYPE="%CONFIG%"
+	VCVARSCMD=$(vcget "${VS}-x64" VCVARSCMD )
+	VCVARSCMD=${VCVARSCMD/amd64/%ARCH%}
     if [ -e "$CL" ]; then
       echo "Generating script $DIR/build.cmd ($(vcget "$B" VCNAME))" 1>&2
       unix2dos >"$DIR/build.cmd" <<EOF
 @echo off
-
-call $(vcget "$B" VCVARSCMD)
-
 cd %~dp0
-$CONFIGURE_CMD
-if not "%1"=="" set ARGS=/target:"%1"
-
-for %%G in (${BUILD_TYPE:-Debug Release}) do $(output_vcbuild "$(vcget "$B" VS ARCH)" ${SOLUTION:-$PROJECT.sln} 	%%G)
+${ARGS_LOOP:+${nl}:args${nl}$ARGS_LOOP${nl}}${CONFIGURE_CMD:+${nl}$CONFIGURE_CMD${nl}}${IF_TARGET:+${nl}$IF_TARGET${nl}}${VCVARSCMD:+${nl}call $VCVARSCMD${nl}}
+for %%G in (${BUILD_TYPE:-Debug Release}) do $VCBUILDCMD${ADD_ARGS}
 ${INSTALL_CMD}
 EOF
     fi) || exit $?
