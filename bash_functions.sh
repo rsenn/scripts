@@ -2518,10 +2518,16 @@ icacls-r() {
       *) break ;;
     esac
   done
+  if [ "$CMD" = true ]; then
+    SEP=" &"
+    NUL="nul"
+  fi
   for ARG; do
-   (ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -w} '$ARG')\""
+   (
+    [ -d "$ARG" ] && D="/R /D Y "
+    ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -w} '$ARG')\""
     EXEC="icacls $ARG /Q /C /T /RESET"
-    [ "$TAKEOWN" = true ] && EXEC="takeown /R /D Y /F $ARG >nul & $EXEC"
+    [ "$TAKEOWN" = true ] && EXEC="takeown ${D}/F $ARG >${NUL:-/dev/null}${SEP:-; } $EXEC"
     [ "$CMD" = true ] && EXEC="cmd /c \"${EXEC//\"/\\\"}\""
     [ "$DEBUG" = true ] && echo "+ $EXEC" 1>&2
     eval "$EXEC")
