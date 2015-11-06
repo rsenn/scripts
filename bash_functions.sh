@@ -2515,6 +2515,7 @@ icacls-r() {
     case "$1" in
       -o | --own*) TAKEOWN="true"; shift ;;
       -c | --cmd) CMD="true"; shift ;;
+      -p | --print) PRINT="true"; shift ;;
       *) break ;;
     esac
   done
@@ -2525,12 +2526,13 @@ icacls-r() {
   for ARG; do
    (
     [ -d "$ARG" ] && D="/R /D Y "
-    ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -w} '$ARG')\""
+    ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -aw} '$ARG')\""
     EXEC="icacls $ARG /Q /C /T /RESET"
     [ "$TAKEOWN" = true ] && EXEC="takeown ${D}/F $ARG >${NUL:-/dev/null}${SEP:-; } $EXEC"
-    [ "$CMD" = true ] && EXEC="cmd /c \"${EXEC//\"/\\\"}\""
+#    [ "$CMD" = true ] && EXEC="cmd /c \"${EXEC//\"/\\\"}\""
+    [ "$PRINT" = true ] && { EXEC=${EXEC//\\\"/\\\\\"}; EXEC="echo \"${EXEC//\"/\\\"}\""; }
     [ "$DEBUG" = true ] && echo "+ $EXEC" 1>&2
-    eval "$EXEC")
+    ${E:-eval} "$EXEC")
   done)
 }
 
@@ -4749,9 +4751,12 @@ pathmunge()
   while :; do
     case "$1" in
       -v) PATHVAR="$2"; shift 2 ;;
+      -f) FORCE=true; shift ;;
+      -a) AFTER=true; shift ;;
       *) break ;;
     esac
   done
+  [ "$FORCE" = true ] && pathremove "$1"
   local IFS=":";
   : ${OS=`uname -o | head -n1`};
   case "$OS:$1" in
@@ -4762,7 +4767,7 @@ pathmunge()
       ;;
   esac;
   if ! eval "echo \"\${${PATHVAR-PATH}}\"" | grep -E -q "(^|:)$1($|:)"; then
-      if test "$2" = "after"; then
+      if [ "$2" = after -o "$AFTER" = true ]; then
           eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
       else
           eval "${PATHVAR-PATH}=\"\$1:\${${PATHVAR-PATH}}\"";
