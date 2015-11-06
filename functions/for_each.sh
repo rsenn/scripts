@@ -3,6 +3,7 @@ for_each() {
   while :; do 
     case "$1" in
       -f | --force) ABORT_COND=; shift ;;
+      -x | --debug) DEBUG=true; shift ;;
       *) break ;;
     esac
   done
@@ -11,6 +12,8 @@ for_each() {
     CMD="$CMD \"\$@\""
   fi
   [ "$DEBUG" = true ] && CMD="echo \"+ $CMD\" 1>&2; $CMD"
+ 
+  	
   if [ $# -gt 1 ]; then
     CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; }'$ABORT_COND'; done'
   else
