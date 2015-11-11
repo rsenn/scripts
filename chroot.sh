@@ -37,9 +37,10 @@ echo "ABSDIR=$ABSDIR" 1>&2
         proc) mount -t proc proc proc ;;
         sys) mount -t sysfs sysfs sys ;;
         tmp) umount -f tmp 2>/dev/null; rm -rf tmp/* ;;
-				dev/pts) ;;
+				#dev/pts) mount -o bind /$MNT $MNT ;;
  #       dev/pts) mount -t devpts devpts  dev/pts -o rw,relatime,mode=600,ptmxmode=000 ;;
       mnt/*/mnt/*) continue ;; 
+			mnt/*) continue  ;;
 			*)
        T=$(echo "$MNT"|sed 's,.*mnt.*mnt.*,,g')
 
