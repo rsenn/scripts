@@ -2,7 +2,7 @@
 
 MYNAME=`basename "$0" .sh`
 
-archives_EXTS="rar zip 7z cab tar tar.Z tar.gz tar.xz tar.bz2 tar.lzma tgz txz tbz2 tlzma"
+archives_EXTS="rar zip 7z cab tar tar.Z tar.gz tar.xz tar.bz2 tar.lzma tgz txz tbz2 tlzma cpio"
 audio_EXTS="mp3 mp2 m4a m4b wma rm ogg flac mpc wav aif aiff raw"
 books_EXTS="pdf epub mobi azw3 djv djvu"
 fonts_EXTS="otf ttf fon bdf pcf"
@@ -18,14 +18,20 @@ videos_EXTS="3gp avi f4v flv m4v m2v mkv mov mp4 mpeg mpg ogm vob webm wmv"
 vmdisk_EXTS="vdi vmdk vhd qed qcow qcow2 vhdx hdd"
 
 
-eval "EXTS=\${${MYNAME#grep-}_EXTS}"
+addexts() {
+eval "EXTS=\"\${EXTS:+\$EXTS }\${${1}_EXTS}\""
+}
+addexts ${MYNAME#grep-}
 
 PARTIAL_EXPR="(\.part|\.!..|)"
 END="(|[\&\?\" ][^/]*)${cr}?\$"
 while :; do
   case "$1" in
     -x | --debug) DEBUG=true; shift ;;
-    -c | --complete) PARTIAL_EXPR="" ; shift ;;
+    -c | --class) addexts "$2"; shift  2 ;;
+    -c=* | --class=*) addexts "${1#*=}"; shift ;;
+    -c*) addexts "${1#-?}"; shift   ;;
+#    -c | --complete) PARTIAL_EXPR="" ; shift ;;
     -C | --incomplete) END="" ; shift ;;
     -b | -F | -G | -n | -o | -P | -q | -R | -s | -T | -U | -v | -w | -x | -z) GREP_ARGS="${GREP_ARGS:+$GREP_ARGS
 }$1"; shift ;;
