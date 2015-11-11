@@ -20,7 +20,7 @@ vcget() {
 
   shift
 
-  VSINSTALLDIR="$PROGRAMFILES${ProgramW6432:+ (x86)}\\Microsoft Visual Studio $VC"
+  VSINSTALLDIR="${PROGRAMFILES% (x86)}${ProgramW6432:+ (x86)}\\Microsoft Visual Studio $VC"
   VCINSTALLDIR="$VSINSTALLDIR\\VC"
   BINDIR="$VCINSTALLDIR\\bin${ARCH:+\\$ARCH}"
   CL="$BINDIR\\cl.exe"

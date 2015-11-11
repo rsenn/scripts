@@ -22,6 +22,6 @@ filter-git-status()
     #*) echo "No such git status specifier: $WHAT" 1>&2; exit 1 ;;
   esac
   : ${MATCH="\\|^$PATTERN|"}
-  : ${SUBST="s|^...||p"}
+  : ${SUBST="/\"/ { s,^\(...\)\",\1,; s,\"\$,,; }; s|^...||p"}
   exec sed $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
 }

@@ -373,6 +373,19 @@ check-link()
 
 choco-joinlines() {
  (LINENO=0
+  o() {
+    PKG=$1
+    VERSION=$2
+    shift 2
+    DESC="$*"
+    
+#    echo "$PKG $VERSION - $DESC"
+    s=$(printf "%-30s %-21s %s\n" "$PKG" "$VERSION" "${DESC%%. *}") #$(d=32 short "$DESC") 1>&2
+    
+    short "$s"
+  }
+   short() {   n=$(tput cols);   s=$*; if [ "${#s}" -gt "$n" ]; then s=${s:0:$((n - 3))}...; fi; echo "$s"; }
+  
   while LINENO=$(($LINENO + 1)); IFS=""; 	read -r LINE; do
     LINE=${LINE%$'\r'}
     IFS=$' \t'
@@ -385,8 +398,8 @@ choco-joinlines() {
       " "*) set -- "" "$@" ;;
     esac    
     if [ $# -eq 0 -a -n "$PKG" ]; then
-    #echo "LINENO=$((LINENO)) PKG=$PKG VERSION=$VERSION LINE=$LINE" 1>&2
-    echo "$PKG $VERSION - $DESC"
+
+      o "$PKG" "$VERSION" "$DESC"
       PKG= VERSION= DESC=      
     elif [ -z "$PKG" -a -z "$VERSION" -a $# -eq 2 -a -n "$1" -a -n "$2" ]; then
       PKG=$1
@@ -903,7 +916,7 @@ disk-device-letter()
 
 disk-device-number()
 {
-    index-of "$(disk-device-letter "$1")" abcdefghijklmnopqrstuvwxyz
+    index_of "$(disk-device-letter "$1")"  a b c d e f g h i j k l m n o p q r s t u v w x y z
 }
 
 disk-devices() {
@@ -1443,7 +1456,7 @@ filter-git-status()
     #*) echo "No such git status specifier: $WHAT" 1>&2; exit 1 ;;
   esac
   : ${MATCH="\\|^$PATTERN|"}
-  : ${SUBST="s|^...||p"}
+  : ${SUBST="/\"/ { s,^\(...\)\",\1,; s,\"\$,,; }; s|^...||p"}
   exec sed $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
 }
 
@@ -1610,11 +1623,6 @@ find-media.sh '/home/[^/]+/$'|removesuffix / ) |
 )
 }
 
-find-media()
-{
-    grep --color=auto --color=auto -iE "$(grep-e-expr "$@")" /{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/files.list 2> /dev/null | filter-files-list | filter-test -e
-}
-
 findstring()
 {
     ( STRING="$1";
@@ -1702,15 +1710,25 @@ foreach-partition() {
 }
 
 for_each() {
+  ABORT_COND=' || return $?'
+  while :; do 
+    case "$1" in
+      -f | --force) ABORT_COND=; shift ;;
+      -x | --debug) DEBUG=true; shift ;;
+      *) break ;;
+    esac
+  done
   CMD=$1
   if [ "$(type -t "$CMD")" = function ]; then
     CMD="$CMD \"\$@\""
   fi
   [ "$DEBUG" = true ] && CMD="echo \"+ $CMD\" 1>&2; $CMD"
+ 
+  	
   if [ $# -gt 1 ]; then
-    CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; } || return $?; done'
+    CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; }'$ABORT_COND'; done'
   else
-    CMD='while read -r LINE; do set -- $LINE; { '$CMD'; } || return $?; done'
+    CMD='while read -r LINE; do set -- $LINE; { '$CMD'; }'$ABORT_COND'; done'
   fi
 #	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
   eval "$CMD"
@@ -2220,7 +2238,18 @@ grephexnums()
 
 grub-device-string()
 {
-    ( device_number=` disk-device-number "$1" `;
+    ( 
+    
+   grubdisk=$(lookup-grub-devicemap "$1")    
+   if [ -n "$grubdisk" ]; then
+	  device_number=${grubdisk#?hd}
+	  device_number=${device_number%")"}
+	else
+    device_number=` disk-device-number "$1" `;
+    fi
+    
+    
+    
     partition_number=` disk-partition-number "$1" `;
     [ "$partition_number" ] && partition_number=$((partition_number-1));
     echo "(hd${device_number}${partition_number:+,${partition_number}})" )
@@ -2492,11 +2521,28 @@ http-head()
 }
 
 icacls-r() {
- (for ARG; do
-   (CMD="icacls \"$(${PATHTOOL:-echo}${PATHTOOL:+
--w} "$ARG")\" /Q /C /T /RESET"
-    [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-    exec cmd /c "$CMD")
+ (while :; do
+    case "$1" in
+      -o | --own*) TAKEOWN="true"; shift ;;
+      -c | --cmd) CMD="true"; shift ;;
+      -p | --print) PRINT="true"; shift ;;
+      *) break ;;
+    esac
+  done
+  if [ "$CMD" = true ]; then
+    SEP=" &"
+    NUL="nul"
+  fi
+  for ARG; do
+   (
+    [ -d "$ARG" ] && D="/R /D Y "
+    ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -aw} '$ARG')\""
+    EXEC="icacls $ARG /Q /C /T /RESET"
+    [ "$TAKEOWN" = true ] && EXEC="takeown ${D}/F $ARG >${NUL:-/dev/null}${SEP:-; } $EXEC"
+#    [ "$CMD" = true ] && EXEC="cmd /c \"${EXEC//\"/\\\"}\""
+    [ "$PRINT" = true ] && { EXEC=${EXEC//\\\"/\\\\\"}; EXEC="echo \"${EXEC//\"/\\\"}\""; }
+    [ "$DEBUG" = true ] && echo "+ $EXEC" 1>&2
+    ${E:-eval} "$EXEC")
   done)
 }
 
@@ -2870,11 +2916,6 @@ iso-extract()
     7z x -o"$DEST" "$1" )
 }
 
-isodate()
-{
-    date +%Y%m%d
-}
-
 join-lines() { 
  (c=${1-\\};
   sed '
@@ -3184,7 +3225,8 @@ list-mediapath() {
       *) break ;;
       esac
   done
-  for ARG; do CMD="${CMD:+$CMD; }ls -1 -d $OPTS -- $MEDIAPATH/${ARG#/} 2>/dev/null"; done
+  for ARG; do ARG=${ARG//" "/"\\ "}; ARG=${ARG//"("/"\\("};  ARG=${ARG//")"/"\\)"}; 
+   CMD="${CMD:+$CMD; }ls -1 -d $OPTS -- $MEDIAPATH/${ARG#/} 2>/dev/null"; done
 
   [ -n "$PATHTOOL_OPTS" ] && CMD="$PATHTOOL ${PATHTOOL_OPTS:--m} \$($CMD)"
   #CMD="for ARG; do $CMD; done"
@@ -3737,6 +3779,22 @@ locate-filename()
     done )
 }
 
+lookup-grub-devicemap()
+{ 
+	arg=$(realpath "$1")
+    ( IFS='	 ';
+    while read -r grubdisk diskdev; do
+        realdev=$(realpath "$diskdev");
+        test -n "$realdev" || continue;
+        case "$arg" in 
+            $realdev*)
+                echo "$grubdisk";
+                exit
+            ;;
+        esac;
+    done ) < "${devicemap:-device.map}"
+}
+
 ls-dirs()
 {
     ( [ -z "$@" ] && set -- .;
@@ -3947,39 +4005,110 @@ minfo()
 
 mkbuilddir() {
  (Q=\"
+  FS=/
+  BS=\\	
+  add_def() {
+    V=$1
+    shift
+    old_IFS="$IFS"
+    IFS=";"
+    ARGS="$ARGS ^
+  -D $V=${Q}${*//$FS/$BS}${Q}"
+    IFS="$old_IFS"
+    unset old_IFS
+  }
+  # output_vcbuild <target> <Project|Solution> [Configuration]
+  output_vcbuild() {
+    : ${T=}
+    P="$2"
+    case "$1" in
+      *64*) : ${T:="x64"} ;;
+      *) : ${T:="Win32"} ;;
+    esac
+    case "$1" in
+      *2008* | *9.0*) echo "vcbuild \"${P/vcxproj/vcproj}\"${3:+ \"$3${T:+|$T}\"}" ;;
+      *) echo "msbuild \"${P}\"${3:+ /p:Configuration=\"$3\"}" ;;
+    esac
+  }
   for DIR; do
    (B=$(basename "$DIR")
-
-    CL=$(vcget "$B" CL)
-    CMAKEGEN=$(vcget "$B" CMAKEGEN)
-
+   VC=$(vs2vc "$B")
+   
+    CL=$(vcget "$VC" CL)
+    CMAKEGEN=$(vcget "$VC" CMAKEGEN)
+    ARCH=$(vcget "$B" ARCH)
+    VSA=$(vcget "$VC" VS)${ARCH:+-$ARCH}
     ABSDIR=$(cd "$DIR" >/dev/null && pwd -P)
     SRCDIR=${ABSDIR%/build*}
-
-    PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|p' "$SRCDIR/CMakeLists.txt")
-
+	if [ -e "$SRCDIR/CMakeLists.txt" ] ; then
+	  CMAKELISTS="$SRCDIR/CMakeLists.txt"
+      CMAKELISTS_ADD=$( sed -n "s|.*add_subdirectory(\s*\([^ )]*\)\s*).*|$SRCDIR/\1/CMakeLists.txt|p"  "$SRCDIR/CMakeLists.txt" )
+	  if [ -n "$CMAKELISTS_ADD" ]; then
+		pushv_unique CMAKELISTS $CMAKELISTS_ADD
+	  fi
+	  PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
+	  CONFIGURE_CMD="
+cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
+  %* ^
+  ..\\..
+"	  
+	  BUILD_TYPE="RelWithDebInfo MinSizeRel Debug Release"
+	else
+	  SOLUTION=$(cd "$DIR" >/dev/null && ls -d *.sln)
+	fi
     PREFIX="${SRCDIR##*/}\\${DIR##*/}"
-
     [ -n "$INSTALLROOT" ] && INSTALLROOT=$(${PATHTOOL:-echo} "$INSTALLROOT")
-
+    if [ -n "$CMAKELISTS" ]; then
+	  if [ -z "$INSTALLROOT" ] && grep -q -i "add_library\s*(" $CMAKELISTS ; then
+		case "$SRCDIR" in
+		  *-[0-9]*) INSTDIR=${SRCDIR##*/} ;;
+		  *) INSTDIR=${SRCDIR##*/}-$(isodate.sh -r "$SRCDIR") ;;
+		esac
+		  INSTALLROOT="E:/Libraries/${INSTDIR}/${B}"
+	  fi
+	  if grep -q -i "install\s*(" $CMAKELISTS ; then
+		INSTALL_CMD=$(output_vcbuild "$B" INSTALL.vcxproj "Release")
+	  fi
+	  add_def CMAKE_INSTALL_PREFIX "${INSTALLROOT:-%PROGRAMFILES%\\$PREFIX}"
+	  add_def CMAKE_VERBOSE_MAKEFILE "TRUE"
+	  for VAR in BUILD_SHARED_LIBS ENABLE_SHARED; do
+	   if grep -q "$VAR" $CMAKELISTS ; then
+	   add_def $VAR "TRUE"
+	   fi
+	  done
+	  if [ -n "$__BUILD_TYPE" ]; then
+		add_def CMAKE_BUILD_TYPE "$BUILD_TYPE"
+	  fi
+	fi
+  if [ -z "$ARCH" ]; then
+	pushv ARGS_LOOP 'for %%T in (Win32 x86) do if /I "%1" == "%%T" ('${nl}'  set TARGET=Win32'${nl}'  set ARCH=x86'${nl}'  shift'${nl}'  goto :args'${nl}')'
+	pushv ARGS_LOOP 'for %%T in (Win64 x64 AMD64) do if /I "%1" == "%%T" ('${nl}'  set TARGET=x64'${nl}'  set ARCH=amd64'${nl}'  shift'${nl}'  goto :args'${nl}')'
+	pushv IF_TARGET 'if "%TARGET%" == "" set TARGET=Win32'
+	pushv IF_TARGET 'if "%ARCH%" == "" set ARCH=x86'
+	 T="%TARGET%"
+   else
+	#IF_TARGET="if not \"%1\" == \"\" set ARGS=/target:\"%1\"${nl}"
+	ADD_ARGS=" %ARGS%"
+  fi
+	VCBUILDCMD=$(output_vcbuild "$(vcget "$VC" VS ARCH)" ${SOLUTION:-$PROJECT.sln} %%G)
+    pushv ARGS_LOOP 'for %%C in (Debug Release) do if /I "%1" == "%%C" ('${nl}'  set CONFIG=%%C'${nl}'  shift'${nl}'  goto :args'${nl}')'
+	pushv IF_TARGET 'if "%CONFIG%" == "" set CONFIG=Debug Release'
+	case "$VCBUILDCMD" in
+	  *vcbuild*)  pushv ARGS_LOOP 'for %%J in (clean rebuild) do if /I "%1" == "%%J" ('${nl}'  set ARGS= /%%J'${nl}'  shift'${nl}'  goto :args'${nl}')'  ;;
+	  *)  pushv ARGS_LOOP 'for %%J in (clean rebuild) do if /I "%1" == "%%J" ('${nl}'  set ARGS= /t:%%J'${nl}'  shift'${nl}'  goto :args'${nl}')'  ;;
+	esac
+	ADD_ARGS=" %ARGS%"
+	BUILD_TYPE="%CONFIG%"
+	VCVARSCMD=$(vcget "${VC}-x64" VCVARSCMD )
+	VCVARSCMD=${VCVARSCMD/amd64/%ARCH%}
     if [ -e "$CL" ]; then
-      echo "Generating script $DIR/build.cmd ($(vcget "$B" VCNAME))" 1>&2
+      echo "Generating script $DIR/build.cmd ($(vcget "$VC" VCNAME))" 1>&2
       unix2dos >"$DIR/build.cmd" <<EOF
-@echo off
-
-call $(vcget "$B" VCVARSCMD)
-
+@echo ${BATCHECHO:-off}
 cd %~dp0
-
-cmake -G "$(vcget "$B" CMAKEGEN)" ^
-  -D CMAKE_INSTALL_PREFIX="${INSTALLROOT:-%PROGRAMFILES%}\\$PREFIX" ^
-  -D CMAKE_VERBOSE_MAKEFILE="TRUE" ^
-${__BUILD_TYPE:+  -D CMAKE_BUILD_TYPE=${Q}$BUILD_TYPE${Q} ^
-} ..\\..
-
-if not "%1"=="" set ARGS=/target:"%1"
-
-for %%G in (${BUILD_TYPE:-RelWithDebInfo MinSizeRel Debug Release}) do msbuild $PROJECT.sln /p:Configuration="%%G" %ARGS%
+${ARGS_LOOP:+${nl}:args${nl}$ARGS_LOOP${nl}}${CONFIGURE_CMD:+${nl}$CONFIGURE_CMD${nl}}${IF_TARGET:+${nl}$IF_TARGET${nl}}${VCVARSCMD:+${nl}call $VCVARSCMD${nl}${BATCHECHO:+@echo $BATCHECHO${nl}}}
+for %%G in (${BUILD_TYPE:-Debug Release}) do $VCBUILDCMD${ADD_ARGS}
+${INSTALL_CMD}
 EOF
     fi) || exit $?
   done)
@@ -4642,9 +4771,12 @@ pathmunge()
   while :; do
     case "$1" in
       -v) PATHVAR="$2"; shift 2 ;;
+      -f) FORCE=true; shift ;;
+      -a) AFTER=true; shift ;;
       *) break ;;
     esac
   done
+  [ "$FORCE" = true ] && pathremove "$1"
   local IFS=":";
   : ${OS=`uname -o | head -n1`};
   case "$OS:$1" in
@@ -4655,7 +4787,7 @@ pathmunge()
       ;;
   esac;
   if ! eval "echo \"\${${PATHVAR-PATH}}\"" | grep -E -q "(^|:)$1($|:)"; then
-      if test "$2" = "after"; then
+      if [ "$2" = after -o "$AFTER" = true ]; then
           eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
       else
           eval "${PATHVAR-PATH}=\"\$1:\${${PATHVAR-PATH}}\"";
@@ -4886,23 +5018,6 @@ rangearg()
     echo "$*" )
 }
 
-rcat()
-{
-    local opts= args=;
-    while test -n "$1"; do
-        case $1 in
-            *)
-                pushv args "$1"
-            ;;
-            -*)
-                pushv opts "$1"
-            ;;
-        esac;
-        shift;
-    done;
-    grep --color=auto --color=auto --color=auto --color=no $opts '.*' $args
-}
-
 regexp-to-fnmatch()
 {
     ( expr=$1;
@@ -5017,38 +5132,6 @@ removesuffix()
     CMD="while read -r LINE; do $CMD; done"
   fi
   eval "$CMD")
-}
-
-require()
-{
-    local mask script retcode cmd="source" pre="";
-    while :; do
-        case $1 in
-            -p)
-                cmd="echo"
-            ;;
-            -n)
-                pre="$shlibdir/"
-            ;;
-            *)
-                break
-            ;;
-        esac;
-        shift;
-    done;
-    script=${1%.sh};
-    for mask in $shlibdir/$script.sh $shlibdir/*/${script%.sh}.sh $shlibdir/*/*/${script%.sh}.sh;
-    do
-        if test -r "$mask"; then
-            if test "$cmd" = echo && test -n "$pre"; then
-                mask=${mask#$pre};
-            fi;
-            $cmd "$mask";
-            return 0;
-        fi;
-    done;
-    echo "ERROR: loading shell script library $shlibdir/$script.sh" 1>&2;
-    return 127
 }
 
 retcode()
@@ -5299,6 +5382,24 @@ shortcut-cmd() {
     1 i\
 readshortcut
 '
+}
+
+sln-version()
+{ 
+    ( [ $# -gt 1 ] && O='""$ARG": $FVER" $VSVER' || O='"$FVER" $VSVER';
+    for ARG in "$@";
+    do
+        ( exec < "$ARG";
+        read -r LINE;
+        FVER=${LINE#*"Version "};
+        read -r LINE;
+        case "$LINE" in 
+            *Visual*Studio*)
+                VSVER=${LINE#*Visual*"Studio "}
+            ;;
+        esac;
+        eval "echo $O" );
+    done )
 }
 
 some()
@@ -5701,7 +5802,7 @@ vcget() {
 
   shift
 
-  VSINSTALLDIR="$PROGRAMFILES${ProgramW6432:+ (x86)}\\Microsoft Visual Studio $VC"
+  VSINSTALLDIR="${PROGRAMFILES% (x86)}${ProgramW6432:+ (x86)}\\Microsoft Visual Studio $VC"
   VCINSTALLDIR="$VSINSTALLDIR\\VC"
   BINDIR="$VCINSTALLDIR\\bin${ARCH:+\\$ARCH}"
   CL="$BINDIR\\cl.exe"
@@ -5748,6 +5849,28 @@ vcget() {
       *) echo "$O" ;;
     esac
   done
+}
+
+vcodec()
+{
+    ( IFS="
+";
+      CMD='echo "${ARG:+$ARG:}$D"'
+    while :; do
+       case "$1" in
+       *) break ;;
+     esac
+   done
+    N="$#";
+    for ARG in "$@"
+    do
+     ( D=$(mminfo "$ARG" |sed -n 's,Codec ID=,,p ;  s,Writing library=,,p' )
+       set -- $D
+       [ $# -gt 1 ] && shift
+#        while [ $# -gt 1 ]; do shift; done
+        D="$1${2:+ $2}"
+        [ "$N" -gt 1 ] && eval "$CMD" || ARG= eval "$CMD") || exit $?
+    done )
 }
 
 verbose()
@@ -5986,9 +6109,15 @@ yaourt-joinlines() {
     esac
     shift
   done
+	rep() { N=$1; shift ; C="$*"; O=; while [ $((N)) -gt 0 ]; do O="${O}$C";  : $((--N)); done; echo "$O"; }
+	pad() { W=$1; shift; S=$*; P=$(rep $(($W-${#S})) " "); echo "${S}${P}"; }
     DESC= INSTALLED=
+		P_NAME='${NAME'$R_REPOSITORY'}'
+
+		P_NAME='$(pad 32 "'$P_NAME'")'; [ -n "$P_VERSION" ] && P_VERSION=' $(pad 20'$P_VERSION')'
+
     P_CMD='if [ -n "$DESC"'${P_INSTALLED:+' -a "$P_INSTALLED" = "$INSTALLED"'}' ]; then
-        echo "${NAME'$R_REPOSITORY'}'$P_VERSION$P_STATE$P_NUM$P_DESC'"
+        echo "'$P_NAME$P_VERSION$P_STATE$P_NUM$P_DESC'"
       fi'
     eval "p() { $P_CMD; }"
     while read -r LINE; do
@@ -6001,7 +6130,7 @@ yaourt-joinlines() {
         DESC="${LINE}"
 
 				NAME=${DESC%%" "*}; DESC=${DESC#"$NAME "}
-				VERSION=${DESC%%" "*}; DESC=${DESC#"$VERSION "}
+				VERSION=${DESC%%" "*}; DESC=${DESC#*"$VERSION "}
 
 				STATE= NUM=
 				while :; do
