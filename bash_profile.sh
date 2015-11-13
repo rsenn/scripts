@@ -189,16 +189,16 @@ case "${OS}" in
  ;;
 esac
 
-case "$OS" in
-   *cygwin* |Cygwin* | CYGWIN* | msys* | Msys* |MSys* | MSYS*)
-     for PROG_A in notepad notepad2 notepadpp:notepad++; do
-       ALIAS=${PROG_A%%:*}; PROG=${PROG_A#*:}; FN=$ALIAS'() { (IFS="
-"; command '$PROG' `xargs "${PATHTOOL:-cygpath}" -m <<<"$*"`)
-    }'
-    : echo "FN=$FN" 1>&2; eval "$FN"; done
-  ;;
-esac
-
+#case "$OS" in
+#   *cygwin* |Cygwin* | CYGWIN* | msys* | Msys* |MSys* | MSYS*)
+#     for PROG_A in notepad notepad2 notepadpp:notepad++; do
+#       ALIAS=${PROG_A%%:*}; PROG=${PROG_A#*:}; FN=$ALIAS'() { (IFS="
+#"; command '$PROG' `xargs "${PATHTOOL:-cygpath}" -m <<<"$*"`)
+#    }'
+#    : echo "FN=$FN" 1>&2; eval "$FN"; done
+#  ;;
+#esac
+#
 #: ${PS1:='\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '}
 
 pathmunge() {
@@ -282,7 +282,7 @@ notepad2() {
  command notepad2 "$ARG" &
  done)
 }
-alias notepad=notepad2
+#alias notepad=notepad2
 
 #echo -n "Adding mediapaths ... " 1>&2; add_mediapath "I386/" "I386/system32/" "Windows/" "Tools/" "HBCD/" "Program*/{Notepad2,WinRAR,Notepad++,SDCC/bin,gputils/bin}/"; echo "done" 1>&2
 #is-cmd "notepad2" || add_mediapath "Prog*/Notepad2"
