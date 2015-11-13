@@ -19,7 +19,7 @@ vmdisk_EXTS="vdi vmdk vhd qed qcow qcow2 vhdx hdd"
 addexts() {
 eval "EXTS=\"\${EXTS:+\$EXTS }\${${1}_EXTS}\""
 }
-addexts ${MYNAME#grep-}
+addexts ${MYNAME#find-}
 
 CYGPATH=` which cygpath 2>/dev/null` 
 NL="
