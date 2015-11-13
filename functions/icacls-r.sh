@@ -22,7 +22,7 @@ icacls-r() {
   for ARG; do
    (ARG=${ARG%/}
     [ -d "$ARG" ] && D="/R /D Y "
-    ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -aw} '$ARG')\""
+    ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -aw} '${ARG%/}' | removesuffix '[\\\\/]')\""
     EXEC="${ICACLS:-icacls} $ARG ${ICACLS_ARGS}"
     [ "$TAKEOWN" = true ] && EXEC="takeown ${D}/F $ARG >${NUL:-/dev/null}${SEP:-; }$EXEC"
 #    [ "$CMD" = true ] && EXEC="cmd /c \"${EXEC//\"/\\\"}\""
