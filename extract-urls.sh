@@ -28,6 +28,7 @@ http_get() {
 extract_urls()
 {
   sed \
+    -e 's|\x00\+\s*|\n|g' \
     -e "s,%3[Aa]%2[Ff]%2[Ff],://,g" \
     | \
   sed \
@@ -41,6 +42,7 @@ extract_urls()
   sed -n \
     -e "/^[-+0-9A-Za-z]\+:\/\// {
          s,[\"'<>{}\\\\()].*,,
+         s,[^[:print:]].*,,
          p
        }"
 }
