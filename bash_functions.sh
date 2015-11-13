@@ -547,6 +547,11 @@ count() {
         echo $#
 }
 
+countv()
+{
+  (eval "set -- \${$1}; echo \$#")
+}
+
 cpan-inst() {
  for-each 'verbosecmd -1+=cpan.inst.log -2=1 cpan -i "${1//-/::}" ;  verbosecmd writefile -a cpan.inst.$? "$1"'  ${@:-$(<~/cpan-inst.list)}
 }
@@ -2544,7 +2549,7 @@ icacls-r() {
   for ARG; do
    (ARG=${ARG%/}
     [ -d "$ARG" ] && D="/R /D Y "
-    ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -aw} '$ARG')\""
+    ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -aw} '${ARG%/}' | removesuffix '[\\\\/]')\""
     EXEC="${ICACLS:-icacls} $ARG ${ICACLS_ARGS}"
     [ "$TAKEOWN" = true ] && EXEC="takeown ${D}/F $ARG >${NUL:-/dev/null}${SEP:-; }$EXEC"
 #    [ "$CMD" = true ] && EXEC="cmd /c \"${EXEC//\"/\\\"}\""
@@ -2745,6 +2750,12 @@ indexarg()
     ( I="$1";
     shift;
     eval echo "\${@:$I:1}" )
+}
+
+indexv()
+{
+ (shiftv "$@"
+  eval "echo \"\${$1%%[\$IFS]*}\"")
 }
 
 inputf()
@@ -5313,6 +5324,38 @@ scriptdir()
     echo $absdir
 }
 
+search-fileknow()
+{ 
+  . require.sh
+  require url
+  for Q; do
+   (Q=${Q// /-}
+	Q=$(url_encode_args "=$Q")
+	SURL="http://fileknow.org/${Q#=}"
+	URLS=$SURL
+	PIPE="$(basename "${0#-}" .sh)-$$"
+	trap 'rm -f "$PIPE"' EXIT INT QUIT
+	rm -f "$PIPE"; mkfifo "$PIPE"
+	
+	while [ $(countv URLS) -gt 0 ]; do
+	  (set -x; dlynx.sh "$(indexv URLS 0)")	 >"$PIPE" &
+	  shiftv URLS
+	  while read -r LINE; do
+		case "$LINE" in
+		  */download/*) pushv DLS "$LINE" ;;
+		  *#[0-9]*) 		  
+		    OFFS=${LINE##*\#}
+		    OFFS=$(( (OFFS - 1) * 10 ))
+		    pushv URLS "$SURL?n=$OFFS" ;;
+		  *) continue ;;
+		esac
+        echo "$LINE"
+	  done <"$PIPE"
+	  wait 
+	done) || return $?	  
+  done 
+}
+
 set-builddir() {
   CCPATH=$(which ${CC:-gcc})
   case "$CCPATH" in
@@ -5379,6 +5422,18 @@ shell-functions()
     ( . require.sh;
     require script;
     declare -f | script_fnlist )
+}
+
+shiftv()
+{
+  I=${2:-1}
+  
+    eval "while [ \$((I)) -gt 0 ]; do case \"\${$1}\" in
+    *[\$IFS]*) $1=\"\${$1#*[${IFS}]}\" ;;
+  *) $1=\"\" ;;
+esac 
+    : \$((I--))
+  done"
 }
 
 shortcut-cmd() {

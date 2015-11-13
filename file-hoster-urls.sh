@@ -208,4 +208,4 @@ pattern "http://www.unibytes.com/\.${ALNUM}_$ALNUM"
 pattern "http://www.unibytes.com/$ALNUMS_D"
 pattern "http://www.unibytes.com/$ALNUMS_D/$FILENAME.html"
 
-exec grep -E "^($PATTERNS)\$" "$@"
+exec grep -E "(^|.*:)($PATTERNS)\$" "$@"
