@@ -2820,6 +2820,11 @@ $IFS";
     done )
 }
 
+is-a-tty()
+{ 
+    eval "tty  0<&${1:-1} >/dev/null"
+}
+
 is-absolute()
 {
     ! is-relative "$@"
@@ -4049,14 +4054,29 @@ mkbuilddir() {
       *) echo "msbuild \"${P}\"${3:+ /p:Configuration=\"$3\"}" ;;
     esac
   }
-  for DIR; do
-   (B=$(basename "$DIR")
-   VC=$(vs2vc "$B")
+  while :; do
+    case "$1" in
+      -x | --debug) DEBUG="true"; shift ;;
+      -64 | --64 | -x64 | --x64 | -amd64 | --amd64 | -x86_64 | --x86_64) ARCH="amd64" ;;
+      *) break ;;
+    esac
+  done
+  
+  for ARG; do
+   (case "$ARG" in
+       *.sln) VC=$(sln-version --vc "$ARG"); DIR=$(dirname "$ARG") ;;
+       *) VC=$(vs2vc "${ARG##*/}") ; DIR="$ARG" ;;
+    esac
+    
+    [ "$DEBUG" = true ] && debug "VC version: $VC"
+   
+    B=$(basename "$DIR")
+    
    
     CL=$(vcget "$VC" CL)
     CMAKEGEN=$(vcget "$VC" CMAKEGEN)
-    ARCH=$(vcget "$B" ARCH)
-    VSA=$(vcget "$VC" VS)${ARCH:+-$ARCH}
+    : ${ARCH=$(vcget "$B" ARCH)}
+    VSA=${VS-$(vcget "$VC" VS)}${ARCH:+-$ARCH}
     ABSDIR=$(cd "$DIR" >/dev/null && pwd -P)
     SRCDIR=${ABSDIR%/build*}
 	if [ -e "$SRCDIR/CMakeLists.txt" ] ; then
@@ -4120,7 +4140,15 @@ cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
 	BUILD_TYPE="%CONFIG%"
 	VCVARSCMD=$(vcget "${VC}-x64" VCVARSCMD )
 	VCVARSCMD=${VCVARSCMD/amd64/%ARCH%}
-    if [ -e "$CL" ]; then
+	
+	case "$VCBUILDCMD" in
+	  *"
+"*) VCBUILDCMD="(
+$VCBUILDCMD
+)" ;;
+    esac
+	
+	if [ -e "$CL" ]; then
       echo "Generating script $DIR/build.cmd ($(vcget "$VC" VCNAME))" 1>&2
       unix2dos >"$DIR/build.cmd" <<EOF
 @echo ${BATCHECHO:-off}
@@ -5449,22 +5477,35 @@ readshortcut
 '
 }
 
-sln-version()
-{ 
-    ( [ $# -gt 1 ] && O='""$ARG": $FVER" $VSVER' || O='"$FVER" $VSVER';
-    for ARG in "$@";
-    do
-        ( exec < "$ARG";
-        read -r LINE;
-        FVER=${LINE#*"Version "};
-        read -r LINE;
-        case "$LINE" in 
-            *Visual*Studio*)
-                VSVER=${LINE#*Visual*"Studio "}
-            ;;
-        esac;
-        eval "echo $O" );
-    done )
+sln-version() { 
+ (while :; do
+    case "$1" in
+      -x | --debug) DEBUG="true"; shift ;;
+      -vs* | --vs*) E='$VSVER'; shift ;;
+       -vc* | --vc*) E='$VCVER'; shift ;;
+      -f | --file) E='$FVER'; shift ;;
+      *) break ;;
+    esac
+  done
+  : ${E='"$FVER"${VSVER:+ "$VSVER"}'}
+  [ $# -gt 1 ] && E='"$ARG": '$E
+  
+  for ARG in "$@"; do
+   (exec < "$ARG"
+    read LINE
+    while [ "${#LINE}" -lt 4 ]; do  read  LINE ; done # skip BOM    
+    FVER=${LINE##*"Version "}
+    read -r LINE
+    case "$LINE" in 
+      *Version\ *) FVER=${LINE##*"Version "} ;;
+      *"Visual Studio 20"[01][0-9]*) VSVER=${LINE##*Visual*"Studio "}; VSVER=${VSVER%%" "*} ;;
+      *\ 20[01][0-9]) VSVER=${LINE##*" "} ;;
+    esac
+    case "$E" in
+      *\$VCVER*) VCVER=$(vs2vc "$VSVER") ;;
+    esac
+    eval "echo $E")
+  done)
 }
 
 some()
