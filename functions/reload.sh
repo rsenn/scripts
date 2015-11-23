@@ -14,11 +14,11 @@ reload()
     done;
     script=$(require -p -n ${1%.sh});
     name=${script%.sh}_sh;
-    var=$(echo lib/$name | sed -e s,/,_,g);
+    var=$(echo lib/$name | ${SED-sed} -e s,/,_,g);
     if test "$force" = yes; then
         verbose "Forcing reload of $script";
         local fn;
-        for fn in $(sed -n -e 's/^\([_a-z][_0-9a-z]*\)().*/\1/p' $shlibdir/$script);
+        for fn in $(${SED-sed} -n -e 's/^\([_a-z][_0-9a-z]*\)().*/\1/p' $shlibdir/$script);
         do
             case $fn in
                 require | verbose | msg)

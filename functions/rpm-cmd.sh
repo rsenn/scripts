@@ -10,7 +10,7 @@ rpm-cmd() {
   done
 
  #CMD="addprefix \"\$ARG: \""
- CMD="sed \"s|^\\./|| ;; s|^|\$ARG: |\""
+ CMD="${SED-sed} \"s|^\\./|| ;; s|^|\$ARG: |\""
  #N=$#
 
   while [ $# -gt 0 ]; do
@@ -21,7 +21,7 @@ rpm-cmd() {
       #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
       #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
     *://*)
-      MIRRORLIST=`curl -s "$ARG.mirrorlist" |sed -n 's,\s*<li><a href="\([^"]*\.rpm\)">.*,\1,p'`
+      MIRRORLIST=`curl -s "$ARG.mirrorlist" |${SED-sed} -n 's,\s*<li><a href="\([^"]*\.rpm\)">.*,\1,p'`
 
       if [ -n "$MIRRORLIST" ]; then
         set -- $MIRRORLIST

@@ -6,7 +6,7 @@ output-boot-entry()
     grub4dos)
        echo "title "${TITLE//"
 "/"\\n"}
-         [ "$CMDS" ] && echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS"| sed 's,^,#,'
+         [ "$CMDS" ] && echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS"| ${SED-sed} 's,^,#,'
        if [ "$KERNEL" ]; then
         echo "kernel $KERNEL"
        [ "$INITRD" ] && echo "initrd $INITRD"
@@ -34,7 +34,7 @@ output-boot-entry()
        fi
 
        if [ "$CMDS" ]; then
-         echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS" |sed 's,^,  #,'
+         echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS" |${SED-sed} 's,^,  #,'
          fi
 
      ;;

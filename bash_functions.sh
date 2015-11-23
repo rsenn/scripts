@@ -27,9 +27,9 @@ add-cond-include() {
   shift
 
   INCNAME="${INC##*/include/}"
-  INCDEF=HAVE_$(echo "$INCNAME" | sed 's,[/.],_,g' | tr '[[:'{lower,upper}':]]')
+  INCDEF=HAVE_$(echo "$INCNAME" | ${SED-sed} 's,[/.],_,g' | tr '[[:'{lower,upper}':]]')
 
-  sed -i "\\|^\s*#\s*include\s\+[<\"]\s*$INCNAME[>\"]| {
+  ${SED-sed} -i "\\|^\s*#\s*include\s\+[<\"]\s*$INCNAME[>\"]| {
     s|.*|#ifdef $INCDEF\n&\n#endif /* defined $INCDEF */|
   }" "$@"
 
@@ -130,7 +130,7 @@ autorun-shell()
 {
    (EXEC="$1"
      shift
-     [ $# -le 0 ] && set -- $(echo "$EXEC" |sed 's,Start,Start , ; s,\.exe,,g')
+     [ $# -le 0 ] && set -- $(echo "$EXEC" |${SED-sed} 's,Start,Start , ; s,\.exe,,g')
     echo "Shell\\Option1=$*
 Shell\\Option1\\Command=$EXEC
 ")
@@ -179,12 +179,12 @@ bitrate()
     test $N -le 1 && EXPR=".*$EXPR" || EXPR="$EXPR:"
     EXPR="s,$EXPR\\1,p"
 
-    KBPS=$(file "$ARG" |sed -n "$EXPR")
+    KBPS=$(file "$ARG" |${SED-sed} -n "$EXPR")
     #echo "EXPR='$EXPR'" 1>&2
 
     test -n "$KBPS" && echo "$KBPS" || (
     R=0
-    set -- $(mminfo "$ARG"  |sed -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*Kbps\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
+    set -- $(mminfo "$ARG"  |${SED-sed} -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*Kbps\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
 [ "$DEBUG" = true ] && echo "BR: $*" 1>&2
    #echo "$*" 1>&2
    # for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
@@ -215,7 +215,7 @@ blkvars()
 }
 
 bpm() {
-  id3v2  -l "$@"|sed -n "/^id3v2 tag info for / {
+  id3v2  -l "$@"|${SED-sed} -n "/^id3v2 tag info for / {
     :lp
     N
     /\n[[:upper:][:digit:]]\+ ([^\n]*$/ {
@@ -265,7 +265,7 @@ canonicalize()
    done
      : ${MAXLEN:=4095}
 
-   CMD="sed 's,[^A-Za-z0-9],-,g'|sed 's,-\+,-,g ;; s,^-\+,, ;; s,-\+\$,,'"
+   CMD="${SED-sed} 's,[^A-Za-z0-9],-,g'|${SED-sed} 's,-\+,-,g ;; s,^-\+,, ;; s,-\+\$,,'"
    [ "$LOWERCASE" = true ] && CMD="$CMD|tr [:{upper,lower}:]"
    #[ $# -gt 0 ] && CMD='set -- \$(IFS=" "; echo "$*"|'$CMD')'
 
@@ -316,8 +316,8 @@ check-7z() {
   mkdir -p "$OUTDIR"
   trap 'rm -rf "$OUTDIR"' EXIT
   FILTER="xargs -n1 -d \"\${IFS:0:1}\" sha1sum"
-  #FILTER="$FILTER | sed \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\${ARCHIVE}\${SEP:-: }\\2 \\[\\1\\]|\""
-  FILTER="$FILTER | sed \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\\1 \\*\${ARCHIVE}\${SEP:-:}\\2|\""
+  #FILTER="$FILTER | ${SED-sed} \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\${ARCHIVE}\${SEP:-: }\\2 \\[\\1\\]|\""
+  FILTER="$FILTER | ${SED-sed} \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\\1 \\*\${ARCHIVE}\${SEP:-:}\\2|\""
   process() { IFS="
  "; set +x;
     unset PREV; while read -r LINE; do
@@ -490,7 +490,7 @@ command-exists()
 
 compare-dirs()
 {
-     diff -ru "$@" | sed -n \
+     diff -ru "$@" | ${SED-sed} -n \
          -e "/^Binary files/ s,^Binary files \(.*\) and \(.*\) differ,\1 \2,p" \
          -e "s,^Only in \(.*\): \(.*\),\1/\2,p" \
          -e "/^diff/ { N; /\n---/ { N; /\n+++/ { s,\n.*,, ;; s,^diff\s\+,, ;; s,^-[^ ]* ,,g ;; p } } }"
@@ -609,43 +609,43 @@ ctime()
     E="$E\(${NW}\)${WS}";
     E="$E\(.*\)";
     [ $# -gt 1 ] && R="\2: \1" || R="\1";
-    ls --color=auto --color=auto --color=auto -l -n -d --time=ctime --time-style="${TS}" "$@" | sed "s/$E/$R/" )
+    ls --color=auto --color=auto --color=auto -l -n -d --time=ctime --time-style="${TS}" "$@" | ${SED-sed} "s/$E/$R/" )
 }
 
 cut-arch()
 {
-    sed 's,^\([^ ]*\)\.[^ .]*\( - \)\?\(.*\)$,\1\2\3,'
+    ${SED-sed} 's,^\([^ ]*\)\.[^ .]*\( - \)\?\(.*\)$,\1\2\3,'
 }
 
 cut-basename()
 {
-    sed 's,[/\\][^/\\]*[/\\]\?$,,'
+    ${SED-sed} 's,[/\\][^/\\]*[/\\]\?$,,'
 }
 
 cut-dirname()
 {
-    sed "s,\\(.*\\)[/\\\\]\\([^/\\\\]\\+[/\\\\]\\?\\)${1//./\\.}\$,\2,"
+    ${SED-sed} "s,\\(.*\\)[/\\\\]\\([^/\\\\]\\+[/\\\\]\\?\\)${1//./\\.}\$,\2,"
 }
 
 cut-distver()
 {
-  cat "$@" | sed 's,\.fc[0-9]\+\(\.\)\?,\1,g'
+  cat "$@" | ${SED-sed} 's,\.fc[0-9]\+\(\.\)\?,\1,g'
 }
 
 cut-dotslash()
 {
-  sed -u 's,^\.[/\\],,'
+  ${SED-sed} -u 's,^\.[/\\],,'
 }
 
 cut-ext() {
- (CMD='sed -e "/\\.exe\$/ { s|\\.paf\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.gz\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.bz2\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.lzma\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.xz\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.Z\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "s,\\.[^./]\\+\$,,"'
+ (CMD='${SED-sed} -e "/\\.exe\$/ { s|\\.paf\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.gz\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.bz2\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.lzma\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.xz\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.Z\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "s,\\.[^./]\\+\$,,"'
   CMD="$CMD${@:+ \"\$@\"}"
   eval "$CMD")
 }
 
 cut-hexnum()
 {
-  sed 's,^\s*[0-9a-fA-F]\+\s*,,' "$@"
+  ${SED-sed} 's,^\s*[0-9a-fA-F]\+\s*,,' "$@"
 }
 
 cut-ls-l()
@@ -722,16 +722,16 @@ cut-num() {
     EXPR="$EXPR[0-9]\\+\\s*"
     : $((N--))
   done
-  sed "s|^${EXPR:+\\s*$EXPR}||" "$@")
+  ${SED-sed} "s|^${EXPR:+\\s*$EXPR}||" "$@")
 }
 
 cut-pkgver()
 {
-    cat "$@" |sed 's,-[0-9]\+$,,g'
+    cat "$@" |${SED-sed} 's,-[0-9]\+$,,g'
 }
 
 cut-trailver() {
- (CMD='sed -e "s|[-_][0-9][^-_.]*\\(\\.[0-9][^-.]*\\)*\$||" -e "s|[-_.]\\?[0-9]\\+\.[.0-9]\+\$||"'
+ (CMD='${SED-sed} -e "s|[-_][0-9][^-_.]*\\(\\.[0-9][^-.]*\\)*\$||" -e "s|[-_.]\\?[0-9]\\+\.[.0-9]\+\$||"'
   CMD="$CMD${@:+ \"\$@\"}"
   eval "$CMD")
 }
@@ -739,15 +739,15 @@ cut-trailver() {
 cut-ver()
 {
   cat "$@" | cut-trailver |
-  sed 's,[-.]rc[[:alnum:]~][^-.]*,,g ;; s,[-.]b[[:alnum:]~][^-.]*,,g ;; s,[-.]git[_[:alnum:]~][^-.]*,,g ;; s,[-.]svn[_[:alnum:]~][^-.]*,,g ;; s,[-.]linux[^-.]*,,g ;; s,[-.]v[[:alnum:]~][^-.]*,,g ;; s,[-.]beta[_[:alnum:]~][^-.]*,,g ;; s,[-.]alpha[_[:alnum:]~][^-.]*,,g ;; s,[-.]a[_[:alnum:]~][^-.]*,,g ;; s,[-.]trunk[^-.]*,,g ;; s,[-.]release[_[:alnum:]~][^-.]*,,g ;; s,[-.]GIT[^-.]*,,g ;; s,[-.]SVN[^-.]*,,g ;; s,[-.]r[_[:alnum:]~][^-.]*,,g ;; s,[-.]dnh[_[:alnum:]~][^-.]*,,g' |
-  sed 's,[^-.]*git[_0-9][^.].,,g ;; s,[^-.]*svn[_0-9][^.].,,g ;; s,[^-.]*GIT[^.].,,g ;; s,[^-.]*SVN[^.].,,g' |
-  sed 's,\.\(P\)\?[[:digit:]][_+[:digit:]]*\.,.,g' |
-  sed 's,-\([0-9]\+\):\([0-9]\+\),-\1.\2,' |
-  sed 's,[.-][[:digit:]][_+[:alnum:]~]*$,,g ;; s,[.-][[:digit:]][_+[:alnum:]~]*\([-.]\),\1,g'|
-  sed 's,[-_.][[:digit:]]*\(svn\)\?\(git\)\?\(P\)\?\(rc\)\?[[:digit:]][_+[:digit:]]*\(-.\),\5,g' |
-  sed 's,-[[:digit:]][._+[:digit:]]*$,, ;;  s,-[[:digit:]][._+[:digit:]]*$,,'  |
-  sed 's,[.-][[:digit:]][_+[:alnum:]~]*$,,g ;; s,[.-][[:digit:]]*\(rc[[:digit:]]\)\?\(b[[:digit:]]\)\?\(git[_0-9]\)\?\(svn[_0-9]\)\?\(linux\)\?\(v[[:digit:]]\)\?\(beta[_0-9]\)\?\(alpha[_0-9]\)\?\(a[_0-9]\)\?\(trunk\)\?\(release[_0-9]\)\?\(GIT\)\?\(SVN\)\?\(r[_0-9]\)\?\(dnh[_0-9]\)\?[[:digit:]][_+[:alnum:]~]*\.,.,g' |
-  sed 's,\.[[:digit:]][^.]*\.,.,g'
+  ${SED-sed} 's,[-.]rc[[:alnum:]~][^-.]*,,g ;; s,[-.]b[[:alnum:]~][^-.]*,,g ;; s,[-.]git[_[:alnum:]~][^-.]*,,g ;; s,[-.]svn[_[:alnum:]~][^-.]*,,g ;; s,[-.]linux[^-.]*,,g ;; s,[-.]v[[:alnum:]~][^-.]*,,g ;; s,[-.]beta[_[:alnum:]~][^-.]*,,g ;; s,[-.]alpha[_[:alnum:]~][^-.]*,,g ;; s,[-.]a[_[:alnum:]~][^-.]*,,g ;; s,[-.]trunk[^-.]*,,g ;; s,[-.]release[_[:alnum:]~][^-.]*,,g ;; s,[-.]GIT[^-.]*,,g ;; s,[-.]SVN[^-.]*,,g ;; s,[-.]r[_[:alnum:]~][^-.]*,,g ;; s,[-.]dnh[_[:alnum:]~][^-.]*,,g' |
+  ${SED-sed} 's,[^-.]*git[_0-9][^.].,,g ;; s,[^-.]*svn[_0-9][^.].,,g ;; s,[^-.]*GIT[^.].,,g ;; s,[^-.]*SVN[^.].,,g' |
+  ${SED-sed} 's,\.\(P\)\?[[:digit:]][_+[:digit:]]*\.,.,g' |
+  ${SED-sed} 's,-\([0-9]\+\):\([0-9]\+\),-\1.\2,' |
+  ${SED-sed} 's,[.-][[:digit:]][_+[:alnum:]~]*$,,g ;; s,[.-][[:digit:]][_+[:alnum:]~]*\([-.]\),\1,g'|
+  ${SED-sed} 's,[-_.][[:digit:]]*\(svn\)\?\(git\)\?\(P\)\?\(rc\)\?[[:digit:]][_+[:digit:]]*\(-.\),\5,g' |
+  ${SED-sed} 's,-[[:digit:]][._+[:digit:]]*$,, ;;  s,-[[:digit:]][._+[:digit:]]*$,,'  |
+  ${SED-sed} 's,[.-][[:digit:]][_+[:alnum:]~]*$,,g ;; s,[.-][[:digit:]]*\(rc[[:digit:]]\)\?\(b[[:digit:]]\)\?\(git[_0-9]\)\?\(svn[_0-9]\)\?\(linux\)\?\(v[[:digit:]]\)\?\(beta[_0-9]\)\?\(alpha[_0-9]\)\?\(a[_0-9]\)\?\(trunk\)\?\(release[_0-9]\)\?\(GIT\)\?\(SVN\)\?\(r[_0-9]\)\?\(dnh[_0-9]\)\?[[:digit:]][_+[:alnum:]~]*\.,.,g' |
+  ${SED-sed} 's,\.[[:digit:]][^.]*\.,.,g'
 
 }
 
@@ -854,7 +854,7 @@ device-of-file() {
      if [ ! -d "$ARG" ]; then
          ARG=` dirname "$ARG" `
      fi
-     DEV=`(grep -E "^[^ ]*\s+$ARG\s" /proc/mounts ;  df "$ARG" |sed '1d' )|awkp 1|head -n1`
+     DEV=`(grep -E "^[^ ]*\s+$ARG\s" /proc/mounts ;  df "$ARG" |${SED-sed} '1d' )|awkp 1|head -n1`
      [ $# -gt 1 ] && DEV="$ARG: $DEV"
 
      [ "$DEV" = rootfs -o "$DEV" = /dev/root ] && DEV=`get-rootfs`
@@ -867,7 +867,7 @@ device-of-file() {
 diff-plus-minus()
 {
     local IFS="$newline" d=$(diff -x .svn -ruN "$@" |
-      sed -n -e "/^[-+][-+][-+]\s\+$1/d"                -e "/^[-+][-+][-+]\s\+$2/d"                -e '/^[-+]/ s,^\(.\).*$,\1, p' 2>/dev/null);
+      ${SED-sed} -n -e "/^[-+][-+][-+]\s\+$1/d"                -e "/^[-+][-+][-+]\s\+$2/d"                -e '/^[-+]/ s,^\(.\).*$,\1, p' 2>/dev/null);
     IFS="-$newline ";
     eval set -- $d;
     local plus=$#;
@@ -894,11 +894,11 @@ diffcmp()
 
   LANGUAGE=C LC_ALL=C \
   diff $OPTS "$@" |
-  sed -n \
+  ${SED-sed} -n \
     -e 's/^Binary files \(.*\) and \(.*\) differ/\1\n\2/p' \
     -e 's,^[-+][-+][-+]\s\+"\([^"]\+\)"\s.*,\1,p' \
     -e 's,^[-+][-+][-+]\s\+\([^"][^ \t]*\)\s.*,\1,p' \
-    | sed -e "$DIREXPR" \
+    | ${SED-sed} -e "$DIREXPR" \
     | uniq)
 }
 
@@ -1118,7 +1118,7 @@ dump-shortcuts() {
      *) break ;;
    esac
   done
-  for-each 'readshortcut $OPTS -t -r "$1" | sed "N ;; s%\s*\n\s*% % ;; s%^%$1: %"' "$@"
+  for-each 'readshortcut $OPTS -t -r "$1" | ${SED-sed} "N ;; s%\s*\n\s*% % ;; s%^%$1: %"' "$@"
  )
 }
 
@@ -1135,7 +1135,7 @@ duration()
     N="$#";
     for ARG in "$@"
     do
-        D=$(mminfo "$ARG" |sed -n 's,Duration=,,p' | head -n1);
+        D=$(mminfo "$ARG" |${SED-sed} -n 's,Duration=,,p' | head -n1);
         set -- $D;
         S=0;
         for PART in "$@";
@@ -1230,7 +1230,7 @@ explode()
 ";
 
   [ $# -gt 0 ] && exec <<<"$*"
-  sed "s|${S//\"/\\\"}|\n|g"
+  ${SED-sed} "s|${S//\"/\\\"}|\n|g"
  )
 }
 
@@ -1266,7 +1266,7 @@ extract-slackpkg()
 
 extract-version()
 {
-    echo "$*" | sed 's,^.*\([0-9]\+[-_.][0-9]\+[-_.0-9]\+\).*,\1,'
+    echo "$*" | ${SED-sed} 's,^.*\([0-9]\+[-_.][0-9]\+[-_.0-9]\+\).*,\1,'
 }
 
 filesystem-for-device()
@@ -1339,12 +1339,12 @@ filter-filemagic() {
      EXPR="\\|:\\s\\+${ARG%%|*}|$NOT { $EXPR }"
    done
   xargs -d "
-" file -- | sed -n -u "$EXPR")
+" file -- | ${SED-sed} -n -u "$EXPR")
 }
 
 filter-files-list()
 {
-    sed "s|/files\.list:|/|"
+    ${SED-sed} "s|/files\.list:|/|"
 }
 
 filter-filesize() {
@@ -1457,7 +1457,7 @@ filter-git-status()
   esac
   : ${MATCH="\\|^$PATTERN|"}
   : ${SUBST="/\"/ { s,^\(...\)\",\1,; s,\"\$,,; }; s|^...||p"}
-  exec sed $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
+  exec ${SED-sed} $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
 }
 
 filter-num() {
@@ -1532,7 +1532,7 @@ filter-out()
 
 filter-quoted-name()
 {
-  sed -n "s|.*\`\([^']\+\)'.*|\1|p"
+  ${SED-sed} -n "s|.*\`\([^']\+\)'.*|\1|p"
 }
 
 filter-test() {
@@ -1595,14 +1595,14 @@ findstring()
 
 find-homedirs() {
  (locate32.sh /home/ |
-  sed 's|/home/\([^/]\+\).*|/home/\1|'|uniq
+  ${SED-sed} 's|/home/\([^/]\+\).*|/home/\1|'|uniq
 find-media.sh '/home/[^/]+/$'|removesuffix / ) |
   grep -vE '(/include/|/usr/)' |
    filter-test -d
 }
 
  find-in-index() {
-  (CMD='index-dir -u $DIRS | xargs grep -E "($EXPRS)" -H | sed "s|/files.list:|/|" -u'
+  (CMD='index-dir -u $DIRS | xargs grep -E "($EXPRS)" -H | ${SED-sed} "s|/files.list:|/|" -u'
    while :; do
      case "$1" in
        -w | -m) CMD="$CMD | msyspath $1"; shift ;;
@@ -1652,7 +1652,7 @@ firstletter()
 
 fn2re()
 {
-    echo "$1" | sed -e 's,\.,\\.,g' -e "s,\\?,${2-.},g" -e "s,\\*,${2-.}*,g" -e 's,\[!\([^\]]\+\)\],[^\1],g'
+    echo "$1" | ${SED-sed} -e 's,\.,\\.,g' -e "s,\\?,${2-.},g" -e "s,\\*,${2-.}*,g" -e 's,\[!\([^\]]\+\)\],[^\1],g'
 }
 
 for-each-char()
@@ -1814,7 +1814,7 @@ get-bpm() {
   done
   [ $# -gt 1 ] && PFX="\$1: " || PFX=
   [ "$INTEGER" = true ] && DOT= || DOT="."
-    CMD="sed -n \"/TBPM/ { s|.*TBPM\\x00\\x00\\x00\\x07\\x00*|| ;; s,[^${DOT}0-9].*,, ;; s|^|$PFX| ;;  p }\" \"\$1\""
+    CMD="${SED-sed} -n \"/TBPM/ { s|.*TBPM\\x00\\x00\\x00\\x07\\x00*|| ;; s,[^${DOT}0-9].*,, ;; s|^|$PFX| ;;  p }\" \"\$1\""
   while [ $# -gt 0 ]; do
     #echo "+ $CMD" 1>&2
     eval "$CMD"
@@ -1838,7 +1838,7 @@ get-dotfiles()
 get-exports() {
  (N=$#
   [ "$N" -gt 1 ] && PREFIX='$ARG: ' || PREFIX=''
-  CMD='dumpbin -exports "$ARG" |sed -n "/^\\s*ordinal\\s\\+name/ { n; :lp; n; s|^\\s*[0-9]*\\s\\+\\(.*\\)|'$PREFIX'\\1|p; /^\\s*\$/! b lp; }"'
+  CMD='dumpbin -exports "$ARG" |${SED-sed} -n "/^\\s*ordinal\\s\\+name/ { n; :lp; n; s|^\\s*[0-9]*\\s\\+\\(.*\\)|'$PREFIX'\\1|p; /^\\s*\$/! b lp; }"'
   for ARG; do
     eval "$CMD"
   done)
@@ -1846,7 +1846,7 @@ get-exports() {
 
 get-ext()
 {
-    set -- $( ( (set -- $(grep EXT.*= {find,locate,grep}-$1.sh -h 2>/dev/null |sed "s,EXTS=[\"']\?\(.*\)[\"']\?,\1," ); IFS="$nl"; echo "$*")|sed 's,[^[:alnum:]]\+,\n,g; s,^\s*,, ; s,\s*$,,';) |sort -fu);
+    set -- $( ( (set -- $(grep EXT.*= {find,locate,grep}-$1.sh -h 2>/dev/null |${SED-sed} "s,EXTS=[\"']\?\(.*\)[\"']\?,\1," ); IFS="$nl"; echo "$*")|${SED-sed} 's,[^[:alnum:]]\+,\n,g; s,^\s*,, ; s,\s*$,,';) |sort -fu);
     ( IFS=" ";
     echo "$*" )
 }
@@ -1867,7 +1867,7 @@ get-frags() {
     EXPR="$EXPR ;; s/^/\${ARG//\$FS/\$BS\$FS}${SEP:-: }/"
   fi
   EXPR="/Average frag/ { $EXPR; p }"
-  CMD='contig -a "$ARG" | sed -n "'$EXPR'"'
+  CMD='contig -a "$ARG" | ${SED-sed} -n "'$EXPR'"'
   CMD="($CMD) || return \$?"
   "${DEBUG:-false}" && echo 1>&2 "CMD='$CMD'"
   eval "for ARG; do
@@ -1982,7 +1982,7 @@ get-mingw-properties() {
 
 get-property()
 {
-    sed -n "/$1=/ {
+    ${SED-sed} -n "/$1=/ {
    s,.*$1=,,
    /\"/! { s,\s\+.*,, }
    /^\".*\"/ { s,^\([^\"]\+\)\".*\".*,\\1, ; s,^\",, ; s,\".*,, }
@@ -1992,7 +1992,7 @@ get-property()
 }
 
 get-rootfs() {
-  sed -n 's,.*root=\([^ ]\+\).*,\1,p' /proc/cmdline
+  ${SED-sed} -n 's,.*root=\([^ ]\+\).*,\1,p' /proc/cmdline
 }
 
 get-shortcut()
@@ -2011,7 +2011,7 @@ get-shortcut()
 get-tempdir() {
  (TEMPDIR=
   if type reg 2>/dev/null >/dev/null; then
-    TEMPDIR=`reg query 'HKCU\Environment' '/v' TEMP | sed -n 's|.*REG_SZ\s\+\(.*\)|\1|p'`
+    TEMPDIR=`reg query 'HKCU\Environment' '/v' TEMP | ${SED-sed} -n 's|.*REG_SZ\s\+\(.*\)|\1|p'`
     [ -d "$TEMPDIR" ] || TEMPDIR=
   fi
   if [ -z "$TEMPDIR" ]; then
@@ -2028,7 +2028,7 @@ get-tempdir() {
 
 getuuid()
 {
-    blkid "$@" | sed -n "/ UUID=/ { s,.* UUID=\"\?,, ;; s,\".*,, ;; p }"
+    blkid "$@" | ${SED-sed} -n "/ UUID=/ { s,.* UUID=\"\?,, ;; s,\".*,, ;; p }"
 }
 
 git-branches()
@@ -2042,7 +2042,7 @@ git-branches()
     esac
   done
   EXPR="s,^. ,, ;; $EXPR"
-  git branch -a | sed "$EXPR"
+  git branch -a | ${SED-sed} "$EXPR"
  )
 }
 
@@ -2053,7 +2053,7 @@ git-deep-checkout() {
 }
 
 git-get-branch() {
-  git branch -a |sed -n 's,^\* ,,p'
+  git branch -a |${SED-sed} -n 's,^\* ,,p'
 }
 
 git-get-remote() {
@@ -2065,7 +2065,7 @@ git-get-remote() {
     esac
   done
   [ $# -lt 1 ] && set -- .
-  [ $# -gt 1 ] && FILTER="sed \"s|^|\$DIR: |\"" || FILTER=
+  [ $# -gt 1 ] && FILTER="${SED-sed} \"s|^|\$DIR: |\"" || FILTER=
 
   EXPR="s|\\s\\+| |g"
   if [ -n "$NAME" ]; then
@@ -2077,7 +2077,7 @@ git-get-remote() {
     EXPR="$EXPR ;; s|\\s*([^)]*)||"
   fi
   CMD="REMOTE=\`git remote -v 2>/dev/null"
-  CMD="$CMD | sed \"$EXPR\""
+  CMD="$CMD | ${SED-sed} \"$EXPR\""
   CMD="$CMD |uniq ${FILTER:+|$FILTER}\`;"
   CMD=$CMD'echo "$REMOTE"'
   for DIR; do
@@ -2150,7 +2150,7 @@ grep-e-expr()
 {
   [ $# -gt 0 ] && exec <<<"$*"
 
-  sed 's,[().*?|\\+],\\&,g ; s,\[,\\[,g ; s,\],\\],g' | implode "|" | sed 's,.*,(&),'
+  ${SED-sed} 's,[().*?|\\+],\\&,g ; s,\[,\\[,g ; s,\],\\],g' | implode "|" | ${SED-sed} 's,.*,(&),'
 }
 
 grep-e()
@@ -2175,7 +2175,7 @@ grep-e()
 }
 
  grep-in-index() {
-  (CMD='index-dir -u $DIRS | xargs grep "[^/]\$" -H | sed "s|^$PWD/files.list:|| ; s|/files.list:|/|" -u | xargs grep $OPTS -H -E "($EXPRS)" '
+  (CMD='index-dir -u $DIRS | xargs grep "[^/]\$" -H | ${SED-sed} "s|^$PWD/files.list:|| ; s|/files.list:|/|" -u | xargs grep $OPTS -H -E "($EXPRS)" '
 #   case "$PATHTOOL" in
 #     cygpath*) PATHTOOL="xargs $PATHTOOL" ;;
 #   esac
@@ -2429,12 +2429,12 @@ hex2dec() {
 hexdump-printfable()
 {
     . require str;
-    hexdump -C -v < "$1" | sed "s,^\([0-9a-f]\+\)\s\+\(.*\),\2 #0x\1, ; #s,0x0000,0x," | sed "s,|[^|]*|,, ; s,^, ," | sed "s,\s\+\([0-9a-f][0-9a-f]\), 0x\\1,g" | sed "s,^,printf \"$(str_repeat 16 %c)\\\n\" ,"
+    hexdump -C -v < "$1" | ${SED-sed} "s,^\([0-9a-f]\+\)\s\+\(.*\),\2 #0x\1, ; #s,0x0000,0x," | ${SED-sed} "s,|[^|]*|,, ; s,^, ," | ${SED-sed} "s,\s\+\([0-9a-f][0-9a-f]\), 0x\\1,g" | ${SED-sed} "s,^,printf \"$(str_repeat 16 %c)\\\n\" ,"
 }
 
 hexnums-dash()
 {
-    sed "s,[0-9A-Fa-f][0-9A-Fa-f],&-\\\\?,g"
+    ${SED-sed} "s,[0-9A-Fa-f][0-9A-Fa-f],&-\\\\?,g"
 }
 
 hexnums-to-bin()
@@ -2515,7 +2515,7 @@ http-head()
             {
                 echo -e "HEAD ${2} HTTP/1.1\r\nHost: ${1}\r\nConnection: close\r\n\r";
                 sleep $TIMEOUT
-            } | nc $HOST $PORT | sed "s/\r//g";
+            } | nc $HOST $PORT | ${SED-sed} "s/\r//g";
         fi;
     fi )
 }
@@ -2556,10 +2556,10 @@ icacls-r() {
 
 id3()
 {
-    $ID3V2 -l "$@" | sed "
+    $ID3V2 -l "$@" | ${SED-sed} "
   s,^\([^ ]\+\) ([^:]*):\s\?\(.*\),\1=\2,
    s,.* info for s\?,,
-  /:$/! { /^[0-9A-Z]\+=/! { s/ *\([^ ]\+\) *: */\n\1=/g; s,\s*\n\s*,\n,g; s,^\n,,; s,\n$,,; s,\n\n,,g; }; }" | sed "/:$/ { p; n; :lp; N; /:\$/! { s,\n, ,g;  b lp; }; P }"
+  /:$/! { /^[0-9A-Z]\+=/! { s/ *\([^ ]\+\) *: */\n\1=/g; s,\s*\n\s*,\n,g; s,^\n,,; s,\n$,,; s,\n\n,,g; }; }" | ${SED-sed} "/:$/ { p; n; :lp; N; /:\$/! { s,\n, ,g;  b lp; }; P }"
 }
 
 id3dump()
@@ -2579,13 +2579,13 @@ id3dump()
             ;;
         esac;
     done;
-    id3v2 $FLAGS  -l "$@" | sed -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
+    id3v2 $FLAGS  -l "$@" | ${SED-sed} -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
     )
 }
 
 id3get()
 {
-    ( id3dump "$1" 2>&1 | grep "^$2" | sed 's,^[^:=]*[:=]\s*,,' )
+    ( id3dump "$1" 2>&1 | grep "^$2" | ${SED-sed} 's,^[^:=]*[:=]\s*,,' )
 }
 
 imagedate()
@@ -2596,7 +2596,7 @@ imagedate()
          esac
         N=$#
          for ARG; do
-        TS=$(exiv2 pr "$ARG" 2>&1| sed -n '/No\sExif/! s,.*timestamp\s\+:\s\+,,p' | sed 's,\([0-9][0-9][0-9][0-9]\):\([0-9]\+\):\([0-9][0-9]\),\1/\2/\3,')
+        TS=$(exiv2 pr "$ARG" 2>&1| ${SED-sed} -n '/No\sExif/! s,.*timestamp\s\+:\s\+,,p' | ${SED-sed} 's,\([0-9][0-9][0-9][0-9]\):\([0-9]\+\):\([0-9][0-9]\),\1/\2/\3,')
         [ "$UT" = true ] && TS=$(date2unix "$TS" 2>/dev/null)
         O="$TS"
 
@@ -2723,9 +2723,9 @@ index-tar()
          esac
          done
 
-FILTERCMD='sed "s,^\./,,"'
+FILTERCMD='${SED-sed} "s,^\./,,"'
 if [ $# -gt 1 ]; then
-        FILTERCMD=${FILTERCMD:+$FILTERCMD'|'}'sed "s|^|$ARG:|"';
+        FILTERCMD=${FILTERCMD:+$FILTERCMD'|'}'${SED-sed} "s|^|$ARG:|"';
     else
         unset FILTERCMD;
     fi
@@ -2783,7 +2783,7 @@ inst-slackpkg()
     INSTALLED=;
     EXPR="$(grep-e-expr "$@")";
     [ "$FILE" = true ] && EXPR="/$EXPR[^/]*\$";
-    PKGS=` grep --color=auto -H -E "$EXPR" $([ "$PWD" = "$HOME" ] && ls -d slackpkg*)  ~/slackpkg* | sed 's,.*:/,/, ; s,/slackpkg[^./]*\.list:,/,'`;
+    PKGS=` grep --color=auto -H -E "$EXPR" $([ "$PWD" = "$HOME" ] && ls -d slackpkg*)  ~/slackpkg* | ${SED-sed} 's,.*:/,/, ; s,/slackpkg[^./]*\.list:,/,'`;
     if [ -z "$PKGS" ]; then
         echo "No such package $EXPR" 1>&2;
         exit 2;
@@ -2929,7 +2929,7 @@ iso-extract()
 
 join-lines() { 
  (c=${1-\\};
-  sed '
+  ${SED-sed} '
 	:lp
     s|\(\s*\)\'$c'\r\?\n\(\s*\)\([^\n]*\)$| \3|
     /\'$c'\r\?$/  { 
@@ -2993,7 +2993,7 @@ link-mpd-music-dirs()
     chown mpd:mpd "$DESTDIR";
     for ARG in "$@";
     do
-        ( NAME=$(echo "$ARG" |sed " s,^/mnt,, ; s,^/media,,g; s,/,-,g; s,^-*,, ; s,-*$,,");
+        ( NAME=$(echo "$ARG" |${SED-sed} " s,^/mnt,, ; s,^/media,,g; s,/,-,g; s,^-*,, ; s,-*$,,");
         ( set -x;
         ln -svf "$ARG" "$DESTDIR"/"$NAME" ) );
     done )
@@ -3211,7 +3211,7 @@ list-files()
     [ $# = 0 ] && set .;
     NL="
 ";
-    FILTER="xargs -d \"\$NL\" file | sed \"s|^\.\/|| ;; s|:\s\+|: |\" ${OUTPUT}\"\${OUTFILE}\"";
+    FILTER="xargs -d \"\$NL\" file | ${SED-sed} \"s|^\.\/|| ;; s|:\s\+|: |\" ${OUTPUT}\"\${OUTFILE}\"";
     for ARG in "$@";
     do
         ( cd "$ARG";
@@ -3223,7 +3223,7 @@ list-files()
 
 list-lastitem()
 {
-    sed -n '$p'
+    ${SED-sed} -n '$p'
 }
 
 list-mediapath() {
@@ -3445,7 +3445,7 @@ list-mingw-toolchains() {
 
 list-nolastitem()
 {
-    sed '$d'
+    ${SED-sed} '$d'
 }
 
 list-path()
@@ -3520,7 +3520,7 @@ list-recursive()
     for ARG in "$@";
     do
         ( cd "$ARG";
-        CMD='find . $ARGS -xdev  | while read -r FILE; do test -d "$FILE" && echo "$FILE/" || echo "$FILE"; done | sed "s|^\.\/||"';
+        CMD='find . $ARGS -xdev  | while read -r FILE; do test -d "$FILE" && echo "$FILE/" || echo "$FILE"; done | ${SED-sed} "s|^\.\/||"';
         [ "$SAVE" = true ] && CMD="$CMD | { tee .${FILENAME:-files}.${TMPEXT:-tmp}; mv -f .${FILENAME:-files}.${TMPEXT:-tmp} ${FILENAME:-files}.${EXT:-list}; echo \"Created \$PWD/${FILENAME:-files}.${EXT:-list}\" 1>&2; }";
         eval "$CMD" );
     done )
@@ -3559,7 +3559,7 @@ list-rpm() {
       *) RPM=$(realpath "$ARG") ;;
     esac
     cd "$TEMP"
-    set -- $( (    7z l "$RPM" |sed -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
+    set -- $( (    7z l "$RPM" |${SED-sed} -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
     (exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |grep "\\.cpio\$")
     if [ $# -le 0 ]; then
       exit 1
@@ -3591,12 +3591,12 @@ list-slackpkgs()
     for ARG in "$@";
     do
         find "$ARG" -type f -name "*.t?z";
-    done | sed 's,^\./,,' )
+    done | ${SED-sed} 's,^\./,,' )
 }
 
 list-subdirs()
 {
-    ( find ${@-.} -mindepth 1 -maxdepth 1 -type d | sed "s|^\./||" )
+    ( find ${@-.} -mindepth 1 -maxdepth 1 -type d | ${SED-sed} "s|^\./||" )
 }
 
 list-tolower()
@@ -3611,7 +3611,7 @@ list-toupper()
 
 list-upx()
 {
-    upx -l "$@" 2>&1 | sed '1 { :lp; N; /^\s*--\+/! b lp; d; }' | sed '$ { /[0-9]\sfiles\s\]$/d; } ; /^\s*[- ]\+$/d'
+    upx -l "$@" 2>&1 | ${SED-sed} '1 { :lp; N; /^\s*--\+/! b lp; d; }' | ${SED-sed} '$ { /[0-9]\sfiles\s\]$/d; } ; /^\s*[- ]\+$/d'
 }
 
 list-visual-studios() {
@@ -3812,7 +3812,7 @@ ls-dirs()
     for ARG in "$@";
     do
         ls --color=auto -d "$ARG"/*/;
-    done ) | sed 's,^\./,,; s,/$,,'
+    done ) | ${SED-sed} 's,^\./,,; s,/$,,'
 }
 
 ls-files()
@@ -3828,13 +3828,13 @@ ls-files()
     for ARG in "$@";
     do
         ls --color=auto -d $OPTS -- "$ARG"/*;
-    done ) | filter-test -f| sed 's,^\./,,; s,/$,,'
+    done ) | filter-test -f| ${SED-sed} 's,^\./,,; s,/$,,'
 }
 
 lsof-win()
 {
-#  (for PID in $(ps -aW | sed 1d |awkp 1); do
-#    handle -p "$PID" |sed "1d;2d;3d;4d;5d; s|^|$PID\\t|"
+#  (for PID in $(ps -aW | ${SED-sed} 1d |awkp 1); do
+#    handle -p "$PID" |${SED-sed} "1d;2d;3d;4d;5d; s|^|$PID\\t|"
 #  done)
  (while :; do
     case "$1" in
@@ -3865,7 +3865,7 @@ lsof-win()
 
       *) printf "%-10s %5d %s\n" "$EXE" "$LSOF_PID" "$LINE" ;;
     esac
-  done; }) |sed -u 's,\\,/,g'
+  done; }) |${SED-sed} -u 's,\\,/,g'
 }
 
 make-arith()
@@ -3875,11 +3875,11 @@ make-arith()
 
 make-sizes-tmp()
 {
-    sed -n '/ [0-9]\+ /p' $(list-mediapath 'ls-lR.list') | awkp 5 > $TEMP/sizes.tmp;
+    ${SED-sed} -n '/ [0-9]\+ /p' $(list-mediapath 'ls-lR.list') | awkp 5 > $TEMP/sizes.tmp;
     for N in $(histogram.awk <$TEMP/sizes.tmp|grep -v '^1 '|awkp 2|sort -n); do
       test "$N" -le 0 && continue
       echo "/^[^ ]\+\s\+[0-9]\+\s\+[0-9]\+\s\+[0-9]\+\s\+$N /p"
-      done |(set -x; tee $TEMP/sizes.sed >/dev/null)
+      done |(set -x; tee $TEMP/sizes.${SED-sed} >/dev/null)
 }
 
 make-slackpkg()
@@ -4011,7 +4011,7 @@ minfo()
    (CMD='mediainfo "$ARG" 2>&1'
     [ $# -gt 1 ] && CMD="$CMD | addprefix \"\$ARG:\""
     CMD="for ARG; do $CMD; done"
-    eval "$CMD")  | sed '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
+    eval "$CMD")  | ${SED-sed} '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
 }
 
 mkbuilddir() {
@@ -4053,11 +4053,11 @@ mkbuilddir() {
     SRCDIR=${ABSDIR%/build*}
 	if [ -e "$SRCDIR/CMakeLists.txt" ] ; then
 	  CMAKELISTS="$SRCDIR/CMakeLists.txt"
-      CMAKELISTS_ADD=$( sed -n "s|.*add_subdirectory(\s*\([^ )]*\)\s*).*|$SRCDIR/\1/CMakeLists.txt|p"  "$SRCDIR/CMakeLists.txt" )
+      CMAKELISTS_ADD=$( ${SED-sed} -n "s|.*add_subdirectory(\s*\([^ )]*\)\s*).*|$SRCDIR/\1/CMakeLists.txt|p"  "$SRCDIR/CMakeLists.txt" )
 	  if [ -n "$CMAKELISTS_ADD" ]; then
 		pushv_unique CMAKELISTS $CMAKELISTS_ADD
 	  fi
-	  PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
+	  PROJECT=$(${SED-sed} -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
 	  CONFIGURE_CMD="
 cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
   %* ^
@@ -4186,8 +4186,8 @@ mminfo()
 {
     ( for ARG in "$@";
     do
-        minfo "$ARG" | sed -n "s,^\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
-    done | sed 's,\s\+=,=,')
+        minfo "$ARG" | ${SED-sed} -n "s,^\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
+    done | ${SED-sed} 's,\s\+=,=,')
 }
 
 modules()
@@ -4333,7 +4333,7 @@ mountpoint-for-device()
 
 mountpoint-for-file()
 {
-    ( df "$1" | sed 1d | awkp 6 )
+    ( df "$1" | ${SED-sed} 1d | awkp 6 )
 }
 
 mountpoints()
@@ -4491,7 +4491,7 @@ myip()
     do
         msg "Checking $host...";
         myip=$(curl -s --socks5 127.0.0.1:9050 "$host" |
-         sed -n -e "/${e_nn}127.0.0.1${e_nn}/ d"                   -e "/${e_nn}192.168\./ d"                   -e "/${e_nn}10\./ d"                   -e "/$e_ip/ {
+         ${SED-sed} -n -e "/${e_nn}127.0.0.1${e_nn}/ d"                   -e "/${e_nn}192.168\./ d"                   -e "/${e_nn}10\./ d"                   -e "/$e_ip/ {
                       s|^${e_nn}\\($e_ip\\)${e_nn}\$|\\1|
                       p
                       q
@@ -4562,7 +4562,7 @@ output-boot-entry()
     grub4dos)
        echo "title "${TITLE//"
 "/"\\n"}
-         [ "$CMDS" ] && echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS"| sed 's,^,#,'
+         [ "$CMDS" ] && echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS"| ${SED-sed} 's,^,#,'
        if [ "$KERNEL" ]; then
         echo "kernel $KERNEL"
        [ "$INITRD" ] && echo "initrd $INITRD"
@@ -4590,7 +4590,7 @@ output-boot-entry()
        fi
 
        if [ "$CMDS" ]; then
-         echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS" |sed 's,^,  #,'
+         echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS" |${SED-sed} 's,^,  #,'
          fi
 
      ;;
@@ -4643,7 +4643,7 @@ EOF
 
 packed-upx-files()
 {
-    upx -l "$@" 2>&1 | sed -n '$ { \,files\s*\]$,d } ;; $! { \,->, s,.*->\s\+[0-9]\+\s\+[.0-9]\+%\s\+[^ ]\+\s\+\(.*\),\1,p }'
+    upx -l "$@" 2>&1 | ${SED-sed} -n '$ { \,files\s*\]$,d } ;; $! { \,->, s,.*->\s\+[0-9]\+\s\+[.0-9]\+%\s\+[^ ]\+\s\+\(.*\),\1,p }'
 }
 
 parse-boot-entry()
@@ -4747,9 +4747,9 @@ parse-boot-entry()
 partition-table-type()
 {
     ( if command-exists "parted"; then
-        parted "$1" p | sed -n 's,.*Table:\s\+,,p';
+        parted "$1" p | ${SED-sed} -n 's,.*Table:\s\+,,p';
     else
-        ( eval "$(  gdisk -l "$(disk-device-for-partition "$1")" |sed 's,\s*not present$,,' |sed -n  's,^\s*\([[:upper:]]\+\):\(\s*\)\(.*\),\1="\3",p')";
+        ( eval "$(  gdisk -l "$(disk-device-for-partition "$1")" |${SED-sed} 's,\s*not present$,,' |${SED-sed} -n  's,^\s*\([[:upper:]]\+\):\(\s*\)\(.*\),\1="\3",p')";
         if [ "$MBR" -a "$GPT" ]; then
             echo "mbr+gpt";
         else
@@ -4841,8 +4841,8 @@ pathtool() {
   [ $# -gt 0 ] && exec <<<"$*"
 
   case "$F" in
-    -w | -m) ROOTS=$(mount | sed -n '\|/cygdrive|! s,^\([^ ]*\) on \(.*\) type.*,\\|^.:|! { \\|^/cygdrive|! { s|^\2|\1| } };,p') ;;
-    *) ROOTS=$( mount  | sed -n '\|/cygdrive|! s,^\([^ ]*\) on \(.*\) type.*,\1\n\2,p' | sed '/^.:/ { s|/|\[\\\\/\]|g; N; s,\n,|, ; s,.*,s|^&|; , }') ;;
+    -w | -m) ROOTS=$(mount | ${SED-sed} -n '\|/cygdrive|! s,^\([^ ]*\) on \(.*\) type.*,\\|^.:|! { \\|^/cygdrive|! { s|^\2|\1| } };,p') ;;
+    *) ROOTS=$( mount  | ${SED-sed} -n '\|/cygdrive|! s,^\([^ ]*\) on \(.*\) type.*,\1\n\2,p' | ${SED-sed} '/^.:/ { s|/|\[\\\\/\]|g; N; s,\n,|, ; s,.*,s|^&|; , }') ;;
   esac
 
   EXPR="${EXPR:+$EXPR ;; }$ROOTS"
@@ -4858,8 +4858,8 @@ pathtool() {
 	-w) EXPR="${EXPR:+$EXPR ;; }s|/|\\\\|g" ;;
   esac
 
-  [ "$DEBUG" = true ] && echo "+ sed '$EXPR'"
-  sed "$EXPR")
+  [ "$DEBUG" = true ] && echo "+ ${SED-sed} '$EXPR'"
+  ${SED-sed} "$EXPR")
 }
 
 pdfpextr()
@@ -4880,7 +4880,7 @@ pdfpextr()
 
 pid-args()
 {
-  pid-of "$@" | sed -n  "/^[0-9]\+$/ s,^,-p\n,p"
+  pid-of "$@" | ${SED-sed} -n  "/^[0-9]\+$/ s,^,-p\n,p"
 }
 
 pid-of() {
@@ -4893,7 +4893,7 @@ pid-of() {
     fi
     for ARG in "$@"; do
       eval "$PGREP_CMD"
-    done | sed -n 's/^\([0-9]\+\)\r\?$/\1/p')
+    done | ${SED-sed} -n 's/^\([0-9]\+\)\r\?$/\1/p')
 }
 
 pkg-name()
@@ -4922,7 +4922,7 @@ pkgsearch()
     for ARG in "$@";
     do
         sudo yum -y search "${ARG%%[!-A-Za-z0-9]*}" | grep --color=auto --color=auto --color=auto --color=auto -i "$ARG[^ ]* : ";
-    done | sed -n "/^[^ ]/ s,\..* : , : ,p" | grep --color=auto --color=auto --color=auto --color=auto -vE "($(IFS='| '; set -- $EXCLUDE; echo "$*"))" | uniq )
+    done | ${SED-sed} -n "/^[^ ]/ s,\..* : , : ,p" | grep --color=auto --color=auto --color=auto --color=auto -vE "($(IFS='| '; set -- $EXCLUDE; echo "$*"))" | uniq )
 }
 
 player-file()
@@ -4938,7 +4938,7 @@ player-file()
           esac
   done
   SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }s| ([^)]*)\$||"
-    lsof -n $(pid-args "${@-mplayer}") 2> /dev/null 2> /dev/null 2> /dev/null 2> /dev/null | grep  -E ' [0-9]+[^ ]* +REG ' | grep --color=auto -vE ' (mem|txt|DEL) ' | cut-lsof NAME |sed "$SED_SCRIPT" )
+    lsof -n $(pid-args "${@-mplayer}") 2> /dev/null 2> /dev/null 2> /dev/null 2> /dev/null | grep  -E ' [0-9]+[^ ]* +REG ' | grep --color=auto -vE ' (mem|txt|DEL) ' | cut-lsof NAME |${SED-sed} "$SED_SCRIPT" )
 }
 
 proc-by-pid() {
@@ -4946,7 +4946,7 @@ proc-by-pid() {
     PSARGS="-W"
   fi
   for ARG; do
-     ps $PSARGS -p "$ARG" | sed 1d
+     ps $PSARGS -p "$ARG" | ${SED-sed} 1d
   done |cut-ls-l 7
 }
 
@@ -5014,7 +5014,7 @@ randhex()
 random-acquire()
 {
     local n IFS="$newline";
-    for n in $(echo "$@" | hexdump -d | sed "s,^[0-9a-f]\+\s*,,;s,\s\+,\n,g");
+    for n in $(echo "$@" | hexdump -d | ${SED-sed} "s,^[0-9a-f]\+\s*,,;s,\s\+,\n,g");
     do
         local rot=$(( (${random_seed:-0xdeadbeef} + (n >> 11)) & 0x1f)) xor=$((${random_seed:-0xdeadbeef} - (n & 0x07ff)));
         random_seed=$(( ($(bitrotate $(( ${random_seed:-0xdeadbeef} )) $rot) ^ $xor) & 0xffffffff ));
@@ -5055,12 +5055,12 @@ regexp-to-fnmatch()
     esac;
     case $expr in
         *'.*'*)
-            expr=`echo "$expr" | sed "s,\.\*,\*,g"`
+            expr=`echo "$expr" | ${SED-sed} "s,\.\*,\*,g"`
         ;;
     esac;
     case $expr in
         *'.'*)
-            expr=`echo "$expr" | sed "s,\.,\?,g"`
+            expr=`echo "$expr" | ${SED-sed} "s,\.,\?,g"`
         ;;
     esac;
     echo "$expr" )
@@ -5082,11 +5082,11 @@ reload()
     done;
     script=$(require -p -n ${1%.sh});
     name=${script%.sh}_sh;
-    var=$(echo lib/$name | sed -e s,/,_,g);
+    var=$(echo lib/$name | ${SED-sed} -e s,/,_,g);
     if test "$force" = yes; then
         verbose "Forcing reload of $script";
         local fn;
-        for fn in $(sed -n -e 's/^\([_a-z][_0-9a-z]*\)().*/\1/p' $shlibdir/$script);
+        for fn in $(${SED-sed} -n -e 's/^\([_a-z][_0-9a-z]*\)().*/\1/p' $shlibdir/$script);
         do
             case $fn in
                 require | verbose | msg)
@@ -5108,9 +5108,9 @@ remove-cond-include() {
   shift
 
   INCNAME="${INC##*/include/}"
-  INCDEF=HAVE_$(echo "$INCNAME" | sed 's,[/.],_,g' | tr '[[:'{lower,upper}':]]')
+  INCDEF=HAVE_$(echo "$INCNAME" | ${SED-sed} 's,[/.],_,g' | tr '[[:'{lower,upper}':]]')
 
-  sed -i "\\|^\s*#\s*if[^\n]*def[^\n]*$INCDEF| {
+  ${SED-sed} -i "\\|^\s*#\s*if[^\n]*def[^\n]*$INCDEF| {
     :lp
     /#\s*endif/! { N; b lp; }
 
@@ -5123,7 +5123,7 @@ remove-cond-include() {
 
 remove-emptylines()
 {
-    sed -e '/^\s*$/d' "$@"
+    ${SED-sed} -e '/^\s*$/d' "$@"
 }
 
 removeprefix()
@@ -5230,7 +5230,7 @@ rm-arch()
     ( IFS="
 ";
     [ $# -gt 0 ] && exec <<< "$*";
-    sed 's,\.[^\.]*$,,' )
+    ${SED-sed} 's,\.[^\.]*$,,' )
 }
 
 rm-ver()
@@ -5238,7 +5238,7 @@ rm-ver()
     ( IFS="
 ";
     [ $# -gt 0 ] && exec <<< "$*";
-    sed 's,-[^-]*$,,' )
+    ${SED-sed} 's,-[^-]*$,,' )
 }
 
 rmv()
@@ -5258,7 +5258,7 @@ rpm-cmd() {
   done
 
  #CMD="addprefix \"\$ARG: \""
- CMD="sed \"s|^\\./|| ;; s|^|\$ARG: |\""
+ CMD="${SED-sed} \"s|^\\./|| ;; s|^|\$ARG: |\""
  #N=$#
 
   while [ $# -gt 0 ]; do
@@ -5269,7 +5269,7 @@ rpm-cmd() {
       #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
       #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
     *://*)
-      MIRRORLIST=`curl -s "$ARG.mirrorlist" |sed -n 's,\s*<li><a href="\([^"]*\.rpm\)">.*,\1,p'`
+      MIRRORLIST=`curl -s "$ARG.mirrorlist" |${SED-sed} -n 's,\s*<li><a href="\([^"]*\.rpm\)">.*,\1,p'`
 
       if [ -n "$MIRRORLIST" ]; then
         set -- $MIRRORLIST
@@ -5340,7 +5340,7 @@ CVSPASS='echo "grep -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <
 \1 :pserver:anonymous@$ARG.cvs.sourceforge.net:2401/cvsroot/$ARG A
 EOF"'
   for ARG; do
-    CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | sed -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
+    CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | ${SED-sed} -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
    (set -- $(eval "$CMD")
     test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
     CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
@@ -5362,7 +5362,7 @@ sf-get-git-repos() {
       xml_get a data-url |
       head -n1
   done |
-    sed "s|-git\$|| ;; s|-code\$||" |
+    ${SED-sed} "s|-git\$|| ;; s|-code\$||" |
     addsuffix "-git")
 }
 
@@ -5373,7 +5373,7 @@ sf-get-svn-modules() {
       xml_get a data-url |
       head -n1
   done |
-    sed "s|-svn\$|| ;; s|-code\$||" |
+    ${SED-sed} "s|-svn\$|| ;; s|-code\$||" |
     addsuffix "-svn")
 }
 
@@ -5385,7 +5385,7 @@ shell-functions()
 }
 
 shortcut-cmd() {
-    readshortcut -a -f "$1" | sed 's,^Arguments:\s*\(.*\),-a\n"\1",
+    readshortcut -a -f "$1" | ${SED-sed} 's,^Arguments:\s*\(.*\),-a\n"\1",
     s,^Description:\s\+\(.*\),-d\n"\1",g
     s,^Icon Library Offset:\s*\(.*\),-j\n\1,g
     s,^Icon Library:\s*\(.*\),-i\n\"\1\",g
@@ -5432,7 +5432,7 @@ split()
     for _a__ in $_s__;
     do
         shift;
-        eval "$1='`echo "$_a__" | sed "s,','\\\\'',g"`'";
+        eval "$1='`echo "$_a__" | ${SED-sed} "s,','\\\\'',g"`'";
     done
 }
 
@@ -5460,12 +5460,12 @@ srate()
     test $N -le 1 && EXPR=".*$EXPR" || EXPR="$EXPR:"
     EXPR="s,$EXPR\\1\\2,p"
 
-    SRATE=$(file "$ARG" |sed -n "$EXPR" |sed 's,[Kk]$,000,')
+    SRATE=$(file "$ARG" |${SED-sed} -n "$EXPR" |${SED-sed} 's,[Kk]$,000,')
     #echo "EXPR='$EXPR'" 1>&2
 
     test -n "$SRATE" && echo "$SRATE" || (
-      #mminfo "$ARG" | sed -n "/Sampling rate[^=]*=/ { s,Hz,,; s,[Kk],000, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }" | tail -n1
-      SRATE=$(mminfo "$ARG" | sed -n "/Sampling rate[^=]*=/ { s,.*[:=],,; s,Hz,,; s,\.[0-9]*\$,, ; s|^|$ARG:|;  p }" | tail -n1)
+      #mminfo "$ARG" | ${SED-sed} -n "/Sampling rate[^=]*=/ { s,Hz,,; s,[Kk],000, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }" | tail -n1
+      SRATE=$(mminfo "$ARG" | ${SED-sed} -n "/Sampling rate[^=]*=/ { s,.*[:=],,; s,Hz,,; s,\.[0-9]*\$,, ; s|^|$ARG:|;  p }" | tail -n1)
       SRATE=${SRATE##*:}
       case "$SRATE" in
           *[Kk])
@@ -5500,7 +5500,7 @@ submatch()
   : ${vs=2013} ${vc=12}
 
 	s() {
-	  sed 's,20[01][0-9],'$vs',g ;; s, [8-9] , '$vc' ,g  ;; s, 1[0124] , '$vc' ,g' "$@"
+	  ${SED-sed} 's,20[01][0-9],'$vs',g ;; s, [8-9] , '$vc' ,g  ;; s, 1[0124] , '$vc' ,g' "$@"
 	}
 	for x in ${@:-build/vs2008-*/build.cmd}; do
 		y=$(s <<<"$x")
@@ -5517,11 +5517,11 @@ subst-script()
     do
         if [ "$var" != "${var%%=*}" ]; then
             value=${var#*=};
-            value=`echo "$value" | sed 's,\\\\,\\\\\\\\,g'`;
+            value=`echo "$value" | ${SED-sed} 's,\\\\,\\\\\\\\,g'`;
             array_push script "s°@${var%%=*}@°`array_implode value '\n'`°g";
         else
             value=`var_get "$var"`;
-            value=`echo "$value" | sed 's,\\\\,\\\\\\\\,g'`;
+            value=`echo "$value" | ${SED-sed} 's,\\\\,\\\\\\\\,g'`;
             array_push script "s°@$var@°`array_implode value '\n'`°g";
         fi;
     done;
@@ -5645,13 +5645,13 @@ to-expr() { echo "${*//[!-a-zA-Z0-9_=%:\/ <>\']/.}"; }
 to-sed-expr()
 {
  ([ $# -gt 0 ] && exec <<<"$*"
-  sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
+  ${SED-sed} 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
 }
 
 to-sed-expr()
 {
  ([ $# -gt 0 ] && exec <<<"$*"
-  sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
+  ${SED-sed} 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
 }
 
 umount-all()
@@ -5675,12 +5675,12 @@ umount-matching()
 
 undotslash()
 {
-    sed -e "s:^\.\/::" "$@"
+    ${SED-sed} -e "s:^\.\/::" "$@"
 }
 
 unescape-newlines()
 {
-    sed -e ':start
+    ${SED-sed} -e ':start
   /\$/ {
   N
   s|\\\n[ \t]*||
@@ -5755,7 +5755,7 @@ usleep()
 
 uuid-hexnums()
 {
-    getuuid "$1" | sed "s,[0-9A-Fa-f][0-9A-Fa-f], ${2:-0x}&,g" | sed "s,^\s*,, ; s,\s\+,\n,g"
+    getuuid "$1" | ${SED-sed} "s,[0-9A-Fa-f][0-9A-Fa-f], ${2:-0x}&,g" | ${SED-sed} "s,^\s*,, ; s,\s\+,\n,g"
 }
 
 var-get() {
@@ -5840,9 +5840,9 @@ vcget() {
    VSVARS="${ARCH:+$VCVARSARCH}"
    : ${VSVARS:="$VSINSTALLDIR\\Common7\\Tools\\vsvars32.bat"}
 
-  WindowsSdkDir=$(reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows" /v "CurrentInstallFolder" | sed -n "s|.*REG_SZ\s\+||p")
+  WindowsSdkDir=$(reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows" /v "CurrentInstallFolder" | ${SED-sed} -n "s|.*REG_SZ\s\+||p")
 
-  local $(grep -i -E "^\s*@?set \"?(INCLUDE|LIB|LIBPATH|FrameworkDir|FrameworkVersion|Framework35Version)=" "$VSVARS" | sed \
+  local $(grep -i -E "^\s*@?set \"?(INCLUDE|LIB|LIBPATH|FrameworkDir|FrameworkVersion|Framework35Version)=" "$VSVARS" | ${SED-sed} \
    -e "s,.*set \"\?\([^\"]\+\)\"\?,\1,i" \
    -e "s|%VCINSTALLDIR%|${VCINSTALLDIR//"\\"/"\\\\"}|g" \
    -e "s|%VSINSTALLDIR%|${VSINSTALLDIR//"\\"/"\\\\"}|g" \
@@ -5877,7 +5877,7 @@ vcodec()
     N="$#";
     for ARG in "$@"
     do
-     ( D=$(mminfo "$ARG" |sed -n 's,Codec ID=,,p ;  s,Writing library=,,p' )
+     ( D=$(mminfo "$ARG" |${SED-sed} -n 's,Codec ID=,,p ;  s,Writing library=,,p' )
        set -- $D
        [ $# -gt 1 ] && shift
 #        while [ $# -gt 1 ]; do shift; done
@@ -5920,7 +5920,7 @@ video-height()
     ( for ARG in "$@";
     do
         [ $# -gt 1 ] && PFX="$ARG: " || unset PFX;
-        mminfo "$ARG" | sed -n "s|^Height=|$PFX|p";
+        mminfo "$ARG" | ${SED-sed} -n "s|^Height=|$PFX|p";
     done )
 }
 
@@ -5929,7 +5929,7 @@ video-width()
     ( for ARG in "$@";
     do
         [ $# -gt 1 ] && PFX="$ARG: " || unset PFX;
-        mminfo "$ARG" | sed -n "s|^Width=|$PFX|p";
+        mminfo "$ARG" | ${SED-sed} -n "s|^Width=|$PFX|p";
     done )
 }
 
@@ -5937,7 +5937,7 @@ vlcfile()
 {
     ( IFS="
 ";
-    set -- ` handle -p $(vlcpid)|grep -vi "$(${PATHTOOL:-echo} "$WINDIR"| sed 's,/,.,g')"  |sed -n -u 's,.*: File  (RW-)\s\+,,p'
+    set -- ` handle -p $(vlcpid)|grep -vi "$(${PATHTOOL:-echo} "$WINDIR"| ${SED-sed} 's,/,.,g')"  |${SED-sed} -n -u 's,.*: File  (RW-)\s\+,,p'
 `;
     for X in "$@";
     do
@@ -5972,7 +5972,7 @@ volname() {
           *) drive=$(${PATHTOOL:-echo} ${PATHTOOL:+-m} "$drive") ; drive=${drive%%:*}: ;;
         esac  
         #drive=$(${PATHTOOL:-echo} "$drive")
-        NAME=$(cmd /c "vol ${drive%%[\\/]*}" | sed -n '/Volume in drive/ s,.* is ,,p')
+        NAME=$(cmd /c "vol ${drive%%[\\/]*}" | ${SED-sed} -n '/Volume in drive/ s,.* is ,,p')
         eval "$ECHO"
     done
   fi)
@@ -6062,7 +6062,7 @@ x-fn()
   FN="$1";
   shift;
   #: ${XTRA="$XTRA; s/^/-->/; s/\n/\n-->/g"}
-  sed " :lp0
+  ${SED-sed} " :lp0
    \$ { /\n/! $NOMATCH; }
     N
     /\n/! b lp0
@@ -6098,13 +6098,13 @@ x-fn()
 }
 
 yaourt-cutnum() {
- #(NAME='\([^ \t/]\+\)';  sed "s|^${NAME}/${NAME}\s\+\(.*\)\s\+\(([0-9]\+)\)\(.*\)|\1/\2 \3 \5|")
- sed "s|\s\+\(([0-9]\+)\)\(.*\)| \2|"
+ #(NAME='\([^ \t/]\+\)';  ${SED-sed} "s|^${NAME}/${NAME}\s\+\(.*\)\s\+\(([0-9]\+)\)\(.*\)|\1/\2 \3 \5|")
+ ${SED-sed} "s|\s\+\(([0-9]\+)\)\(.*\)| \2|"
 }
 
 yaourt-cutver() {
  (NAME='\([^ \t/]\+\)'
- sed "s|^${NAME}/${NAME}\s\+\([^ \t]\+\)\s\+\(.*\)|\1/\2 \4|")
+ ${SED-sed} "s|^${NAME}/${NAME}\s\+\([^ \t]\+\)\s\+\(.*\)|\1/\2 \4|")
 }
 
 yaourt-joinlines() {
@@ -6168,7 +6168,7 @@ yaourt-joinlines() {
 
 yaourt-pkgnames() {
  (NAME='\([^ \t/]\+\)'
- sed -n "s|^${NAME}/${NAME}\s\+\(.*\)|\2|p")
+ ${SED-sed} -n "s|^${NAME}/${NAME}\s\+\(.*\)|\2|p")
 }
 
 yes()
@@ -6180,7 +6180,7 @@ yes()
 
 yum-joinlines()
 { 
-    sed '/^[^ ]/ { :lp; N; /\n\s.*:\s/ { s,\n\s\+:\s*, , ; b lp };  :lp2; /\n/ { P; D; b  lp2; } }' "$@"
+    ${SED-sed} '/^[^ ]/ { :lp; N; /\n\s.*:\s/ { s,\n\s\+:\s*, , ; b lp };  :lp2; /\n/ { P; D; b  lp2; } }' "$@"
 }
 
 yum-rpm-list-all-pkgs()
@@ -6188,10 +6188,10 @@ yum-rpm-list-all-pkgs()
   require rpm
 
   yum list all >yum.list
-  #sed -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1,p' <yum.list >pkgs.list
-  sed -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1\2,p' <yum.list >pkgs.list
-  #rpm_list |sort |sed 's,\.[^.]\+$,, ; s,\.[^.]\+$,, ; s,-[^-]\+$,, ; s,-[^-]\+$,,' >rpm.list
-  rpm_list |sort |sed  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" >rpm.list
+  #${SED-sed} -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1,p' <yum.list >pkgs.list
+  ${SED-sed} -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1\2,p' <yum.list >pkgs.list
+  #rpm_list |sort |${SED-sed} 's,\.[^.]\+$,, ; s,\.[^.]\+$,, ; s,-[^-]\+$,, ; s,-[^-]\+$,,' >rpm.list
+  rpm_list |sort |${SED-sed}  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" >rpm.list
 
   rpm_expr=^$(grep-e-expr $(<rpm.list))
 
@@ -6237,7 +6237,7 @@ _cygpath()
             vappend EXPR 's,/,\\,g'
         ;;
     esac;
-    FLTR="sed -e \"\${EXPR}\"";
+    FLTR="${SED-sed} -e \"\${EXPR}\"";
     if [ $# -le 0 ]; then
         PRNT="";
     else
@@ -6260,7 +6260,7 @@ _msyspath()
   esac
   case $MODE in
     win*|mix*)
-      for MOUNT in $(mount | sed -n 's|\\|\\\\|g ;; s,\(.\):\\\(.\+\) on \(.*\) type .*,\1:\\\2|\3,p'); do
+      for MOUNT in $(mount | ${SED-sed} -n 's|\\|\\\\|g ;; s,\(.\):\\\(.\+\) on \(.*\) type .*,\1:\\\2|\3,p'); do
         DEV=${MOUNT%'|'*}
         MNT=${MOUNT##*'|'}
         test "$MNT" = / && DEV="$DEV\\\\"
@@ -6268,7 +6268,7 @@ _msyspath()
         add_to_script "/^.:/! s|^${MNT}|${DEV}|"
        done
 
-       #ROOT=$(mount | sed -n 's,\\,\\\\,g ;; s|\s\+on\s\+/\s\+.*||p')
+       #ROOT=$(mount | ${SED-sed} -n 's,\\,\\\\,g ;; s|\s\+on\s\+/\s\+.*||p')
       #add_to_script "/^.:/!  s|^|$ROOT|"
     ;;
   esac
@@ -6282,6 +6282,6 @@ _msyspath()
     win*)  add_to_script "s|^a:|A:|" "s|^b:|B:|" "s|^c:|C:|" "s|^d:|D:|" "s|^e:|E:|" "s|^f:|F:|" "s|^g:|G:|" "s|^h:|H:|" "s|^i:|I:|" "s|^j:|J:|" "s|^k:|K:|" "s|^l:|L:|" "s|^m:|M:|" "s|^n:|N:|" "s|^o:|O:|" "s|^p:|P:|" "s|^q:|Q:|" "s|^r:|R:|" "s|^s:|S:|" "s|^t:|T:|" "s|^u:|U:|" "s|^v:|V:|" "s|^w:|W:|" "s|^x:|X:|" "s|^y:|Y:|" "s|^z:|Z:|" ;;
   esac
   #echo "SCRIPT=$SCRIPT" 1>&2
- (sed "$SCRIPT" "$@")
+ (${SED-sed} "$SCRIPT" "$@")
  )
 }

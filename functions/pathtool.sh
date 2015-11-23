@@ -9,8 +9,8 @@ pathtool() {
   [ $# -gt 0 ] && exec <<<"$*"
 
   case "$F" in
-    -w | -m) ROOTS=$(mount | sed -n '\|/cygdrive|! s,^\([^ ]*\) on \(.*\) type.*,\\|^.:|! { \\|^/cygdrive|! { s|^\2|\1| } };,p') ;;
-    *) ROOTS=$( mount  | sed -n '\|/cygdrive|! s,^\([^ ]*\) on \(.*\) type.*,\1\n\2,p' | sed '/^.:/ { s|/|\[\\\\/\]|g; N; s,\n,|, ; s,.*,s|^&|; , }') ;;
+    -w | -m) ROOTS=$(mount | ${SED-sed} -n '\|/cygdrive|! s,^\([^ ]*\) on \(.*\) type.*,\\|^.:|! { \\|^/cygdrive|! { s|^\2|\1| } };,p') ;;
+    *) ROOTS=$( mount  | ${SED-sed} -n '\|/cygdrive|! s,^\([^ ]*\) on \(.*\) type.*,\1\n\2,p' | ${SED-sed} '/^.:/ { s|/|\[\\\\/\]|g; N; s,\n,|, ; s,.*,s|^&|; , }') ;;
   esac
 
   EXPR="${EXPR:+$EXPR ;; }$ROOTS"
@@ -26,6 +26,6 @@ pathtool() {
 	-w) EXPR="${EXPR:+$EXPR ;; }s|/|\\\\|g" ;;
   esac
 
-  [ "$DEBUG" = true ] && echo "+ sed '$EXPR'"
-  sed "$EXPR")
+  [ "$DEBUG" = true ] && echo "+ ${SED-sed} '$EXPR'"
+  ${SED-sed} "$EXPR")
 }

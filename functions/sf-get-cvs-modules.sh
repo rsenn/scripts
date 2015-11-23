@@ -5,7 +5,7 @@ CVSPASS='echo "grep -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <
 \1 :pserver:anonymous@$ARG.cvs.sourceforge.net:2401/cvsroot/$ARG A
 EOF"'
   for ARG; do
-    CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | sed -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
+    CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | ${SED-sed} -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
    (set -- $(eval "$CMD")
     test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
     CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"

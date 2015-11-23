@@ -31,7 +31,7 @@ list-rpm() {
       *) RPM=$(realpath "$ARG") ;;
     esac
     cd "$TEMP"
-    set -- $( (    7z l "$RPM" |sed -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
+    set -- $( (    7z l "$RPM" |${SED-sed} -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
     (exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |grep "\\.cpio\$")
     if [ $# -le 0 ]; then
       exit 1

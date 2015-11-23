@@ -37,11 +37,11 @@ mkbuilddir() {
     SRCDIR=${ABSDIR%/build*}
 	if [ -e "$SRCDIR/CMakeLists.txt" ] ; then
 	  CMAKELISTS="$SRCDIR/CMakeLists.txt"
-      CMAKELISTS_ADD=$( sed -n "s|.*add_subdirectory(\s*\([^ )]*\)\s*).*|$SRCDIR/\1/CMakeLists.txt|p"  "$SRCDIR/CMakeLists.txt" )
+      CMAKELISTS_ADD=$( ${SED-sed} -n "s|.*add_subdirectory(\s*\([^ )]*\)\s*).*|$SRCDIR/\1/CMakeLists.txt|p"  "$SRCDIR/CMakeLists.txt" )
 	  if [ -n "$CMAKELISTS_ADD" ]; then
 		pushv_unique CMAKELISTS $CMAKELISTS_ADD
 	  fi
-	  PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
+	  PROJECT=$(${SED-sed} -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
 	  CONFIGURE_CMD="
 cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
   %* ^

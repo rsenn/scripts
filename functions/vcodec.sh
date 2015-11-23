@@ -11,7 +11,7 @@ vcodec()
     N="$#";
     for ARG in "$@"
     do
-     ( D=$(mminfo "$ARG" |sed -n 's,Codec ID=,,p ;  s,Writing library=,,p' )
+     ( D=$(mminfo "$ARG" |${SED-sed} -n 's,Codec ID=,,p ;  s,Writing library=,,p' )
        set -- $D
        [ $# -gt 1 ] && shift
 #        while [ $# -gt 1 ]; do shift; done

@@ -3,6 +3,6 @@ proc-by-pid() {
     PSARGS="-W"
   fi
   for ARG; do
-     ps $PSARGS -p "$ARG" | sed 1d
+     ps $PSARGS -p "$ARG" | ${SED-sed} 1d
   done |cut-ls-l 7
 }

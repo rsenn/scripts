@@ -1,4 +1,4 @@
 cut-dotslash()
 {
-  sed -u 's,^\.[/\\],,'
+  ${SED-sed} -u 's,^\.[/\\],,'
 }

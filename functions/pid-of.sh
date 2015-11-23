@@ -8,5 +8,5 @@ pid-of() {
     fi
     for ARG in "$@"; do
       eval "$PGREP_CMD"
-    done | sed -n 's/^\([0-9]\+\)\r\?$/\1/p')
+    done | ${SED-sed} -n 's/^\([0-9]\+\)\r\?$/\1/p')
 }
