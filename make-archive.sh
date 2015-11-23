@@ -27,15 +27,16 @@ while :; do
     -d=* | --dest*dir*=*) DESTDIR=${1#*=}; shift ;; 
     -d | --dest*dir*) DESTDIR=$2; shift 2 ;;
     -D | --no*date*) nodate=true; shift  ;;
-    -[EXx] | --exclude) pushv EXCLUDE "$2"; shift 2 ;; 
+    -[EX] | --exclude) pushv EXCLUDE "$2"; shift 2 ;; 
     -[EXx]*) pushv EXCLUDE "${1#-?}"; shift ;; 
     -[EXx]=*) pushv EXCLUDE "${1#*=}"; shift ;;
     -e=* | --exclude=*) pushv EXCLUDE "${1#*=}"; shift ;;
+    -x | --debug) DEBUG=true; shift ;;
     *) break ;;
   esac
 done
 
-type gnutar 2>/dev/null >/dev/null && TAR=gnutar ||
+type gtar 2>/dev/null >/dev/null && TAR=gtar ||
 { type gtar 2>/dev/null >/dev/null && TAR=gtar; }
 : ${TAR=tar}
 
@@ -45,15 +46,20 @@ type gnutar 2>/dev/null >/dev/null && TAR=gnutar ||
 ABSDESTDIR=`cd "$DESTDIR" && pwd`
 
 
-if [ "$1" ]; then
-  case "$1" in
-    *.tar*|*.7z|*.rar|*.zip|*.t?z|*.cpio)   archive=$1; shift ;;
-  esac
-fi
-
 while [ -d "$1" ]; do
   dirs="${dirs:+$dirs
 }$1"; shift
+done
+
+
+[ "$DEBUG"  = true ] && echo "+ dirs="$@ 1>&2 
+while [ $# -gt 0 ]; do
+
+  if [ "$1" ]; then
+    case "$1" in
+      *.tar*|*.7z|*.rar|*.zip|*.t?z|*.cpio)   archive=$1; shift ;;
+    esac
+  fi
 done
 
 DIR1=$(set -- $dirs; echo "${1##*/}")
