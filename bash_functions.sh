@@ -4941,15 +4941,6 @@ player-file()
     lsof -n $(pid-args "${@-mplayer}") 2> /dev/null 2> /dev/null 2> /dev/null 2> /dev/null | grep  -E ' [0-9]+[^ ]* +REG ' | grep --color=auto -vE ' (mem|txt|DEL) ' | cut-lsof NAME |sed "$SED_SCRIPT" )
 }
 
-port-joinlines () { 
-    sed -n '/ @/ {
-      :lp
-      /\n *$/! { N; b lp; }
-      s|\n| - |g
-      s|[- ]*$||; p
-    }' "$@"
-}
-
 proc-by-pid() {
   if ps --help 2>&1 |grep -q '\-W'; then
     PSARGS="-W"
