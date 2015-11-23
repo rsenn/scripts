@@ -6,7 +6,7 @@ index-dir() {
       *) break ;;
     esac
   done
-  ( 
+  ( exec 9>&2
   [ "$(uname -m)" = "x86_64" ] && : ${R64="64"}
   for ARG in "$@"; do
    (cd "$ARG"
@@ -20,14 +20,16 @@ index-dir() {
     ( if type list-r${R64} 2>/dev/null >/dev/null; then  
         CMD=list-r${R64} 
       elif type list-r 2>/dev/null >/dev/null; then  
-        CMD=${R64} 
+        CMD=list-r
       else 
         CMD=list-recursive
       fi
-[ "$DEBUG" = true ] && echo "$ARG:+ $CMD" 1>&2
+[ "$DEBUG" = true ] && echo "$ARG:+ $CMD" 1>&9
       eval "$CMD"
     ) 2>/dev/null >"$TEMP"
     ( install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/files.list"
     wc -l "$PWD/files.list" 1>&2 )
-  done )
+  done 
+  #exec 9>&-
+  )
 }
