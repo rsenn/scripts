@@ -1,14 +1,14 @@
 MACPORTS_ROOT=/opt/local
 
 set-macports() {
-  PATH=$MACPORTS_ROOT/bin:$MACPORTS_ROOT/libexec/gnubin:$(IFS=":"; O=; for D in $PATH; do 
+  PATH=$MACPORTS_ROOT/bin:$MACPORTS_ROOT/libexec/gnubin:`IFS=":"; O=; for D in $PATH; do 
     case "$D" in
-      */local/* |*/local) continue ;;
+      */local/* | */local) continue ;;
       */gnubin) continue ;;
       *) O="${O:+$O:}$D" ;;
     esac
 done
-echo "$O")
+echo "$O"`
 }
 
 set-macports
