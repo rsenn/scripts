@@ -2150,7 +2150,7 @@ grep-e-expr()
 {
   [ $# -gt 0 ] && exec <<<"$*"
 
-  ${SED-sed} 's,[().*?|\\+],\\&,g ; s,\[,\\[,g ; s,\],\\],g' | implode "|" | ${SED-sed} 's,.*,(&),'
+  sed 's,[().*?|\\+],\\&,g ; s,\[,\\[,g ; s,\],\\],g' | implode "|" | sed 's,.*,(&),'
 }
 
 grep-e()
@@ -4588,8 +4588,8 @@ output-boot-entry()
     ;;
     grub2)
        echo "menuentry \"$TITLE\" {"
-       echo "  linux $KERNEL"
-       echo "  initrd $INITRD"
+       echo "  linux${EFI} $KERNEL"
+       echo "  initrd${EFI} $INITRD"
        echo "}"
     ;;
     syslinux|isolinux)

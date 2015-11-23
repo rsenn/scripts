@@ -159,8 +159,11 @@ currentpath()
   [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}
   echo "$CWD")
 }
-
+echo OS=$OS 1>&2
 case "${OS}" in
+darwin*) 
+    MEDIAPATH="/Volumes/*/"
+    ;;
    msys* | Msys* |MSys* | MSYS*)
     MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
     PATHTOOL=msyspath
