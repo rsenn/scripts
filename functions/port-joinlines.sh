@@ -1,5 +1,5 @@
 port-joinlines() { 
-  $${SED-sed} -n '/ @/ {
+  ${SED-sed} -n '/ @/ {
     :lp
     /\n *$/! { N; b lp; }
     s|\n| - |g
