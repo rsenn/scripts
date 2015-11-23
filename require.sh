@@ -87,10 +87,10 @@ $oldifs "
     if test -n "$cur" && test "$cur" = "${cur%/*}"
     then
       libs=$libs'
-'`cd "$shlibdir" && find */ -name "*.sh" | sed 's,.*/,,'`
+'`cd "$shlibdir" && find */ -name "*.sh" | ${SED-sed} 's,.*/,,'`
     fi
 
-    COMPREPLY=( $( compgen -W "`echo "$libs" | sed 's,\.sh$,,'`" -- $cur ) )
+    COMPREPLY=( $( compgen -W "`echo "$libs" | ${SED-sed} 's,\.sh$,,'`" -- $cur ) )
 
     if [ ${#COMPREPLY[@]} = 1 ]
     then
@@ -100,7 +100,7 @@ $oldifs "
 
       if ! test -f "$shlibdir/${COMPREPLY[0]}.sh"
       then
-        COMPREPLY=( `cd "$shlibdir" && find */ -name "${COMPREPLY[0]}.sh" | sed 's,\.sh$,,'` )
+        COMPREPLY=( `cd "$shlibdir" && find */ -name "${COMPREPLY[0]}.sh" | ${SED-sed} 's,\.sh$,,'` )
       fi
     fi
 

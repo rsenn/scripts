@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sed -n '/definition\s*(/ { 
+${SED-sed} -n '/definition\s*(/ { 
 
   :lp1
   /{/! { 

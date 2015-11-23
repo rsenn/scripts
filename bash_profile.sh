@@ -95,7 +95,7 @@ fi
 #	false find fmt fold groups head hostid id install join kill libtool \
 #	libtoolize link ln locate logname m4 md5sum mkdir mkfifo mknod mktemp mv \
 #	nice nl nohup nproc numfmt od oldfind paste pathchk pinky pr printenv printf \
-#	ptx pwd readlink realpath rm rmdir runcon sed seq sha1sum sha224sum sha256sum \
+#	ptx pwd readlink realpath rm rmdir runcon ${SED-sed} seq sha1sum sha224sum sha256sum \
 #	sha384sum sha512sum shred shuf sleep sort split stat stdbuf stty sum sync tac \
 #	tail tee test timeout touch tr true truncate tsort tty uname unexpand uniq \
 #	unlink updatedb uptime users vdir wc who whoami xargs yes
@@ -274,7 +274,7 @@ FNS="$HOME/.bash_functions"
 #{
 #  case "$MEDIAPATH" in
 #    *{*)
-#      MEDIA=$(ls  --color=no -d $MEDIAPATH" 2>/dev/null |sed -n 's,/*$,, ; s,.*/,,; /#[a-z]$/p')
+#      MEDIA=$(ls  --color=no -d $MEDIAPATH" 2>/dev/null |${SED-sed} -n 's,/*$,, ; s,.*/,,; /#[a-z]$/p')
 #      MEDIAPATH="/{$(IFS=",$IFS"; set -- $MEDIA; echo "$*")}"
 #      unset MEDIA
 #      ;;
@@ -358,6 +358,6 @@ for p in /{opt,usr}/local/{s,}bin /opt/local/libexec/gnubin ; do
 done
 
 if type gcc 2>/dev/null >/dev/null; then
-  builddir=build/`gcc -dumpmachine | sed 's,\r*$,,'`
+  builddir=build/`gcc -dumpmachine | ${SED-sed} 's,\r*$,,'`
 fi
 }; _dot_bash_profile=1

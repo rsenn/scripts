@@ -79,7 +79,7 @@ main() {
      unified*) DIFFOPTS="$DIFFOPTS -U${FORMAT#unified}" ;;
   esac     
   
-  DIFFOPTS="$DIFFOPTS -x{"$(sed "s|.*|'&'|" <<<"$EXCLUDE" | implode ",")"}"
+  DIFFOPTS="$DIFFOPTS -x{"$(${SED-sed} "s|.*|'&'|" <<<"$EXCLUDE" | implode ",")"}"
 
 	NAME=`get_name "$1"`
 	OLD_VERSION=`get_version "$1"`

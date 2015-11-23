@@ -22,7 +22,7 @@ output()
 
    for NAME; do
 	 if [ "$PLAYLIST" = true ]; then
-      TITLE=`basename "${NAME%.*}" | sed "s|[^[:alnum:]]\+| |g" | sed "s|\sTvR\s\?||gi ;; s|\sXivD\s\?||gi ;; s|\sXviD\s\?||gi ;; s|\sdTV\s\?||gi ;; s|\sHDTV\s\?||gi ;; s|\sGerman$||"`
+      TITLE=`basename "${NAME%.*}" | ${SED-sed} "s|[^[:alnum:]]\+| |g" | ${SED-sed} "s|\sTvR\s\?||gi ;; s|\sXivD\s\?||gi ;; s|\sXviD\s\?||gi ;; s|\sdTV\s\?||gi ;; s|\sHDTV\s\?||gi ;; s|\sGerman$||"`
 	    echo "#EXTINF:,${TITLE}"
 			echo "${NAME}"
 	 elif [ "$SHOW_FILES" = true ]; then
@@ -48,7 +48,7 @@ FILES=$(find "${@-.}" -type f -size +20M)
 echo "Found $(count $FILES) files." 1>&2
 
 
-EPISODES=`echo "$FILES" |sed -n 's,.*[Ss]\([0-9][0-9]\)[Ee]\([0-9][0-9]\).*,S\1E\2,p' |sort -u`
+EPISODES=`echo "$FILES" |${SED-sed} -n 's,.*[Ss]\([0-9][0-9]\)[Ee]\([0-9][0-9]\).*,S\1E\2,p' |sort -u`
 
 set -- $EPISODES
 

@@ -27,7 +27,7 @@ proxy_list()
     while read LIST; do
       if ! isin $LIST $LISTS; then
         curl_get "$PROXY_url/$LIST" | 
-        sed -n "s/.*[^0-9]\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+:[0-9]\+\).*/\1/p"
+        ${SED-sed} -n "s/.*[^0-9]\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+:[0-9]\+\).*/\1/p"
         pushv LISTS $LIST
       fi
     done

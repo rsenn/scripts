@@ -18,11 +18,11 @@ if [ "${PASSWORD+set}" != set ]; then
  fi
 
 SMB_OUTPUT=`smbclient -L "$IP" --user "$CIFSUSER${PASSWORD:+%$PASSWORD}" 2>/dev/null`
-#echo "$SMB_OUTPUT" |tee o|sed 's,^,output: ,'
+#echo "$SMB_OUTPUT" |tee o|${SED-sed} 's,^,output: ,'
 
-: ${SHARES=`echo "$SMB_OUTPUT" | sed -n "/Sharename.*Type/ { :lp1; N; /\n\s*----[^\n]*$/! b lp1; /Workgroup\s\+Master/q; n; :lp2; s,^\s*,, ;; s,\s.*,, ;; /^----/! { /^\s*$/! p; n; $! b lp2; }; b lp1; }" | sed -e '$ { /^Server$/d }' -e '\|\$$|d'`}
+: ${SHARES=`echo "$SMB_OUTPUT" | ${SED-sed} -n "/Sharename.*Type/ { :lp1; N; /\n\s*----[^\n]*$/! b lp1; /Workgroup\s\+Master/q; n; :lp2; s,^\s*,, ;; s,\s.*,, ;; /^----/! { /^\s*$/! p; n; $! b lp2; }; b lp1; }" | ${SED-sed} -e '$ { /^Server$/d }' -e '\|\$$|d'`}
 
-: ${SERVNAME=`echo "$SMB_OUTPUT" |sed -n "/^\s*Server\s/ { N; n; s,^\s*\([^ ]\+\).*,\1,p }" | tr "[:"{upper,lower}":]"`}
+: ${SERVNAME=`echo "$SMB_OUTPUT" |${SED-sed} -n "/^\s*Server\s/ { N; n; s,^\s*\([^ ]\+\).*,\1,p }" | tr "[:"{upper,lower}":]"`}
 
 eval "MNTDIR=\"${MNTDIR}\""
 

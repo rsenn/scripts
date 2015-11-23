@@ -4,7 +4,7 @@ BS="\\"
 IFS="
 "
 find_prog() {
-  PROG=$(type "$1" | sed -n "s|\(.*\) is \(.*\)|\2|p")
+  PROG=$(type "$1" | ${SED-sed} -n "s|\(.*\) is \(.*\)|\2|p")
   test -n "$PROG" -a -e "$PROG" && echo "${PROG##*/}"
 }
 

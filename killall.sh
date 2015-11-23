@@ -32,7 +32,7 @@ IFS=$' \t\r\n'
 #done
 
 : ${OS=`uname -o 2>/dev/null || uname -s 2>/dev/null`}
-SED=sed
+SED=${SED-sed}
 
 if [ "$OS" = Darwin ]; then
   PS="ps"

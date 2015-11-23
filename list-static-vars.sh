@@ -1,5 +1,5 @@
 #!/bin/sh
-exec sed \
+exec ${SED-sed} \
   -n '/^[_0-9A-Za-z]\+=/ {
   
   /=:;/! s,=.*,,p

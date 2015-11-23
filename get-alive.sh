@@ -12,13 +12,13 @@ WHAT="${*:-$ALIVE}"
 IFS="
 "
 
-sed -n \
+${SED-sed} -n \
   -e "s,.*\[\(.*\)\].*\(http://.*\),\2 \[\1\],p" $FROM \
   | grep -E -i "($WHAT)" \
-  | sed \
+  | ${SED-sed} \
       -e 's,.\[[0-9]\+m,,g' \
   | cat | #: awk '{ print $1 }'  \
-    sed -e 's,\s\+(,    \t,' -e 's,)\s\+\[,    \t\[,' |
+    ${SED-sed} -e 's,\s\+(,    \t,' -e 's,)\s\+\[,    \t\[,' |
     sort -k2 | 
   if [ -n "$*" ]; then
     cut -f1

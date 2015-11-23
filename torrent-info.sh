@@ -110,7 +110,7 @@ if [ "$SHOW_SIZE" = true ];then
 fi
 
 if [ "$DERIVE_NAME" = true -o "$DO_RENAME" = true ]; then
-  CMD="$CMD | sed s,/.*,, | uniq"
+  CMD="$CMD | ${SED-sed} s,/.*,, | uniq"
  if [ "$DO_RENAME" = true ] ; then
    CMD=" mv -vf -- \"\$ARG\" \"\$($CMD).torrent\" # \$($CMD)"
     [ "$PRINT_ONLY" = true ] && CMD="echo \"$(escape "$CMD")\""

@@ -112,4 +112,4 @@ for arg; do
   
 done
 #set -x
-exec sed "$@"
+exec ${SED-sed} "$@"

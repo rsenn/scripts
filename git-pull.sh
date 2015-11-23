@@ -23,7 +23,7 @@ git_get_remote ()
         esac;
     done;
     [ $# -lt 1 ] && set -- .;
-    [ $# -gt 1 ] && FILTER="sed \"s|^|\$DIR: |\"" || FILTER=;
+    [ $# -gt 1 ] && FILTER="${SED-sed} \"s|^|\$DIR: |\"" || FILTER=;
     EXPR="s|\\s\\+| |g";
     if [ -n "$NAME" ]; then
         EXPR="$EXPR ;; \\|^$NAME\s|!d";
@@ -34,7 +34,7 @@ git_get_remote ()
         EXPR="$EXPR ;; s|\\s*([^)]*)||";
     fi;
     CMD="REMOTE=\`git remote -v 2>/dev/null";
-    CMD="$CMD | sed \"$EXPR\"";
+    CMD="$CMD | ${SED-sed} \"$EXPR\"";
     CMD="$CMD |uniq ${FILTER:+|$FILTER}\`;";
     CMD=$CMD'echo "$REMOTE"';
     for DIR in "$@";
@@ -91,7 +91,7 @@ git_get_remote ()
         esac;
     done;
     [ $# -lt 1 ] && set -- .;
-    [ $# -gt 1 ] && FILTER="sed \"s|^|\$DIR: |\"" || FILTER=;
+    [ $# -gt 1 ] && FILTER="${SED-sed} \"s|^|\$DIR: |\"" || FILTER=;
     EXPR="s|\\s\\+| |g";
     if [ -n "$NAME" ]; then
         EXPR="$EXPR ;; \\|^$NAME\s|!d";
@@ -102,7 +102,7 @@ git_get_remote ()
         EXPR="$EXPR ;; s|\\s*([^)]*)||";
     fi;
     CMD="REMOTE=\`git remote -v 2>/dev/null";
-    CMD="$CMD | sed \"$EXPR\"";
+    CMD="$CMD | ${SED-sed} \"$EXPR\"";
     CMD="$CMD |uniq ${FILTER:+|$FILTER}\`;";
     CMD=$CMD'echo "$REMOTE"';
     for DIR in "$@";
@@ -112,7 +112,7 @@ git_get_remote ()
 }
 git_get_branch () 
 { 
-    git branch -a | sed -n 's,^\* ,,p'
+    git branch -a | ${SED-sed} -n 's,^\* ,,p'
 }
 
 if [ $# -gt 0 ]; then

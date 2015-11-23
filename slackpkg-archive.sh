@@ -173,7 +173,7 @@ echo "$ACTION archive $ARCHIVE ..." 1>&2
  
   echo "Found $PACKAGE_COUNT slackware package files" 1>&2
  
- PACKAGE_FILES=$(sed -u "s,.*/,," <<<"$PACKAGES" |sort -fu); set -- $PACKAGE_FILES ; PACKAGE_FILES_COUNT=$#
+ PACKAGE_FILES=$(${SED-sed} -u "s,.*/,," <<<"$PACKAGES" |sort -fu); set -- $PACKAGE_FILES ; PACKAGE_FILES_COUNT=$#
 
   echo "Found $PACKAGE_FILES_COUNT different slackware packages" 1>&2
 

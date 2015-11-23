@@ -14,7 +14,7 @@ done
 
 get_mirror()
 {
-  sed -n 's,mirror_url=,,p' /etc/setup/cygsetup.conf 
+  ${SED-sed} -n 's,mirror_url=,,p' /etc/setup/cygsetup.conf 
 }
 
 IFS="

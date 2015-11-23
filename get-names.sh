@@ -25,7 +25,7 @@ COOKIE="$BASE.cookie"
 	   echo "$HTML"
          done
  done | xml_get 'p class="evenRow"' | 
- sed -u -e 's,^\s\+,,' -e 's,&mdash;,-,' | {
+ ${SED-sed} -u -e 's,^\s\+,,' -e 's,&mdash;,-,' | {
  echo '"Name","Bedeutung","Link"'
  while :; do
    read -r A || break

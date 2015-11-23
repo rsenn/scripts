@@ -34,7 +34,7 @@ EFI_FILES=`
 for EFI_FILE in $EFI_FILES; do
 
   FS=`detect-filesystem "$EFI_FILE"` 
-  TYPE=` file - <"$EFI_FILE" |sed 's,^[^:]*:\s*,,'` 
+  TYPE=` file - <"$EFI_FILE" |${SED-sed} 's,^[^:]*:\s*,,'` 
   DEV=` device-of-file "$EFI_FILE"` 
   MNT=`  mountpoint-for-file "$EFI_FILE" ` 
   GRUB_DEV=` grub-device-string "$DEV" ` 

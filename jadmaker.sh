@@ -25,8 +25,8 @@ if [ -f "${JAD}" ]; then
 fi
 
 # unzip the internal manifest, changing line endings to our local OS
-# the sed action removes blank lines, with or without spaces/tabs
-unzip -aa -j -p ${FILE} "META-INF/MANIFEST.MF" | sed -e '/^[ \t]*$/d' > "${JAD}"
+# the ${SED-sed} action removes blank lines, with or without spaces/tabs
+unzip -aa -j -p ${FILE} "META-INF/MANIFEST.MF" | ${SED-sed} -e '/^[ \t]*$/d' > "${JAD}"
 
 # generic variables
 echo "MIDlet-Jar-URL: ${FILE}" >> "${JAD}"
