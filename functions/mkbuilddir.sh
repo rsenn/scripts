@@ -54,20 +54,20 @@ cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
     PREFIX="${SRCDIR##*/}\\${DIR##*/}"
     [ -n "$INSTALLROOT" ] && INSTALLROOT=$(${PATHTOOL:-echo} "$INSTALLROOT")
     if [ -n "$CMAKELISTS" ]; then
-	  if [ -z "$INSTALLROOT" ] && grep -q -i "add_library\s*(" $CMAKELISTS ; then
+	  if [ -z "$INSTALLROOT" ] && ${GREP-grep} -q -i "add_library\s*(" $CMAKELISTS ; then
 		case "$SRCDIR" in
 		  *-[0-9]*) INSTDIR=${SRCDIR##*/} ;;
 		  *) INSTDIR=${SRCDIR##*/}-$(isodate.sh -r "$SRCDIR") ;;
 		esac
 		  INSTALLROOT="E:/Libraries/${INSTDIR}/${B}"
 	  fi
-	  if grep -q -i "install\s*(" $CMAKELISTS ; then
+	  if ${GREP-grep} -q -i "install\s*(" $CMAKELISTS ; then
 		INSTALL_CMD=$(output_vcbuild "$B" INSTALL.vcxproj "Release")
 	  fi
 	  add_def CMAKE_INSTALL_PREFIX "${INSTALLROOT:-%PROGRAMFILES%\\$PREFIX}"
 	  add_def CMAKE_VERBOSE_MAKEFILE "TRUE"
 	  for VAR in BUILD_SHARED_LIBS ENABLE_SHARED; do
-	   if grep -q "$VAR" $CMAKELISTS ; then
+	   if ${GREP-grep} -q "$VAR" $CMAKELISTS ; then
 	   add_def $VAR "TRUE"
 	   fi
 	  done

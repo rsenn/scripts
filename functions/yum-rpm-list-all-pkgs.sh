@@ -10,7 +10,7 @@ yum-rpm-list-all-pkgs()
 
   rpm_expr=^$(grep-e-expr $(<rpm.list))
 
-  grep -v -E "$rpm_expr\$" <pkgs.list >available.list
+  ${GREP-grep} -v -E "$rpm_expr\$" <pkgs.list >available.list
 
   (set -x; wc -l {yum,rpm,pkgs,available}.list)
 }

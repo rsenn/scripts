@@ -1,5 +1,5 @@
 proc-by-pid() {
-  if ps --help 2>&1 |grep -q '\-W'; then
+  if ps --help 2>&1 |${GREP-grep} -q '\-W'; then
     PSARGS="-W"
   fi
   for ARG; do

@@ -1,5 +1,5 @@
  grep-in-index() {
-  (CMD='index-dir -u $DIRS | xargs grep "[^/]\$" -H | ${SED-sed} "s|^$PWD/files.list:|| ; s|/files.list:|/|" -u | xargs grep $OPTS -H -E "($EXPRS)" '
+  (CMD='index-dir -u $DIRS | xargs ${GREP-grep} "[^/]\$" -H | ${SED-sed} "s|^$PWD/files.list:|| ; s|/files.list:|/|" -u | xargs ${GREP-grep} $OPTS -H -E "($EXPRS)" '
 #   case "$PATHTOOL" in
 #     cygpath*) PATHTOOL="xargs $PATHTOOL" ;;
 #   esac

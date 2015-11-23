@@ -20,7 +20,7 @@ pathmunge()
           set -- `${PATHTOOL:-msyspath} "$tmp"` "$@"
       ;;
   esac;
-  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | grep -E -q "(^|${PATHSEP-:})$1($|${PATHSEP-:})"; then
+  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | ${GREP-grep} -E -q "(^|${PATHSEP-:})$1($|${PATHSEP-:})"; then
       if [ "$2" = after -o "$AFTER" = true ]; then
           eval "${EXPORT}${PATHVAR-PATH}=\"\${${PATHVAR-PATH}:+\$${PATHVAR-PATH}${PATHSEP-:}}\$1\"";
       else

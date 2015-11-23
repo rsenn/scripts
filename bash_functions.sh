@@ -91,7 +91,7 @@ apt-dpkg-list-all-pkgs()
   dpkg_expr=^$(grep-e-expr $(<dpkg.list))
 
   awkp <apt.list >pkgs.list
-  grep -v -E "$dpkg_expr\$" <pkgs.list  >available.list
+  ${GREP-grep} -v -E "$dpkg_expr\$" <pkgs.list  >available.list
 
   (set -x; wc -l {apt,dpkg,pkgs,available}.list)
 }
@@ -462,8 +462,8 @@ clamp()
 cleanup-desktop() {
  (mv -vf -- "$DESKTOP"/../../*/Desktop/* "$DESKTOP"
   cd "$DESKTOP"
-  links=$( ls -ltdr --time-style=+%Y%m%d -- *.lnk|grep "$(date +%Y%m%d|removesuffix '[0-9]')"|cut-ls-l )
-  set  -- $( ls -td -- $(ls-files|grep -viE '(\.lnk$|\.ini$)'))
+  links=$( ls -ltdr --time-style=+%Y%m%d -- *.lnk|${GREP-grep} "$(date +%Y%m%d|removesuffix '[0-9]')"|cut-ls-l )
+  set  -- $( ls -td -- $(ls-files|${GREP-grep} -viE '(\.lnk$|\.ini$)'))
   touch "$@"
   mv -vft "$DOCUMENTS" -- "$@" *" - Shortcut"*
   d=$(ls -d  ../Unused* )
@@ -527,7 +527,7 @@ convert-boot-file()
 count-in-dir()
 {
          (LIST="$1"; shift; for ARG; do
-         N=$(grep "^${ARG%/}/." "$LIST" | wc -l)
+         N=$(${GREP-grep} "^${ARG%/}/." "$LIST" | wc -l)
          echo $N "$ARG"
  done)
 }
@@ -564,7 +564,7 @@ cpan-search()
     ( for ARG in "$@";
     do
         ARG=${ARG//::/-};
-        URL=$(dlynx.sh "http://search.cpan.org/search?query=$ARG&mode=dist" |grep "/$ARG-[0-9][^/]*/\$" | sort -V | tail -n1 );
+        URL=$(dlynx.sh "http://search.cpan.org/search?query=$ARG&mode=dist" |${GREP-grep} "/$ARG-[0-9][^/]*/\$" | sort -V | tail -n1 );
         test -n "$URL" && {
             dlynx.sh "$URL" | grep-archives.sh | sort -V | tail -n1
         };
@@ -762,7 +762,7 @@ d()
 }
 
 datasheet-url() {
-    RESULTS=1000 google.sh "$1 datasheet filetype:pdf" | grep --color=auto --line-buffered -i "$1[^/]*$"
+    RESULTS=1000 google.sh "$1 datasheet filetype:pdf" | ${GREP-grep} --color=auto --line-buffered -i "$1[^/]*$"
 }
 
 date2unix()
@@ -854,7 +854,7 @@ device-of-file() {
      if [ ! -d "$ARG" ]; then
          ARG=` dirname "$ARG" `
      fi
-     DEV=`(grep -E "^[^ ]*\s+$ARG\s" /proc/mounts ;  df "$ARG" |${SED-sed} '1d' )|awkp 1|head -n1`
+     DEV=`(${GREP-grep} -E "^[^ ]*\s+$ARG\s" /proc/mounts ;  df "$ARG" |${SED-sed} '1d' )|awkp 1|head -n1`
      [ $# -gt 1 ] && DEV="$ARG: $DEV"
 
      [ "$DEV" = rootfs -o "$DEV" = /dev/root ] && DEV=`get-rootfs`
@@ -1173,7 +1173,7 @@ each()
 
 enable-some-swap()
 {
-    ( SWAPS=` blkid|grep 'TYPE="swap"'|cut -d: -f1 `;
+    ( SWAPS=` blkid|${GREP-grep} 'TYPE="swap"'|cut -d: -f1 `;
     set -- $SWAPS;
     for SWAP in $SWAPS;
     do
@@ -1253,7 +1253,7 @@ extract-slackpkg()
 {
     : ${DESTDIR=unpack};
     mkdir -p "$DESTDIR";
-    l=$(grep "$1" pkgs.files );
+    l=$(${GREP-grep} "$1" pkgs.files );
     pkgs=$(cut -d: -f1 <<<"$l" |sort -fu);
     files=$(cut -d: -f2 <<<"$l" |sort -fu);
     for pkg in $pkgs;
@@ -1272,7 +1272,7 @@ extract-version()
 filesystem-for-device()
 {
  (DEV="$1";
-  set -- $(grep "^$DEV " /proc/mounts |awkp 3)
+  set -- $(${GREP-grep} "^$DEV " /proc/mounts |awkp 3)
   case "$1" in
     fuse*)
       TYPE=$(file -<"$DEV");
@@ -1597,12 +1597,12 @@ find-homedirs() {
  (locate32.sh /home/ |
   ${SED-sed} 's|/home/\([^/]\+\).*|/home/\1|'|uniq
 find-media.sh '/home/[^/]+/$'|removesuffix / ) |
-  grep -vE '(/include/|/usr/)' |
+  ${GREP-grep} -vE '(/include/|/usr/)' |
    filter-test -d
 }
 
  find-in-index() {
-  (CMD='index-dir -u $DIRS | xargs grep -E "($EXPRS)" -H | ${SED-sed} "s|/files.list:|/|" -u'
+  (CMD='index-dir -u $DIRS | xargs ${GREP-grep} -E "($EXPRS)" -H | ${SED-sed} "s|/files.list:|/|" -u'
    while :; do
      case "$1" in
        -w | -m) CMD="$CMD | msyspath $1"; shift ;;
@@ -1846,7 +1846,7 @@ get-exports() {
 
 get-ext()
 {
-    set -- $( ( (set -- $(grep EXT.*= {find,locate,grep}-$1.sh -h 2>/dev/null |${SED-sed} "s,EXTS=[\"']\?\(.*\)[\"']\?,\1," ); IFS="$nl"; echo "$*")|${SED-sed} 's,[^[:alnum:]]\+,\n,g; s,^\s*,, ; s,\s*$,,';) |sort -fu);
+    set -- $( ( (set -- $(${GREP-grep} EXT.*= {find,locate,grep}-$1.sh -h 2>/dev/null |${SED-sed} "s,EXTS=[\"']\?\(.*\)[\"']\?,\1," ); IFS="$nl"; echo "$*")|${SED-sed} 's,[^[:alnum:]]\+,\n,g; s,^\s*,, ; s,\s*$,,';) |sort -fu);
     ( IFS=" ";
     echo "$*" )
 }
@@ -2171,11 +2171,11 @@ grep-e()
             *) WORDS="${WORDS+$WORDS$IFS}$1"; shift ;;
         esac;
     done;
-    grep -E $ARGS "$(grep-e-expr $WORDS)" ${LAST:+$LAST} )
+    ${GREP-grep} -E $ARGS "$(grep-e-expr $WORDS)" ${LAST:+$LAST} )
 }
 
  grep-in-index() {
-  (CMD='index-dir -u $DIRS | xargs grep "[^/]\$" -H | ${SED-sed} "s|^$PWD/files.list:|| ; s|/files.list:|/|" -u | xargs grep $OPTS -H -E "($EXPRS)" '
+  (CMD='index-dir -u $DIRS | xargs ${GREP-grep} "[^/]\$" -H | ${SED-sed} "s|^$PWD/files.list:|| ; s|/files.list:|/|" -u | xargs ${GREP-grep} $OPTS -H -E "($EXPRS)" '
 #   case "$PATHTOOL" in
 #     cygpath*) PATHTOOL="xargs $PATHTOOL" ;;
 #   esac
@@ -2207,14 +2207,14 @@ $2"; shift 2 ;;
 
 grep-v-optpkgs()
 {
-    grep --color=auto -v -E '\-(doc|dev|dbg|extra|lite|prof|extra|manual|data|examples|source|theme|manual|demo|help|artwork|contrib)'
+    ${GREP-grep} --color=auto -v -E '\-(doc|dev|dbg|extra|lite|prof|extra|manual|data|examples|source|theme|manual|demo|help|artwork|contrib)'
 }
 
 grep-v-unneeded-pkgs()
 {
  (set -- common data debuginfo devel doc docs el examples fonts javadoc plugin static theme tests extras demo manual test  help info support demos
 
- grep -v -E "\-$(grep-e-expr "$@")(\$|\\s)")
+ ${GREP-grep} -v -E "\-$(grep-e-expr "$@")(\$|\\s)")
 }
 
 grephexnums()
@@ -2233,7 +2233,7 @@ grephexnums()
         esac;
     done;
     set -x;
-    grep --color=auto --color=auto --color=auto -E $ARGS "(${*#0x})" )
+    ${GREP-grep} --color=auto --color=auto --color=auto -E $ARGS "(${*#0x})" )
 }
 
 grub-device-string()
@@ -2585,7 +2585,7 @@ id3dump()
 
 id3get()
 {
-    ( id3dump "$1" 2>&1 | grep "^$2" | ${SED-sed} 's,^[^:=]*[:=]\s*,,' )
+    ( id3dump "$1" 2>&1 | ${GREP-grep} "^$2" | ${SED-sed} 's,^[^:=]*[:=]\s*,,' )
 }
 
 imagedate()
@@ -2783,7 +2783,7 @@ inst-slackpkg()
     INSTALLED=;
     EXPR="$(grep-e-expr "$@")";
     [ "$FILE" = true ] && EXPR="/$EXPR[^/]*\$";
-    PKGS=` grep --color=auto -H -E "$EXPR" $([ "$PWD" = "$HOME" ] && ls -d slackpkg*)  ~/slackpkg* | ${SED-sed} 's,.*:/,/, ; s,/slackpkg[^./]*\.list:,/,'`;
+    PKGS=` ${GREP-grep} --color=auto -H -E "$EXPR" $([ "$PWD" = "$HOME" ] && ls -d slackpkg*)  ~/slackpkg* | ${SED-sed} 's,.*:/,/, ; s,/slackpkg[^./]*\.list:,/,'`;
     if [ -z "$PKGS" ]; then
         echo "No such package $EXPR" 1>&2;
         exit 2;
@@ -2885,7 +2885,7 @@ is-true()
 
 is-upx-packed()
 {
-    list-upx "$1" | grep --color=auto --color=auto --color=auto -q "\->.*$1"
+    list-upx "$1" | ${GREP-grep} --color=auto --color=auto --color=auto -q "\->.*$1"
 }
 
 is-url()
@@ -2945,7 +2945,7 @@ killall-w32()
 {
     ( IFS="
    ";
-    PIDS=$(IFS="|"; ps.exe -aW |grep -i -E "($*)" | awk '{ print $1 }');
+    PIDS=$(IFS="|"; ps.exe -aW |${GREP-grep} -i -E "($*)" | awk '{ print $1 }');
     kill.exe -f $PIDS )
 }
 
@@ -3161,7 +3161,7 @@ list-deb() {
       *) DEB=$(realpath "$ARG") ;;
     esac
     cd "$TEMP"
-    set -- $( ("${AR-ar}" t "$DEB" || list-7z "$DEB") 2>/dev/null |uniq |grep "data\.tar\.")
+    set -- $( ("${AR-ar}" t "$DEB" || list-7z "$DEB") 2>/dev/null |uniq |${GREP-grep} "data\.tar\.")
     if [ $# -le 0 ]; then
       exit 1
     fi
@@ -3189,7 +3189,7 @@ list-dotfiles()
 {
     ( for ARG in "$@";
     do
-        dlynx.sh "http://dotfiles.org/.${ARG#.}" | grep --color=auto --color=auto --color=auto --color=auto "/.${ARG#.}\$";
+        dlynx.sh "http://dotfiles.org/.${ARG#.}" | ${GREP-grep} --color=auto --color=auto --color=auto --color=auto "/.${ARG#.}\$";
     done )
 }
 
@@ -3560,7 +3560,7 @@ list-rpm() {
     esac
     cd "$TEMP"
     set -- $( (    7z l "$RPM" |${SED-sed} -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
-    (exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |grep "\\.cpio\$")
+    (exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |${GREP-grep} "\\.cpio\$")
     if [ $# -le 0 ]; then
       exit 1
     fi
@@ -3785,7 +3785,7 @@ locate-filename()
         if [ -n "$TEST_ARGS" ]; then
             CMD="$CMD | filter-test \$TEST_ARGS";
         fi;
-        CMD="$CMD | (set -x ; grep \$GREP_ARGS \"\${EXPR#/}\") ";
+        CMD="$CMD | (set -x ; ${GREP-grep} \$GREP_ARGS \"\${EXPR#/}\") ";
         eval "$CMD";
     done )
 }
@@ -3876,7 +3876,7 @@ make-arith()
 make-sizes-tmp()
 {
     ${SED-sed} -n '/ [0-9]\+ /p' $(list-mediapath 'ls-lR.list') | awkp 5 > $TEMP/sizes.tmp;
-    for N in $(histogram.awk <$TEMP/sizes.tmp|grep -v '^1 '|awkp 2|sort -n); do
+    for N in $(histogram.awk <$TEMP/sizes.tmp|${GREP-grep} -v '^1 '|awkp 2|sort -n); do
       test "$N" -le 0 && continue
       echo "/^[^ ]\+\s\+[0-9]\+\s\+[0-9]\+\s\+[0-9]\+\s\+$N /p"
       done |(set -x; tee $TEMP/sizes.${SED-sed} >/dev/null)
@@ -4070,20 +4070,20 @@ cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
     PREFIX="${SRCDIR##*/}\\${DIR##*/}"
     [ -n "$INSTALLROOT" ] && INSTALLROOT=$(${PATHTOOL:-echo} "$INSTALLROOT")
     if [ -n "$CMAKELISTS" ]; then
-	  if [ -z "$INSTALLROOT" ] && grep -q -i "add_library\s*(" $CMAKELISTS ; then
+	  if [ -z "$INSTALLROOT" ] && ${GREP-grep} -q -i "add_library\s*(" $CMAKELISTS ; then
 		case "$SRCDIR" in
 		  *-[0-9]*) INSTDIR=${SRCDIR##*/} ;;
 		  *) INSTDIR=${SRCDIR##*/}-$(isodate.sh -r "$SRCDIR") ;;
 		esac
 		  INSTALLROOT="E:/Libraries/${INSTDIR}/${B}"
 	  fi
-	  if grep -q -i "install\s*(" $CMAKELISTS ; then
+	  if ${GREP-grep} -q -i "install\s*(" $CMAKELISTS ; then
 		INSTALL_CMD=$(output_vcbuild "$B" INSTALL.vcxproj "Release")
 	  fi
 	  add_def CMAKE_INSTALL_PREFIX "${INSTALLROOT:-%PROGRAMFILES%\\$PREFIX}"
 	  add_def CMAKE_VERBOSE_MAKEFILE "TRUE"
 	  for VAR in BUILD_SHARED_LIBS ENABLE_SHARED; do
-	   if grep -q "$VAR" $CMAKELISTS ; then
+	   if ${GREP-grep} -q "$VAR" $CMAKELISTS ; then
 	   add_def $VAR "TRUE"
 	   fi
 	  done
@@ -4327,7 +4327,7 @@ mountpoint-by-label() {
 
 mountpoint-for-device()
 {
-    ( set -- $(grep "^$1 " /proc/mounts |awkp 2);
+    ( set -- $(${GREP-grep} "^$1 " /proc/mounts |awkp 2);
     echo "$1" )
 }
 
@@ -4367,7 +4367,7 @@ mountpoints()
         fi
     };
     CMD="lsmnt \"\$@\"";
-    [ "$USER" = true ] && CMD="$CMD | grep -vE '^(/\$|/proc|/sys|/dev)'";
+    [ "$USER" = true ] && CMD="$CMD | ${GREP-grep} -vE '^(/\$|/proc|/sys|/dev)'";
     eval "$CMD" )
 }
 
@@ -4799,7 +4799,7 @@ pathmunge()
           set -- `${PATHTOOL:-msyspath} "$tmp"` "$@"
       ;;
   esac;
-  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | grep -E -q "(^|${PATHSEP-:})$1($|${PATHSEP-:})"; then
+  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | ${GREP-grep} -E -q "(^|${PATHSEP-:})$1($|${PATHSEP-:})"; then
       if [ "$2" = after -o "$AFTER" = true ]; then
           eval "${EXPORT}${PATHVAR-PATH}=\"\${${PATHVAR-PATH}:+\$${PATHVAR-PATH}${PATHSEP-:}}\$1\"";
       else
@@ -4884,12 +4884,12 @@ pid-args()
 }
 
 pid-of() {
-   (if ps --help 2>&1 |grep -q '\-W'; then
-       PGREP_CMD='ps -aW |grep -i "$ARG" | awkp'
+   (if ps --help 2>&1 |${GREP-grep} -q '\-W'; then
+       PGREP_CMD='ps -aW |${GREP-grep} -i "$ARG" | awkp'
     elif type pgrep 2>/dev/null >/dev/null; then
        PGREP_CMD='pgrep -f "$ARG"'
     else
-       PGREP_CMD='ps -ax | grep -i "$ARG" | awkp'
+       PGREP_CMD='ps -ax | ${GREP-grep} -i "$ARG" | awkp'
     fi
     for ARG in "$@"; do
       eval "$PGREP_CMD"
@@ -4921,8 +4921,8 @@ pkgsearch()
     ( EXCLUDE='-common -data -debug -doc -docs -el -examples -fonts -javadoc -static -tests -theme';
     for ARG in "$@";
     do
-        sudo yum -y search "${ARG%%[!-A-Za-z0-9]*}" | grep --color=auto --color=auto --color=auto --color=auto -i "$ARG[^ ]* : ";
-    done | ${SED-sed} -n "/^[^ ]/ s,\..* : , : ,p" | grep --color=auto --color=auto --color=auto --color=auto -vE "($(IFS='| '; set -- $EXCLUDE; echo "$*"))" | uniq )
+        sudo yum -y search "${ARG%%[!-A-Za-z0-9]*}" | ${GREP-grep} --color=auto --color=auto --color=auto --color=auto -i "$ARG[^ ]* : ";
+    done | ${SED-sed} -n "/^[^ ]/ s,\..* : , : ,p" | ${GREP-grep} --color=auto --color=auto --color=auto --color=auto -vE "($(IFS='| '; set -- $EXCLUDE; echo "$*"))" | uniq )
 }
 
 player-file()
@@ -4938,11 +4938,11 @@ player-file()
           esac
   done
   SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }s| ([^)]*)\$||"
-    lsof -n $(pid-args "${@-mplayer}") 2> /dev/null 2> /dev/null 2> /dev/null 2> /dev/null | grep  -E ' [0-9]+[^ ]* +REG ' | grep --color=auto -vE ' (mem|txt|DEL) ' | cut-lsof NAME |${SED-sed} "$SED_SCRIPT" )
+    lsof -n $(pid-args "${@-mplayer}") 2> /dev/null 2> /dev/null 2> /dev/null 2> /dev/null | ${GREP-grep}  -E ' [0-9]+[^ ]* +REG ' | ${GREP-grep} --color=auto -vE ' (mem|txt|DEL) ' | cut-lsof NAME |${SED-sed} "$SED_SCRIPT" )
 }
 
 proc-by-pid() {
-  if ps --help 2>&1 |grep -q '\-W'; then
+  if ps --help 2>&1 |${GREP-grep} -q '\-W'; then
     PSARGS="-W"
   fi
   for ARG; do
@@ -4954,7 +4954,7 @@ proc-mount()
 {
     for ARG in "$@";
     do
-        ( grep --color=auto --color=auto --color=auto "^$ARG" /proc/mounts );
+        ( ${GREP-grep} --color=auto --color=auto --color=auto "^$ARG" /proc/mounts );
     done
 }
 
@@ -5336,7 +5336,7 @@ set-ps1()
 sf-get-cvs-modules() {
  (CVSCMD="cvs -z3 -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG co"
 #  CVSPASS="cvs -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG login"
-CVSPASS='echo "grep -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <<\\EOF >>~/.cvspass
+CVSPASS='echo "${GREP-grep} -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <<\\EOF >>~/.cvspass
 \1 :pserver:anonymous@$ARG.cvs.sourceforge.net:2401/cvsroot/$ARG A
 EOF"'
   for ARG; do
@@ -5842,7 +5842,7 @@ vcget() {
 
   WindowsSdkDir=$(reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows" /v "CurrentInstallFolder" | ${SED-sed} -n "s|.*REG_SZ\s\+||p")
 
-  local $(grep -i -E "^\s*@?set \"?(INCLUDE|LIB|LIBPATH|FrameworkDir|FrameworkVersion|Framework35Version)=" "$VSVARS" | ${SED-sed} \
+  local $(${GREP-grep} -i -E "^\s*@?set \"?(INCLUDE|LIB|LIBPATH|FrameworkDir|FrameworkVersion|Framework35Version)=" "$VSVARS" | ${SED-sed} \
    -e "s,.*set \"\?\([^\"]\+\)\"\?,\1,i" \
    -e "s|%VCINSTALLDIR%|${VCINSTALLDIR//"\\"/"\\\\"}|g" \
    -e "s|%VSINSTALLDIR%|${VSINSTALLDIR//"\\"/"\\\\"}|g" \
@@ -5937,7 +5937,7 @@ vlcfile()
 {
     ( IFS="
 ";
-    set -- ` handle -p $(vlcpid)|grep -vi "$(${PATHTOOL:-echo} "$WINDIR"| ${SED-sed} 's,/,.,g')"  |${SED-sed} -n -u 's,.*: File  (RW-)\s\+,,p'
+    set -- ` handle -p $(vlcpid)|${GREP-grep} -vi "$(${PATHTOOL:-echo} "$WINDIR"| ${SED-sed} 's,/,.,g')"  |${SED-sed} -n -u 's,.*: File  (RW-)\s\+,,p'
 `;
     for X in "$@";
     do
@@ -5948,7 +5948,7 @@ vlcfile()
 
 vlcpid()
 {
-    ( ps -aW | grep --color=auto --color=auto --color=auto --color=auto --color=auto --line-buffered --color=auto --line-buffered -i vlc.exe | awkp )
+    ( ps -aW | ${GREP-grep} --color=auto --color=auto --color=auto --color=auto --color=auto --line-buffered --color=auto --line-buffered -i vlc.exe | awkp )
 }
 
 volname() {
@@ -6195,7 +6195,7 @@ yum-rpm-list-all-pkgs()
 
   rpm_expr=^$(grep-e-expr $(<rpm.list))
 
-  grep -v -E "$rpm_expr\$" <pkgs.list >available.list
+  ${GREP-grep} -v -E "$rpm_expr\$" <pkgs.list >available.list
 
   (set -x; wc -l {yum,rpm,pkgs,available}.list)
 }
