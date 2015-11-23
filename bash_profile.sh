@@ -393,6 +393,14 @@ export LS_COLORS
 #pathremove /usr/local/sbin && pathmunge /usr/local/sbin
 #pathremove /usr/local/bin && pathmunge /usr/local/bin
 
+for p in /{opt,usr}/local/{s,}bin /opt/local/libexec/gnubin ; do
+  if [ -d "$p"  ]; then
+      pathremove "$p"
+      pathmunge "$p"
+
+  fi
+done
+
 if type gcc 2>/dev/null >/dev/null; then
   builddir=build/`gcc -dumpmachine | sed 's,\r*$,,'`
 fi
