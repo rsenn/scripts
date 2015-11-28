@@ -121,7 +121,7 @@ fi
 
 
 
-    (set -x; ffmpeg -y -i "$ARG" $A -r 29.97 -f avi -vcodec msmpeg4v2 \
+    (set -x; ${FFMPEG-ffmpeg} -y -i "$ARG" $A -r 29.97 -f avi -vcodec msmpeg4v2 \
          ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR+-b:v "$VBR"} -acodec mp2  \
    -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT") ||
         break

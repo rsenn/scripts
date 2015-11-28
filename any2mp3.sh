@@ -82,7 +82,7 @@ case "${ARG##*/}" in
 	  SONG="${ARG##*/}"
 	;;
 	*)
-	(ffmpeg -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV") 
+	(${FFMPEG:-ffmpeg} -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV") 
 	;;
 esac && (set -e; set -x
 lame --alt-preset "$ABR" --resample 44100 -m j -h "$WAV" "$OUTPUT" 

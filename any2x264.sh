@@ -182,7 +182,7 @@ fi
 		 unset BITRATE_ARG
 
 		 if [ "$VBR" ]; then
-					if  ffmpeg -help 2>&1 |grep  -q '\-b:v'; then
+					if  ${FFMPEG-ffmpeg} -help 2>&1 |grep  -q '\-b:v'; then
 								BITRATE_ARG="-b:v
 $VBR
 -b:a

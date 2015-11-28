@@ -294,7 +294,7 @@ transcode --nice 20 \
           -J modfps=clonetype=3 \
           -x mplayer$MPLAYER_OPTS,raw \
           $probedata \
-          -y ffmpeg \
+          -y ${FFMPEG-ffmpeg} \
           -p audiodump.wav \
           --import_asr $EXPORT_ASR \
           --export_asr $EXPORT_ASR \

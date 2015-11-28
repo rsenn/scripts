@@ -25,8 +25,8 @@ PREFIXES="/opt/java:/usr/local:/usr"
 if JAVA=`search_path java bin $PREFIXES` && [ "$JAVA" ] &&
    JMAC=`search_path jmac.jar share/java $PREFIXES` && [ "$JMAC" ]; then
   EXEC="$JAVA -jar $JMAC d \"\$INPUT\" \"\$OUTPUT\""
-elif type ffmpeg >/dev/null; then
-  EXEC="ffmpeg -i \"\$INPUT\" \"\$OUTPUT\""
+elif type ${FFMPEG-ffmpeg} >/dev/null; then
+  EXEC="${FFMPEG-ffmpeg} -i \"\$INPUT\" \"\$OUTPUT\""
 elif type mplayer >/dev/null; then
   EXEC="mplayer -ao pcm:file=${#OUTPUT}%\"\$OUTPUT\" \"$INPUT\""
 fi
@@ -37,7 +37,7 @@ if [ "$EXEC" ]; then
     eval "$EXEC" || exit $?
   done
 else
-  echo "No jmac, ffmpeg or mplayer found." 1>&2
+  echo "No jmac, ${FFMPEG-ffmpeg} or mplayer found." 1>&2
   exit 2
 fi
   

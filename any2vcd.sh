@@ -119,7 +119,7 @@ fi
 
 
 
-    (set -x; ffmpeg -y -i "$ARG" -vtag DX50 -r 29.97 -target pal-svcd  \
+    (set -x; ${FFMPEG-ffmpeg} -y -i "$ARG" -vtag DX50 -r 29.97 -target pal-svcd  \
          ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR+-b:v "$VBR"}   \
    -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT") ||
         break

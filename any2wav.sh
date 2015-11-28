@@ -63,7 +63,7 @@ fi
     (set -x; 
 trap 'R=$?; rm -f "$WAV"; exit $R' EXIT QUIT INT TERM
 #mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"  2>/dev/null||
-   ffmpeg -y -i "$ARG"  -acodec pcm_${PCM:-s16le} ${SRATE:+-ar "$SRATE"}  ${CHANNELS:+-ac "$CHANNELS"} "$WAV"   || exit $?
+   ${FFMPEG-ffmpeg} -y -i "$ARG"  -acodec pcm_${PCM:-s16le} ${SRATE:+-ar "$SRATE"}  ${CHANNELS:+-ac "$CHANNELS"} "$WAV"   || exit $?
 trap '' EXIT QUIT INT TERM
 
   ) || break
