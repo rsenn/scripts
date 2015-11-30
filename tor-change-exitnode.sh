@@ -31,7 +31,7 @@
  
  
 : ${TORHOST=127.0.0.1}
-: ${TORPORT=9051}
+: ${TORPORT=9050}
 : ${CTRLPORT=9051} # Matters only if TORHOST is not `localhost`
 : ${CTRLPASS=""} # Better leave it empty
  
@@ -48,7 +48,7 @@ fi
  
 (
 set -x
-nc 127.0.0.1 "$TORPORT" <<EOF
+${NETCAT-nc} "$TORHOST" "$CTRLPORT" <<EOF
 authenticate "${CTRLPASS}"
 signal newnym
 quit
