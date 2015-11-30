@@ -30,26 +30,26 @@
 ###
  
  
-: ${HOST=127.0.0.1}
-: ${PORT=9051}
-: ${LOCALPORT=9051} # Matters only if HOST is not `localhost`
-: ${PASSWORD=""} # Better leave it empty
+: ${TORHOST=127.0.0.1}
+: ${TORPORT=9051}
+: ${CTRLPORT=9051} # Matters only if TORHOST is not `localhost`
+: ${CTRLPASS=""} # Better leave it empty
  
-if [ "${PASSWORD-unset}" = unset ]; then
+if [ "${CTRLPASS-unset}" = unset ]; then
   echo -n "Tor control password: "
-  read -s PASSWORD
+  read -s CTRLPASS
   echo
 fi
  
-if [ "$HOST" != "127.0.0.1" ]; then
-  ssh -f -o ExitOnForwardFailure=yes -L "$LOCALPORT:127.0.0.1:$PORT" "$HOST" sleep 1
-  PORT="$LOCALPORT"
+if [ "$TORHOST" != "127.0.0.1" ]; then
+  ssh -f -o ExitOnForwardFailure=yes -L "$CTRLPORT:127.0.0.1:$TORPORT" "$TORHOST" sleep 1
+  TORPORT="$CTRLPORT"
 fi
  
 (
 set -x
-nc 127.0.0.1 "$PORT" <<EOF
-authenticate "${PASSWORD}"
+nc 127.0.0.1 "$TORPORT" <<EOF
+authenticate "${CTRLPASS}"
 signal newnym
 quit
 EOF
