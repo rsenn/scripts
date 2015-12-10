@@ -21,10 +21,10 @@ icacls-r() {
    esac
   for ARG; do
    (ARG=${ARG%/}
-    [ -d "$ARG" ] && D="/R /D Y "
-    ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -aw} '$ARG')\""
+    [ -d "$ARG" ] && D="-R -D Y "
+    ARG="\"\$(${PATHTOOL:-cygpath}${PATHTOOL:+ -w} '${ARG%[/\\]}')\""
     EXEC="${ICACLS:-icacls} $ARG ${ICACLS_ARGS}"
-    [ "$TAKEOWN" = true ] && EXEC="takeown ${D}/F $ARG >${NUL:-/dev/null}${SEP:-; }$EXEC"
+    [ "$TAKEOWN" = true ] && EXEC="takeown ${D}-F $ARG >${NUL:-/dev/null}${SEP:-; }$EXEC"
 #    [ "$CMD" = true ] && EXEC="cmd /c \"${EXEC//\"/\\\"}\""
     [ "$PRINT" = true ] && { EXEC=${EXEC//\\\"/\\\\\"}; EXEC="echo \"${EXEC//\"/\\\"}\""; }
     [ "$DEBUG" = true ] && echo "+ $EXEC" 1>&2
