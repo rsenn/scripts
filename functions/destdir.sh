@@ -1,13 +1,13 @@
 destdir() { 
 	CCHOST=$(IFS="$IFS "; ${CC-cc} -dumpmachine);
-	case "$CCHOST" in 
-	*diet*)
+	case "$CC:$CCHOST" in 
+	*diet*:*)
 	    PKGARCH=diet
 	;;
-	*linux*)
+	*:*linux*)
 	    PKGARCH=linux
 	;;
-	*)
+	*:*)
 	    PKGARCH=$(IFS="$IFS -"; set -- $CCHOST; echo "${2:-$1}")
 	;;
 	esac;
