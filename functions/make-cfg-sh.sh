@@ -16,7 +16,7 @@ make-cfg-sh() {
                   continue
               ;;
           esac
-          LINE=${LINE%%" "*}; LINE=${LINE%%[\',]*}; BRACKET=false
+          LINE=${LINE%%[ \t$tabstop]*}; LINE=${LINE%%[\',]*}; BRACKET=false
           case "$LINE" in 
               *\[*\]*)
                   LINE=${LINE/"["/}; LINE=${LINE/"]"/}; BRACKET=TRUE
@@ -30,8 +30,8 @@ make-cfg-sh() {
                   OPT="$LINE"
               ;;
           esac
-          case "$OPT" in 
-              *)
+          case "$LINE" in 
+              *\[* | *\]* | [0-9]*) continue
 
               ;;
           esac
