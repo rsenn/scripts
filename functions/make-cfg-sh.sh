@@ -16,7 +16,7 @@ make-cfg-sh() {
                   continue
               ;;
           esac
-          LINE=${LINE%%[ \t$tabstop]*}; LINE=${LINE%%[\',]*}; BRACKET=false
+          LINE=${LINE%%" "*}; LINE=${LINE%%$'\t'*}; LINE=${LINE%%[\',]*}; BRACKET=false
           case "$LINE" in 
               *\[*\]*)
                   LINE=${LINE/"["/}; LINE=${LINE/"]"/}; BRACKET=TRUE
@@ -59,6 +59,7 @@ make-cfg-sh() {
           esac
           VAR=${VAR%" "}
           case "$VAR" in 
+            *able-[0-9]*) continue ;;
               build | target)
                   SUBST=\"\${$VAR:-\$host}\"
               ;;
