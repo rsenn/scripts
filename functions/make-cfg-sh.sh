@@ -1,9 +1,18 @@
 make-cfg-sh() { 
  (for ARG in "${@:-./configure}"; do
      
-  "$ARG" --help=recursive 2>&1 |sed -n '1 s,.*,./configure \\,p; /--help/d; /--cache-file/d; /--srcdir/d; /^\s*--/   {
-/-[[:upper:]]/q ; s|^\s*||; s|\s.*||; s|=\(.*\)|=\${\1}|; s|.*|  & \\|;   p
+  "$ARG" --help  |sed -n '/--help/d; /--cache-file/d; /--srcdir/d; /^\s*--/   {
+  /-[[:upper:]]/q ; s|^\s*||; s|\s.*||;  s|.*|  & \\|;   s|\s*||; p
 }
-'|sed '$ s,.*,  "$@",'
+' |while read -r LINE; do
+					case "$LINE" in
+						*=*) OPT=${LINE%%=*}; VALUE=${LINE#*=} ;;
+						*) OPT="$LINE" ;;
+					esac
+					VAR=$(tr [[:upper:]] [[:lower:]] <<<"${VALUE//"-"/"_"}")
+					VAR=${VAR%" "}
+					echo "$OPT${VALUE:+=\${$VAR}}"
+  done
+  
   done)
 }
