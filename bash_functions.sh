@@ -1534,18 +1534,20 @@ filter-num() {
     esac
   done
   : ${I:=1}
-  CMD=
+  CMDX=
   for N in $(seq 1 $((I+1))); do
-    CMD="${CMD:+$CMD }\${F$N}"
+    CMDX="${CMDX:+$CMDX }\${F$N}"
     FIELDS="${FIELDS:+$FIELDS }F$N"
   done
-  CMD="echo \"$CMD\""
-  CMD="[ $COND ] && $CMD"
+  CMDX="echo \"$CMDX\""
+  CMDX="[ $COND ] && $CMDX"
 
-  CMD="while read -r $FIELDS; do N=\$F$I; $CMD; done"
-  #CMD='IFS=" 	"; '$CMD
+  CMDX="N=\$F$I; $CMDX"
+
+  CMD="while read -r $FIELDS; do [ \"\$DEBUG\" = true ] && echo \"$CMDX\" 1>&2; $CMDX; done"
+  CMD="IFS=\"${S-" c"}\"; "$CMD
   [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-  eval "(${S:+IFS=\"\$S\"; }$CMD)")
+  eval "($CMD)")
 }
 
 filter-out()
