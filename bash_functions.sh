@@ -547,6 +547,11 @@ count() {
         echo $#
 }
 
+countv()
+{
+  (eval "set -- \${$1}; echo \$#")
+}
+
 cpan-inst() {
  for-each 'verbosecmd -1+=cpan.inst.log -2=1 cpan -i "${1//-/::}" ;  verbosecmd writefile -a cpan.inst.$? "$1"'  ${@:-$(<~/cpan-inst.list)}
 }
@@ -1498,7 +1503,8 @@ filter-num() {
   while :; do
     case "$1" in
       -[0-9]) I=${1#-}; shift ;;
-      -f) I=${2}; shift 2 ;; -f=*) I=${1#-?=}; shift ;; -f[0-9]*) I=${1#-?}; shift ;;
+      -[dt]) S=${2}; shift 2 ;; -[dt]=*) S=${1#-?=}; shift ;; -[dt]*) S=${1#-?}; shift ;;
+      -[fk]) I=${2}; shift 2 ;; -[fk]=*) I=${1#-?=}; shift ;; -[fk][0-9]*) I=${1#-?}; shift ;;
 
       -eq | -ne | -lt | -le | -gt | -ge)
         push COND "${NEG:+$NEG }\$((N)) $1 $(suffix-num "$2")"
@@ -1537,9 +1543,9 @@ filter-num() {
   CMD="[ $COND ] && $CMD"
 
   CMD="while read -r $FIELDS; do N=\$F$I; $CMD; done"
-  CMD='IFS=" 	"; '$CMD
+  #CMD='IFS=" 	"; '$CMD
   [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-  eval "$CMD")
+  eval "(${S:+IFS=\"\$S\"; }$CMD)")
 }
 
 filter-out()
@@ -2570,10 +2576,10 @@ icacls-r() {
    esac
   for ARG; do
    (ARG=${ARG%/}
-    [ -d "$ARG" ] && D="/R /D Y "
-    ARG="\"\$(${PATHTOOL:-echo}${PATHTOOL:+ -aw} '$ARG')\""
+    [ -d "$ARG" ] && D="-R -D Y "
+    ARG="\"\$(${PATHTOOL:-cygpath}${PATHTOOL:+ -w} '${ARG%[/\\]}')\""
     EXEC="${ICACLS:-icacls} $ARG ${ICACLS_ARGS}"
-    [ "$TAKEOWN" = true ] && EXEC="takeown ${D}/F $ARG >${NUL:-/dev/null}${SEP:-; }$EXEC"
+    [ "$TAKEOWN" = true ] && EXEC="takeown ${D}-F $ARG >${NUL:-/dev/null}${SEP:-; }$EXEC"
 #    [ "$CMD" = true ] && EXEC="cmd /c \"${EXEC//\"/\\\"}\""
     [ "$PRINT" = true ] && { EXEC=${EXEC//\\\"/\\\\\"}; EXEC="echo \"${EXEC//\"/\\\"}\""; }
     [ "$DEBUG" = true ] && echo "+ $EXEC" 1>&2
@@ -2777,6 +2783,12 @@ indexarg()
     eval echo "\${@:$I:1}" )
 }
 
+indexv()
+{
+ (shiftv "$@"
+  eval "echo \"\${$1%%[\$IFS]*}\"")
+}
+
 inputf()
 {
     local __line__ __cmds__;
@@ -2854,6 +2866,11 @@ installpkg() {
      esac
      command installpkg "$ARG"
   done)
+}
+
+is-a-tty()
+{ 
+    eval "tty  0<&${1:-1} >/dev/null"
 }
 
 is-absolute()
@@ -4200,14 +4217,29 @@ mkbuilddir() {
       *) echo "msbuild \"${P}\"${3:+ /p:Configuration=\"$3\"}" ;;
     esac
   }
-  for DIR; do
-   (B=$(basename "$DIR")
-   VC=$(vs2vc "$B")
+  while :; do
+    case "$1" in
+      -x | --debug) DEBUG="true"; shift ;;
+      -64 | --64 | -x64 | --x64 | -amd64 | --amd64 | -x86_64 | --x86_64) ARCH="amd64" ;;
+      *) break ;;
+    esac
+  done
+  
+  for ARG; do
+   (case "$ARG" in
+       *.sln) VC=$(sln-version --vc "$ARG"); DIR=$(dirname "$ARG") ;;
+       *) VC=$(vs2vc "${ARG##*/}") ; DIR="$ARG" ;;
+    esac
+    
+    [ "$DEBUG" = true ] && debug "VC version: $VC"
+   
+    B=$(basename "$DIR")
+    
    
     CL=$(vcget "$VC" CL)
     CMAKEGEN=$(vcget "$VC" CMAKEGEN)
-    ARCH=$(vcget "$B" ARCH)
-    VSA=$(vcget "$VC" VS)${ARCH:+-$ARCH}
+    : ${ARCH=$(vcget "$B" ARCH)}
+    VSA=${VS-$(vcget "$VC" VS)}${ARCH:+-$ARCH}
     ABSDIR=$(cd "$DIR" >/dev/null && pwd -P)
     SRCDIR=${ABSDIR%/build*}
 	if [ -e "$SRCDIR/CMakeLists.txt" ] ; then
@@ -4271,7 +4303,15 @@ cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
 	BUILD_TYPE="%CONFIG%"
 	VCVARSCMD=$(vcget "${VC}-x64" VCVARSCMD )
 	VCVARSCMD=${VCVARSCMD/amd64/%ARCH%}
-    if [ -e "$CL" ]; then
+	
+	case "$VCBUILDCMD" in
+	  *"
+"*) VCBUILDCMD="(
+$VCBUILDCMD
+)" ;;
+    esac
+	
+	if [ -e "$CL" ]; then
       echo "Generating script $DIR/build.cmd ($(vcget "$VC" VCNAME))" 1>&2
       unix2dos >"$DIR/build.cmd" <<EOF
 @echo ${BATCHECHO:-off}
@@ -5453,6 +5493,38 @@ scriptdir()
     echo $absdir
 }
 
+search-fileknow()
+{ 
+  . require.sh
+  require url
+  for Q; do
+   (Q=${Q// /-}
+	Q=$(url_encode_args "=$Q")
+	SURL="http://fileknow.org/${Q#=}"
+	URLS=$SURL
+	PIPE="$(basename "${0#-}" .sh)-$$"
+	trap 'rm -f "$PIPE"' EXIT INT QUIT
+	rm -f "$PIPE"; mkfifo "$PIPE"
+	
+	while [ $(countv URLS) -gt 0 ]; do
+	  (set -x; dlynx.sh "$(indexv URLS 0)")	 >"$PIPE" &
+	  shiftv URLS
+	  while read -r LINE; do
+		case "$LINE" in
+		  */download/*) pushv DLS "$LINE" ;;
+		  *#[0-9]*) 		  
+		    OFFS=${LINE##*\#}
+		    OFFS=$(( (OFFS - 1) * 10 ))
+		    pushv URLS "$SURL?n=$OFFS" ;;
+		  *) continue ;;
+		esac
+        echo "$LINE"
+	  done <"$PIPE"
+	  wait 
+	done) || return $?	  
+  done 
+}
+
 set-builddir() {
   CCPATH=$(which ${CC:-gcc})
   case "$CCPATH" in
@@ -5526,6 +5598,18 @@ shell-functions()
     declare -f | script_fnlist )
 }
 
+shiftv()
+{
+  I=${2:-1}
+  
+    eval "while [ \$((I)) -gt 0 ]; do case \"\${$1}\" in
+    *[\$IFS]*) $1=\"\${$1#*[${IFS}]}\" ;;
+  *) $1=\"\" ;;
+esac 
+    : \$((I--))
+  done"
+}
+
 shortcut-cmd() {
     readshortcut -a -f "$1" | ${SED-sed} 's,^Arguments:\s*\(.*\),-a\n"\1",
     s,^Description:\s\+\(.*\),-d\n"\1",g
@@ -5551,22 +5635,35 @@ EOF'
   done")
 }
 
-sln-version()
-{ 
-    ( [ $# -gt 1 ] && O='""$ARG": $FVER" $VSVER' || O='"$FVER" $VSVER';
-    for ARG in "$@";
-    do
-        ( exec < "$ARG";
-        read -r LINE;
-        FVER=${LINE#*"Version "};
-        read -r LINE;
-        case "$LINE" in 
-            *Visual*Studio*)
-                VSVER=${LINE#*Visual*"Studio "}
-            ;;
-        esac;
-        eval "echo $O" );
-    done )
+sln-version() { 
+ (while :; do
+    case "$1" in
+      -x | --debug) DEBUG="true"; shift ;;
+      -vs* | --vs*) E='$VSVER'; shift ;;
+       -vc* | --vc*) E='$VCVER'; shift ;;
+      -f | --file) E='$FVER'; shift ;;
+      *) break ;;
+    esac
+  done
+  : ${E='"$FVER"${VSVER:+ "$VSVER"}'}
+  [ $# -gt 1 ] && E='"$ARG": '$E
+  
+  for ARG in "$@"; do
+   (exec < "$ARG"
+    read LINE
+    while [ "${#LINE}" -lt 4 ]; do  read  LINE ; done # skip BOM    
+    FVER=${LINE##*"Version "}
+    read -r LINE
+    case "$LINE" in 
+      *Version\ *) FVER=${LINE##*"Version "} ;;
+      *"Visual Studio 20"[01][0-9]*) VSVER=${LINE##*Visual*"Studio "}; VSVER=${VSVER%%" "*} ;;
+      *\ 20[01][0-9]) VSVER=${LINE##*" "} ;;
+    esac
+    case "$E" in
+      *\$VCVER*) VCVER=$(vs2vc "$VSVER") ;;
+    esac
+    eval "echo $E")
+  done)
 }
 
 some()
