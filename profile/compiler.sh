@@ -1,6 +1,7 @@
-CC=/usr/bin/clang
-CXX=/usr/bin/clang++
-CFLAGS="-g -O2 -Wall"
-CXXFLAGS="-g -O2 -Wall"
+CC="clang"
+CFLAGS="-march=pentium4m -mtune=pentium4m -msse2 -Os"
+
+CXX="clang++"
+CXXFLAGS="-march=pentium4m -mtune=pentium4m -msse2 -Os"
+
 export CC CXX CFLAGS CXXFLAGS
-export OBJC="clang++ -ObjC"
