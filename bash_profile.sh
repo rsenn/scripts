@@ -360,7 +360,10 @@ for p in /{opt,usr}/local/{s,}bin /opt/local/libexec/gnubin ; do
   fi
 done
 
-if type gcc 2>/dev/null >/dev/null; then
-  builddir=build/`gcc -dumpmachine | ${SED-sed} 's,\r*$,,'`
+if type ${CC-cc} 2>/dev/null >/dev/null; then
+  builddir=build/`${CC-cc} -dumpmachine | ${SED-sed} 's,\r*$,,'`
+  case "${CC-cc}" in
+    *clang*) builddir=${builddir%-gnu}-clang ;; 
+  esac
 fi
 }; _dot_bash_profile=1
