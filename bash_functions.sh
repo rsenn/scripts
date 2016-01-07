@@ -4777,17 +4777,20 @@ output-boot-entry()
        echo "}"
     ;;
     syslinux|isolinux)
-       [ -z "$LABEL" ] && LABEL=$(canonicalize -m 12 -l "$TITLE")
+       #[ -z "$LABEL" ] && 
+       
+       LABEL=$(canonicalize -m 16 -l "${TITLE//PartedMagic/pmagic}")
        echo "label $LABEL"
        echo "  menu label ${TITLE%%
 *}"
        if [ "$KERNEL" ]; then
          set -- $KERNEL
-         echo "  kernel $1"
+         echo "  kernel ${1%%" "*}"
+         args=${1#*" "}
          shift
          [ "$INITRD" ] && set -- initrd="$INITRD" "$@"
          [ $# -gt 0 ] &&
-         echo "  append" $@
+         echo "  append" $args $@
        fi
 
        if [ "$CMDS" ]; then
