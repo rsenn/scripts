@@ -110,8 +110,8 @@ do
 
 # strip the .avi, .mkv, .mov, mp4, or .ogm file extension.
 
-file=`echo $arg | sed -e 's/\.[amo][vkgop][ivm4]$//'`
-ext=`echo $arg | sed -e 's/^.*\.//'`
+file=`echo $arg | ${SED-sed} -e 's/\.[amo][vkgop][ivm4]$//'`
+ext=`echo $arg | ${SED-sed} -e 's/^.*\.//'`
 
 # test for file existence
 
@@ -294,7 +294,7 @@ transcode --nice 20 \
           -J modfps=clonetype=3 \
           -x mplayer$MPLAYER_OPTS,raw \
           $probedata \
-          -y ffmpeg \
+          -y ${FFMPEG-ffmpeg} \
           -p audiodump.wav \
           --import_asr $EXPORT_ASR \
           --export_asr $EXPORT_ASR \

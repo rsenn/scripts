@@ -51,7 +51,7 @@ SED_S="/^${VAR_N}\s*=/ {
 #end of new scripts
 }"
 #SED_S=${SED_S//"$BS"/"$BS$BS"}
-sed "$SED_S" $ARGS
+${SED-sed} "$SED_S" $ARGS
 #printf "%s\n" "$SED_S"
 #echo "$SED_S"
 #echo "$OUT"

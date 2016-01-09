@@ -5,6 +5,6 @@ sf-get-git-repos() {
       xml_get a data-url |
       head -n1
   done |
-    sed "s|-git\$|| ;; s|-code\$||" |
+    ${SED-sed} "s|-git\$|| ;; s|-code\$||" |
     addsuffix "-git")
 }

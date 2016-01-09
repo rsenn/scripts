@@ -31,7 +31,7 @@ time {
        $SCAN_PORTS $SCAN_TARGETS 
 } | {
   DISTCC_HOSTS=
-  sed -u \
+  ${SED-sed} -u \
       -e 's,\s*Host:\s\+\([.0-9]\+\)\s\+(\([^)]*\))\s*,\1\t\2\t,' \
       -e 's,\s*Status:\s\+\([^\s]\+\)\s*,\\t,' \
       -e 's,\s*Ports:\s\+\(.*\)$,\t\1\t,' | 
@@ -45,7 +45,7 @@ time {
       ;;
     esac
 
-    set -- `echo "$ports" | sed 's|,\s*|\n|g' | sed 's|/*$||'`
+    set -- `echo "$ports" | ${SED-sed} 's|,\s*|\n|g' | ${SED-sed} 's|/*$||'`
     
     while test "$#" -gt 0; do
       if test -n "$hostname"; then

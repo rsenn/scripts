@@ -1,5 +1,5 @@
 #!/bin/bash
-type gsed 1>/dev/null 2>/dev/null && SED=gsed || SED=sed
+type ${SED-sed} 1>/dev/null 2>/dev/null && SED=${SED-sed} || SED=${SED-sed}
 MYNAME=`basename "${0%.sh}"`
 MYDIR=`dirname "$0"`
 IFS="

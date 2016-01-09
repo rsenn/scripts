@@ -71,7 +71,7 @@ for ARG; do
         trap 'rm -vf "$TMP"' EXIT QUIT INT TERM
 
 #  (set -x; mplayer -really-quiet -noconsolecontrols -vo null -vc null -ao pcm:waveheader:file="$TMP" "$ARG") &&
-    (set -x; ffmpeg -y -i "$BASE" \
+    (set -x; ${FFMPEG-ffmpeg} -y -i "$BASE" \
                         ${SIZE:+-s "$SIZE"} \
 												${VCODEC:+-vcodec "$VCODEC"} ${VBITRATE:+-b:v $((VBITRATE))} \
 	${ACODEC:+-acodec "$ACODEC"} -strict -2 ${ABITRATE:+-b:a $((ABITRATE))} ${SAMPLERATE:+-ar "$SAMPLERATE"} ${CHANNELS:+-ac "$CHANNELS"} \

@@ -16,8 +16,8 @@ check-7z() {
   mkdir -p "$OUTDIR"
   trap 'rm -rf "$OUTDIR"' EXIT
   FILTER="xargs -n1 -d \"\${IFS:0:1}\" sha1sum"
-  #FILTER="$FILTER | sed \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\${ARCHIVE}\${SEP:-: }\\2 \\[\\1\\]|\""
-  FILTER="$FILTER | sed \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\\1 \\*\${ARCHIVE}\${SEP:-:}\\2|\""
+  #FILTER="$FILTER | ${SED-sed} \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\${ARCHIVE}\${SEP:-: }\\2 \\[\\1\\]|\""
+  FILTER="$FILTER | ${SED-sed} \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\\1 \\*\${ARCHIVE}\${SEP:-:}\\2|\""
   process() { IFS="
  "; set +x;
     unset PREV; while read -r LINE; do

@@ -52,7 +52,7 @@ CMD='grep $GREP_ARGS -i -E "\\.($(IFS="| "; set -- $EXTS;  echo "$*"))${PARTIAL_
 if [ $# -gt 0 ]; then
   GREP_ARGS="-H"
   case "$*" in
-    *files.list*) FILTER='sed "s|/files.list:|/|"' ;;
+    *files.list*) FILTER='${SED-sed} "s|/files.list:|/|"' ;;
   esac
 fi
 

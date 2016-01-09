@@ -46,7 +46,7 @@ EOF
 
 for DIR in "${@:-$PWD}"; do
 
-  SUBDIR=$(find "$DIR" -iwholename "*bin/*gcc*" | sed "s|/bin.*||"|head -n1)
+  SUBDIR=$(find "$DIR" -iwholename "*bin/*gcc*" | ${SED-sed} "s|/bin.*||"|head -n1)
 
   SUBDIRNAME=${SUBDIR##*/}
 

@@ -54,8 +54,8 @@ reduceversion()
  (EXPR='s,\([-\._]\?\)[0-9]\+\([-_\.][0-9]\+\)*[a-z]\?,\1{},g'
 
   case "${1+set}" in
-    set) echo "$1" | sed -e "$EXPR" ;;
-    "") sed -e "$EXPR" ;;
+    set) echo "$1" | ${SED-sed} -e "$EXPR" ;;
+    "") ${SED-sed} -e "$EXPR" ;;
   esac)
 }
 

@@ -12,7 +12,7 @@ canonicalize()
    done
      : ${MAXLEN:=4095}
 
-   CMD="sed 's,[^A-Za-z0-9],-,g'|sed 's,-\+,-,g ;; s,^-\+,, ;; s,-\+\$,,'"
+   CMD="${SED-sed} 's,[^A-Za-z0-9],-,g'|${SED-sed} 's,-\+,-,g ;; s,^-\+,, ;; s,-\+\$,,'"
    [ "$LOWERCASE" = true ] && CMD="$CMD|tr [:{upper,lower}:]"
    #[ $# -gt 0 ] && CMD='set -- \$(IFS=" "; echo "$*"|'$CMD')'
 

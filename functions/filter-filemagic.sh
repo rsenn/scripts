@@ -17,5 +17,5 @@ filter-filemagic() {
      EXPR="\\|:\\s\\+${ARG%%|*}|$NOT { $EXPR }"
    done
   xargs -d "
-" file -- | sed -n -u "$EXPR")
+" file -- | ${SED-sed} -n -u "$EXPR")
 }

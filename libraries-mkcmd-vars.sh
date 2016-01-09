@@ -19,7 +19,7 @@ main() {
     *mingw*) 
       TARGETDIR=$(realpath $PWD/mingw-w64/$TARGET) 
       MINGWDIR=$(realpath "$TARGETDIR/..")
-      VARS=$(realpath "$MINGWDIR/mingw-w64.bat"| xargs cygpath -m | sed 's,/,\\,g')
+      VARS=$(realpath "$MINGWDIR/mingw-w64.bat"| xargs cygpath -m | ${SED-sed} 's,/,\\,g')
       CALLARG= 
       ;;
    esac

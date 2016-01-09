@@ -18,12 +18,12 @@ bash_enable 'csv'
 ME=$(readlink "$0")
 MY_PATH=`dirname "$ME"`
 
-q=$(echo "$*" | sed 's, ,+,g')
+q=$(echo "$*" | ${SED-sed} 's, ,+,g')
 
 http_get "www.hhv.de/index.php?action=topSearch&match=$q" |
 tee "hhv-search.html" |
 xml_get "a href=\"item_[^>]*" | 
-sed -n -e 's,.*_\([0-9]\+\)\..*,\1,p' | {
+${SED-sed} -n -e 's,.*_\([0-9]\+\)\..*,\1,p' | {
 #set -x
 IFS="
 "

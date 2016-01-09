@@ -1,4 +1,4 @@
 list-nolastitem()
 {
-    sed '$d'
+    ${SED-sed} '$d'
 }

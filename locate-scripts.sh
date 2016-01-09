@@ -36,7 +36,7 @@ find_scripts()
 
 		set "$@" "(" $CONDITIONS ")" 
 
-		"$@" 2>/dev/null  |sed -u 's,^\.\/,,' |while read -r P; do
+		"$@" 2>/dev/null  |${SED-sed} -u 's,^\.\/,,' |while read -r P; do
 		( 
 			${CYGPATH:+$CYGPATH -m "$P"}
 		)

@@ -24,5 +24,5 @@ EXPR="(^bzImage|initramfs[^/]*\$|initrd[^/]*\$|initrd[^.]*\.img|pmodules/[^/]*\.
 (
   find . -type f
 ) |
-sed -u 's,^\./,,' | grep -i -E $NOT "$EXPR" |
+${SED-sed} -u 's,^\./,,' | grep -i -E $NOT "$EXPR" |
 sort -u

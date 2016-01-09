@@ -6,7 +6,7 @@ output-boot-entry()
     grub4dos)
        echo "title "${TITLE//"
 "/"\\n"}
-         [ "$CMDS" ] && echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS"| sed 's,^,#,'
+         [ "$CMDS" ] && echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS"| ${SED-sed} 's,^,#,'
        if [ "$KERNEL" ]; then
         echo "kernel $KERNEL"
        [ "$INITRD" ] && echo "initrd $INITRD"
@@ -15,26 +15,29 @@ output-boot-entry()
     ;;
     grub2)
        echo "menuentry \"$TITLE\" {"
-       echo "  linux $KERNEL"
-       echo "  initrd $INITRD"
+       echo "  linux${EFI} $KERNEL"
+       echo "  initrd${EFI} $INITRD"
        echo "}"
     ;;
     syslinux|isolinux)
-       [ -z "$LABEL" ] && LABEL=$(canonicalize -m 12 -l "$TITLE")
+       #[ -z "$LABEL" ] && 
+       
+       LABEL=$(canonicalize -m 16 -l "${TITLE//PartedMagic/pmagic}")
        echo "label $LABEL"
        echo "  menu label ${TITLE%%
 *}"
        if [ "$KERNEL" ]; then
          set -- $KERNEL
-         echo "  kernel $1"
+         echo "  kernel ${1%%" "*}"
+         args=${1#*" "}
          shift
          [ "$INITRD" ] && set -- initrd="$INITRD" "$@"
          [ $# -gt 0 ] &&
-         echo "  append" $@
+         echo "  append" $args $@
        fi
 
        if [ "$CMDS" ]; then
-         echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS" |sed 's,^,  #,'
+         echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS" |${SED-sed} 's,^,  #,'
          fi
 
      ;;

@@ -5,7 +5,7 @@
 urlescape()
 {
   echo "$1" | 
-    sed \
+    ${SED-sed} \
       -e 's,",%22,g' \
       -e 's,+,%2B,g' \
       -e 's,|,%7C,g' \
@@ -103,7 +103,7 @@ fi
 case "$CLASS" in
   image*|img*) 
     URLS="http://www.google.com/search?safe=off&site=imghp&tbs=isz:ex${TYPE+%2Cift:$TYPE}&tbm=isch&source=hp&biw=1280&bih=823&q=$*&oq=$*&num=${RESULTS-30}"
-    FILTER="sed -n 's,.*imgrefurl=\\([^&]\+\\).*imgurl=\\([^&]\+\\).*,\\2,p'"
+    FILTER="${SED-sed} -n 's,.*imgrefurl=\\([^&]\+\\).*imgurl=\\([^&]\+\\).*,\\2,p'"
   ;;
   *) URLS="http://www.google.com/search?q=$*&num=${RESULTS-30}" ;;
 esac
@@ -124,6 +124,6 @@ fi
 
 [ "$DEBUG" = true ] && CMD="set -x; $CMD"
 
-FILTER="sed 's%<%\n&%g' | sed -n 's%^<a href=\"\\([^\"/:]\\+://[^\"]\\+\\)\"[^>]\\+.*%\\1%p'${FILTER:+ | $FILTER}"
-FILTER="$FILTER | sed 's%\\&amp;%\\&%g'"
+FILTER="${SED-sed} 's%<%\n&%g' | ${SED-sed} -n 's%^<a href=\"\\([^\"/:]\\+://[^\"]\\+\\)\"[^>]\\+.*%\\1%p'${FILTER:+ | $FILTER}"
+FILTER="$FILTER | ${SED-sed} 's%\\&amp;%\\&%g'"
 eval "($CMD) ${FILTER:+ | ${FILTER#\ \|\ }}" 

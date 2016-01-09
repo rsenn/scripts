@@ -51,7 +51,7 @@ QURL="${URL}/${Q#q=}.html"
 REFERER=""
 CURL="check_cookies; set ${DEBUG:-+x}; curl -q \${VERBOSE} -L \${COOKIE_ARGS} \${REFERER:+--referer \"\${REFERER}\"} \${SOCKS5:+-socks5 \"\${SOCKS5}\"} -A \"\${USER_AGENT}\""
 CMD="${CURL} \${QURL}"
-FILTER="xml_get a href |sed -n 's,^/\([0-9]*/index.html\)$,${URL}/\1,p; s,\(.*search.php.*pos=.*\),${URL}/\1,p'"
+FILTER="xml_get a href |${SED-sed} -n 's,^/\([0-9]*/index.html\)$,${URL}/\1,p; s,\(.*search.php.*pos=.*\),${URL}/\1,p'"
 
 check_cookies()
 {

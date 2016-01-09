@@ -15,11 +15,11 @@ verbose() {
 
 cut_ver () 
 { 
-    cat "$@" | cut_trailver | sed 's,[-.]rc[[:alnum:]][^-.]*,,g ;; s,[-.]b[[:alnum:]][^-.]*,,g ;; s,[-.]git[_[:alnum:]][^-.]*,,g ;; s,[-.]svn[_[:alnum:]][^-.]*,,g ;; s,[-.]linux[^-.]*,,g ;; s,[-.]v[[:alnum:]][^-.]*,,g ;; s,[-.]beta[_[:alnum:]][^-.]*,,g ;; s,[-.]alpha[_[:alnum:]][^-.]*,,g ;; s,[-.]a[_[:alnum:]][^-.]*,,g ;; s,[-.]trunk[^-.]*,,g ;; s,[-.]release[_[:alnum:]][^-.]*,,g ;; s,[-.]GIT[^-.]*,,g ;; s,[-.]SVN[^-.]*,,g ;; s,[-.]r[_[:alnum:]][^-.]*,,g ;; s,[-.]dnh[_[:alnum:]][^-.]*,,g' | sed 's,[^-.]*git[_0-9][^.].,,g ;; s,[^-.]*svn[_0-9][^.].,,g ;; s,[^-.]*GIT[^.].,,g ;; s,[^-.]*SVN[^.].,,g' | sed 's,\.\(P\)\?[0-9][_+[:digit:]]*\.,.,g' | sed 's,[.-][0-9][_+[:alnum:]]*$,,g ;; s,[.-][0-9][_+[:alnum:]]*\([-.]\),\1,g' | sed 's,[-_.][0-9]*\(svn\)\?\(git\)\?\(P\)\?\(rc\)\?[0-9][_+[:digit:]]*\(-.\),\5,g' | sed 's,-[0-9][._+[:digit:]]*$,, ;;  s,-[0-9][._+[:digit:]]*$,,' | sed 's,[.-][0-9][_+[:alnum:]]*$,,g ;; s,[.-][0-9]*\(rc[0-9]\)\?\(b[0-9]\)\?\(git[_0-9]\)\?\(svn[_0-9]\)\?\(linux\)\?\(v[0-9]\)\?\(beta[_0-9]\)\?\(alpha[_0-9]\)\?\(a[_0-9]\)\?\(trunk\)\?\(release[_0-9]\)\?\(GIT\)\?\(SVN\)\?\(r[_0-9]\)\?\(dnh[_0-9]\)\?[0-9][_+[:alnum:]]*\.,.,g' | sed 's,\.[0-9][^.]*\.,.,g'
+    cat "$@" | cut_trailver | ${SED-sed} 's,[-.]rc[[:alnum:]][^-.]*,,g ;; s,[-.]b[[:alnum:]][^-.]*,,g ;; s,[-.]git[_[:alnum:]][^-.]*,,g ;; s,[-.]svn[_[:alnum:]][^-.]*,,g ;; s,[-.]linux[^-.]*,,g ;; s,[-.]v[[:alnum:]][^-.]*,,g ;; s,[-.]beta[_[:alnum:]][^-.]*,,g ;; s,[-.]alpha[_[:alnum:]][^-.]*,,g ;; s,[-.]a[_[:alnum:]][^-.]*,,g ;; s,[-.]trunk[^-.]*,,g ;; s,[-.]release[_[:alnum:]][^-.]*,,g ;; s,[-.]GIT[^-.]*,,g ;; s,[-.]SVN[^-.]*,,g ;; s,[-.]r[_[:alnum:]][^-.]*,,g ;; s,[-.]dnh[_[:alnum:]][^-.]*,,g' | ${SED-sed} 's,[^-.]*git[_0-9][^.].,,g ;; s,[^-.]*svn[_0-9][^.].,,g ;; s,[^-.]*GIT[^.].,,g ;; s,[^-.]*SVN[^.].,,g' | ${SED-sed} 's,\.\(P\)\?[0-9][_+[:digit:]]*\.,.,g' | ${SED-sed} 's,[.-][0-9][_+[:alnum:]]*$,,g ;; s,[.-][0-9][_+[:alnum:]]*\([-.]\),\1,g' | ${SED-sed} 's,[-_.][0-9]*\(svn\)\?\(git\)\?\(P\)\?\(rc\)\?[0-9][_+[:digit:]]*\(-.\),\5,g' | ${SED-sed} 's,-[0-9][._+[:digit:]]*$,, ;;  s,-[0-9][._+[:digit:]]*$,,' | ${SED-sed} 's,[.-][0-9][_+[:alnum:]]*$,,g ;; s,[.-][0-9]*\(rc[0-9]\)\?\(b[0-9]\)\?\(git[_0-9]\)\?\(svn[_0-9]\)\?\(linux\)\?\(v[0-9]\)\?\(beta[_0-9]\)\?\(alpha[_0-9]\)\?\(a[_0-9]\)\?\(trunk\)\?\(release[_0-9]\)\?\(GIT\)\?\(SVN\)\?\(r[_0-9]\)\?\(dnh[_0-9]\)\?[0-9][_+[:alnum:]]*\.,.,g' | ${SED-sed} 's,\.[0-9][^.]*\.,.,g'
 }
 cut_trailver () 
 { 
-    cat "$@" | sed 's,-[0-9][^-.]*\(\.[0-9][^-.]*\)*$,,'
+    cat "$@" | ${SED-sed} 's,-[0-9][^-.]*\(\.[0-9][^-.]*\)*$,,'
 }
 
 implode() {
@@ -36,7 +36,7 @@ implode() {
 }
 
 grep_e_expr() {
-  implode "|" "$@" |sed 's,[()],&,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*\\],\\&,g ; s,.*,(&),'
+  implode "|" "$@" |${SED-sed} 's,[()],&,g ; s,\[,\\[,g ; s,\],\\],g ; s,[.*\\],\\&,g ; s,.*,(&),'
 }
 
 apt-dpkg-list-all-pkgs()
@@ -57,7 +57,7 @@ apt-dpkg-list-all-pkgs()
   #dpkg_expr=^$(grep_e_expr $(<dpkg.list))
 
   awkp <apt.list |sort >pkgs.list
-  sed -f "$dpkg_exprfile" pkgs.list >available.list
+  ${SED-sed} -f "$dpkg_exprfile" pkgs.list >available.list
 	#grep -v -E "$dpkg_expr\$" <pkgs.list  >available.list
 
   (set -x; wc -l {apt,dpkg,pkgs,available}.list)
@@ -70,13 +70,13 @@ yum-rpm-list-all-pkgs()
 
   verbose "Creating yum.list"  
   yum_list  >yum.list
-  #sed -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1,p' <yum.list >pkgs.list
+  #${SED-sed} -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1,p' <yum.list >pkgs.list
   verbose "Creating pkgs.list"  
-  sed -e 's,\s*$,,' -e  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" <yum.list >pkgs.list
-  #rpm_list |sort |sed 's,\.[^.]\+$,, ; s,\.[^.]\+$,, ; s,-[^-]\+$,, ; s,-[^-]\+$,,' >rpm.list
+  ${SED-sed} -e 's,\s*$,,' -e  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" <yum.list >pkgs.list
+  #rpm_list |sort |${SED-sed} 's,\.[^.]\+$,, ; s,\.[^.]\+$,, ; s,-[^-]\+$,, ; s,-[^-]\+$,,' >rpm.list
   verbose "Creating rpm.list"  
-  rpm_list |sed 's|-[0-9].*\.fc[0-9]\+||' >rpm.list
-  #rpm_list |sort |sed  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" >rpm.list
+  rpm_list |${SED-sed} 's|-[0-9].*\.fc[0-9]\+||' >rpm.list
+  #rpm_list |sort |${SED-sed}  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" >rpm.list
 
 	set -- $(<rpm.list)
 
@@ -93,7 +93,7 @@ yum-rpm-list-all-pkgs()
 
 
   verbose "Creating available.list"  
-  sed -f "$rpm_exprfile" pkgs.list >available.list
+  ${SED-sed} -f "$rpm_exprfile" pkgs.list >available.list
 
   (set -x; wc -l {yum,rpm,pkgs,available}.list)
 }
@@ -104,13 +104,13 @@ zypper_rpm_list_all_pkgs() {
 
   verbose "Creating zypper.list"  
   zypper_list  >zypper.list
-  #sed -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1,p' <zypper.list >pkgs.list
+  #${SED-sed} -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1,p' <zypper.list >pkgs.list
   verbose "Creating pkgs.list"  
-  sed -e 's,\s*$,,' -e  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|-\1.\4|" <zypper.list >pkgs.list
-  #rpm_list |sort |sed 's,\.[^.]\+$,, ; s,\.[^.]\+$,, ; s,-[^-]\+$,, ; s,-[^-]\+$,,' >rpm.list
+  ${SED-sed} -e 's,\s*$,,' -e  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|-\1.\4|" <zypper.list >pkgs.list
+  #rpm_list |sort |${SED-sed} 's,\.[^.]\+$,, ; s,\.[^.]\+$,, ; s,-[^-]\+$,, ; s,-[^-]\+$,,' >rpm.list
   verbose "Creating rpm.list"  
-  rpm_list |sed 's|-[0-9].*\.fc[0-9]\+||' >rpm.list
-  #rpm_list |sort |sed  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" >rpm.list
+  rpm_list |${SED-sed} 's|-[0-9].*\.fc[0-9]\+||' >rpm.list
+  #rpm_list |sort |${SED-sed}  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" >rpm.list
 
 	set -- $(<rpm.list)
 
@@ -127,7 +127,7 @@ zypper_rpm_list_all_pkgs() {
 
 
   verbose "Creating available.list"  
-  sed -f "$rpm_exprfile" pkgs.list >available.list
+  ${SED-sed} -f "$rpm_exprfile" pkgs.list >available.list
 
   (set -x; wc -l {zypper,rpm,pkgs,available}.list)
 }
@@ -139,13 +139,13 @@ yaourt_pacman_list_all_pkgs() {
 		$SUDO pacman -Q${OPT} 
 		$YAOURT -Q${OPT} 
   done \
-		|sed 's|\s\+(.*||' | sort -k1,2 -V -u >installed.list
+		|${SED-sed} 's|\s\+(.*||' | sort -k1,2 -V -u >installed.list
 
   {
 		$YAOURT -Sl
 		$SUDO pacman -Sl
-  } | sed 's,^[/ ]*[/ ],, ; s,\s\+[\[(].*,,' |sort -u | sed 's,/, , ; s,^[^ ]* ,,' |sort -V -u >pkgs.list
-  #} | sed 's,^[ /]\+[ /],, ; s,\s\+[\[(].*,, ; s, .*,,' |sort -k1,2 -V -u >pkgs.list
+  } | ${SED-sed} 's,^[/ ]*[/ ],, ; s,\s\+[\[(].*,,' |sort -u | ${SED-sed} 's,/, , ; s,^[^ ]* ,,' |sort -V -u >pkgs.list
+  #} | ${SED-sed} 's,^[ /]\+[ /],, ; s,\s\+[\[(].*,, ; s, .*,,' |sort -k1,2 -V -u >pkgs.list
 
   set -- $(<installed.list)
 
@@ -156,7 +156,7 @@ yaourt_pacman_list_all_pkgs() {
     echo "\|^${x}\$|d" 
   done >"$exprfile"
 
-	sed -f "$exprfile" pkgs.list >available.list
+	${SED-sed} -f "$exprfile" pkgs.list >available.list
 
 }
 require distrib
@@ -170,7 +170,7 @@ case $(distrib_get id) in
   [Ff]edora) YUM_cmd=dnf; CMD=yum-rpm-list-all-pkgs ;;
   [Dd]ebian|[Uu]buntu) CMD=apt-dpkg-list-all-pkgs ;;
   openS[Uu]SE*|opensuse*) CMD=zypper_rpm_list_all_pkgs  ;;
-  [Aa]rch*) CMD=yaourt_pacman_list_all_pkgs  ;;
+  [Aa]rch*|[Mm]anjaro*) CMD=yaourt_pacman_list_all_pkgs  ;;
 *) echo "No such distribution $(distrib_get id)" 1>&2 ;;
 esac
 

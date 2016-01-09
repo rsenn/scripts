@@ -4,7 +4,7 @@ PROXY_value='ProxyServer'
 proxy_get()
 {
    reg query "$PROXY_key" /v "$PROXY_value" |
-   sed -n "s/.*ProxyServer.*REG_SZ\s*\(.*\)/\1/p"
+   ${SED-sed} -n "s/.*ProxyServer.*REG_SZ\s*\(.*\)/\1/p"
 }
 
 proxy_delete()

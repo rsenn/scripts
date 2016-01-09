@@ -1,6 +1,6 @@
 #!/bin/sh
 
-BRIDGE=`sed -n 's,^\s*\(br[0-9]\+\):.*,\1,p' /proc/net/dev`
+BRIDGE=`${SED-sed} -n 's,^\s*\(br[0-9]\+\):.*,\1,p' /proc/net/dev`
 
 killall dhcpcd{,-bin} 2>/dev/null
 

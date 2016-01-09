@@ -3,14 +3,14 @@
 exec_bin()
 {
   (IFS=" $IFS"; CMD="$*"
-  [ "$VERBOSE" = true ] &&  echo "+ $CMD" 1>&2 
+  [ "$DEBUG" = true ] &&  echo "+ $CMD" 1>&2 
   exec "$@")
 }
 
 eval_bin()
 {
   (IFS=" $IFS"; CMD="$*"
-  [ "$VERBOSE" = true ] &&  echo "+ $CMD" 1>&2 
+  [ "$DEBUG" = true ] &&  echo "+ $CMD" 1>&2 
   eval "$*")
 }
 
@@ -105,6 +105,7 @@ while :; do
   case "$1"  in
       -t | --type) TYPE="$2" ; shift 2 ;; -t=* | --type=*) TYPE="${1#*=}" ; shift ;; -t*) TYPE="${1#-t}"; shift ;;
       -v | --verbose) VERBOSE=true; shift ;;
+      -x | --debug) DEBUG=true; shift ;;
     *) break ;;
   esac
 done

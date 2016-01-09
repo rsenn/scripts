@@ -16,7 +16,7 @@ list-files()
     [ $# = 0 ] && set .;
     NL="
 ";
-    FILTER="xargs -d \"\$NL\" file | sed \"s|^\.\/|| ;; s|:\s\+|: |\" ${OUTPUT}\"\${OUTFILE}\"";
+    FILTER="xargs -d \"\$NL\" file | ${SED-sed} \"s|^\.\/|| ;; s|:\s\+|: |\" ${OUTPUT}\"\${OUTFILE}\"";
     for ARG in "$@";
     do
         ( cd "$ARG";

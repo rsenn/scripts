@@ -33,8 +33,8 @@ for DLL in *.dll; do
   
   NAME=${LIBNAME#lib}
   
-  ANAME=`echo "$NAME" | sed 's,-[0-9][_0-9]*$,,'`
-  #ANAME=`echo "$NAME" | sed 's,[0-9]\+$,,'`
+  ANAME=`echo "$NAME" | ${SED-sed} 's,-[0-9][_0-9]*$,,'`
+  #ANAME=`echo "$NAME" | ${SED-sed} 's,[0-9]\+$,,'`
   
   IMPLIB=`ls -d ../lib/lib${ANAME}*.dll.a 2>/dev/null | grep "/lib/lib${ANAME}[-_0-9]*\.dll.a\$"`
   MSIMPLIB=`ls -d ../lib/${ANAME}*.lib 2>/dev/null | grep "/lib/${ANAME}[-_0-9]*\.lib\$"`

@@ -7,7 +7,7 @@ explode() {
   IFS="
 "
   [ $# -gt 0 ] && exec <<<"$*"
-  sed "s|${S//\"/\\\"}|\n|g")
+  ${SED-sed} "s|${S//\"/\\\"}|\n|g")
 }
 
 implode() {
@@ -52,10 +52,10 @@ main() {
   (get_url_args "$URL" 
    
    A=`match "page=[0-9]*" $URL_ARGS`
-   R=$(sed <<<"$A" 's,\(.*\)=\([0-9]\+\)$,\\(\1\\)=\\(\[0-9\]\\+\\),')
-   P=$(sed <<<"$A" "s|$R|\2|")
+   R=$(${SED-sed} <<<"$A" 's,\(.*\)=\([0-9]\+\)$,\\(\1\\)=\\(\[0-9\]\\+\\),')
+   P=$(${SED-sed} <<<"$A" "s|$R|\2|")
    
-   CMD="extract-urls.sh '$(echo "$URL" | sed "s|$R|\1='{\`seq -s, 1 $P\`}'|")'"
+   CMD="extract-urls.sh '$(echo "$URL" | ${SED-sed} "s|$R|\1='{\`seq -s, 1 $P\`}'|")'"
    
    [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
    

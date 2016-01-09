@@ -52,11 +52,11 @@ mkbuilddir() {
     SRCDIR=${ABSDIR%/build*}
 	if [ -e "$SRCDIR/CMakeLists.txt" ] ; then
 	  CMAKELISTS="$SRCDIR/CMakeLists.txt"
-      CMAKELISTS_ADD=$( sed -n "s|.*add_subdirectory(\s*\([^ )]*\)\s*).*|$SRCDIR/\1/CMakeLists.txt|p"  "$SRCDIR/CMakeLists.txt" )
+      CMAKELISTS_ADD=$( ${SED-sed} -n "s|.*add_subdirectory(\s*\([^ )]*\)\s*).*|$SRCDIR/\1/CMakeLists.txt|p"  "$SRCDIR/CMakeLists.txt" )
 	  if [ -n "$CMAKELISTS_ADD" ]; then
 		pushv_unique CMAKELISTS $CMAKELISTS_ADD
 	  fi
-	  PROJECT=$(sed -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
+	  PROJECT=$(${SED-sed} -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
 	  CONFIGURE_CMD="
 cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
   %* ^
@@ -69,20 +69,20 @@ cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
     PREFIX="${SRCDIR##*/}\\${DIR##*/}"
     [ -n "$INSTALLROOT" ] && INSTALLROOT=$(${PATHTOOL:-echo} "$INSTALLROOT")
     if [ -n "$CMAKELISTS" ]; then
-	  if [ -z "$INSTALLROOT" ] && grep -q -i "add_library\s*(" $CMAKELISTS ; then
+	  if [ -z "$INSTALLROOT" ] && ${GREP-grep} -q -i "add_library\s*(" $CMAKELISTS ; then
 		case "$SRCDIR" in
 		  *-[0-9]*) INSTDIR=${SRCDIR##*/} ;;
 		  *) INSTDIR=${SRCDIR##*/}-$(isodate.sh -r "$SRCDIR") ;;
 		esac
 		  INSTALLROOT="E:/Libraries/${INSTDIR}/${B}"
 	  fi
-	  if grep -q -i "install\s*(" $CMAKELISTS ; then
+	  if ${GREP-grep} -q -i "install\s*(" $CMAKELISTS ; then
 		INSTALL_CMD=$(output_vcbuild "$B" INSTALL.vcxproj "Release")
 	  fi
 	  add_def CMAKE_INSTALL_PREFIX "${INSTALLROOT:-%PROGRAMFILES%\\$PREFIX}"
 	  add_def CMAKE_VERBOSE_MAKEFILE "TRUE"
 	  for VAR in BUILD_SHARED_LIBS ENABLE_SHARED; do
-	   if grep -q "$VAR" $CMAKELISTS ; then
+	   if ${GREP-grep} -q "$VAR" $CMAKELISTS ; then
 	   add_def $VAR "TRUE"
 	   fi
 	  done

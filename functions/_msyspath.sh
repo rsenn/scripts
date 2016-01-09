@@ -9,7 +9,7 @@ _msyspath()
   esac
   case $MODE in
     win*|mix*)
-      for MOUNT in $(mount | sed -n 's|\\|\\\\|g ;; s,\(.\):\\\(.\+\) on \(.*\) type .*,\1:\\\2|\3,p'); do
+      for MOUNT in $(mount | ${SED-sed} -n 's|\\|\\\\|g ;; s,\(.\):\\\(.\+\) on \(.*\) type .*,\1:\\\2|\3,p'); do
         DEV=${MOUNT%'|'*}
         MNT=${MOUNT##*'|'}
         test "$MNT" = / && DEV="$DEV\\\\"
@@ -17,7 +17,7 @@ _msyspath()
         add_to_script "/^.:/! s|^${MNT}|${DEV}|"
        done
 
-       #ROOT=$(mount | sed -n 's,\\,\\\\,g ;; s|\s\+on\s\+/\s\+.*||p')
+       #ROOT=$(mount | ${SED-sed} -n 's,\\,\\\\,g ;; s|\s\+on\s\+/\s\+.*||p')
       #add_to_script "/^.:/!  s|^|$ROOT|"
     ;;
   esac
@@ -31,6 +31,6 @@ _msyspath()
     win*)  add_to_script "s|^a:|A:|" "s|^b:|B:|" "s|^c:|C:|" "s|^d:|D:|" "s|^e:|E:|" "s|^f:|F:|" "s|^g:|G:|" "s|^h:|H:|" "s|^i:|I:|" "s|^j:|J:|" "s|^k:|K:|" "s|^l:|L:|" "s|^m:|M:|" "s|^n:|N:|" "s|^o:|O:|" "s|^p:|P:|" "s|^q:|Q:|" "s|^r:|R:|" "s|^s:|S:|" "s|^t:|T:|" "s|^u:|U:|" "s|^v:|V:|" "s|^w:|W:|" "s|^x:|X:|" "s|^y:|Y:|" "s|^z:|Z:|" ;;
   esac
   #echo "SCRIPT=$SCRIPT" 1>&2
- (sed "$SCRIPT" "$@")
+ (${SED-sed} "$SCRIPT" "$@")
  )
 }

@@ -23,12 +23,12 @@ STRINGS=$(strings $FILES |grep "$FROM")
 ESCAPE_EXPR="s|=|\\\\=|g"
 
 for STRING in $STRINGS; do
-  REPLACEMENT=$(echo "$STRING" | sed "s|$FROM|$TO|g")
+  REPLACEMENT=$(echo "$STRING" | ${SED-sed} "s|$FROM|$TO|g")
 
   [ "$STRING" = "$REPLACEMENT" ] && continue
 
-  STRING=`echo "$STRING" | sed "$ESCAPE_EXPR"`
-  REPLACEMENT=`echo "$REPLACEMENT" | sed "$ESCAPE_EXPR"`
+  STRING=`echo "$STRING" | ${SED-sed} "$ESCAPE_EXPR"`
+  REPLACEMENT=`echo "$REPLACEMENT" | ${SED-sed} "$ESCAPE_EXPR"`
 
  (set -x
  bsed  -z0$INPLACE "$STRING=$REPLACEMENT" $FILES)

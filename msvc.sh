@@ -78,7 +78,7 @@ find_psdk() {
 # -------------------------------------------------------------------------
 find_cygwin() {
 	set -- ${@-`reg query 'HKEY_CURRENT_USER\Software\Cygwin\Installations' |
-	  sed -n "/REG_SZ/ { s/.*REG_SZ\\s\\+// ; p }"`}
+	  ${SED-sed} -n "/REG_SZ/ { s/.*REG_SZ\\s\\+// ; p }"`}
 
 	eval "CYGWIN_prefix=\"\${$#}\""
 
@@ -217,7 +217,7 @@ read_var()
 {
   local name=$1 && shift
 
-  sed -n "/^$name=/ {
+  ${SED-sed} -n "/^$name=/ {
     /^$name='[^']*'\$/    s/^$name='\([^']*\)'\$/\1/ p
     /^$name=\"[^\"]*\"\$/ s/^$name=\"\([^\"]*\)\"\$/\1/ p
     /^$name=[^'\"]*\$/    s/^$name=\([^'\"]*\)\$/\1/ p
@@ -542,7 +542,7 @@ msvc_main()
    old_IFS="$IFS"
    IFS="
 $IFS"
-  set -- $(echo "$*"|sed "\\|/| { s|\(.\)/|\\1\\\\|g } ;; \\| | { s|.*|\"&\"| }")
+  set -- $(echo "$*"|${SED-sed} "\\|/| { s|\(.\)/|\\1\\\\|g } ;; \\| | { s|.*|\"&\"| }")
   IFS=" "
   set -- cmd /c "$*"   
  
