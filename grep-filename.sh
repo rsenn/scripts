@@ -21,6 +21,9 @@ vmdisk_EXTS="vdi vmdk vhd qed qcow qcow2 vhdx hdd"
 addexts() {
 eval "EXTS=\"\${EXTS:+\$EXTS }\${${1}_EXTS}\""
 }
+addext() {
+eval "EXTS=\"\${EXTS:+\$EXTS }\${1}\""
+}
 addexts ${MYNAME#grep-}
 
 PARTIAL_EXPR="(\.part|\.!..|)"
@@ -31,6 +34,9 @@ while :; do
     -c | --class) addexts "$2"; shift  2 ;;
     -c=* | --class=*) addexts "${1#*=}"; shift ;;
     -c*) addexts "${1#-?}"; shift   ;;
+	    -E | ---ext) addext "$2"; shift  2 ;;
+    -E=* | ---ext=*) addext "${1#*=}"; shift ;;
+    -E*) addext "${1#-?}"; shift   ;;
 #    -c | --complete) PARTIAL_EXPR="" ; shift ;;
     -C | --incomplete) END="" ; shift ;;
     -b | -F | -G | -n | -o | -P | -q | -R | -s | -T | -U | -v | -w | -x | -z) GREP_ARGS="${GREP_ARGS:+$GREP_ARGS
