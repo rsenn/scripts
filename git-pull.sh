@@ -115,15 +115,11 @@ git_get_remote ()
 }
 git_get_branch () 
 { 
-<<<<<<< HEAD
-    git branch -a | sed -n 's,^\* ,,p'
-} 
-exec_bin()
-{
-=======
+#    git branch -a | sed -n 's,^\* ,,p' 
     git branch -a | ${SED-sed} -n 's,^\* ,,p'
 }
->>>>>>> 4390f1597ead0ae4139f469dc573f520d16321d5
+exec_bin()
+{
 
   while :; do
         case "$1" in
