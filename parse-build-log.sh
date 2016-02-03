@@ -43,7 +43,7 @@ implode() {
 }
 
 explode() {
- (S="$1"; shift; IFS="$nl"; [ $# -gt 0 ] && exec <<<"$*"; sed "s|${S//\"/\\\"}|\n|g")
+ (S="$1"; shift; IFS="$nl"; [ $# -gt 0 ] && exec <<<"$*"; ${SED-sed} "s|${S//\"/\\\"}|\n|g")
 }
 
 toupper() { 

@@ -200,7 +200,7 @@ main() {
   PROCESS_CMD="while getline LINE; do for_each_line; done"
   PROCESS_CMD="iconv -f $UNICODE_CHARSET -t $BYTE_CHARSET | ${PROCESS_CMD}"
 # PROCESS_CMD="${PROCESS_CMD} | iconv -f $BYTE_CHARSET -t $UNICODE_CHARSET"
-  PROCESS_CMD="${PROCESS_CMD} | sed -u '1 { s/.*Windows Registry Editor.*/REGEDIT4/  ;; }'"
+  PROCESS_CMD="${PROCESS_CMD} | ${SED-sed} -u '1 { s/.*Windows Registry Editor.*/REGEDIT4/  ;; }'"
   
   
   eval "${PROCESS_CMD}"

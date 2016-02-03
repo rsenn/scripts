@@ -7,10 +7,10 @@ for x in "$MYDIR"/bash_*.sh; do
  for y; do 
    case "$b" in
      *_profile) CMD="grep -vE \"(^\\s*#[^ !]|^\\s*#.*[\\\"'(){}]|^\\s*#.*esac|^\\s*#.*done|^\\s*#.*unset|^\\s*#\s*for\s|^\\s*#.*;;)\" <\"$x\" >\"$y/.${b%.sh}\"" ;;
-     *) CMD="cp -vf \"$x\" \"$y/.${b%.sh}\"" ;;
+     *) CMD="cp -f \"$x\" \"$y/.${b%.sh}\"" ;;
    esac
    CMD="$CMD || exit \$?"
-   echo "+ $CMD" 1>&2
-   eval "$CMD"
+   
+   eval "$CMD" && echo "$y/.${b%.sh}" #1>&2
   done
 done

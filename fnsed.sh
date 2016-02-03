@@ -18,7 +18,7 @@ fi
 
 FILES="$*"
 
-EXPRESSION=`echo "$EXPRESSION" | sed "s,\*,[^/]\*,g"`
+EXPRESSION=`echo "$EXPRESSION" | ${SED-sed} "s,\*,[^/]\*,g"`
 
 if ${RECURSIVE:-false}; then
   find ${FILES:-*} -not -type d
@@ -29,10 +29,10 @@ while read -r FILENAME; do
   BASE=`basename "$FILENAME"`
   DIR=`dirname "$FILENAME"`
 
- # FILENAME=`echo "$FILENAME" | sed "s,\",\\\\\",g ;; s,',\\\\',g ;; s,\$,\\\\\$,g"`
+ # FILENAME=`echo "$FILENAME" | ${SED-sed} "s,\",\\\\\",g ;; s,',\\\\',g ;; s,\$,\\\\\$,g"`
   
   #echo "mv -vf $FILENAME ${DIR:-.}/${BASE}"
-  SUBST=`echo "$BASE" | sed -u "$EXPRESSION"`
+  SUBST=`echo "$BASE" | ${SED-sed} -u "$EXPRESSION"`
 
   if [ "$BASE" != "$SUBST" ]; then
     (set -x

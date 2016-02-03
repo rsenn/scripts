@@ -1,4 +1,4 @@
 w2c()
 {
-    ch_conv UTF-16 UTF-8 "$@"
+    ch-conv UTF-16 UTF-8 "$@"
 }

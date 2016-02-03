@@ -1,5 +1,12 @@
 #!/bin/sh
 
+for CMD in davfs wdfs; do
+  if type "$CMD" >&/dev/null; then
+    break
+  fi
+done
+
+
 USERNAME="roman.l.senn@gmail.com"
 PASSWORD="lalala"
 MNTPOINT=${1:-"$HOME/4shared/"}
@@ -14,4 +21,12 @@ MNTPOINT=${1:-"$HOME/4shared/"}
 
 
 mkdir -p "$MNTPOINT"
-sudo mount -t davfs http://webdav.4shared.com:80/wa "$MNTPOINT" -o rw,conf="$HOME/.davfs2.conf",uid=`id -u`,gid=`id -g`
+
+case "$CMD" in
+  davfs) 
+    sudo mount -t davfs http://webdav.4shared.com:80/wa "$MNTPOINT" -o rw,conf="$HOME/.davfs2.conf",uid=`id -u`,gid=`id -g`
+  ;;
+  wdfs)
+    wdfs http://webdav.4shared.com:80/wa "$MNTPOINT" -o rw,username="$USERNAME",password="$PASSWORD",uid=`id -u`,gid=`id -g`
+  ;;
+esac

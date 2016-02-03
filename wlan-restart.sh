@@ -53,11 +53,11 @@ usage()
 # --------------------------------------------------------------------------- 
 main()
 {
-  BRIDGE_IF=`sed -n 's,^\s*\(br[0-9]\+\):.*,\1,p' /proc/net/dev`
+  BRIDGE_IF=`${SED-sed} -n 's,^\s*\(br[0-9]\+\):.*,\1,p' /proc/net/dev`
   WLAN_IF=wlan0
   NET_IF=${BRIDGE_IF:-$WLAN_IF}
 
-  ESSID=`iwconfig "$WLAN_IF" | sed -n "s/.*ESSID:\"\([^\"]*\).*/\1/p"`
+  ESSID=`iwconfig "$WLAN_IF" | ${SED-sed} -n "s/.*ESSID:\"\([^\"]*\).*/\1/p"`
   DRIVER=iwlagn
   DHCPID=`pgrep -f "dhc[^ ]* ${NET_IF}"`
 

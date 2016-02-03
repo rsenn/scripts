@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# rsed.sh: a wrapper around sed(1) recursively iterating over directories
+# rsed.sh: a wrapper around ${SED-sed}(1) recursively iterating over directories
 #
 # $Id: rsed.sh 575 2008-08-26 12:07:20Z enki $
 # ---------------------------------------------------------------------------
@@ -12,7 +12,7 @@ pushv ()
 
 # rsed [options] [files...]
 #
-# A recursive 'sed'.
+# A recursive '${SED-sed}'.
 # ---------------------------------------------------------------------------
 rsed()
 {
@@ -48,7 +48,7 @@ rsed()
     set -- `map 'fs_recurse -f "$1"' "$@"`
   fi
 
-  sed $OPTIONS `addprefix "-e$IFS" $EXPRESSIONS` "$@"
+  ${SED-sed} $OPTIONS `addprefix "-e$IFS" $EXPRESSIONS` "$@"
   )
 }
 

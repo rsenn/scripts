@@ -25,6 +25,7 @@ __EOF
 while :; do
   case "$1" in
      --help) HELP=true ; shift ;;
+     --debug|-x) DEBUG=true ; shift ;;
     -H | --file*name* ) SHOW_FILENAME=true ; shift ;;
     -h | --human-size | --*human*) HUMAN_SIZE=true SHOW_SIZE=true; shift ;;
     -s | --show-size | --*size*) SHOW_SIZE=true; shift ;;
@@ -68,7 +69,9 @@ ctor_listfiles()
 
       #eval "O=\"\${O:+\$O
 #}${OUTPUT:-\${DIR:+\$DIR/}\${FILE}}\""
-      eval "echo \"${OUTPUT-\${DIR:+\$DIR/}\${FILE}}\""
+      ECMD="echo \"${OUTPUT}\"" #-\${DIR:+\$DIR/}\${FILE}}\""
+      [ "$DEBUG" = true ] && echo "ECMD=\"$ECMD\"" 1>&2
+      eval "$ECMD"
       ;;
     *) 
       echo "No such line: $LINE" 1>&2 
@@ -106,11 +109,11 @@ CMD='ctor_listfiles'
 if [ "$SHOW_SIZE" = true ];then 
   [ "$HUMAN_SIZE" = true ] &&
   OUTPUT="$OUTPUT [\$(human_size \$SIZE)]" ||
-  OUTPUT="$OUTPUT [\$SIZE]"
+  OUTPUT="$OUTPUT: \$SIZE"
 fi
 
 if [ "$DERIVE_NAME" = true -o "$DO_RENAME" = true ]; then
-  CMD="$CMD | sed s,/.*,, | uniq"
+  CMD="$CMD | ${SED-sed} s,/.*,, | uniq"
  if [ "$DO_RENAME" = true ] ; then
    CMD=" mv -vf -- \"\$ARG\" \"\$($CMD).torrent\" # \$($CMD)"
     [ "$PRINT_ONLY" = true ] && CMD="echo \"$(escape "$CMD")\""

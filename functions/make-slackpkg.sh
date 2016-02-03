@@ -11,7 +11,7 @@ IFS=";, $IFS"
    set -- $EXCLUDE '*~' '*.bak' '*.rej' '*du.txt' '*.list' '*.log' 'files.*' '*.000' '*.tmp'
    IFS="
 "
-  EXCLUDELIST="{$(set -- $(for_each str_quote "$@"); IFS=','; echo "$*")}"
+  EXCLUDELIST="{$(set -- $(for-each str_quote "$@"); IFS=','; echo "$*")}"
     for ARG in $ARGS;
     do
         test -d "$ARG";

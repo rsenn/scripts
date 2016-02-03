@@ -14,7 +14,7 @@ get-frags() {
     EXPR="$EXPR ;; s/^/\${ARG//\$FS/\$BS\$FS}${SEP:-: }/"
   fi
   EXPR="/Average frag/ { $EXPR; p }"
-  CMD='contig -a "$ARG" | sed -n "'$EXPR'"'
+  CMD='contig -a "$ARG" | ${SED-sed} -n "'$EXPR'"'
   CMD="($CMD) || return \$?"
   "${DEBUG:-false}" && echo 1>&2 "CMD='$CMD'"
   eval "for ARG; do

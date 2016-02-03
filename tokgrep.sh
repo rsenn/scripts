@@ -155,6 +155,11 @@ main() {
 
   set -- $OPTS -E -e "([^$CHARSET]|^)($TOKENS)([^$CHARSET]|\$)" --  $FILES
   
+  
+  if grep --help 2>&1 |grep -q '\--color.*='; then
+     pushv OPTS "--color=auto"
+   fi
+  
   if "${DEBUG:-false}"; then
   echo "TOKLIST=$TOKLIST" 1>&2
     set -x

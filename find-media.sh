@@ -3,6 +3,9 @@
 : ${OS=`uname -o 2>/dev/null || uname -s 2>/dev/null`}
 NL='
 '
+TS='	'
+BS=\\
+
 exec 9>&2
 
 grep_e_expr()
@@ -86,7 +89,7 @@ cut_ls_l()
 
 file_magic() 
 { 
- (CMD='xargs -d "$NL" file --  | sed -u "s,:\\s\\+,: ,"'
+ (CMD='xargs -d "$NL" file --  | ${SED-sed} -u "s,:\\s\\+,: ,"'
   IFS="|$IFS"
 	[ "$*" = ".*" ] && set -- 
 	[ $# -gt 0 ] && CMD="$CMD | grep -i -E \": .*($*)\""
@@ -125,6 +128,7 @@ usage() {
 
 EXCLUDE_DIRS='.*/\.wine/drive.*/\.wine/drive'
 MIXED_PATH=true
+DEBUG=false 
 
 while :; do
 	case "$1" in
@@ -208,10 +212,12 @@ else
 					EXPR="$EXPR$ARG"
 					case "$ARG" in
 							*\$) ;; 
-						*) if [ "$WANT_FILE" = true ]; then
+						*) EXPR=${EXPR//"^[:print:]"/"^[:print:][:cntrl:]"}
+							 if [ "$WANT_FILE" = true ]; then
 						   EXPR=${EXPR//'.*'/'[^/]*'}
-						   EXPR="$EXPR[^/]*\$"
-
+						   EXPR="$EXPR[^/]*\\r*\$"
+#             else
+#							 EXPR="$EXPR.*\\r*\$"
 						 fi ;;
 					esac
 				done
@@ -281,14 +287,14 @@ esac
 #        INDEXES=`for x in a b c d e f g h i j k l m n o p q r s t u v w x y z; do test -e $DRIVEPREFIX/$x/files.list && echo $DRIVEPREFIX/$x/files.list; done`
 #fi
 #
-MEDIAPATH="{$(set -- $( df 2>/dev/null | sed -u -n '\|/sys$|d ;; \|/sys |d ;; \|/proc|d ;; \|/dev$|d ;; \|/run|d ;; s,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^\\/]\+\s\([\\/]\)\(.*\),\1\2,p' | sort -u); IFS=","; echo "${*%/}")}"
+MEDIAPATH="{$(set -- $( df 2>/dev/null | ${SED-sed} -u -n '\|/sys$|d ;; \|/sys |d ;; \|/proc|d ;; \|/dev$|d ;; \|/run|d ;; s,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^\\/]\+\s\([\\/]\)\(.*\),\1\2,p' | sort -u); IFS=","; echo "${*%/}")}"
 
 FILEARG="\$INDEXES"
 case "$MEDIAPATH" in
   *"}") FILEARG="${MEDIAPATH}/files.list" ;;
 esac
 
-#FILTERCMD="sed -u 's,/files.list:,/,'"
+#FILTERCMD="${SED-sed} -u 's,/files.list:,/,'"
 FILTERCMD=
 
 if [ "$EXIST_FILE" = true ]; then
@@ -321,7 +327,7 @@ fi
 
 CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG"
 
-SED_EXPR="s,/files\\.list:,/,"
+SED_EXPR='s|\r$|| ;; s|/files\.list:|/|'
 
 # If dirs are to be excluded, add them to $SED_EXPR
 if [ -n "$EXCLUDE_DIRS" ]; then
@@ -339,8 +345,8 @@ fi
 [ "$WIN_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }/^[[:alnum:]]:[\\\\/]/ s|/|\\\\|g"
 
 
-# If $SED_EXPR contains a sed script, add it to the pipeline
-[ -n "$SED_EXPR" ] && CMD="$CMD | sed -u '$SED_EXPR'"
+# If $SED_EXPR contains a ${SED-sed} script, add it to the pipeline
+[ -n "$SED_EXPR" ] && CMD="$CMD | ${SED-sed} -u '$SED_EXPR'"
 
 
 # If we require an 'ls -l' listing, add an 'xargs ls' command to the pipeline 
@@ -382,9 +388,14 @@ fi
 # pipeline
 [ -n "$FILE_MAGIC" -a -z "$LIST" ] && CMD="$CMD | (set -f; IFS='|'; file_magic \$FILE_MAGIC)"
 	
-[ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
+[ "$DEBUG" = true ] && eval "echo \"Command is ${CMD}\" 1>&2"
 
 CMD="$CMD${FILTERCMD:+ | $FILTERCMD}"
 
-eval "($CMD) 2>/dev/null" 
+eval "($CMD) 2>/dev/null & cpid=\$\$" 
 
+for SIG in  INT QUIT #TERM EXIT
+do
+  trap 'R=$?; trap "exit \$?" $SIG; echo "'$SIG'"; kill $cpid ; kill %% 2>&/dev/null; exit $R' $SIG
+done
+wait

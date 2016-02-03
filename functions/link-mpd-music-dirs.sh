@@ -5,7 +5,7 @@ link-mpd-music-dirs()
     chown mpd:mpd "$DESTDIR";
     for ARG in "$@";
     do
-        ( NAME=$(echo "$ARG" |sed " s,^/mnt,, ; s,^/media,,g; s,/,-,g; s,^-*,, ; s,-*$,,");
+        ( NAME=$(echo "$ARG" |${SED-sed} " s,^/mnt,, ; s,^/media,,g; s,/,-,g; s,^-*,, ; s,-*$,,");
         ( set -x;
         ln -svf "$ARG" "$DESTDIR"/"$NAME" ) );
     done )

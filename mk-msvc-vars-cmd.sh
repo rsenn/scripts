@@ -8,7 +8,7 @@ cd "$MYDIR"
 
 ABSDIR=`cd "$MYDIR" && pwd`
 
-[ $# -le 0 ] && SUBDIRS=`ls -d */ | sed "s|/\$||"` || SUBDIRS="$*"
+[ $# -le 0 ] && SUBDIRS=`ls -d */ | ${SED-sed} "s|/\$||"` || SUBDIRS="$*"
 
 for SUBDIR in $SUBDIRS; do
 
@@ -45,9 +45,9 @@ for SUBDIR in $SUBDIRS; do
 
   P=`cygpath -m "$PWD"`
 
-  LIBDIRS=`find "$SUBDIR" -maxdepth 1 -mindepth 1 | sed "s|.*/||"`
+  LIBDIRS=`find "$SUBDIR" -maxdepth 1 -mindepth 1 | ${SED-sed} "s|.*/||"`
 
-  LIBNAMES=`echo "$LIBDIRS" | sed "s|[-_][0-9][^/]*\$||" | uniq`
+  LIBNAMES=`echo "$LIBDIRS" | ${SED-sed} "s|[-_][0-9][^/]*\$||" | uniq`
 
   USELIBS=`
     for NAME in $LIBNAMES; do
@@ -74,7 +74,7 @@ for SUBDIR in $SUBDIRS; do
 
     push ADD_INCLUDE $I
 
-    L=`ls -d "$P/$SUBDIR/$LIBSUBDIR"/*lib*/*.{a,lib} 2>/dev/null | sed "s|/[^/]*\$||" | uniq`
+    L=`ls -d "$P/$SUBDIR/$LIBSUBDIR"/*lib*/*.{a,lib} 2>/dev/null | ${SED-sed} "s|/[^/]*\$||" | uniq`
     push ADD_LIB $L
   done
 
@@ -97,11 +97,11 @@ echo Variables are now set up for Visual Studio $MSVC_VERSION (%PLATFORM%)
 
 EOF
 
-  ) | { O="set-msvc${VS_VERSION}-vars.cmd"; echo "Writing $O ..." 1>&2; sed "s|\$|\\r|" >"$O"; }
+  ) | { O="set-msvc${VS_VERSION}-vars.cmd"; echo "Writing $O ..." 1>&2; ${SED-sed} "s|\$|\\r|" >"$O"; }
 
   #echo "$LIBNAMES"
 
 
 
-  #"(" -iname include -or -iname lib ")" |sed "s|^|$P/|"
+  #"(" -iname include -or -iname lib ")" |${SED-sed} "s|^|$P/|"
 done

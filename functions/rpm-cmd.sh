@@ -10,7 +10,7 @@ rpm-cmd() {
   done
 
  #CMD="addprefix \"\$ARG: \""
- CMD="sed \"s|^\\./|| ;; s|^|\$ARG: |\""
+ CMD="${SED-sed} \"s|^\\./|| ;; s|^|\$ARG: |\""
  #N=$#
 
   while [ $# -gt 0 ]; do
@@ -20,11 +20,11 @@ rpm-cmd() {
       #*://*) DLCMD="wget -q -O - \"\$ARG\" | rpm2cpio /dev/stdin" ;;
       #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
       #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
-    *://*) 
-      MIRRORLIST=`curl -s "$ARG.mirrorlist" |sed -n 's,\s*<li><a href="\([^"]*\.rpm\)">.*,\1,p'`
+    *://*)
+      MIRRORLIST=`curl -s "$ARG.mirrorlist" |${SED-sed} -n 's,\s*<li><a href="\([^"]*\.rpm\)">.*,\1,p'`
 
       if [ -n "$MIRRORLIST" ]; then
-        set -- $MIRRORLIST 
+        set -- $MIRRORLIST
       else
         set -- "$ARG"
       fi
@@ -35,12 +35,12 @@ rpm-cmd() {
         ;;
     esac
     CMD="$DLCMD | (${OUTPUT:+cd \"\$OUTPUT\"; }cpio \${OPTS:--t} 2>/dev/null)${CMD:+ | $CMD}"
-    while [ $# -gt 0 ]; do 
+    while [ $# -gt 0 ]; do
       eval "( $CMD ) 2>/dev/null" && exit 0
       #echo continue 1>&2
       shift
     done
-    
+
     echo "Failed to list $ARG" 1>&2
     exit 1)
   done

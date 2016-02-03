@@ -4,10 +4,10 @@ mount-remaining()
     [ "$UID" != 0 ] && SUDO=sudo
     for DEV in $(not-mounted-disks); do
         LABEL=` disk-label "$DEV"`
-				TYPE=` blkvars "$DEV" TYPE`
-				case "$TYPE" in
-					swap) continue ;;
-				esac
+        TYPE=` blkvars "$DEV" TYPE`
+        case "$TYPE" in
+          swap) continue ;;
+        esac
         MNTDIR="$MNT/${LABEL:-${DEV##*/}}"
         $SUDO mkdir -p "$MNTDIR";
         echo "Mounting $DEV to $MNTDIR ..." 1>&2

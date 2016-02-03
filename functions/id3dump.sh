@@ -1,13 +1,13 @@
 id3dump()
 {
     ( IFS="
-	";
+  ";
     unset FLAGS;
     while :; do
         case "$1" in
             -*)
                 FLAGS="${FLAGS+$FLAGS
-	}$1";
+  }$1";
                 shift
             ;;
             *)
@@ -15,6 +15,6 @@ id3dump()
             ;;
         esac;
     done;
-		id3v2 $FLAGS  -l "$@" | sed -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
-		)
+    id3v2 $FLAGS  -l "$@" | ${SED-sed} -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
+    )
 }

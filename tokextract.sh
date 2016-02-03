@@ -56,7 +56,7 @@ if [ "$INC" ]; then
   SED_ARGS="-n"
 fi
 
-CMD="sed \"s|[^\${tokcharset}]|\\\\n|g\" \"\$@\" | sed \$SED_ARGS \"\$FILTER\""
+CMD="${SED-sed} \"s|[^\${tokcharset}]|\\\\n|g\" \"\$@\" | ${SED-sed} \$SED_ARGS \"\$FILTER\""
 
 [ "$UNIQ" = true ] && CMD="$CMD | uniq"
 

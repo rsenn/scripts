@@ -30,8 +30,8 @@ elif type mplayer  2>/dev/null >/dev/null; then
    fi &&
   if type flac 2>/dev/null >/dev/null; then
 				(set -x; flac  ${SAMPLERATE:+--sample-rate="$SAMPLERATE"} ${CHANNELS:+--channels="$CHANNELS"} -o "$OUTPUT" "$WAV")
-   elif type ffmpeg  2>/dev/null >/dev/null; then
-	    (set -x; ffmpeg -y -strict -2 -i "$WAV" ${FMT+-f "$FMT"} ${ACODEC:+-acodec "$ACODEC"}   ${BITRATE+-ab "${BITRATE}k"} ${SAMPLERATE:+-ar "$SAMPLERATE"} ${CHANNELS:+-ac "$CHANNELS"} "$OUTPUT")
+   elif type ${FFMPEG-ffmpeg}  2>/dev/null >/dev/null; then
+	    (set -x; ${FFMPEG-ffmpeg} -y -strict -2 -i "$WAV" ${FMT+-f "$FMT"} ${ACODEC:+-acodec "$ACODEC"}   ${BITRATE+-ab "${BITRATE}k"} ${SAMPLERATE:+-ar "$SAMPLERATE"} ${CHANNELS:+-ac "$CHANNELS"} "$OUTPUT")
    fi
   )
 done

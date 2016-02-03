@@ -68,7 +68,7 @@ while read -r LINE; do
            VALUE=${VALUE#\"}
            VALUE=${VALUE%\"}
            REGVAL="/s , /v \"$VALUE\""
-           VALUE=$(echo -n "${VALUE}" | iconv -f UTF-8 -t UTF-16  |hexdump -v -e '"" 1/1 "%02x" ","' | sed "s|,$||")
+           VALUE=$(echo -n "${VALUE}" | iconv -f UTF-8 -t UTF-16  |hexdump -v -e '"" 1/1 "%02x" ","' | ${SED-sed} "s|,$||")
            
          ;;
          REG_EXPAND_SZ)
@@ -76,11 +76,11 @@ while read -r LINE; do
            VALUE=${VALUE#\"}
            VALUE=${VALUE%\"}
            REGVAL="/d \"${VALUE//"%"/"^%"}\""
-           VALUE=$(echo -n "${VALUE}" | iconv -f UTF-8 -t UTF-16 |hexdump -v -e '"" 1/1 "%02x" ","' | sed "s|,$||")
+           VALUE=$(echo -n "${VALUE}" | iconv -f UTF-8 -t UTF-16 |hexdump -v -e '"" 1/1 "%02x" ","' | ${SED-sed} "s|,$||")
          ;;
          REG_BINARY)
            PREFIX="hex"
-           VALUE=$(echo -n "${VALUE}"  |hexdump -v -e '"" 1/1 "%02x" ","' | sed "s|,$||")
+           VALUE=$(echo -n "${VALUE}"  |hexdump -v -e '"" 1/1 "%02x" ","' | ${SED-sed} "s|,$||")
            
          ;;
          *) 

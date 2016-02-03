@@ -17,7 +17,7 @@ set -- `for MATCH in cygwin msys mingw; do echo "$NM_S" | grep -i "$MATCH" ; don
 
 for NM; do
 EXPORTS=`
-"$NM" $ARGS 2>/dev/null | sed -n "s|.* T _||p"
+"$NM" $ARGS 2>/dev/null | ${SED-sed} -n "s|.* T _||p"
 `
   if [ "$EXPORTS" ]; then
 [ "$DEBUG" = true ] && echo "NM is $NM" 1>&2 
@@ -26,5 +26,5 @@ EXPORTS=`
 done
 
  
-echo "$EXPORTS" | sed -e "1 i\\${NL}EXPORTS" -e "s|^|  |"
+echo "$EXPORTS" | ${SED-sed} -e "1 i\\${NL}EXPORTS" -e "s|^|  |"
 

@@ -27,9 +27,9 @@ add-cond-include() {
   shift
 
   INCNAME="${INC##*/include/}"
-  INCDEF=HAVE_$(echo "$INCNAME" | sed 's,[/.],_,g' | tr '[[:'{lower,upper}':]]') 
+  INCDEF=HAVE_$(echo "$INCNAME" | ${SED-sed} 's,[/.],_,g' | tr '[[:'{lower,upper}':]]')
 
-  sed -i "\\|^\s*#\s*include\s\+[<\"]\s*$INCNAME[>\"]| {
+  ${SED-sed} -i "\\|^\s*#\s*include\s\+[<\"]\s*$INCNAME[>\"]| {
     s|.*|#ifdef $INCDEF\n&\n#endif /* defined $INCDEF */|
   }" "$@"
 
@@ -66,18 +66,44 @@ all-disks()
     fi;
     find "$@" -type l | while read -r FILE; do
        if [ "$SHOW_LABEL" = true ]; then
-	 case "$FILE" in
-	     /dev/disk/by-label/*) echo "LABEL=${FILE##*/}" ;;
-	 esac
+   case "$FILE" in
+       /dev/disk/by-label/*) echo "LABEL=${FILE##*/}" ;;
+   esac
        elif [ "$SHOW_UUID" = true ]; then
-	 case "$FILE" in
-	     /dev/disk/by-uuid/*) echo "UUID=${FILE##*/}" ;;
-	 esac
+   case "$FILE" in
+       /dev/disk/by-uuid/*) echo "UUID=${FILE##*/}" ;;
+   esac
        else
         myrealpath "$FILE";
        fi
     done | sort -u
     )
+}
+
+apt-dpkg-list-all-pkgs()
+{
+  require apt
+  require dpkg
+
+  apt_list >apt.list
+  dpkg_list >dpkg.list
+
+  dpkg_expr=^$(grep-e-expr $(<dpkg.list))
+
+  awkp <apt.list >pkgs.list
+  ${GREP-grep} -v -E "$dpkg_expr\$" <pkgs.list  >available.list
+
+  (set -x; wc -l {apt,dpkg,pkgs,available}.list)
+}
+
+arch2bit() {
+ (for ARG; do
+   case "$ARG" in
+     *x64* | *x86?64*) echo 64 ;;
+     *x86* | *i[3-6]86*) echo 32 ;;
+     *) echo "No such arch: $ARG" 1>&2; exit 1 ;;
+   esac
+  done)
 }
 
 array()
@@ -104,7 +130,7 @@ autorun-shell()
 {
    (EXEC="$1"
      shift
-     [ $# -le 0 ] && set -- $(echo "$EXEC" |sed 's,Start,Start , ; s,\.exe,,g')
+     [ $# -le 0 ] && set -- $(echo "$EXEC" |${SED-sed} 's,Start,Start , ; s,\.exe,,g')
     echo "Shell\\Option1=$*
 Shell\\Option1\\Command=$EXEC
 ")
@@ -112,25 +138,35 @@ Shell\\Option1\\Command=$EXEC
 
 awkp() {
  (IFS="
-	"; N=${1}
-	CMD="awk"
-	[ $# -le 0 ] && set -- 1
-	SCRIPT=""
+  "; N=${1}
+  CMD="awk"
+  [ $# -le 0 ] && set -- 1
+  SCRIPT=""
 
   while :; do
-		case "$1" in
-			-[A-Za-z]*) CMD="$CMD $1"; shift ;;
-			[0-9]) SCRIPT="${SCRIPT:+$SCRIPT\" \"}\$$1"; shift ;;
-			[0-9]*) SCRIPT="${SCRIPT:+$SCRIPT\" \"}\$($1)"; shift ;;
-			*) break ;;
-		esac
-	done
-	eval "$CMD \"{ print \$SCRIPT }\"")
+    case "$1" in
+      -[A-Za-z]*) CMD="$CMD $1"; shift ;;
+      [0-9]) SCRIPT="${SCRIPT:+$SCRIPT\" \"}\$$1"; shift ;;
+      [0-9]*) SCRIPT="${SCRIPT:+$SCRIPT\" \"}\$($1)"; shift ;;
+      *) break ;;
+    esac
+  done
+  eval "$CMD \"{ print \$SCRIPT }\"")
 }
 
 bheader()
 {
     quiet dd count="${1:-1}" bs="${2:-512}"
+}
+
+bit2arch() {
+ (for ARG; do
+   case "$ARG" in
+     32 | 32[!0-9]* | *[!0-9]32 | *[!0-9]32[!0-9]*) echo x86 ;;
+     64 | 64[!0-9]* | *[!0-9]64 | *[!0-9]64[!0-9]*) echo x64 ;;
+     *) echo "No such bit count: $ARG" 1>&2; exit 1 ;;
+   esac
+  done)
 }
 
 bitrate()
@@ -143,16 +179,16 @@ bitrate()
     test $N -le 1 && EXPR=".*$EXPR" || EXPR="$EXPR:"
     EXPR="s,$EXPR\\1,p"
 
-    KBPS=$(file "$ARG" |sed -n "$EXPR")
+    KBPS=$(file "$ARG" |${SED-sed} -n "$EXPR")
     #echo "EXPR='$EXPR'" 1>&2
 
     test -n "$KBPS" && echo "$KBPS" || (
     R=0
-    set -- $(mminfo "$ARG"  |sed -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*Kbps\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
+    set -- $(mminfo "$ARG"  |${SED-sed} -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*Kbps\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
 [ "$DEBUG" = true ] && echo "BR: $*" 1>&2
    #echo "$*" 1>&2
    # for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
-	 R=${*##*:}
+   R=${*##*:}
    [ "$N" -gt 1 ] && R="$ARG:$R"
       echo "$R"
       )
@@ -168,36 +204,36 @@ blksize()
 blkvars()
 {
   CMD=$(IFS=" "; set -- `blkid "$1"`; shift; echo "$*")
-	shift
-	if [ $# -gt 0 ]; then
-		for V; do
-			CMD="$CMD; echo \"\${$V}\""
-		done
-		CMD="($CMD)"
-	fi
-	eval "$CMD"
+  shift
+  if [ $# -gt 0 ]; then
+    for V; do
+      CMD="$CMD; echo \"\${$V}\""
+    done
+    CMD="($CMD)"
+  fi
+  eval "$CMD"
 }
 
 bpm() {
-  id3v2  -l "$@"|sed -n "/^id3v2 tag info for / {
-		:lp     
-		N
-		/\n[[:upper:][:digit:]]\+ ([^\n]*$/ {
-			/\nTBPM[^\n]*$/! {
-				s|\n[^\n]*$||
-				b lp
-			}
-			s|TBPM (.*): ||g
-			b ok
-		}
-		/:\s*$/! {
-			s|\n| |g
-			b lp
-		}
-		:ok     
-		s|\n[^\n]*:\s*$||
-		s|^id3v2 tag info for \([^\n]*\) *: *\n *|\1: |
-		p
+  id3v2  -l "$@"|${SED-sed} -n "/^id3v2 tag info for / {
+    :lp
+    N
+    /\n[[:upper:][:digit:]]\+ ([^\n]*$/ {
+      /\nTBPM[^\n]*$/! {
+        s|\n[^\n]*$||
+        b lp
+      }
+      s|TBPM (.*): ||g
+      b ok
+    }
+    /:\s*$/! {
+      s|\n| |g
+      b lp
+    }
+    :ok
+    s|\n[^\n]*:\s*$||
+    s|^id3v2 tag info for \([^\n]*\) *: *\n *|\1: |
+    p
   }"
 }
 
@@ -212,7 +248,7 @@ c256()
 
 c2w()
 {
-    ch_conv UTF-8 UTF-16 "$@"
+    ch-conv UTF-8 UTF-16 "$@"
 }
 
 canonicalize()
@@ -229,7 +265,7 @@ canonicalize()
    done
      : ${MAXLEN:=4095}
 
-   CMD="sed 's,[^A-Za-z0-9],-,g'|sed 's,-\+,-,g ;; s,^-\+,, ;; s,-\+\$,,'"
+   CMD="${SED-sed} 's,[^A-Za-z0-9],-,g'|${SED-sed} 's,-\+,-,g ;; s,^-\+,, ;; s,-\+\$,,'"
    [ "$LOWERCASE" = true ] && CMD="$CMD|tr [:{upper,lower}:]"
    #[ $# -gt 0 ] && CMD='set -- \$(IFS=" "; echo "$*"|'$CMD')'
 
@@ -250,8 +286,20 @@ canonicalize()
    )
 }
 
+ch-conv()
+{
+    FROM="$1" TO="$2";
+    shift 2;
+    for ARG in "$@";
+    do
+        ( trap 'rm -f "$TMP"' EXIT;
+        TMP=$(mktemp);
+        iconv -f "$FROM" -t "$TO" <"$ARG" >"$TMP" && mv -vf "$TMP" "$ARG" );
+    done
+}
+
 check-7z() {
- (while :; do 
+ (while :; do
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
       *) break ;;
@@ -267,39 +315,39 @@ check-7z() {
   rm -rf "$OUTDIR"
   mkdir -p "$OUTDIR"
   trap 'rm -rf "$OUTDIR"' EXIT
-	FILTER="xargs -n1 -d \"\${IFS:0:1}\" sha1sum"
-	#FILTER="$FILTER | sed \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\${ARCHIVE}\${SEP:-: }\\2 \\[\\1\\]|\""
-	FILTER="$FILTER | sed \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\\1 \\*\${ARCHIVE}\${SEP:-:}\\2|\""
+  FILTER="xargs -n1 -d \"\${IFS:0:1}\" sha1sum"
+  #FILTER="$FILTER | ${SED-sed} \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\${ARCHIVE}\${SEP:-: }\\2 \\[\\1\\]|\""
+  FILTER="$FILTER | ${SED-sed} \"s|^\\([0-9a-f]\\+\\)\\s\\+\\*\\(.*\\)|\\1 \\*\${ARCHIVE}\${SEP:-:}\\2|\""
   process() { IFS="
- "; set +x; 
-		unset PREV; while read -r LINE; do
-		LINE=${LINE//"\\"/"/"}
-		 case "$LINE" in
-		 "Extracting: "*) ARCHIVE=${LINE#"Extracting: "}; echo "Archive=${ARCHIVE}" 1>&2; continue ;;
-			"Extracting  "*)
-					FILE=${LINE#"Extracting  "}
-					if [ -n "$FILE" -a "$FILE" != "$PREV" ]; then
+ "; set +x;
+    unset PREV; while read -r LINE; do
+    LINE=${LINE//"\\"/"/"}
+     case "$LINE" in
+     "Extracting: "*) ARCHIVE=${LINE#"Extracting: "}; echo "Archive=${ARCHIVE}" 1>&2; continue ;;
+      "Extracting  "*)
+          FILE=${LINE#"Extracting  "}
+          if [ -n "$FILE" -a "$FILE" != "$PREV" ]; then
 #				    echo "FILE='$FILE'" 1>&2
-					[ "$FILE" = "$T" ] && continue 			    
-						if [ -e "$FILE" ]; then [ -f "$FILE" ] && echo "$FILE"
-						else echo "File '$FILE' not found!" 1>&2; fi
-					fi
-				PREV="$FILE" ;;
-		 esac; done
-	}
+          [ "$FILE" = "$T" ] && continue
+            if [ -e "$FILE" ]; then [ -f "$FILE" ] && echo "$FILE"
+            else echo "File '$FILE' not found!" 1>&2; fi
+          fi
+        PREV="$FILE" ;;
+     esac; done
+  }
   while [ $# -gt 0 ]; do
    (B=${1##*/}
-    case "$1" in 
+    case "$1" in
       *://*) INPUT="curl -s \"\$1\"" ;;
       *) ARCHIVE=$1  ;;
     esac
-    case "$1" in 
+    case "$1" in
       *.t?z | *.tbz2)
         T=${1%.t?z}
-        T=${T%.tbz2} 
+        T=${T%.tbz2}
         T=$T.tar
         INPUT="${INPUT:+$INPUT | }${SEVENZIP:-7za} x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si${T}";  CMD="${SEVENZIP:-7za} x -o\"$OUTDIR\" $OPTS"
-			  ;;
+        ;;
       *.tar.*) T=${1%.tar*}.tar;
       INPUT="${INPUT:+$INPUT | }${SEVENZIP:-7za} x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si${B%.*}";  CMD="${SEVENZIP:-7za} x -o\"$OUTDIR\" $OPTS" ;;
       *) CMD="${SEVENZIP:-7za} x -o\"$OUTDIR\" -y $OPTS ${ARCHIVE+\"$ARCHIVE\"}" ;;
@@ -309,9 +357,9 @@ check-7z() {
       if [ -n "$INPUT" ]; then
       CMD="${INPUT+$INPUT | }$CMD"
       OPTS="$OPTS${IFS:0:1}-si${1##*/}"
-    fi 
+    fi
       CMD="($CMD) 2>&1 | (cd \"\$OUTDIR\" >/dev/null; process${FILTER:+ | $FILTER})"
-[ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2 
+[ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
      eval "$CMD") || exit $?
     shift
   done)
@@ -323,7 +371,58 @@ check-link()
     test -e "$TARGET")
 }
 
-choices_list()
+choco-joinlines() {
+ (LINENO=0
+  o() {
+    PKG=$1
+    VERSION=$2
+    shift 2
+    DESC="$*"
+    
+#    echo "$PKG $VERSION - $DESC"
+    s=$(printf "%-30s %-21s %s\n" "$PKG" "$VERSION" "${DESC%%. *}") #$(d=32 short "$DESC") 1>&2
+    
+    short "$s"
+  }
+   short() {   n=$(tput cols);   s=$*; if [ "${#s}" -gt "$n" ]; then s=${s:0:$((n - 3))}...; fi; echo "$s"; }
+  
+  while LINENO=$(($LINENO + 1)); IFS=""; 	read -r LINE; do
+    LINE=${LINE%$'\r'}
+    IFS=$' \t'
+    set -- $LINE
+    case "$LINE" in
+      "#"*) LINE=" $LINE" ;;
+      "["*) LINE=" $LINE" ;;
+    esac
+    case "$LINE" in
+      " "*) set -- "" "$@" ;;
+    esac    
+    if [ $# -eq 0 -a -n "$PKG" ]; then
+
+      o "$PKG" "$VERSION" "$DESC"
+      PKG= VERSION= DESC=      
+    elif [ -z "$PKG" -a -z "$VERSION" -a $# -eq 2 -a -n "$1" -a -n "$2" ]; then
+      PKG=$1
+      VERSION=$2
+      DESC=""
+    else
+      test -z "$1" && shift 
+      case "$LINE" in
+        *"Description:"*)
+          DESC=${LINE#*"Description: "}
+          ;;
+        *Tags:* | *Downloads:*)  ;;
+        " "*)
+          if [ -n "$DESC" ]; then
+            DESC="$DESC $*"
+          fi
+        ;;
+      esac
+    fi
+  done)
+}
+
+choices-list()
 {
     local n=$1 count=0 choices='';
     shift;
@@ -346,18 +445,6 @@ chr2hex()
     echo "set ascii [scan \"$1\" \"%c\"]; puts -nonewline [format \"${2-0x}%02x\" \${ascii}]" | tclsh
 }
 
-ch_conv()
-{
-    FROM="$1" TO="$2";
-    shift 2;
-    for ARG in "$@";
-    do
-        ( trap 'rm -f "$TMP"' EXIT;
-        TMP=$(mktemp);
-        iconv -f "$FROM" -t "$TO" <"$ARG" >"$TMP" && mv -vf "$TMP" "$ARG" );
-    done
-}
-
 clamp()
 {
     local int="$1" min="$2" max="$3";
@@ -372,6 +459,30 @@ clamp()
     fi
 }
 
+cleanup-desktop() {
+ (mv -vf -- "$DESKTOP"/../../*/Desktop/* "$DESKTOP"
+  cd "$DESKTOP"
+  links=$( ls -ltdr --time-style=+%Y%m%d -- *.lnk|${GREP-grep} "$(date +%Y%m%d|removesuffix '[0-9]')"|cut-ls-l )
+  set  -- $( ls -td -- $(ls-files|${GREP-grep} -viE '(\.lnk$|\.ini$)'))
+  touch "$@"
+  mv -vft "$DOCUMENTS" -- "$@" *" - Shortcut"*
+  d=$(ls -d  ../Unused* )
+
+  for l in $links; do
+    while :; do
+      read -r -p "Move ${l##*/} to $d? " ANS
+			case "$ANS" in
+				y*|j*|Y*|J*) mv -vi -t -- "$l" ;;
+				n*|N*) ;;
+				*) continue ;;
+			esac
+			break
+    done
+
+  done
+  )
+}
+
 command-exists()
 {
     type "$1" 2> /dev/null > /dev/null
@@ -379,7 +490,7 @@ command-exists()
 
 compare-dirs()
 {
-     diff -ru "$@" | sed -n \
+     diff -ru "$@" | ${SED-sed} -n \
          -e "/^Binary files/ s,^Binary files \(.*\) and \(.*\) differ,\1 \2,p" \
          -e "s,^Only in \(.*\): \(.*\),\1/\2,p" \
          -e "/^diff/ { N; /\n---/ { N; /\n+++/ { s,\n.*,, ;; s,^diff\s\+,, ;; s,^-[^ ]* ,,g ;; p } } }"
@@ -415,9 +526,9 @@ convert-boot-file()
 
 count-in-dir()
 {
-				 (LIST="$1"; shift; for ARG; do
-				 N=$(grep "^${ARG%/}/." "$LIST" | wc -l)
-				 echo $N "$ARG"
+         (LIST="$1"; shift; for ARG; do
+         N=$(${GREP-grep} "^${ARG%/}/." "$LIST" | wc -l)
+         echo $N "$ARG"
  done)
 }
 
@@ -436,8 +547,17 @@ count() {
         echo $#
 }
 
+countv()
+{
+  (eval "set -- \${$1}; echo \$#")
+}
+
+cpan-inst() {
+ for-each 'verbosecmd -1+=cpan.inst.log -2=1 cpan -i "${1//-/::}" ;  verbosecmd writefile -a cpan.inst.$? "$1"'  ${@:-$(<~/cpan-inst.list)}
+}
+
 cpan-install()
-{ 
+{
     for ARG in "$@";
     do
         perl -MCPAN -e "CPAN::Shell->notest('install', '$ARG')";
@@ -445,12 +565,12 @@ cpan-install()
 }
 
 cpan-search()
-{ 
+{
     ( for ARG in "$@";
     do
         ARG=${ARG//::/-};
-        URL=$(dlynx.sh "http://search.cpan.org/search?query=$ARG&mode=dist" |grep "/$ARG-[0-9][^/]*/\$" | sort -V | tail -n1 );
-        test -n "$URL" && { 
+        URL=$(dlynx.sh "http://search.cpan.org/search?query=$ARG&mode=dist" |${GREP-grep} "/$ARG-[0-9][^/]*/\$" | sort -V | tail -n1 );
+        test -n "$URL" && {
             dlynx.sh "$URL" | grep-archives.sh | sort -V | tail -n1
         };
     done )
@@ -494,43 +614,43 @@ ctime()
     E="$E\(${NW}\)${WS}";
     E="$E\(.*\)";
     [ $# -gt 1 ] && R="\2: \1" || R="\1";
-    ls --color=auto --color=auto --color=auto -l -n -d --time=ctime --time-style="${TS}" "$@" | sed "s/$E/$R/" )
+    ls --color=auto --color=auto --color=auto -l -n -d --time=ctime --time-style="${TS}" "$@" | ${SED-sed} "s/$E/$R/" )
 }
 
 cut-arch()
 {
-    sed 's,^\([^ ]*\)\.[^ .]*\( - \)\?\(.*\)$,\1\2\3,'
+    ${SED-sed} 's,^\([^ ]*\)\.[^ .]*\( - \)\?\(.*\)$,\1\2\3,'
 }
 
 cut-basename()
 {
-    sed 's,[/\\][^/\\]*[/\\]\?$,,'
+    ${SED-sed} 's,[/\\][^/\\]*[/\\]\?$,,'
 }
 
 cut-dirname()
 {
-    sed "s,\\(.*\\)[/\\\\]\\([^/\\\\]\\+[/\\\\]\\?\\)${1//./\\.}\$,\2,"
+    ${SED-sed} "s,\\(.*\\)[/\\\\]\\([^/\\\\]\\+[/\\\\]\\?\\)${1//./\\.}\$,\2,"
 }
 
 cut-distver()
 {
-  cat "$@" | sed 's,\.fc[0-9]\+\(\.\)\?,\1,g'
+  cat "$@" | ${SED-sed} 's,\.fc[0-9]\+\(\.\)\?,\1,g'
 }
 
 cut-dotslash()
 {
-  sed -u 's,^\.[/\\],,'
+  ${SED-sed} -u 's,^\.[/\\],,'
 }
 
 cut-ext() {
- (CMD='sed -e "/\\.exe\$/ { s|\\.paf\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.gz\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.bz2\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.lzma\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.xz\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.Z\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "s,\\.[^./]\\+\$,,"'
+ (CMD='${SED-sed} -e "/\\.exe\$/ { s|\\.paf\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.gz\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.bz2\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.lzma\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.xz\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "/\\.Z\$/ { s|\\.tar\\(\\.[^.]\\+\\)\$|\\1| }" -e "s,\\.[^./]\\+\$,,"'
   CMD="$CMD${@:+ \"\$@\"}"
   eval "$CMD")
 }
 
 cut-hexnum()
 {
-  sed 's,^\s*[0-9a-fA-F]\+\s*,,' "$@"
+  ${SED-sed} 's,^\s*[0-9a-fA-F]\+\s*,,' "$@"
 }
 
 cut-ls-l()
@@ -547,25 +667,76 @@ cut-ls-l()
     eval "$CMD" )
 }
 
-cut-lsof()
-{
-    ( IFS=" ";
-    eval "while read -r COMMAND PID USER FD TYPE DEVICE SIZE NODE NAME; do
-  if ( ! [ \"\$NODE\" -ge 0 ] 2>/dev/null ) || [ -z \"\$NAME\" ]; then NAME=\"\$NODE\${NAME:+ \$NAME}\"; unset NODE; fi;   echo \"\${${1-NAME}}\"; done" )
+cut-lsof() {
+ (IFS=" "
+  [ $# -le 0 ] && set NAME
+  CMD=
+  is_num() { for N; do test "$N" -ge 0 2>/dev/null || return $?; done; }
+
+  for FIELD; do CMD="${CMD:+$CMD }\${$FIELD}"; done
+  CMD="echo \"$CMD\""
+  eval "print() { $CMD; }"
+  set -- COMMAND PID USER FD TYPE DEVICE SIZE NODE NAME
+  LINE=1
+  while read -r "$@"; do
+    if [ "$LINE" -le 2 ]; then
+      case "$TYPE" in
+        TTY) set -- PID PARENT PGID WINPID TTY USERID STIME NAME; unset SIZE; LINE=$((LINE+1)); continue ;;
+        "("*")") set -- COMMAND PID FD TYPE NAME; FD="$USER" TYPE="$FD" MODE="$TYPE" NAME="$DEVICE${SIZE:+ $SIZE}${NODE:+ $NODE}${NAME:+ $NAME}" ;;
+         *)
+          if is_num "$COMMAND" "$PID" "$USER" "$FD" || [ "$COMMAND" = I ]; then
+            set -- PID PARENT PGID WINPID TTY USERID STIME NAME
+          elif [ "$LINE" -le 1 ] && (! is_num "$NODE" || [ -z "$NAME" ]); then
+            NAME="$NODE${NAME:+ $NAME}"; unset NODE
+            set -- COMMAND PID USER FD TYPE DEVICE SIZE NAME
+          fi
+
+          ;;
+      esac
+    fi
+    case "$NAME" in
+      "("*") "*) MODE=${NAME%%" "*}; NAME=${NAME#"("*") "} ;;
+      [0-2][0-9]:[0-5][0-9]:[0-5][0-9]" "*) STIME=${NAME%%" "*}; 		NAME=${NAME#[0-2][0-9]:[0-5][0-9]:[0-5][0-9]" "} ;;
+    esac
+    case "$PID" in
+      I) PID="$PARENT" PARENT="$PGID" PGID="$WINPID" WINPID="$TTY" TTY="$USERID" USERID="$STIME" STIME="${NAME%% *}" NAME="${NAME#* }" ;;
+    esac
+    case "${SIZE:-$STIME}" in
+      Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Dec)
+        NAME=${NAME#*" "}
+      ;;
+    esac
+    while [ "$NAME" != "${NAME# }" ]; do NAME=${NAME#" "}; done
+    print
+    LINE=$((LINE + 1))
+  done)
 }
 
-cut-num()
-{
-  sed 's,^\s*[0-9]\+\s*,,' "$@"
+cut-num() {
+ (while :; do
+    case "$1" in
+      -n | --num) N="$2"; shift 2 ;;
+      -n=* | --num=*) N="${1##*=}"; shift ;;
+      -n) N="${1#-n}"; shift ;;
+      *) break ;;
+    esac
+  done
+  : ${N=1}
+  EXPR=
+  while [ $((N)) -gt 0 ]; do
+    EXPR="$EXPR[0-9]\\+\\s*"
+    : $((N--))
+  done
+  ${SED-sed} "s|^${EXPR:+\\s*$EXPR}||" "$@")
 }
 
 cut-pkgver()
 {
-    cat "$@" |sed 's,-[0-9]\+$,,g'
+    cat "$@" |${SED-sed} 's,-[0-9]\+$,,g'
 }
 
 cut-trailver() {
- (CMD='sed -e "s|[-_][0-9][^-_.]*\\(\\.[0-9][^-.]*\\)*\$||" -e "s|[-_.]\\?[0-9]\\+\.[.0-9]\+\$||"'
+ (CMD='${SED-sed} -e "s|[-_][0-9][^-_.]*\\(\\.[0-9][^-.]*\\)*\$||" -e "s|[-_.]\\?[0-9]\\+\.[.0-9]\+\$||"'
   CMD="$CMD${@:+ \"\$@\"}"
   eval "$CMD")
 }
@@ -573,15 +744,15 @@ cut-trailver() {
 cut-ver()
 {
   cat "$@" | cut-trailver |
-  sed 's,[-.]rc[[:alnum:]~][^-.]*,,g ;; s,[-.]b[[:alnum:]~][^-.]*,,g ;; s,[-.]git[_[:alnum:]~][^-.]*,,g ;; s,[-.]svn[_[:alnum:]~][^-.]*,,g ;; s,[-.]linux[^-.]*,,g ;; s,[-.]v[[:alnum:]~][^-.]*,,g ;; s,[-.]beta[_[:alnum:]~][^-.]*,,g ;; s,[-.]alpha[_[:alnum:]~][^-.]*,,g ;; s,[-.]a[_[:alnum:]~][^-.]*,,g ;; s,[-.]trunk[^-.]*,,g ;; s,[-.]release[_[:alnum:]~][^-.]*,,g ;; s,[-.]GIT[^-.]*,,g ;; s,[-.]SVN[^-.]*,,g ;; s,[-.]r[_[:alnum:]~][^-.]*,,g ;; s,[-.]dnh[_[:alnum:]~][^-.]*,,g' |
-  sed 's,[^-.]*git[_0-9][^.].,,g ;; s,[^-.]*svn[_0-9][^.].,,g ;; s,[^-.]*GIT[^.].,,g ;; s,[^-.]*SVN[^.].,,g' |
-  sed 's,\.\(P\)\?[[:digit:]][_+[:digit:]]*\.,.,g' |
-  sed 's,-\([0-9]\+\):\([0-9]\+\),-\1.\2,' | 
-  sed 's,[.-][[:digit:]][_+[:alnum:]~]*$,,g ;; s,[.-][[:digit:]][_+[:alnum:]~]*\([-.]\),\1,g'|
-  sed 's,[-_.][[:digit:]]*\(svn\)\?\(git\)\?\(P\)\?\(rc\)\?[[:digit:]][_+[:digit:]]*\(-.\),\5,g' |
-  sed 's,-[[:digit:]][._+[:digit:]]*$,, ;;  s,-[[:digit:]][._+[:digit:]]*$,,'  |
-  sed 's,[.-][[:digit:]][_+[:alnum:]~]*$,,g ;; s,[.-][[:digit:]]*\(rc[[:digit:]]\)\?\(b[[:digit:]]\)\?\(git[_0-9]\)\?\(svn[_0-9]\)\?\(linux\)\?\(v[[:digit:]]\)\?\(beta[_0-9]\)\?\(alpha[_0-9]\)\?\(a[_0-9]\)\?\(trunk\)\?\(release[_0-9]\)\?\(GIT\)\?\(SVN\)\?\(r[_0-9]\)\?\(dnh[_0-9]\)\?[[:digit:]][_+[:alnum:]~]*\.,.,g' |
-  sed 's,\.[[:digit:]][^.]*\.,.,g'
+  ${SED-sed} 's,[-.]rc[[:alnum:]~][^-.]*,,g ;; s,[-.]b[[:alnum:]~][^-.]*,,g ;; s,[-.]git[_[:alnum:]~][^-.]*,,g ;; s,[-.]svn[_[:alnum:]~][^-.]*,,g ;; s,[-.]linux[^-.]*,,g ;; s,[-.]v[[:alnum:]~][^-.]*,,g ;; s,[-.]beta[_[:alnum:]~][^-.]*,,g ;; s,[-.]alpha[_[:alnum:]~][^-.]*,,g ;; s,[-.]a[_[:alnum:]~][^-.]*,,g ;; s,[-.]trunk[^-.]*,,g ;; s,[-.]release[_[:alnum:]~][^-.]*,,g ;; s,[-.]GIT[^-.]*,,g ;; s,[-.]SVN[^-.]*,,g ;; s,[-.]r[_[:alnum:]~][^-.]*,,g ;; s,[-.]dnh[_[:alnum:]~][^-.]*,,g' |
+  ${SED-sed} 's,[^-.]*git[_0-9][^.].,,g ;; s,[^-.]*svn[_0-9][^.].,,g ;; s,[^-.]*GIT[^.].,,g ;; s,[^-.]*SVN[^.].,,g' |
+  ${SED-sed} 's,\.\(P\)\?[[:digit:]][_+[:digit:]]*\.,.,g' |
+  ${SED-sed} 's,-\([0-9]\+\):\([0-9]\+\),-\1.\2,' |
+  ${SED-sed} 's,[.-][[:digit:]][_+[:alnum:]~]*$,,g ;; s,[.-][[:digit:]][_+[:alnum:]~]*\([-.]\),\1,g'|
+  ${SED-sed} 's,[-_.][[:digit:]]*\(svn\)\?\(git\)\?\(P\)\?\(rc\)\?[[:digit:]][_+[:digit:]]*\(-.\),\5,g' |
+  ${SED-sed} 's,-[[:digit:]][._+[:digit:]]*$,, ;;  s,-[[:digit:]][._+[:digit:]]*$,,'  |
+  ${SED-sed} 's,[.-][[:digit:]][_+[:alnum:]~]*$,,g ;; s,[.-][[:digit:]]*\(rc[[:digit:]]\)\?\(b[[:digit:]]\)\?\(git[_0-9]\)\?\(svn[_0-9]\)\?\(linux\)\?\(v[[:digit:]]\)\?\(beta[_0-9]\)\?\(alpha[_0-9]\)\?\(a[_0-9]\)\?\(trunk\)\?\(release[_0-9]\)\?\(GIT\)\?\(SVN\)\?\(r[_0-9]\)\?\(dnh[_0-9]\)\?[[:digit:]][_+[:alnum:]~]*\.,.,g' |
+  ${SED-sed} 's,\.[[:digit:]][^.]*\.,.,g'
 
 }
 
@@ -595,8 +766,8 @@ d()
     echo "$1" )
 }
 
-datasheet-url() { 
-    RESULTS=1000 google.sh "$1 datasheet filetype:pdf" | grep --color=auto --line-buffered -i "$1[^/]*$"
+datasheet-url() {
+    RESULTS=1000 google.sh "$1 datasheet filetype:pdf" | ${GREP-grep} --color=auto --line-buffered -i "$1[^/]*$"
 }
 
 date2unix()
@@ -607,6 +778,11 @@ date2unix()
 debug()
 {
     msg "DEBUG: $@"
+}
+
+dec-to-hex()
+{
+    printf "%08x\n" "$1"
 }
 
 dec2bin() {
@@ -620,7 +796,7 @@ dec2bin() {
 }
 
 decompress-7z() {
- (while :; do 
+ (while :; do
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
       *) break ;;
@@ -631,11 +807,11 @@ decompress-7z() {
   output() {
     [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
   }
-  
+
   [ $# -le 0 ] && set -- -
 
   while [ $# -gt 0 ]; do
-   (case "$1" in 
+   (case "$1" in
       *://*) INPUT="curl -s \"\$1\"" ;;
       *) ARCHIVE=$1  ;;
       -) OPTS="${OPTS:+$OPTS }-si" ;;
@@ -663,9 +839,31 @@ decompress()
     esac
 }
 
-dec_to_hex()
-{
-    printf "%08x\n" "$1"
+destdir() { 
+	CCHOST=$(IFS="$IFS "; ${CC-cc} -dumpmachine);
+	case "$CC:$CCHOST" in 
+	*diet*:*)
+	    PKGARCH=diet
+	;;
+	*:*linux*)
+	    PKGARCH=linux
+	;;
+	*:*)
+	    PKGARCH=$(IFS="$IFS -"; set -- $CCHOST; echo "${2:-$1}")
+	;;
+	esac;
+	case "$CCHOST" in 
+	i[3-6]86*)
+	    PKGARCH="${PKGARCH}32"
+	;;
+	x86?64*)
+	    PKGARCH="${PKGARCH}64"
+	;;
+	*)
+	    PKGARCH="${CCHOST%%-*}-${PKGARCH}"
+	;;
+	esac;
+	echo "$PWD-$PKGARCH"
 }
 
 detect-filesystem()
@@ -688,7 +886,7 @@ device-of-file() {
      if [ ! -d "$ARG" ]; then
          ARG=` dirname "$ARG" `
      fi
-     DEV=`(grep -E "^[^ ]*\s+$ARG\s" /proc/mounts ;  df "$ARG" |sed '1d' )|awkp 1|head -n1`
+     DEV=`(${GREP-grep} -E "^[^ ]*\s+$ARG\s" /proc/mounts ;  df "$ARG" |${SED-sed} '1d' )|awkp 1|head -n1`
      [ $# -gt 1 ] && DEV="$ARG: $DEV"
 
      [ "$DEV" = rootfs -o "$DEV" = /dev/root ] && DEV=`get-rootfs`
@@ -696,6 +894,19 @@ device-of-file() {
      echo "$DEV"
   fi)
   done)
+}
+
+diff-plus-minus()
+{
+    local IFS="$newline" d=$(diff -x .svn -ruN "$@" |
+      ${SED-sed} -n -e "/^[-+][-+][-+]\s\+$1/d"                -e "/^[-+][-+][-+]\s\+$2/d"                -e '/^[-+]/ s,^\(.\).*$,\1, p' 2>/dev/null);
+    IFS="-$newline ";
+    eval set -- $d;
+    local plus=$#;
+    IFS="+$newline ";
+    eval set -- $d;
+    local minus=$#;
+    echo "+$plus" "-$minus"
 }
 
 diffcmp()
@@ -715,25 +926,12 @@ diffcmp()
 
   LANGUAGE=C LC_ALL=C \
   diff $OPTS "$@" |
-  sed -n \
+  ${SED-sed} -n \
     -e 's/^Binary files \(.*\) and \(.*\) differ/\1\n\2/p' \
     -e 's,^[-+][-+][-+]\s\+"\([^"]\+\)"\s.*,\1,p' \
     -e 's,^[-+][-+][-+]\s\+\([^"][^ \t]*\)\s.*,\1,p' \
-    | sed -e "$DIREXPR" \
+    | ${SED-sed} -e "$DIREXPR" \
     | uniq)
-}
-
-diff_plus_minus()
-{
-    local IFS="$newline" d=$(diff -x .svn -ruN "$@" |
-      sed -n -e "/^[-+][-+][-+]\s\+$1/d"                -e "/^[-+][-+][-+]\s\+$2/d"                -e '/^[-+]/ s,^\(.\).*$,\1, p' 2>/dev/null);
-    IFS="-$newline ";
-    eval set -- $d;
-    local plus=$#;
-    IFS="+$newline ";
-    eval set -- $d;
-    local minus=$#;
-    echo "+$plus" "-$minus"
 }
 
 disk-device-for-partition()
@@ -750,7 +948,7 @@ disk-device-letter()
 
 disk-device-number()
 {
-    index-of "$(disk-device-letter "$1")" abcdefghijklmnopqrstuvwxyz
+    index_of "$(disk-device-letter "$1")"  a b c d e f g h i j k l m n o p q r s t u v w x y z
 }
 
 disk-devices() {
@@ -770,7 +968,7 @@ disk-label() {
   if [ -n "$1" -a -e "$1" -a -n "$LABEL" ]; then
     echo "$LABEL"
     exit 0
-  fi      
+  fi
   ESCAPE_ARGS="-e"
   while :; do
     case "$1" in
@@ -782,29 +980,29 @@ disk-label() {
   test -L "$DEV" && DEV=` myrealpath "$DEV"`
   cd /dev/disk/by-label
   find . -type l | while read -r LINK; do
-		TARGET=`readlink "$LINK"`
-		if [ "${DEV##*/}" = "${TARGET##*/}" ]; then
-			NAME=${LINK##*/}
-			NAME=${NAME//'\x20'/'\040'}
-			case "$NAME" in
-				*[[:lower:]]*) LOWER=true ;;
-			esac
-			if [ "$LOWER" = true -o ! -r "$LINK" ]; then
-				echo $ESCAPE_ARGS "$NAME"
-			else
-				FS=` filesystem-for-device "$DEV"`
-				case "$FS" in
-					*fat)
-							IFS="
+    TARGET=`readlink "$LINK"`
+    if [ "${DEV##*/}" = "${TARGET##*/}" ]; then
+      NAME=${LINK##*/}
+      NAME=${NAME//'\x20'/'\040'}
+      case "$NAME" in
+        *[[:lower:]]*) LOWER=true ;;
+      esac
+      if [ "$LOWER" = true -o ! -r "$LINK" ]; then
+        echo $ESCAPE_ARGS "$NAME"
+      else
+        FS=` filesystem-for-device "$DEV"`
+        case "$FS" in
+          *fat)
+              IFS="
 "
-						set -- $(dosfslabel "$LINK")
-						test $# = 1 && echo "$1"
-					;;
-					*) echo $ESCAPE_ARGS "$NAME" ;;
-				esac
-			fi
-			exit 0
-		fi
+            set -- $(dosfslabel "$LINK")
+            test $# = 1 && echo "$1"
+          ;;
+          *) echo $ESCAPE_ARGS "$NAME" ;;
+        esac
+      fi
+      exit 0
+    fi
   done
   exit 1)
 }
@@ -878,18 +1076,82 @@ dospath()
     echo "$1" )
 }
 
-du-txt()
-{
-    ( IFS="
-";
-    TMP="du.tmp$RANDOM";
-    echo -n > "$TMP";
-    trap 'rm -f "$TMP"' EXIT;
-    CMD='(du -x -s -- ${@-$(ls-dirs)})';
-    if [ -w "$TMP" ]; then
-        CMD="$CMD | (tee \"\$TMP\"; sort -n -k1 <\"\$TMP\" >du.txt; rm -f \"\$TMP\"; echo \"Saved list into du.txt\" 1>&2)";
-    fi;
-    eval "$CMD" )
+du-txt() {
+ (IFS="
+"; TMP="du.tmp$RANDOM"
+  while :; do
+    case "$1" in
+      -x | --debug) DEBUG=true; shift ;;
+      -0 | --null | -a | --all | --apparent-size | -c | --total | -D | --dereference-args | --summarize | -H | --dereference-args | -h | --human-readable | --inodes | -L | --dereference | -l | --count-links | -P | --no-dereference | -S | --separate-dirs | --si | -h | -s | --summarize | --time | -x | --one-file-system | --help | --version | --block-size) pushv DU_ARGS "$1"; shift ;;
+      -B=* | -b=* | -d=* | -k=* | -m=* | -t=* | -X=*) pushv DU_ARGS "${1%%=*}" "${1#-?=}"; shift ;;
+      -B | -b | -d | -k | -m | -t | -X) pushv DU_ARGS "$1" "$2"; shift 2 ;;
+      -B* | -b* | -d* | -k* | -m* | -t* | -X*) A=${1#-?}; pushv DU_ARGS "${1%%$A}" "${A}"; shift ;;
+      --block-size=* | --exclude-from=* | --exclude=* | --files0-from=* | --max-depth=* | --threshold=* | --time-style=* | --time=*) pushv DU_ARGS "$1"; shift ;;
+      --block-size | --exclude | --exclude-from | --files0-from | --max-depth | --threshold | --time | --time-style) pushv DU_ARGS "$1=$2"; shift 2 ;;
+      *) break ;;
+    esac
+  done
+  echo -n > "$TMP"
+  trap 'rm -f "$TMP"' EXIT
+  CMD='(du -x -s $DU_ARGS -- ${@-$(ls-dirs)})'
+  if [ -w "$TMP" ]; then
+      CMD="$CMD | (tee \"\$TMP\"; sort -n -k1 <\"\$TMP\" >du.txt; rm -f \"\$TMP\"; echo \"Saved list into du.txt\" 1>&2)"
+  fi
+  [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+  eval "$CMD")
+}
+
+dump-lynx() {
+ (IFS="
+"
+  while :; do
+    case "$1" in
+      -x | -debug | --debug) DEBUG=true; shift ;;
+      -d | -dump | --dump)  DUMP=true; shift ;;
+      -w | -wrap | --wrap)  WRAP=true; shift ;;
+      -c | --config) pushv LYNX_CONFIG "$2"; shift 2 ;; -c=* | --config=*) pushv LYNX_CONFIG "${1#*=}"; shift ;; -c*) pushv LYNX_CONFIG "${1#-?}"; shift ;;
+      -p | --proxy) export http_proxy="$2"; shift 2 ;; -p=* | --proxy=*) export http_proxy="${1#*=}"; shift ;; -p*) export http_proxy="${1#-?}"; shift ;;
+      -C | --cookie) COOKIE_FILE="$2"; shift 2 ;; -C=* | --cookie=*) COOKIE_FILE="${1#*=}"; shift ;; -C*) COOKIE_FILE="${1#-?}"; shift ;;
+      -A | --user*agent) USER_AGENT="$2"; shift 2 ;; -A=* | --user*agent=*) USER_AGENT="${1#*=}"; shift ;; -A*) USER_AGENT="${1#-?}"; shift ;;
+      *) break ;;
+   esac
+ done
+
+  : ${USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0"}
+
+  if [ "$DUMP" = true ]; then
+     OPTS="-nolist"
+     if [ "$WRAP" != true ]; then
+       OPTS="$OPTS -width=65536"
+     fi
+  else
+    OPTS="-listonly"
+  fi
+
+  if [ -n "$LYNX_CONFIG" ]; then
+    TMPCFG=`mktemp dump-lynx-XXXXXX.cfg`
+    trap 'rm -f "$TMPCFG"' EXIT
+    echo "$LYNX_CONFIG" >"$TMPCFG"
+    OPTS="$OPTS -cfg=\"\$TMPCFG\""
+  fi
+
+  CMD="lynx -accept_all_cookies${USER_AGENT:+ -useragent=\"\$USER_AGENT\"}${COOKIE_FILE:+ -cookie_file=\"\$COOKIE_FILE\"} $OPTS -nonumbers -hiddenlinks=merge \"\$URL\" 2>/dev/null"
+
+  for URL; do
+  [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+  eval "$CMD"
+  done)
+}
+
+dump-shortcuts() {
+ (while :; do
+   case "$1" in
+    -*) pushv OPTS "$1"; shift ;;
+     *) break ;;
+   esac
+  done
+  for-each 'readshortcut $OPTS -t -r "$1" | ${SED-sed} "N ;; s%\s*\n\s*% % ;; s%^%$1: %"' "$@"
+ )
 }
 
 duration()
@@ -905,7 +1167,7 @@ duration()
     N="$#";
     for ARG in "$@"
     do
-        D=$(mminfo "$ARG" |sed -n 's,Duration=,,p' | head -n1);
+        D=$(mminfo "$ARG" |${SED-sed} -n 's,Duration=,,p' | head -n1);
         set -- $D;
         S=0;
         for PART in "$@";
@@ -943,7 +1205,7 @@ each()
 
 enable-some-swap()
 {
-    ( SWAPS=` blkid|grep 'TYPE="swap"'|cut -d: -f1 `;
+    ( SWAPS=` blkid|${GREP-grep} 'TYPE="swap"'|cut -d: -f1 `;
     set -- $SWAPS;
     for SWAP in $SWAPS;
     do
@@ -972,7 +1234,7 @@ errormsg()
     return "$retcode"
 }
 
-escape_required()
+escape-required()
 {
     local b="\\" q="\`\$\'\"${IFS}";
     case "$1" in
@@ -988,9 +1250,9 @@ escape_required()
     esac
 }
 
-eval_arith()
+eval-arith()
 {
-    eval "echo $(make_arith "$@")"
+    eval "echo $(make-arith "$@")"
 }
 
 explode()
@@ -1000,7 +1262,7 @@ explode()
 ";
 
   [ $# -gt 0 ] && exec <<<"$*"
-  sed "s|${S//\"/\\\"}|\n|g"
+  ${SED-sed} "s|${S//\"/\\\"}|\n|g"
  )
 }
 
@@ -1023,7 +1285,7 @@ extract-slackpkg()
 {
     : ${DESTDIR=unpack};
     mkdir -p "$DESTDIR";
-    l=$(grep "$1" pkgs.files );
+    l=$(${GREP-grep} "$1" pkgs.files );
     pkgs=$(cut -d: -f1 <<<"$l" |sort -fu);
     files=$(cut -d: -f2 <<<"$l" |sort -fu);
     for pkg in $pkgs;
@@ -1034,15 +1296,15 @@ extract-slackpkg()
     done
 }
 
-extract_version()
+extract-version()
 {
-    echo "$*" | sed 's,^.*\([0-9]\+[-_.][0-9]\+[-_.0-9]\+\).*,\1,'
+    echo "$*" | ${SED-sed} 's,^.*\([0-9]\+[-_.][0-9]\+[-_.0-9]\+\).*,\1,'
 }
 
 filesystem-for-device()
 {
  (DEV="$1";
-  set -- $(grep "^$DEV " /proc/mounts |awkp 3)
+  set -- $(${GREP-grep} "^$DEV " /proc/mounts |awkp 3)
   case "$1" in
     fuse*)
       TYPE=$(file -<"$DEV");
@@ -1093,23 +1355,28 @@ filter-cmd()
 filter-filemagic() {
 (
  while :; do
-	 case "$1" in
-		 -c | --cut) CUT=true; shift ;;
-		 *) break ;;
-	 esac
+   case "$1" in
+     -c | --cut) CUT=true; shift ;;
+     *) break ;;
+   esac
  done
  [ "$CUT" = true ] && EXPR="s,:\\s\\+.*,,p" || EXPR="s,:\\s\\+,: ,p"
 
   [ $# -gt 0 ]  || set -- ".*"
-	 for ARG; do
-		 case "$ARG" in
-			 "!"*) NOT="!" ARG=${ARG#$NOT} ;;
-		   *) NOT="" ;;
-		esac
-		 EXPR="\\|:\\s\\+${ARG%%|*}|$NOT { $EXPR }"
-	 done
+   for ARG; do
+     case "$ARG" in
+       "!"*) NOT="!" ARG=${ARG#$NOT} ;;
+       *) NOT="" ;;
+    esac
+     EXPR="\\|:\\s\\+${ARG%%|*}|$NOT { $EXPR }"
+   done
   xargs -d "
-" file -- | sed -n -u "$EXPR")
+" file -- | ${SED-sed} -n -u "$EXPR")
+}
+
+filter-files-list()
+{
+    ${SED-sed} "s|/files\.list:|/|"
 }
 
 filter-filesize() {
@@ -1132,16 +1399,69 @@ filter-filesize() {
       *) break ;;
     esac
   done
-  xargs ls -l -d -n --time-style="+%s" -- | { 
+  xargs ls -l -d -n --time-style="+%s" -- | {
    set -- $OPS
    IFS=" "
-   CMD="test $*" 
+   CMD="test $*"
    while read -r MODE N USERID GROUPID FILESIZE DATETIME PATH; do
      #echo "$FILESIZE" 1>&2
-      eval "if $CMD; then echo \"\$PATH\"; fi" 
+      eval "if $CMD; then echo \"\$PATH\"; fi"
 
   done; }
   )
+}
+
+filter-foreach() {
+ (IFS="
+"
+  unset ARGS MODE
+  push() {
+  eval 'shift; '$1'=${'$1':+"$'$1'$S"}$*'
+  }
+  S=" -and "
+  while :; do
+    case "$1" in
+      -[0-9]) I=${1#-}; shift ;;
+      -eq | -ne | -lt | -le | -gt | -ge)
+        push COND "${NEG:+$NEG }\$((N)) $1 $2"
+        shift 2
+        NEG=""
+      ;;
+      ">=") push COND "${NEG:+$NEG }\$((N)) -ge $2"; NEG=""; shift ;;
+      "<=") push COND "${NEG:+$NEG }\$((N)) -le $2"; NEG=""; shift ;;
+      "=="* | "=") push COND "\$((N)) -eq $2"; NEG=""; shift ;;
+      "!=") push COND "${NEG:+$NEG }\$((N)) -ne $2"; NEG=""; shift ;;
+      ">") push COND "${NEG:+$NEG }\$((N)) -gt $2"; NEG=""; shift ;;
+      "<") push COND "${NEG:+$NEG }\$((N)) -lt $2"; NEG=""; shift ;;
+
+      ">="*) push COND "${NEG:+$NEG }\$((N)) -ge ${1#??}"; NEG=""; shift ;;
+      "<="*) push COND "${NEG:+$NEG }\$((N)) -le ${1#??}"; NEG=""; shift ;;
+      "=="* | "="*) push COND "\$((N)) -eq ${1#*=}"; NEG=""; shift ;;
+      "!=") push COND "${NEG:+$NEG }\$((N)) -ne ${1#??}"; NEG=""; shift ;;
+      ">"*) push COND "${NEG:+$NEG }\$((N)) -gt ${1#?}"; NEG=""; shift ;;
+      "<"*) push COND "${NEG:+$NEG }\$((N)) -lt ${1#?}"; NEG=""; shift ;;
+
+      -o | -or | --or | "||") S=" -o "; shift ;;
+      -a | -and | --and | "||") S=" -a "; shift ;;
+      '!')
+        NEG='! '
+        shift ;;
+      *) break ;;
+    esac
+  done
+  : ${I:=1}
+  CMD=
+  for N in $(seq 1 $((I+1))); do
+    CMD="${CMD:+$CMD }\${F$N}"
+    FIELDS="${FIELDS:+$FIELDS }F$N"
+  done
+  CMD="echo \"$CMD\""
+  CMD="[ $COND ] && $CMD"
+
+  CMD="while read -r $FIELDS; do N=\$F$I; $CMD; done"
+  CMD='IFS=" 	"; '$CMD
+  [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+  eval "$CMD")
 }
 
 filter-git-status()
@@ -1157,64 +1477,125 @@ filter-git-status()
   shift
   ARGS="-n"
   case "$WHAT" in
-    untracked) PATTERN='?? ' ;;
-    merge*) PATTERN=' M ' ;;
-    delete*) PATTERN=' D ' ;;
+    untr*|unkn*) PATTERN='??' ;;
+    ign*) PATTERN='!!' ;;
+    add*|new*) PATTERN='.\?A' ;;
+    modif*|change*) PATTERN='.\?M' ;;
+    delete*|remov*) PATTERN='.\?D' ;;
+    rena*) PATTERN='.\?R' ;;
+    cop[iy]*) PATTERN='.\?C' ;;
+    unmerg*|upda*) PATTERN='.\?U' ;;
     #*) echo "No such git status specifier: $WHAT" 1>&2; exit 1 ;;
   esac
   : ${MATCH="\\|^$PATTERN|"}
-  : ${SUBST="s|^...||p"}
-  exec sed $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
+  : ${SUBST="/\"/ { s,^\(...\)\",\1,; s,\"\$,,; }; s|^...||p"}
+  exec ${SED-sed} $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
+}
+
+filter-num() {
+ (IFS="
+"
+  unset ARGS MODE
+  push() {
+  eval 'shift; '$1'=${'$1':+"$'$1'$S"}$*'
+  }
+  S=" -and "
+  while :; do
+    case "$1" in
+      -[0-9]) I=${1#-}; shift ;;
+      -[dt]) S=${2}; shift 2 ;; -[dt]=*) S=${1#-?=}; shift ;; -[dt]*) S=${1#-?}; shift ;;
+      -[fk]) I=${2}; shift 2 ;; -[fk]=*) I=${1#-?=}; shift ;; -[fk][0-9]*) I=${1#-?}; shift ;;
+
+      -eq | -ne | -lt | -le | -gt | -ge)
+        push COND "${NEG:+$NEG }\$((N)) $1 $(suffix-num "$2")"
+        shift 2
+        NEG=""
+      ;;
+      ">=") push COND "${NEG:+$NEG }\$((N)) -ge $(suffix-num "$2")"; NEG=""; shift ;;
+      "<=") push COND "${NEG:+$NEG }\$((N)) -le $(suffix-num "$2")"; NEG=""; shift ;;
+      "=="* | "=") push COND "\$((N)) -eq $(suffix-num "$2")"; NEG=""; shift ;;
+      "!=") push COND "${NEG:+$NEG }\$((N)) -ne $(suffix-num "$2")"; NEG=""; shift ;;
+      ">") push COND "${NEG:+$NEG }\$((N)) -gt $(suffix-num "$2")"; NEG=""; shift ;;
+      "<") push COND "${NEG:+$NEG }\$((N)) -lt $(suffix-num "$2")"; NEG=""; shift ;;
+
+      ">="*) push COND "${NEG:+$NEG }\$((N)) -ge $(suffix-num "${1#??}")"; NEG=""; shift ;;
+      "<="*) push COND "${NEG:+$NEG }\$((N)) -le $(suffix-num "${1#??}")"; NEG=""; shift ;;
+      "=="* | "="*) push COND "\$((N)) -eq $(suffix-num "${1#*=}")"; NEG=""; shift ;;
+      "!=") push COND "${NEG:+$NEG }\$((N)) -ne $(suffix-num "${1#??}")"; NEG=""; shift ;;
+      ">"*) push COND "${NEG:+$NEG }\$((N)) -gt $(suffix-num "${1#?}")"; NEG=""; shift ;;
+      "<"*) push COND "${NEG:+$NEG }\$((N)) -lt $(suffix-num "${1#?}")"; NEG=""; shift ;;
+
+      -o | -or | --or | "||") S=" -o "; shift ;;
+      -a | -and | --and | "||") S=" -a "; shift ;;
+      '!')
+        NEG='! '
+        shift ;;
+      *) break ;;
+    esac
+  done
+  : ${I:=1}
+  CMDX=
+  for N in $(seq 1 $((I+1))); do
+    CMDX="${CMDX:+$CMDX }\${F$N}"
+    FIELDS="${FIELDS:+$FIELDS }F$N"
+  done
+  CMDX="echo \"$CMDX\""
+  CMDX="[ $COND ] && $CMDX"
+
+  CMDX="N=\$F$I; $CMDX"
+
+  CMD="while read -r $FIELDS; do [ \"\$DEBUG\" = true ] && echo \"$CMDX\" 1>&2; $CMDX; done"
+  CMD="IFS=\"${S-" c"}\"; "$CMD
+  [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+  eval "($CMD)")
+}
+
+filter-out()
+{
+    ( while read -r LINE; do
+        for PATTERN in "$@";
+        do
+            case "$LINE" in
+                $PATTERN)
+                    continue 2
+                ;;
+            esac;
+        done;
+        echo "$LINE";
+    done )
 }
 
 filter-quoted-name()
 {
-  sed -n "s|.*\`\([^']\+\)'.*|\1|p"
+  ${SED-sed} -n "s|.*\`\([^']\+\)'.*|\1|p"
 }
 
-filter-test()
-{
-  ( IFS="
-  ";
-  unset ARGS NEG;
+filter-test() {
+ (IFS="
+" EXCLAM='! '
+  unset ARGS NEG
   while :; do
-      case "$1" in
-          -a | -b | -c | -d | -e | -f | -g | -h | -k | -L | -N | -O | -p | -r | -s | -u | -w | -x)
-              ARGS="${ARGS:+$ARGS
-}"${NEG:+'!
-'}"$1";
+    case "$1" in
+      -X | --debug) DEBUG=true; shift ;;
+      -b | -c | -d | -e | -f | -g | -h | -k | -L | -N | -O | -p | -r | -s | -u | -w | -x)
+          ARGS="${ARGS:+$ARGS }${NEG+$EXCLAM}$1 \"\$LINE\""; shift; unset NEG ;;
+      -E) ARGS="${ARGS:+$ARGS }${NEG+$EXCLAM}-f \"\$LINE\" -a ${NEG-$EXCLAM}-s \"\$LINE\""; shift; unset NEG ;;
+      -a | -o) ARGS="${ARGS:+$ARGS }$1"; shift; unset NEG ;;
+      '!') [ "${NEG-false}" = false ] && NEG="" || unset NEG; shift ;;
+      *) break ;;
+    esac
+  done
+#  [ -z "$ARGS" ] && exit 2
+#  IFS=" "
+#  set -- $ARGS
+#  IFS="
+#" ARGN=$#; ARGS="$*"
+  CMD='while read -r LINE; do
+  [ '$ARGS' ] && echo "$LINE"
+done'
 
-              shift;
-              NEG=""
-          ;;
-          '!')
-              [ "${NEG:-false}" = false ] && NEG='!' ||
-              NEG=
-              shift
-          ;;
-          *)
-              break
-          ;;
-      esac;
-  done;
-  [ -z "$ARGS" ] && {
-      exit 2
-  };
-  IFS=" ";
-  set -- $ARGS;
-  ARGN=$#;
-  ARGS="$*";
-  IFS="
-"
-  while read -r LINE; do
- set -- $LINE;
-      #if [ $ARGN = 1 ]; then
-          test $ARGS "$LINE" || continue 2;
-      #else
-      #    eval "test $ARGS \"\$LINE\"" || continue 2;
-      #fi;
-      echo "$LINE";
-  done )
+  [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+  eval "$CMD")
 }
 
 filter()
@@ -1229,26 +1610,6 @@ filter()
                 ;;
             esac;
         done;
-    done )
-}
-
-filter_files_list()
-{
-    sed "s|/files\.list:|/|"
-}
-
-filter_out()
-{
-    ( while read -r LINE; do
-        for PATTERN in "$@";
-        do
-            case "$LINE" in
-                $PATTERN)
-                    continue 2
-                ;;
-            esac;
-        done;
-        echo "$LINE";
     done )
 }
 
@@ -1267,6 +1628,36 @@ findstring()
     exit 1 )
 }
 
+find-homedirs() {
+ (locate32.sh /home/ |
+  ${SED-sed} 's|/home/\([^/]\+\).*|/home/\1|'|uniq
+find-media.sh '/home/[^/]+/$'|removesuffix / ) |
+  ${GREP-grep} -vE '(/include/|/usr/)' |
+   filter-test -d
+}
+
+ find-in-index() {
+  (CMD='index-dir -u $DIRS | xargs ${GREP-grep} -E "($EXPRS)" -H | ${SED-sed} "s|/files.list:|/|" -u'
+   while :; do
+     case "$1" in
+       -w | -m) CMD="$CMD | msyspath $1"; shift ;;
+       *) break ;;
+     esac
+    done
+
+
+  while [ $# -gt 0 ]; do
+    if [ -d "$1" ]; then
+      pushv DIRS "$1"
+    else
+      EXPRS="${EXPRS:+$EXPRS|}$1"
+    fi
+    shift
+  done
+  eval "$CMD"
+)
+}
+
 findstring()
 {
     ( STRING="$1";
@@ -1278,11 +1669,6 @@ findstring()
         fi;
     done;
     exit 1 )
-}
-
-find_media()
-{
-    grep --color=auto --color=auto -iE "$(grep-e-expr "$@")" /{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}/files.list 2> /dev/null | filter_files_list | filter-test -e
 }
 
 first-char()
@@ -1301,7 +1687,7 @@ firstletter()
 
 fn2re()
 {
-    echo "$1" | sed -e 's,\.,\\.,g' -e "s,\\?,${2-.},g" -e "s,\\*,${2-.}*,g" -e 's,\[!\([^\]]\+\)\],[^\1],g'
+    echo "$1" | ${SED-sed} -e 's,\.,\\.,g' -e "s,\\?,${2-.},g" -e "s,\\*,${2-.}*,g" -e 's,\[!\([^\]]\+\)\],[^\1],g'
 }
 
 for-each-char()
@@ -1358,17 +1744,30 @@ foreach-partition() {
     IFS="$old_IFS"
 }
 
-for_each()
-{
-#    old_IFS=$IFS; IFS="$IFS "
-    __=$1;
-    test "`type -t "$__"`" = function && __="$__ \"\$@\"";
-    while shift;
-    [ "$#" -gt 0 ]; do
-        eval "$__";
-    done;
-    unset __
-#    IFS=$old_IFS
+for_each() {
+  ABORT_COND=' || return $?'
+  while :; do 
+    case "$1" in
+      -f | --force) ABORT_COND=; shift ;;
+      -x | --debug) DEBUG=true; shift ;;
+      *) break ;;
+    esac
+  done
+  CMD=$1
+  if [ "$(type -t "$CMD")" = function ]; then
+    CMD="$CMD \"\$@\""
+  fi
+  [ "$DEBUG" = true ] && CMD="echo \"+ $CMD\" 1>&2; $CMD"
+ 
+  	
+  if [ $# -gt 1 ]; then
+    CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; }'$ABORT_COND'; done'
+  else
+    CMD='while read -r LINE; do set -- $LINE; { '$CMD'; }'$ABORT_COND'; done'
+  fi
+#	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+  eval "$CMD"
+  unset CMD
 }
 
 fstab-line()
@@ -1411,9 +1810,9 @@ fstab-line()
 
         [ "${FSTYPE}" = fuseblk ] && unset FSTYPE
 
-				OPTS=${OPTS//,relatime/,noatime}
-				OPTS=${OPTS//,blksize=[0-9]*/}
-				OPTS=${OPTS//,errors=remount-ro/}
+        OPTS=${OPTS//,relatime/,noatime}
+        OPTS=${OPTS//,blksize=[0-9]*/}
+        OPTS=${OPTS//,errors=remount-ro/}
         printf "%-40s %-24s %-6s %-6s %6d %6d\n" "$DEV" "$MNTDIR" "${FSTYPE:-auto}" "${OPTS:-auto}" "${DUMP:-0}" "${PASS:-0}" );
     done )
 }
@@ -1450,9 +1849,9 @@ get-bpm() {
   done
   [ $# -gt 1 ] && PFX="\$1: " || PFX=
   [ "$INTEGER" = true ] && DOT= || DOT="."
-    CMD="sed -n \"/TBPM/ { s|.*TBPM\\x00\\x00\\x00\\x07\\x00*|| ;; s,[^${DOT}0-9].*,, ;; s|^|$PFX| ;;  p }\" \"\$1\""
+    CMD="${SED-sed} -n \"/TBPM/ { s|.*TBPM\\x00\\x00\\x00\\x07\\x00*|| ;; s,[^${DOT}0-9].*,, ;; s|^|$PFX| ;;  p }\" \"\$1\""
   while [ $# -gt 0 ]; do
-    #echo "+ $CMD" 1>&2 
+    #echo "+ $CMD" 1>&2
     eval "$CMD"
     shift
   done
@@ -1474,10 +1873,17 @@ get-dotfiles()
 get-exports() {
  (N=$#
   [ "$N" -gt 1 ] && PREFIX='$ARG: ' || PREFIX=''
-  CMD='dumpbin -exports "$ARG" |sed -n "/^\\s*ordinal\\s\\+name/ { n; :lp; n; s|^\\s*[0-9]*\\s\\+\\(.*\\)|'$PREFIX'\\1|p; /^\\s*\$/! b lp; }"'
+  CMD='dumpbin -exports "$ARG" |${SED-sed} -n "/^\\s*ordinal\\s\\+name/ { n; :lp; n; s|^\\s*[0-9]*\\s\\+\\(.*\\)|'$PREFIX'\\1|p; /^\\s*\$/! b lp; }"'
   for ARG; do
     eval "$CMD"
   done)
+}
+
+get-ext()
+{
+    set -- $( ( (set -- $(${GREP-grep} EXT.*= {find,locate,grep}-$1.sh -h 2>/dev/null |${SED-sed} "s,EXTS=[\"']\?\(.*\)[\"']\?,\1," ); IFS="$nl"; echo "$*")|${SED-sed} 's,[^[:alnum:]]\+,\n,g; s,^\s*,, ; s,\s*$,,';) |sort -fu);
+    ( IFS=" ";
+    echo "$*" )
 }
 
 get-frags() {
@@ -1496,7 +1902,7 @@ get-frags() {
     EXPR="$EXPR ;; s/^/\${ARG//\$FS/\$BS\$FS}${SEP:-: }/"
   fi
   EXPR="/Average frag/ { $EXPR; p }"
-  CMD='contig -a "$ARG" | sed -n "'$EXPR'"'
+  CMD='contig -a "$ARG" | ${SED-sed} -n "'$EXPR'"'
   CMD="($CMD) || return \$?"
   "${DEBUG:-false}" && echo 1>&2 "CMD='$CMD'"
   eval "for ARG; do
@@ -1504,9 +1910,114 @@ get-frags() {
   done")
 }
 
+get-installed()
+{
+    ( ( set /etc/setup/*.lst*;
+    set -- "${@##*/}";
+    set -- "${@%.lst*}";
+    echo "$*";
+    awkp < /etc/setup/installed.db ) | sort -u )
+}
+
+get-mingw-properties() {
+ (unset PROPS
+  : ${OUTCMD="var-get"}
+  while [ $# -gt 0 ]; do
+   case "$1" in
+     -x | --debug) OUTCMD="var_dump"; DEBUG=true; shift ;;
+     *[-/\\.]*) break ;;
+     --) shift; break ;;
+     *) IFS="
+ " pushv PROPS "$1"; shift ;;
+   esac
+ done
+ if [ -z "$PROPS" ]; then
+   IFS="
+" pushv PROPS EXE ARCH BITS DATE THREADS EXCEPTIONS VER TARGET #PROPS ARCH BITS DATE EXCEPTIONS MACH REV RTVER SNAPSHOT THREADS VER XBITS SUBDIR EXE VERN DRIVE VERSTR VERNUM TOOLCHAIN TARGET
+ fi
+ [ "$DEBUG" = true ] && echo "PROPS:" $PROPS 1>&2
+ for ARG; do
+   [ "$ARG" = -- ] && continue
+  ([ "$DEBUG" = true ] && echo "ARG: $ARG" 1>&2
+   NOVER=${ARG%%-[0-9]*}; VER=${ARG#"$NOVER"}; VER=${VER#[!0-9]}
+   S_IFS="$IFS"
+   IFS="${IFS:+-$IFS}/\\"
+   unset BITS DATE EXCEPTIONS MACH REV RTVER SNAPSHOT THREADS VER VERNUM VERSTR XBITS
+   set -- $ARG
+   IFS="$S_IFS"
+   while [ $# -gt 0 ]; do
+   #[ "$DEBUG" = true ] && echo "+ $1 $2" 1>&2
+     case "$1" in
+       *snapshot*) SNAPSHOT=$2; IFS="-" pushv VERNUM "snapshot$2"; shift; pushv VERSTR "snapshot$2" ;;
+       rev?????? |rev????????) DATE="${1#rev}" ; pushv VERSTR "d$DATE" ;;
+       rev*) REV="${1#rev}" ; pushv VERSTR "r$REV" ;;
+       rt_v*) RTVER="${1#rt_v}"; pushv  VERSTR "rt$RTVER" ;;
+       x86_64|x64|mingw64|amd64) BITS=64 ARCH=x86_64 MACH=x64 XBITS=x64 ;;
+       i?86|x32|x86) BITS=32 ARCH=i686 MACH=x86 XBITS=x32 ;;
+       seh) EXCEPTIONS=seh ;;
+       sjlj) EXCEPTIONS=sjlj ;;
+       posix) THREADS=posix ;;
+       win32|w32) THREADS=win32 ;;
+       dwarf|dw2) EXCEPTIONS=dw2 ;;
+       #[0-9].[0-9]* |   [0-9]*) VERNUM="$1"; pushv VERSTR "$VERNUM" ;;
+       ???drive) DRIVE="$2"; shift  ;;
+       ?:) DRIVE="${1%:}" ;;
+       w64) MINGWTYPE=mingw-w64 ;;
+       mingwbuilds) MINGWTYPE=$1 ;;
+       cc | gcc | g++ | gxx) ;;
+       cygwin | msys) MINGWTYPE=$1-cross ;;
+       mingw32 | mingw64) MINGWBITS=$1 ;;
+       mingw[[:digit:]]*) MINGWVER=${1#mingw}; : pushv VERNUM "${1}" ;;
+       [Bb]in | [Ll]ib | [Ii]nclude) SUBDIR="$1" ;;
+       [[:digit:]]*) VERN="$1"; pushv VERNUM "$1" ;;
+       *.EXE | *.exe) EXE="${1}" ;;
+       # *) IFS="-" pushv VERNUM "$1";  pushv VERSTR "$1" ;;
+       "") ;;
+       *) IFS="-" pushv VERNUM "$1";  pushv VERSTR "$1" ; [ "$DEBUG" = true ] && echo "No such version str: '$1'" 1>&2 ;;
+      esac
+      shift
+    done
+   VERNUM=${VERNUM#[!0-9a-z]}; VERNUM=${VERNUM#mingw}; VERNUM=${VERNUM#[![:alnum:]]}
+
+    S_IFS="$IFS"; IFS="$IFS :-
+"; set -- $VERNUM; IFS="$S_IFS"
+
+  while [ -z "$1" -o "${1}" = mingw -a $# -gt 0 ]; do shift ; done
+
+  case "$VERNUM" in
+    [0-9]*.*) MINGWVER=${VERNUM//"."/} ;;
+    [0-9]*) MINGWVER=${VERNUM} ;;
+  esac
+	 [ -z "$MINGW" -a -n "$MINGWVER" ] && MINGW="mingw${MINGWVER#mingw}"
+	 if [ -z "$MINGW" ] ; then
+		 set -- "${@#mingw}"
+		 case "$*" in
+				[[:xdigit:]]*) MINGW="mingw${1//./}" ;;
+				*) #[ -n "$VERNUM" ] && MINGW=mingw"${VERNUM#mingw}"
+			 ;;
+		 esac
+	 fi
+	 #[ -n "$MINGWVER" ] && MINGW="mingw${MINGWVER}"
+		W64ID="${ARCH}-${1}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}${RTVER:+-rt_v$RTVER}${REV:+-rev$REV}"
+		BUILDSID="${XBITS}-${1}${SNAPSHOT:+-snapshot-$SNAPSHOT}${DATE:+-rev$DATE}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}"
+		if [ "$MINGWTYPE" = mingw-w64 ]; then
+			TOOLCHAIN=${W64ID}
+		elif [ "$MINGWTYPE" = mingwbuilds ]; then
+			TOOLCHAIN=${BUILDSID}
+		fi
+		TARGET="${ARCH}-${MINGW:-mingw${1//./}${RTVER:+-rt$RTVER}}${REV:+r$REV}${THREADS:+-$THREADS}${EXCEPTIONS:+-$EXCEPTIONS}"
+		VER="${1}${REV:+r$REV}${DATE:+d$DATE}${RTVER:+-rt$RTVER}"
+		shift
+		VER="$VER${*:+-$*}"
+		#set VERSTR="$VERSTR"
+		#echo "ARCH='$ARCH'${BITS:+ BITS='$BITS'}${DATE:+ DATE='$DATE'}${EXCEPTIONS:+ EXCEPTIONS='$EXCEPTIONS'}${MACH:+ MACH='$MACH'}${REV:+ REV='$REV'}${RTVER:+ RTVER='$RTVER'}${SNAPSHOT:+ SNAPSHOT='$SNAPSHOT'}${THREADS:+ THREADS='$THREADS'}${VER:+ VER='$VER'}${XBITS:+ XBITS='$XBITS'}"
+		var_s=" "  $OUTCMD ${PROPS})
+  done)
+}
+
 get-property()
 {
-    sed -n "/$1=/ {
+    ${SED-sed} -n "/$1=/ {
    s,.*$1=,,
    /\"/! { s,\s\+.*,, }
    /^\".*\"/ { s,^\([^\"]\+\)\".*\".*,\\1, ; s,^\",, ; s,\".*,, }
@@ -1516,7 +2027,7 @@ get-property()
 }
 
 get-rootfs() {
-	sed -n 's,.*root=\([^ ]\+\).*,\1,p' /proc/cmdline
+  ${SED-sed} -n 's,.*root=\([^ ]\+\).*,\1,p' /proc/cmdline
 }
 
 get-shortcut()
@@ -1532,22 +2043,10 @@ get-shortcut()
      done)
 }
 
-getuuid()
-{
-    blkid "$@" | sed -n "/ UUID=/ { s,.* UUID=\"\?,, ;; s,\".*,, ;; p }"
-}
-
-get_ext()
-{
-    set -- $( ( (set -- $(grep EXT.*= {find,locate,grep}-$1.sh -h 2>/dev/null |sed "s,EXTS=[\"']\?\(.*\)[\"']\?,\1," ); IFS="$nl"; echo "$*")|sed 's,[^[:alnum:]]\+,\n,g; s,^\s*,, ; s,\s*$,,';) |sort -fu);
-    ( IFS=" ";
-    echo "$*" )
-}
-
-get_tempdir() {
- (TEMPDIR= 
+get-tempdir() {
+ (TEMPDIR=
   if type reg 2>/dev/null >/dev/null; then
-    TEMPDIR=`reg query 'HKCU\Environment' '/v' TEMP | sed -n 's|.*REG_SZ\s\+\(.*\)|\1|p'`
+    TEMPDIR=`reg query 'HKCU\Environment' '/v' TEMP | ${SED-sed} -n 's|.*REG_SZ\s\+\(.*\)|\1|p'`
     [ -d "$TEMPDIR" ] || TEMPDIR=
   fi
   if [ -z "$TEMPDIR" ]; then
@@ -1562,6 +2061,11 @@ get_tempdir() {
   echo "${TEMPDIR//"\\"/"/"}")
 }
 
+getuuid()
+{
+    blkid "$@" | ${SED-sed} -n "/ UUID=/ { s,.* UUID=\"\?,, ;; s,\".*,, ;; p }"
+}
+
 git-branches()
 {
  (EXPR='\, -> ,d ;; s,^remotes/,,'
@@ -1573,7 +2077,7 @@ git-branches()
     esac
   done
   EXPR="s,^. ,, ;; $EXPR"
-  git branch -a | sed "$EXPR"
+  git branch -a | ${SED-sed} "$EXPR"
  )
 }
 
@@ -1584,36 +2088,36 @@ git-deep-checkout() {
 }
 
 git-get-branch() {
-  git branch -a |sed -n 's,^\* ,,p'
+  git branch -a |${SED-sed} -n 's,^\* ,,p'
 }
 
 git-get-remote() {
  (while :; do
  		case "$1" in
-			-l | --list) LIST=true; shift ;;
-		  -n | --name) NAME=$2; shift 2 ;; -n=* | --name=*) NAME=${1#*=}; shift ;; 
-			*) break ;;
-		esac
-	done
-	[ $# -lt 1 ] && set -- .
-  [ $# -gt 1 ] && FILTER="sed \"s|^|\$DIR: |\"" || FILTER=
+      -l | --list) LIST=true; shift ;;
+      -n | --name) NAME=$2; shift 2 ;; -n=* | --name=*) NAME=${1#*=}; shift ;;
+      *) break ;;
+    esac
+  done
+  [ $# -lt 1 ] && set -- .
+  [ $# -gt 1 ] && FILTER="${SED-sed} \"s|^|\$DIR: |\"" || FILTER=
 
-	EXPR="s|\\s\\+| |g"
-	if [ -n "$NAME" ]; then
-		EXPR="$EXPR ;; \\|^$NAME\s|!d"
-	fi
-	if [ "$LIST" = true ]; then
-		EXPR="$EXPR ;; s| .*||"
-	else
-		EXPR="$EXPR ;; s|\\s*([^)]*)||"
-	fi
+  EXPR="s|\\s\\+| |g"
+  if [ -n "$NAME" ]; then
+    EXPR="$EXPR ;; \\|^$NAME\s|!d"
+  fi
+  if [ "$LIST" = true ]; then
+    EXPR="$EXPR ;; s| .*||"
+  else
+    EXPR="$EXPR ;; s|\\s*([^)]*)||"
+  fi
   CMD="REMOTE=\`git remote -v 2>/dev/null"
-	CMD="$CMD | sed \"$EXPR\""
-	CMD="$CMD |uniq ${FILTER:+|$FILTER}\`;"
+  CMD="$CMD | ${SED-sed} \"$EXPR\""
+  CMD="$CMD |uniq ${FILTER:+|$FILTER}\`;"
   CMD=$CMD'echo "$REMOTE"'
   for DIR; do
-					(cd "${DIR%/.git}" >/dev/null &&	eval "$CMD")
-		done)
+          (cd "${DIR%/.git}" >/dev/null &&	eval "$CMD")
+    done)
 
 }
 
@@ -1642,7 +2146,7 @@ git-set-remote()
       *) NAME="$ARG";  shift ;;
     esac
       [ -n "$DIR" ] && echo "Setting git remote '$NAME' in '$DIR' to '$REMOTE'" 1>&2
-      
+
      eval "${PRECMD}git remote rm \"\$NAME\"" #2>/dev/null
      true
 
@@ -1659,7 +2163,7 @@ git-set-remote()
   if [ $# -le 0 ]; then
     CMD='while read -r R; do '$CMD'; done'
   else
-    CMD='while [ $# -gt 0 ]; do 
+    CMD='while [ $# -gt 0 ]; do
       case "$1|$2|$3" in
         *": "*\|*": "*\|*": "*) R="$1"; S=1 ;;
         *": "*\|?*\|*": "*) R="$1 $2"; S=2 ;;
@@ -1679,9 +2183,9 @@ git-set-remote()
 
 grep-e-expr()
 {
-	[ $# -gt 0 ] && exec <<<"$*"
+  [ $# -gt 0 ] && exec <<<"$*"
 
-	sed 's,[().*?|\\+],\\&,g ; s,\[,\\[,g ; s,\],\\],g' | implode "|" | sed 's,.*,(&),'
+  sed 's,[().*?|\\+],\\&,g ; s,\[,\\[,g ; s,\],\\],g' | implode "|" | sed 's,.*,(&),'
 }
 
 grep-e()
@@ -1702,19 +2206,50 @@ grep-e()
             *) WORDS="${WORDS+$WORDS$IFS}$1"; shift ;;
         esac;
     done;
-    grep -E $ARGS "$(grep-e-expr $WORDS)" ${LAST:+$LAST} )
+    ${GREP-grep} -E $ARGS "$(grep-e-expr $WORDS)" ${LAST:+$LAST} )
+}
+
+ grep-in-index() {
+  (CMD='index-dir -u $DIRS | xargs ${GREP-grep} "[^/]\$" -H | ${SED-sed} "s|^$PWD/files.list:|| ; s|/files.list:|/|" -u | xargs ${GREP-grep} $OPTS -H -E "($EXPRS)" '
+#   case "$PATHTOOL" in
+#     cygpath*) PATHTOOL="xargs $PATHTOOL" ;;
+#   esac
+   while :; do
+     case "$1" in
+#       -w | -m) CMD="$CMD | ${PATHTOOL:-xargs cygpath} $1"; shift ;;
+       -A|-B|-C|-D|-E|-F|-G|-H|-I|-L|-NUM|-P|-R|-T|-U|-V|-Z|-a|-b|-c|-d|-e|-f|-h|-i|-l|-m|-n|-o|-q|-r|-s|-u|-v|-w|-x|-z|\
+       --color|--basic-regexp|--binary|--byte-offset|--count|--dereference-recursive|--extended-regexp|--files-with-matches|--files-without-match|--fixed-strings|--help|--ignore-case|--initial-tab|--invert-match|--line-buffered|--line-number|--line-regexp|--no-filename|--no-messages|--null|--null-data|--only-matching|--perl-regexp|--quiet|--recursive|--silent|--text|--unix-byte-offsets|--version|--with-filename|--word-regexp) OPTS="${OPTS:+$OPTS
+}$1"; shift ;;
+       --*=*) OPTS="${OPTS:+$OPTS
+}$1
+$2"; shift 2 ;;
+       *) break ;;
+     esac
+    done
+
+
+  while [ $# -gt 0 ]; do
+    if [ -d "$1" ]; then
+      pushv DIRS "$1"
+    else
+      EXPRS="${EXPRS:+$EXPRS|}$1"
+    fi
+    shift
+  done
+  eval "$CMD"
+)
 }
 
 grep-v-optpkgs()
 {
-    grep --color=auto -v -E '\-(doc|dev|dbg|extra|lite|prof|extra|manual|data|examples|source|theme|manual|demo|help|artwork|contrib)'
+    ${GREP-grep} --color=auto -v -E '\-(doc|dev|dbg|extra|lite|prof|extra|manual|data|examples|source|theme|manual|demo|help|artwork|contrib)'
 }
 
 grep-v-unneeded-pkgs()
 {
  (set -- common data debuginfo devel doc docs el examples fonts javadoc plugin static theme tests extras demo manual test  help info support demos
 
- grep -v -E "\-$(grep-e-expr "$@")(\$|\\s)")
+ ${GREP-grep} -v -E "\-$(grep-e-expr "$@")(\$|\\s)")
 }
 
 grephexnums()
@@ -1733,12 +2268,23 @@ grephexnums()
         esac;
     done;
     set -x;
-    grep --color=auto --color=auto --color=auto -E $ARGS "(${*#0x})" )
+    ${GREP-grep} --color=auto --color=auto --color=auto -E $ARGS "(${*#0x})" )
 }
 
 grub-device-string()
 {
-    ( device_number=` disk-device-number "$1" `;
+    ( 
+    
+   grubdisk=$(lookup-grub-devicemap "$1")    
+   if [ -n "$grubdisk" ]; then
+	  device_number=${grubdisk#?hd}
+	  device_number=${device_number%")"}
+	else
+    device_number=` disk-device-number "$1" `;
+    fi
+    
+    
+    
     partition_number=` disk-partition-number "$1" `;
     [ "$partition_number" ] && partition_number=$((partition_number-1));
     echo "(hd${device_number}${partition_number:+,${partition_number}})" )
@@ -1835,49 +2381,7 @@ grub2-search-for-device()
     echo "${2}search --no-floppy --fs-uuid --set" $UUID )
 }
 
-hex2chr()
-{
-    echo "puts -nonewline [format \"%c\" 0x$1]" | tclsh
-}
-
-hex2dec() {
- (NUM="$*"
-  for N in $NUM; do
-    case "$N" in
-      0x*) eval "N=\$(($N))" ;;
-    esac
-    echo "obase=10;$N" | bc -l
-  done | addprefix "${P-}")
-}
-
-hexdump_printfable()
-{
-    . require str;
-    hexdump -C -v < "$1" | sed "s,^\([0-9a-f]\+\)\s\+\(.*\),\2 #0x\1, ; #s,0x0000,0x," | sed "s,|[^|]*|,, ; s,^, ," | sed "s,\s\+\([0-9a-f][0-9a-f]\), 0x\\1,g" | sed "s,^,printf \"$(str_repeat 16 %c)\\\n\" ,"
-}
-
-hexnums-dash()
-{
-    sed "s,[0-9A-Fa-f][0-9A-Fa-f],&-\\\\?,g"
-}
-
-hexnums_to_bin()
-{
-    ( require str;
-    unset NL;
-    case $1 in
-        -l)
-            shift;
-            NL="
-"
-        ;;
-    esac;
-    IFS=" ";
-    OUT=` echo "puts -nonewline \"[format $(str_repeat $#  %c) $* ]\""|tclsh `;
-    echo -n "$OUT$NL" )
-}
-
-hex_to_bin()
+hex-to-bin()
 {
     local chars=`str_to_list "$1"`;
     local bin IFS="$newline" ch;
@@ -1937,9 +2441,51 @@ hex_to_bin()
     echo "$bin"
 }
 
-hex_to_dec()
+hex-to-dec()
 {
     eval 'echo $((0x'${1%% *}'))'
+}
+
+hex2chr()
+{
+    echo "puts -nonewline [format \"%c\" 0x$1]" | tclsh
+}
+
+hex2dec() {
+ (NUM="$*"
+  for N in $NUM; do
+    case "$N" in
+      0x*) eval "N=\$(($N))" ;;
+    esac
+    echo "obase=10;$N" | bc -l
+  done | addprefix "${P-}")
+}
+
+hexdump-printfable()
+{
+    . require str;
+    hexdump -C -v < "$1" | ${SED-sed} "s,^\([0-9a-f]\+\)\s\+\(.*\),\2 #0x\1, ; #s,0x0000,0x," | ${SED-sed} "s,|[^|]*|,, ; s,^, ," | ${SED-sed} "s,\s\+\([0-9a-f][0-9a-f]\), 0x\\1,g" | ${SED-sed} "s,^,printf \"$(str_repeat 16 %c)\\\n\" ,"
+}
+
+hexnums-dash()
+{
+    ${SED-sed} "s,[0-9A-Fa-f][0-9A-Fa-f],&-\\\\?,g"
+}
+
+hexnums-to-bin()
+{
+    ( require str;
+    unset NL;
+    case $1 in
+        -l)
+            shift;
+            NL="
+"
+        ;;
+    esac;
+    IFS=" ";
+    OUT=` echo "puts -nonewline \"[format $(str_repeat $#  %c) $* ]\""|tclsh `;
+    echo -n "$OUT$NL" )
 }
 
 hsl()
@@ -1987,7 +2533,7 @@ hsl()
     echo $r $g $b )
 }
 
-http_head()
+http-head()
 {
     ( HOST=${1%%:*};
     PORT=80;
@@ -2004,29 +2550,63 @@ http_head()
             {
                 echo -e "HEAD ${2} HTTP/1.1\r\nHost: ${1}\r\nConnection: close\r\n\r";
                 sleep $TIMEOUT
-            } | nc $HOST $PORT | sed "s/\r//g";
+            } | nc $HOST $PORT | ${SED-sed} "s/\r//g";
         fi;
     fi )
 }
 
+icacls-r() {
+ (while :; do
+    case "$1" in
+      -o | --own*) TAKEOWN="true"; shift ;;
+      -c | --cmd) CMD="true"; shift ;;
+      -p | --print) PRINT="true"; shift ;;
+      -s | --separator) SEP="$2"; shift 2 ;;
+      *) break ;;
+    esac
+  done
+  if [ "$CMD" = true ]; then
+    : ${SEP=" & "}
+    NUL="nul"
+  fi
+  : ${ICACLS=icacls}
+  
+  case "$ICACLS" in
+    *icacls*) ICACLS_ARGS="/T /Q /C /RESET"  ;;
+    *cacls*) ICACLS_ARGS="/T /C /G Everyone:F" ;;
+    *xcacls*) ICACLS_ARGS="/T /C /Q /G Everyone:F" ;;
+   esac
+  for ARG; do
+   (ARG=${ARG%/}
+    [ -d "$ARG" ] && D="-R -D Y "
+    ARG="\"\$(${PATHTOOL:-cygpath}${PATHTOOL:+ -w} '${ARG%[/\\]}')\""
+    EXEC="${ICACLS:-icacls} $ARG ${ICACLS_ARGS}"
+    [ "$TAKEOWN" = true ] && EXEC="takeown ${D}-F $ARG >${NUL:-/dev/null}${SEP:-; }$EXEC"
+#    [ "$CMD" = true ] && EXEC="cmd /c \"${EXEC//\"/\\\"}\""
+    [ "$PRINT" = true ] && { EXEC=${EXEC//\\\"/\\\\\"}; EXEC="echo \"${EXEC//\"/\\\"}\""; }
+    [ "$DEBUG" = true ] && echo "+ $EXEC" 1>&2
+    ${E:-eval} "$EXEC")
+  done)
+}
+
 id3()
 {
-    $ID3V2 -l "$@" | sed "
-	s,^\([^ ]\+\) ([^:]*):\s\?\(.*\),\1=\2,
-	 s,.* info for s\?,,
-	/:$/! { /^[0-9A-Z]\+=/! { s/ *\([^ ]\+\) *: */\n\1=/g; s,\s*\n\s*,\n,g; s,^\n,,; s,\n$,,; s,\n\n,,g; }; }" | sed "/:$/ { p; n; :lp; N; /:\$/! { s,\n, ,g;  b lp; }; P }"
+    $ID3V2 -l "$@" | ${SED-sed} "
+  s,^\([^ ]\+\) ([^:]*):\s\?\(.*\),\1=\2,
+   s,.* info for s\?,,
+  /:$/! { /^[0-9A-Z]\+=/! { s/ *\([^ ]\+\) *: */\n\1=/g; s,\s*\n\s*,\n,g; s,^\n,,; s,\n$,,; s,\n\n,,g; }; }" | ${SED-sed} "/:$/ { p; n; :lp; N; /:\$/! { s,\n, ,g;  b lp; }; P }"
 }
 
 id3dump()
 {
     ( IFS="
-	";
+  ";
     unset FLAGS;
     while :; do
         case "$1" in
             -*)
                 FLAGS="${FLAGS+$FLAGS
-	}$1";
+  }$1";
                 shift
             ;;
             *)
@@ -2034,33 +2614,33 @@ id3dump()
             ;;
         esac;
     done;
-		id3v2 $FLAGS  -l "$@" | sed -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
-		)
+    id3v2 $FLAGS  -l "$@" | ${SED-sed} -n 's, ([^:]*)\(\[[^]]*\]\)\?:\s\+,: , ;; s,^\([[:upper:][:digit:]]\+\):,\1:,p'
+    )
 }
 
 id3get()
 {
-    ( id3dump "$1" 2>&1 | grep "^$2" | sed 's,^[^:=]*[:=]\s*,,' )
+    ( id3dump "$1" 2>&1 | ${GREP-grep} "^$2" | ${SED-sed} 's,^[^:=]*[:=]\s*,,' )
 }
 
 imagedate()
 {
-				(
-				case "$1" in
-								 -u | --unix*) UT=true ; shift ;;
-				 esac
-				N=$#
-				 for ARG; do
-				TS=$(exiv2 pr "$ARG" 2>&1| sed -n '/No\sExif/! s,.*timestamp\s\+:\s\+,,p' | sed 's,\([0-9][0-9][0-9][0-9]\):\([0-9]\+\):\([0-9][0-9]\),\1/\2/\3,')
-				[ "$UT" = true ] && TS=$(date2unix "$TS" 2>/dev/null)
-				O="$TS"
+        (
+        case "$1" in
+                 -u | --unix*) UT=true ; shift ;;
+         esac
+        N=$#
+         for ARG; do
+        TS=$(exiv2 pr "$ARG" 2>&1| ${SED-sed} -n '/No\sExif/! s,.*timestamp\s\+:\s\+,,p' | ${SED-sed} 's,\([0-9][0-9][0-9][0-9]\):\([0-9]\+\):\([0-9][0-9]\),\1/\2/\3,')
+        [ "$UT" = true ] && TS=$(date2unix "$TS" 2>/dev/null)
+        O="$TS"
 
-				[ $N -gt 1 ] && O="$ARG:$O"
-				echo "$O"
-		done)
+        [ $N -gt 1 ] && O="$ARG:$O"
+        echo "$O"
+    done)
 }
 
-imatch_some()
+imatch-some()
 {
     eval "while shift
   do
@@ -2097,6 +2677,16 @@ importlibs()
     done
 }
 
+in-path()
+{
+    local dir IFS=:;
+    for dir in $PATH;
+    do
+        ( cd "$dir" 2> /dev/null && set -- $1 && test -e "$1" ) && return 0;
+    done;
+    return 127
+}
+
 inc()
 {
     expr "$1" + "${2-1}"
@@ -2107,36 +2697,55 @@ incv()
     eval "$1=\`expr \"\${$1}\" + \"${2-1}\"\`"
 }
 
-index-dir()
-{ 
-    [ -z "$*" ] && set -- .;
-    ( [ "$(uname -m)" = "x86_64" ] && : ${R64="64"};
-    for ARG in "$@";
-    do
-        ( cd "$ARG";
-        if ! test -w "$PWD"; then
-            echo "Cannot write to $PWD ..." 1>&2;
-            exit;
-        fi;
-        echo "Indexing directory $PWD ..." 1>&2;
-        TEMP=`mktemp "/tmp/XXXXXX.list"`;
-        trap 'rm -f "$TEMP"; unset TEMP' EXIT;
-        ( if type list-r${R64} 2> /dev/null > /dev/null; then
-            list-r${R64} 2> /dev/null;
-        else
-            list-recursive;
-        fi ) > "$TEMP";
-        ( install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/files.list";
-        wc -l "$PWD/files.list" 1>&2 );
-    done )
+index-dir() { 
+  [ -z "$*" ] && set -- .
+  while :; do
+    case "$1" in
+      -x | --debug) DEBUG=true; shift ;;
+      *) break ;;
+    esac
+  done
+  ( exec 9>&2
+  [ "$(uname -m)" = "x86_64" ] && : ${R64="64"}
+  for ARG in "$@"; do
+   (cd "$ARG"
+    if ! test -w "$PWD"; then
+        echo "Cannot write to $PWD ..." 1>&2
+        exit
+    fi
+    echo "Indexing directory $PWD ..." 1>&2
+    TEMP=`mktemp "$PWD/XXXXXX.list"`
+    trap 'rm -f "$TEMP"; unset TEMP' EXIT
+    ( if type list-r${R64} 2>/dev/null >/dev/null; then  
+        CMD=list-r${R64} 
+      elif type list-r 2>/dev/null >/dev/null; then  
+        CMD=list-r
+      else 
+        CMD=list-recursive
+      fi
+[ "$DEBUG" = true ] && echo "$ARG:+ $CMD" 1>&9
+      eval "$CMD"
+    ) 2>/dev/null >"$TEMP"
+    ( install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/files.list"
+    wc -l "$PWD/files.list" 1>&2 )
+  done 
+  #exec 9>&-
+  )
 }
 
 index-of()
 {
-    io="$1";
-    shift;
-    s="$*";
-    for-each-char 'if [ "$io" = "$c" ]; then echo "$i"; return 0; fi' "$s"
+    ( needle="$1";
+    index=0;
+    while [ "$#" -gt 1 ]; do
+        shift;
+        if [ "$needle" = "$1" ]; then
+            echo "$index";
+            exit 0;
+        fi;
+        index=`expr "$index" + 1`;
+    done;
+    exit 1 )
 }
 
 index-tar()
@@ -2149,9 +2758,9 @@ index-tar()
          esac
          done
 
-FILTERCMD='sed "s,^\./,,"'
+FILTERCMD='${SED-sed} "s,^\./,,"'
 if [ $# -gt 1 ]; then
-        FILTERCMD=${FILTERCMD:+$FILTERCMD'|'}'sed "s|^|$ARG:|"';
+        FILTERCMD=${FILTERCMD:+$FILTERCMD'|'}'${SED-sed} "s|^|$ARG:|"';
     else
         unset FILTERCMD;
     fi
@@ -2176,19 +2785,10 @@ indexarg()
     eval echo "\${@:$I:1}" )
 }
 
-index_of()
+indexv()
 {
-    ( needle="$1";
-    index=0;
-    while [ "$#" -gt 1 ]; do
-        shift;
-        if [ "$needle" = "$1" ]; then
-            echo "$index";
-            exit 0;
-        fi;
-        index=`expr "$index" + 1`;
-    done;
-    exit 1 )
+ (shiftv "$@"
+  eval "echo \"\${$1%%[\$IFS]*}\"")
 }
 
 inputf()
@@ -2224,7 +2824,7 @@ inst-slackpkg()
     INSTALLED=;
     EXPR="$(grep-e-expr "$@")";
     [ "$FILE" = true ] && EXPR="/$EXPR[^/]*\$";
-    PKGS=` grep --color=auto -H -E "$EXPR" $([ "$PWD" = "$HOME" ] && ls -d slackpkg*)  ~/slackpkg* | sed 's,.*:/,/, ; s,/slackpkg[^./]*\.list:,/,'`;
+    PKGS=` ${GREP-grep} --color=auto -H -E "$EXPR" $([ "$PWD" = "$HOME" ] && ls -d slackpkg*)  ~/slackpkg* | ${SED-sed} 's,.*:/,/, ; s,/slackpkg[^./]*\.list:,/,'`;
     if [ -z "$PKGS" ]; then
         echo "No such package $EXPR" 1>&2;
         exit 2;
@@ -2253,14 +2853,26 @@ $IFS";
     done )
 }
 
-in_path()
-{
-    local dir IFS=:;
-    for dir in $PATH;
-    do
-        ( cd "$dir" 2> /dev/null && set -- $1 && test -e "$1" ) && return 0;
-    done;
-    return 127
+installpkg() {
+ (IFS="
+"
+  ARGS="$*"
+  if [ "${PKGDIR+set}" != set ]; then
+    set -- $(ls -d /m*/*/pmagic/pmodules{/extra,} 2>/dev/null)
+    test -d "$1" && PKGDIR="$1"
+    : ${PKGDIR="$PWD"}
+  fi
+  for ARG in $ARGS; do
+     case "$ARG" in
+       *://*) wget ${PKGDIR:+-P "$PKGDIR"} -c "$ARG"; ARG="$PKGDIR/${ARG##*/}" ;;
+     esac
+     command installpkg "$ARG"
+  done)
+}
+
+is-a-tty()
+{ 
+    eval "tty  0<&${1:-1} >/dev/null"
 }
 
 is-absolute()
@@ -2268,9 +2880,48 @@ is-absolute()
     ! is-relative "$@"
 }
 
+is-binary()
+{
+    case `file - <$1` in
+        *text*)
+            return 1
+        ;;
+        *)
+            return 0
+        ;;
+    esac
+}
+
+is-interactive()
+{
+    test -n "$PS1"
+}
+
 is-mounted()
 {
     isin "$1" $(mounted-devices)
+}
+
+is-object()
+{
+    case `file - <$1` in
+        *ELF* | *executable*)
+            return 0
+        ;;
+        *)
+            return 1
+        ;;
+    esac
+}
+
+is-pattern()
+{
+    case "$*" in
+        *'['*']'* | *'*'* | *'?'*)
+            return 0
+        ;;
+    esac;
+    return 1
 }
 
 is-relative()
@@ -2285,9 +2936,41 @@ is-relative()
     esac
 }
 
+is-true()
+{
+    case "$*" in
+        true | ":" | "${FLAGS_TRUE-0}" | yes | enabled | on)
+            return 0
+        ;;
+    esac;
+    return 1
+}
+
 is-upx-packed()
 {
-    list-upx "$1" | grep --color=auto --color=auto --color=auto -q "\->.*$1"
+    list-upx "$1" | ${GREP-grep} --color=auto --color=auto --color=auto -q "\->.*$1"
+}
+
+is-url()
+{
+    case $1 in
+        *://*)
+            return 0
+        ;;
+        *)
+            return 1
+        ;;
+    esac
+}
+
+is-var()
+{
+    case $1 in
+        [!_A-Za-z]* | *[!_0-9A-Za-z]*)
+            return 1
+        ;;
+    esac;
+    return 0
 }
 
 isin()
@@ -2307,87 +2990,25 @@ iso-extract()
     7z x -o"$DEST" "$1" )
 }
 
-isodate()
-{
-    date +%Y%m%d
-}
-
-is_binary()
-{
-    case `file - <$1` in
-        *text*)
-            return 1
-        ;;
-        *)
-            return 0
-        ;;
-    esac
-}
-
-is_interactive()
-{
-    test -n "$PS1"
-}
-
-is_object()
-{
-    case `file - <$1` in
-        *ELF* | *executable*)
-            return 0
-        ;;
-        *)
-            return 1
-        ;;
-    esac
-}
-
-is_pattern()
-{
-    case "$*" in
-        *'['*']'* | *'*'* | *'?'*)
-            return 0
-        ;;
-    esac;
-    return 1
-}
-
-is_true()
-{
-    case "$*" in
-        true | ":" | "${FLAGS_TRUE-0}" | yes | enabled | on)
-            return 0
-        ;;
-    esac;
-    return 1
-}
-
-is_url()
-{
-    case $1 in
-        *://*)
-            return 0
-        ;;
-        *)
-            return 1
-        ;;
-    esac
-}
-
-is_var()
-{
-    case $1 in
-        [!_A-Za-z]* | *[!_0-9A-Za-z]*)
-            return 1
-        ;;
-    esac;
-    return 0
+join-lines() { 
+ (c=${1-\\};
+  ${SED-sed} '
+	:lp
+    s|\(\s*\)\'$c'\r\?\n\(\s*\)\([^\n]*\)$| \3|
+    /\'$c'\r\?$/  { 
+		    $! {
+				    N
+						b lp
+				} 
+				s,\'$c'$,,
+    }')
 }
 
 killall-w32()
 {
     ( IFS="
-	 ";
-    PIDS=$(IFS="|"; ps.exe -aW |grep -i -E "($*)" | awk '{ print $1 }');
+   ";
+    PIDS=$(IFS="|"; ps.exe -aW |${GREP-grep} -i -E "($*)" | awk '{ print $1 }');
     kill.exe -f $PIDS )
 }
 
@@ -2435,14 +3056,14 @@ link-mpd-music-dirs()
     chown mpd:mpd "$DESTDIR";
     for ARG in "$@";
     do
-        ( NAME=$(echo "$ARG" |sed " s,^/mnt,, ; s,^/media,,g; s,/,-,g; s,^-*,, ; s,-*$,,");
+        ( NAME=$(echo "$ARG" |${SED-sed} " s,^/mnt,, ; s,^/media,,g; s,/,-,g; s,^-*,, ; s,-*$,,");
         ( set -x;
         ln -svf "$ARG" "$DESTDIR"/"$NAME" ) );
     done )
 }
 
 list-7z() {
- (while :; do 
+ (while :; do
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
       *) break ;;
@@ -2451,76 +3072,76 @@ list-7z() {
   NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
-	  [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
-	fi
+    [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
+  fi
   }
   output_line() {
-	case "$PREV" in
-	  "$DN"/* | "$DN/" | "$DN") ;;
-	  *) : echo "$DN/" ;;
-	  esac
-	#    [ -z "$NAME" ] && unset F FP
-	if [ "$FN" = "$PREV/" ]; then
-	  PREV="$PREV/"
-	fi
-	case "$PREV" in
-	  */) 
-		case "$FN" in
-		  $PREV/*) ;;
-		  *) unset PREV ;;
-		esac
-	  ;;
-	  esac
-	if [ -n "PREV" -a "$FN" != "$PREV" -a "$FN" != "$PPREV" ]; then
-	  case "$PREV" in 
-	    */) ;;
-	    *)
-	    DIR="${PREV}"
-	      while :; do
-	        [ "$DIR" = "${DIR%/*}" ] && break
-	        DIR="${DIR%/*}"
-	       #echo "DIR='$DIR' PREVDIR='$PREVDIR'" 1>&2
-	      if [ -z "$PREVDIR" -o "${PREVDIR#$DIR/}" = "$PREVDIR" ]; then
-	       #[ -n "$PREVDIR" ] && output "$PREVDIR"
-	       PREVDIR="$DIR/"
-	      fi
-	      
-	      case "$DIR" in
-	        ${PREVDIR%/}/*) continue ;;
-	      esac	      
-	      case "${PREVDIR%/}" in
-	        ${DIR}/*) continue ;;
-	      esac
-	      [ "$DIR/" != "$PREVDIR" ] && output "$DIR/"
-	        case "${PREVDIR%/}" in
-	          $DIR | $DIR/*) ;;
-	          *) PREVDIR="$DIR/" ;;
-	        esac
-	      done	    
-	     ;;
-	  esac
-	  output "$PREV"
-	fi   
-	PPREV="$PREV"
-	if [ -n "$FN" -a "$FN" != "$PREV" ]; then
-	  #output "$FN"
-	  PREV="$FN"
-	fi
-	case "$PREV" in
-	  */) PREVDIR="$PREV" ;;
-	esac
-	[ -z "$NAME" ] && unset A F FP PSZ SZ T FN
+  case "$PREV" in
+    "$DN"/* | "$DN/" | "$DN") ;;
+    *) : echo "$DN/" ;;
+    esac
+  #    [ -z "$NAME" ] && unset F FP
+  if [ "$FN" = "$PREV/" ]; then
+    PREV="$PREV/"
+  fi
+  case "$PREV" in
+    */)
+    case "$FN" in
+      $PREV/*) ;;
+      *) unset PREV ;;
+    esac
+    ;;
+    esac
+  if [ -n "PREV" -a "$FN" != "$PREV" -a "$FN" != "$PPREV" ]; then
+    case "$PREV" in
+      */) ;;
+      *)
+      DIR="${PREV}"
+        while :; do
+          [ "$DIR" = "${DIR%/*}" ] && break
+          DIR="${DIR%/*}"
+         #echo "DIR='$DIR' PREVDIR='$PREVDIR'" 1>&2
+        if [ -z "$PREVDIR" -o "${PREVDIR#$DIR/}" = "$PREVDIR" ]; then
+         #[ -n "$PREVDIR" ] && output "$PREVDIR"
+         PREVDIR="$DIR/"
+        fi
+
+        case "$DIR" in
+          ${PREVDIR%/}/*) continue ;;
+        esac
+        case "${PREVDIR%/}" in
+          ${DIR}/*) continue ;;
+        esac
+        [ "$DIR/" != "$PREVDIR" ] && output "$DIR/"
+          case "${PREVDIR%/}" in
+            $DIR | $DIR/*) ;;
+            *) PREVDIR="$DIR/" ;;
+          esac
+        done
+       ;;
+    esac
+    output "$PREV"
+  fi
+  PPREV="$PREV"
+  if [ -n "$FN" -a "$FN" != "$PREV" ]; then
+    #output "$FN"
+    PREV="$FN"
+  fi
+  case "$PREV" in
+    */) PREVDIR="$PREV" ;;
+  esac
+  [ -z "$NAME" ] && unset A F FP PSZ SZ T FN
   }
   while [ $# -gt 0 ]; do
    (B=${1##*/}
-    case "$1" in 
+    case "$1" in
       *://*) INPUT="wget -q -O - \"\$1\"" ;;
       *) ARCHIVE=$1  ;;
     esac
-    case "$1" in 
+    case "$1" in
       *.t?z | *.tbz2)
         T=${1%.t?z}
-        T=${T%.tbz2} 
+        T=${T%.tbz2}
         T=$T.tar
         INPUT="${INPUT:+$INPUT | }7z x${INPUT:+ -si\"${1}\"} -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T}\"";  CMD="7z l -slt $OPTS"
         ;;
@@ -2530,9 +3151,9 @@ list-7z() {
     if [ -n "$INPUT" ]; then
       CMD="${INPUT+$INPUT | }$CMD"
       OPTS="$OPTS${IFS:0:1}-si\"${1##*/}\""
-    fi 
-    ( #echo "CMD: $CMD" 1>&2 
-     eval "($CMD; echo) 2>/dev/null" ) | 
+    fi
+    ( #echo "CMD: $CMD" 1>&2
+     eval "($CMD; echo) 2>/dev/null" ) |
     { IFS=" "; unset PREV; while read -r NAME EQ VALUE; do
         case "$NAME" in
           "Type") T=${VALUE}; continue ;;
@@ -2541,7 +3162,7 @@ list-7z() {
           "Attributes") A=${VALUE}; continue ;;
           "Size") SZ=${VALUE}; continue ;;
           "Packed Size") PSZ=${VALUE}; continue ;;
-          "----------") T=; continue ;; 
+          "----------") T=; continue ;;
           "Block"|"Blocks"|"CRC"|"Encrypted"|"Method"|"Modified"|"Solid") continue ;;
   "--" | \
   "7-Zip" | "Headers" | "Listing" | "Packed" | "Physical") continue ;;
@@ -2554,11 +3175,11 @@ list-7z() {
         esac
         FN="$F$FP"
         DN="${F%/*}"
-        output_line 
+        output_line
       done
-      output_line 
+      output_line
     }
-    )
+    ) || exit $?
     shift
   done)
 }
@@ -2569,69 +3190,69 @@ list-broken-links() {
     BASE=`basename "$ARG"`
 
     TARGET=$(cd "$DIR"; readlink "$BASE")
-    
+
     ABS="$DIR/$TARGET"
 
     test -e "$ABS" || echo "$ARG"
    done)
 }
 
-list-deb() { 
- (trap 'exit 1' INT 
+list-deb() {
+ (trap 'exit 1' INT
   NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
       [ "$NARG" -gt 1 ] && echo "$ARG: $*" || echo "$*"
     fi
   }
-	for ARG in "$@"; do
+  for ARG in "$@"; do
    (set -e
-	  trap 'rm -rf "$TEMP"' EXIT 
+    trap 'rm -rf "$TEMP"' EXIT
     TEMP=$(mktemp -d "$PWD/${0##*/}-XXXXXX")
     mkdir -p "$TEMP"
-		case "$ARG" in
-			*://*) 
-			  if type wget >/dev/null 2>/dev/null; then
-				  wget -P "$TEMP" -q "$ARG"
-				elif type curl >/dev/null 2>/dev/null; then
-					curl -s -k -L -o "$TEMP/${ARG##*/}" "$ARG"
-				elif type lynx >/dev/null 2>/dev/null; then
-					lynx -source >"$TEMP/${ARG##*/}" "$ARG"
-				fi || exit $?
-				DEB="${ARG##*/}"
-			;;
-			*) DEB=$(realpath "$ARG") ;;
-		esac
+    case "$ARG" in
+      *://*)
+        if type wget >/dev/null 2>/dev/null; then
+          wget -P "$TEMP" -q "$ARG"
+        elif type curl >/dev/null 2>/dev/null; then
+          curl -s -k -L -o "$TEMP/${ARG##*/}" "$ARG"
+        elif type lynx >/dev/null 2>/dev/null; then
+          lynx -source >"$TEMP/${ARG##*/}" "$ARG"
+        fi || exit $?
+        DEB="${ARG##*/}"
+      ;;
+      *) DEB=$(realpath "$ARG") ;;
+    esac
     cd "$TEMP"
-		set -- $( ("${AR-ar}" t "$DEB" || list-7z "$DEB") 2>/dev/null |uniq |grep "data\.tar\.")
-		if [ $# -le 0 ]; then
-			exit 1
-		fi
-		case "$1" in
-			*.bz2) TAR_ARGS="-j" ;;
-			*.xz) TAR_ARGS="-J" ;;
-			*.gz) TAR_ARGS="-z" ;;
-			*.tar) TAR_ARGS="" ;;
-		esac
+    set -- $( ("${AR-ar}" t "$DEB" || list-7z "$DEB") 2>/dev/null |uniq |${GREP-grep} "data\.tar\.")
+    if [ $# -le 0 ]; then
+      exit 1
+    fi
+    case "$1" in
+      *.bz2) TAR_ARGS="-j" ;;
+      *.xz) TAR_ARGS="-J" ;;
+      *.gz) TAR_ARGS="-z" ;;
+      *.tar) TAR_ARGS="" ;;
+    esac
 
    ( { "${AR-ar}" x "$DEB" "$1"; test -e "$1"; } ||
-		7z x "$DEB" "$1") 2>/dev/null
+    7z x "$DEB" "$1") 2>/dev/null
     "${TAR-tar}" $TAR_ARGS -t -f "$1" 2>/dev/null | while read -r LINE; do
-			case "$LINE" in
-				./) LINE="/" ;;
-				./?*) LINE="${LINE#./}" ;;
-			esac
+      case "$LINE" in
+        ./) LINE="/" ;;
+        ./?*) LINE="${LINE#./}" ;;
+      esac
       output "$LINE"
-		done) ||
-		output "ERROR" 1>&2 
-	done)
+    done) ||
+    output "ERROR" 1>&2
+  done)
 }
 
 list-dotfiles()
 {
     ( for ARG in "$@";
     do
-        dlynx.sh "http://dotfiles.org/.${ARG#.}" | grep --color=auto --color=auto --color=auto --color=auto "/.${ARG#.}\$";
+        dlynx.sh "http://dotfiles.org/.${ARG#.}" | ${GREP-grep} --color=auto --color=auto --color=auto --color=auto "/.${ARG#.}\$";
     done )
 }
 
@@ -2653,7 +3274,7 @@ list-files()
     [ $# = 0 ] && set .;
     NL="
 ";
-    FILTER="xargs -d \"\$NL\" file | sed \"s|^\.\/|| ;; s|:\s\+|: |\" ${OUTPUT}\"\${OUTFILE}\"";
+    FILTER="xargs -d \"\$NL\" file | ${SED-sed} \"s|^\.\/|| ;; s|:\s\+|: |\" ${OUTPUT}\"\${OUTFILE}\"";
     for ARG in "$@";
     do
         ( cd "$ARG";
@@ -2665,31 +3286,229 @@ list-files()
 
 list-lastitem()
 {
-    sed -n '$p'
+    ${SED-sed} -n '$p'
 }
 
 list-mediapath() {
  (while :; do
-		case "$1" in
-		  -b|-c|-d|-e|-f|-g|-h|-k|-L|-N|-O|-p|-r|-s|-x) FILTER="${FILTER:+$FILTER | }filter-test $1"; shift ;;
-		  -m|--mixed|-M|--mode|-u|--unix|-w|--windows|-a|--absolute|-l|--long-name) PATHTOOL_OPTS="${PATHTOOL_OPTS:+PATHTOOL_OPTS }$1"; shift ;;
-			-*) OPTS="${OPTS:+$OPTS }$1"; shift ;;
-			--) shift; break ;;
-			*) break ;;
-			esac
-	done
-	for ARG; do CMD="${CMD:+$CMD; }ls -1 -d $OPTS -- $MEDIAPATH/${ARG#/} 2>/dev/null"; done
-	
-	[ -n "$PATHTOOL_OPTS" ] && CMD="$PATHTOOL ${PATHTOOL_OPTS:--m} \$($CMD)"
-	#CMD="for ARG; do $CMD; done"
-	[ -n "$FILTER" ] &&	 CMD="($CMD) | $FILTER"
+    case "$1" in
+      -b|-c|-d|-e|-f|-g|-h|-k|-L|-N|-O|-p|-r|-s|-x) FILTER="${FILTER:+$FILTER | }filter-test $1"; shift ;;
+      -m|--mixed|-M|--mode|-u|--unix|-w|--windows|-a|--absolute|-l|--long-name) PATHTOOL_OPTS="${PATHTOOL_OPTS:+PATHTOOL_OPTS }$1"; shift ;;
+      -*) OPTS="${OPTS:+$OPTS }$1"; shift ;;
+      --) shift; break ;;
+      *) break ;;
+      esac
+  done
+  for ARG; do ARG=${ARG//" "/"\\ "}; ARG=${ARG//"("/"\\("};  ARG=${ARG//")"/"\\)"}; 
+   CMD="${CMD:+$CMD; }ls -1 -d $OPTS -- $MEDIAPATH/${ARG#/} 2>/dev/null"; done
+
+  [ -n "$PATHTOOL_OPTS" ] && CMD="$PATHTOOL ${PATHTOOL_OPTS:--m} \$($CMD)"
+  #CMD="for ARG; do $CMD; done"
+  [ -n "$FILTER" ] &&	 CMD="($CMD) | $FILTER"
 [ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
-	eval "$CMD")
+  eval "$CMD")
+}
+
+list-mingw-toolchains() {
+  require var
+ ansicolor() {
+   (IFS=";"; echo -n -e "\033[${*}m")
+ }
+ NL="
+"
+  TS=$'\t'
+  BS="\\"
+  FS="/"
+  CR=$'\r'
+  evalcmd() {
+    CMD=$1
+    [ "$DEBUG" = true ] && {
+      OUT="+ ${ansi_red}${2:-CMD}${ansi_cyan}: ${ansi_none}$CMD"
+      OUT="${OUT//\\[!-0-9A-Za-z_.]/}"
+            echo -e "$OUT" 1>&2
+      case "$CMD" in
+      [A-Z_]*=*)
+      VN=${CMD%%[!A-Za-z0-9_]*} ;       eval 'echo "'$VN'=\"${'$VN'//$BS/$BS$BS}\""'
+      ;;
+      esac
+    }
+    eval "$CMD"
+  }
+  vdump() {
+   (
+    echo -n "-"
+   CMD=
+   LINESPACE=$'\n>'
+     for __VN; do
+      SQ="\\\"" TQ="\\\""
+      SEP=" "
+      case "$__VN" in
+        [!A-Za-z_]*)
+        CMD="${CMD:+$CMD\\n}"; continue ;;
+      esac
+      eval "__VV=\${$__VN}"
+      case "$__VV" in
+        *[!0-9A-Za-z_\ $NL]*) ;;
+        *)
+        SEP=' ' ;;
+      esac
+      case "$__VV" in
+        [A-Z]*) SQ='(' TQ=')'; SEP=' ' ;;
+        /*) SQ='(\\n  ' TQ='\n)'; SEP='\\n  ' ;;
+        -* | *" -"* | *"$NL-"*) SQ=' ' TQ='   '; SEP='\\n\\t' ;;
+        *"\\"*) SQ=\' TQ=\'; SEP=';' ;;
+      esac
+      CMD="${CMD:+$CMD${LINESPACE:-\\\\n}}${ansi_none}${ansi_yellow}$__VN${ansi_cyan}=${SQ:-\"}\${$__VN${SEP:+//\$NL/$SEP}}${TQ:-\"}${ansi_none}"
+    done
+    CMD=${CMD//"\\["/""}; CMD=${CMD//"\\]"/""}
+    CMD=${CMD//"$NL"/"\\n"}
+    DEBUG= evalcmd "echo -e \"$CMD\" 1>&2" DUMP)
+  }
+ (unset ROOTS
+  while :; do
+    case "$1" in
+   -C | --nocolor) NOCOLOR=true; shift ;;
+      -x | --debug) DEBUG=true; shift ;;
+      -r | -rootdir | --rootdir) shift; while [ "$1" = "${1#-}" ]; do  IFS=" " pushv ROOTS "${1%[/\\]}/*/mingw??/bin/gcc"; shift; done ;;
+      -r=* | -rootdir=* | --rootir=*) V=${1#*=}; IFS=" " pushv ROOTS "${V%/}/*/mingw??/bin/gcc"; shift ;;
+      -r) V=${1#-?}; IFS=" " pushv ROOTS "${V%/}/*/mingw??/bin/gcc"; shift ;;
+      -c | -cc | --cc | --compiler) IFS=$nl pushv O CC ; shift ;;
+      -b | -basedir | --basedir) IFS=$nl pushv O BASEDIR ; shift ;;
+      -d | -hostdir | --hostdir) IFS=$nl pushv O HOSTDIR ; shift ;;
+      -v | -vars | --vars) IFS=$nl pushv O VARS; shift ;;
+      -p | -pathconv | --pathconv) PATHCONV="$2"; shift 2 ;; -p=* | -pathconv=* | --pathconv=*) IFS="$nl "; PATHCONV="${1#-*=}"
+      PATHCONV=${PATHCONV//" "/"${NL}"}; shift ;;
+      -t | -tool | --tool) IFS=$nl pushv TOOL "$2"; IFS=$nl pushv O TOOL_${2}; shift 2 ;; -t=* | -tool=* | --tool=*) IFS=$nl pushv TOOL "${1#*=}"
+      IFS=$nl pushv O TOOL_${1#*=}; shift 1 ;;
+      --defs | -defs) IFS=$nl pushv O DEFS; shift ;;
+      --cflags | -cflags) IFS=$nl pushv O CFLAGS; shift ;;
+      --cppflags | -cppflags) IFS=$nl pushv O CPPFLAGS; shift ;;
+      --cxxflags | -cxxflags) IFS=$nl pushv O CXXFLAGS; shift ;;
+      --includes | -includes) IFS=$nl pushv O INCLUDES; shift ;;
+      --libs | -libs) IFS=$nl pushv O LIBS; shift ;;
+        *) break ;;
+    esac
+  done
+  : ${PATHCONV="${PATHTOOL:-echo}${PATHTOOL:+
+-m}"}
+  : ${O=NAME}
+ evalcmd "ROOTS=\$(\${PATHCONV%%[^a-z]*} $ROOTS 2>/dev/null)" ROOTSCMD
+ if [ "$NOCOLOR" = true ]; then
+ unset ansi_{blue,bold,cyan,gray,green,magenta,none,red,yellow}
+ fi
+ sort -V <<<"$ROOTS" | while read -r CC; do
+ CC=${CC%[!A-Za-z0-9.]}
+ CC=${CC%"$CR"}
+   THREADS= EXCEPTIONS= REV= RTVER= SNAP=
+   TOOLEXE=
+    case "$CC" in
+      *x86_64*)
+      ARCH="x86_64" ;;
+      *i386*)
+      ARCH="i386" ;;
+      *i486*)
+      ARCH="i486" ;;
+      *i586*)
+      ARCH="i586" ;;
+      *i686*)
+      ARCH="i686" ;;
+      *)
+      ARCH="" ;;
+    esac
+    TARGET=${CC##*/bin/}; TARGET=${TARGET%%gcc}
+    TARGET=${TARGET%/}
+    DIR="${CC%/*}"
+    BASEDIR=${DIR%%/bin*}; BASEDIR=${BASEDIR%[!A-Za-z0-9./\\]}; BASEDIR="${BASEDIR%$CR}"
+    BASEDIR=${BASEDIR%[\\\\/]} ;
+    STDOUT=$(mktemp "$$-XXXXXX")
+    STDERR=$(mktemp "$$-XXXXXX")
+    trap 'rm -f "$STDOUT" "$STDERR"' EXIT
+    CMD='"$CC" -dumpmachine 1>"$STDOUT" 2>"$STDERR"'
+    DEBUG= evalcmd  '"$CC" -dumpmachine 1>"$STDOUT" 2>"$STDERR"' DUMPCMD
+    OUT=$(<"$STDOUT")
+    ERR=$(<"$STDERR")
+    OUT=${OUT%"$CR"}
+    ERR=${ERR%"$CR"}
+    trap '' EXIT;  rm -f "$STDOUT" "$STDERR"
+    [ "$DEBUG" = true ] && vdump OUT ERR
+    HOST=${OUT%[!0-9A-Za-z]}
+    HOST=${HOST%"$CR"}
+     [ -z "$HOST" ] && { echo "ERROR: could not determine host" 1>&2
+     vdump OUT ERR
+     return 1
+     }
+    MINGW=${BASEDIR##*/}
+    HOSTDIR=$BASEDIR/$HOST
+     PFX=${DIR%%-[0-9]*}
+    VER=${DIR#$PFX}
+    VER=${VER%%/*}
+    case "$VER" in
+      *-win32-*) VER=${VER//-win32-/-}
+      THREADS=win32 ;;
+      *-posix-*) VER=${VER//-posix-/-}
+      THREADS=posix ;;
+    esac
+    case "$VER" in
+      *-seh-*) VER=${VER//-seh-/-}
+      EXCEPTIONS=seh ;;
+      *-sjlj-*) VER=${VER//-sjlj-/-}
+      EXCEPTIONS=sjlj ;;
+      *-dwarf-*) VER=${VER//-dwarf-/-}
+      EXCEPTIONS=dwarf ;;
+    esac
+    VER=${VER#[!0-9]}
+    case "$VER" in
+      *-rt*) RTVER=${VER##*-rt}; RTVER=${RTVER%%-*} ; VER=${VER//rt$RTVER[!.0-9a-z]/}: RTVER=${RTVER#[!0-9a-z]}
+      RTVER=${RTVER#v} ;;
+    esac
+    case "$VER" in
+      *-snapshot*) SNAP=${VER##*-snapshot}; SNAP=${SNAP%%-*} ; VER=${VER//snapshot$SNAP[!.0-9a-z]/}: SNAP=${SNAP#[!0-9a-z]}
+      SNAP=${SNAP#v} ;;
+    esac
+     case "$VER" in
+      *-rev*) REV=${VER##*rev}; REV=${REV%%[-/]*} ; VER=${VER//rev$REV/}; REV=${REV#v} ; VER=${VER%-}
+      REV=${REV%[!0-9A-Za-z]} ;;
+    esac
+    if [ -n "$TOOL" ]; then
+    CMD=
+      for T in $TOOL; do
+      TVAR=${T//"+"/"x"}
+        case "$T" in
+          *make*)
+          TOOLEXE="mingw32-make" ;;
+        esac
+        case "$T" in
+          *"+"*)  O=${O//"$T"/"$TVAR"};  ;;
+        esac
+        evalcmd "TPATH=\$(ls -d {\"\$BASEDIR/bin\",\"\$BASEDIR/opt/bin\",\"\$HOSTDIR/bin\",\"\$BASEDIR\"/lib*/gcc/\$HOST/*}/\$T 2>/dev/null | head -n1)" TPATHCMD
+        TPATH=${TPATH%"$CR"}
+        TPATH=$($PATHCONV "$TPATH")
+         evalcmd "TOOL_${TVAR}=\"\$TPATH\"" TOOL_$TVAR
+      done
+    fi
+    INCLUDES="-I$($PATHCONV "${BASEDIR}/include") -I$($PATHCONV "${HOSTDIR}/include")"
+    DEFS="-DNDEBUG=1"
+    CPPFLAGS="$DEFS $INCLUDES"
+    CXXFLAGS="-g -O2 -Wall -fexceptions -mthreads $CPPFLAGS"
+    CFLAGS="-g -O2 -Wall -fexceptions -mthreads $CPPFLAGS"
+    LIBS="-L$($PATHCONV "${BASEDIR}/lib") -L$($PATHCONV "${HOSTDIR}/lib") -lpthread"
+    S=$'\n\t'
+    EQ="="
+    DQ="\""
+    [ "$DEBUG" = true ] && #echo -e  "${ARCH:+${S}ARCH${EQ}${DQ}$ARCH${DQ}}${BASEDIR:+${S}BASEDIR${EQ}${DQ}$BASEDIR${DQ}}${CC:+${S}CC${EQ}${DQ}$CC${DQ}}${CFLAGS:+${S}CFLAGS${EQ}${DQ}$CFLAGS${DQ}}${CMD:+${S}CMD${EQ}${DQ}$CMD${DQ}}${DEBUG:+${S}DEBUG${EQ}${DQ}$DEBUG${DQ}}${DIR:+${S}DIR${EQ}${DQ}$DIR${DQ}}${DQ:+${S}DQ${EQ}${DQ}$DQ${DQ}}${EQ:+${S}EQ${EQ}${DQ}$EQ${DQ}}${EXCEPTIONS:+${S}EXCEPTIONS${EQ}${DQ}$EXCEPTIONS${DQ}}${HOST:+${S}HOST${EQ}${DQ}$HOST${DQ}}${HOSTDIR:+${S}HOSTDIR${EQ}${DQ}$HOSTDIR${DQ}}${I:+${S}I${EQ}${DQ}$I${DQ}}${IFS:+${S}IFS${EQ}${DQ}$IFS${DQ}}${L:+${S}L${EQ}${DQ}$L${DQ}}${LIBS:+${S}LIBS${EQ}${DQ}$LIBS${DQ}}${MINGW:+${S}MINGW${EQ}${DQ}$MINGW${DQ}}${NAME:+${S}NAME${EQ}${DQ}$NAME${DQ}}${NL:+${S}NL${EQ}${DQ}$NL${DQ}}${O:+${S}O${EQ}${DQ}$O${DQ}}${PATHCONV:+${S}PATHCONV${EQ}${DQ}$PATHCONV${DQ}}${PATHTOOL:+${S}PATHTOOL${EQ}${DQ}$PATHTOOL${DQ}}${PFX:+${S}PFX${EQ}${DQ}$PFX${DQ}}${PROGRAMFILES:+${S}PROGRAMFILES${EQ}${DQ}$PROGRAMFILES${DQ}}${REV:+${S}REV${EQ}${DQ}$REV${DQ}}${ROOTS:+${S}ROOTS${EQ}${DQ}$ROOTS${DQ}}${RTVER:+${S}RTVER${EQ}${DQ}$RTVER${DQ}}${SNAP:+${S}SNAP${EQ}${DQ}$SNAP${DQ}}${T:+${S}T${EQ}${DQ}$T${DQ}}${TARGET:+${S}TARGET${EQ}${DQ}$TARGET${DQ}}${THREADS:+${S}THREADS${EQ}${DQ}$THREADS${DQ}}${TOOL:+${S}TOOL${EQ}${DQ}$TOOL${DQ}}${TOOLEXE:+${S}TOOLEXE${EQ}${DQ}$TOOLEXE${DQ}}${TPATH:+${S}TPATH${EQ}${DQ}$TPATH${DQ}}${V:+${S}V${EQ}${DQ}$V${DQ}}${VARS:+${S}VARS${EQ}${DQ}$VARS${DQ}}${VER:+${S}VER${EQ}${DQ}$VER${DQ}}" 1>&2
+    vdump " " ROOTS  O BASEDIR HOSTDIR HOST VER $O " "
+    echo 1>&2
+    NAME="MinGW ${VER}${ARCH:+ $ARCH}"
+    for V in $O; do
+    DEBUG=false  evalcmd "echo \"\${${V:-NAME}}\"" OUTVAR
+    done
+  done
+  )
 }
 
 list-nolastitem()
 {
-    sed '$d'
+    ${SED-sed} '$d'
 }
 
 list-path()
@@ -2698,7 +3517,7 @@ list-path()
 }
 
 list-rar() {
- (while :; do 
+ (while :; do
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
       *) break ;;
@@ -2707,8 +3526,8 @@ list-rar() {
   NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
-	  [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
-	fi
+    [ "$NARG" -gt 1 ] && echo "$ARCHIVE: $*" || echo "$*"
+  fi
   }
   for ARG; do
    (IFS="/\\"
@@ -2726,11 +3545,11 @@ list-rar() {
         ;;
       esac
       "$HEADER_OK" || continue
-        
+
       LINE=${LINE#" "}
       LINE=${LINE%$'\r'}
       #LINE=${LINE//"\\"/"/"}
-      
+
       output $LINE
     done)
   done)
@@ -2764,69 +3583,69 @@ list-recursive()
     for ARG in "$@";
     do
         ( cd "$ARG";
-        CMD='find . $ARGS -xdev  | while read -r FILE; do test -d "$FILE" && echo "$FILE/" || echo "$FILE"; done | sed "s|^\.\/||"';
+        CMD='find . $ARGS -xdev  | while read -r FILE; do test -d "$FILE" && echo "$FILE/" || echo "$FILE"; done | ${SED-sed} "s|^\.\/||"';
         [ "$SAVE" = true ] && CMD="$CMD | { tee .${FILENAME:-files}.${TMPEXT:-tmp}; mv -f .${FILENAME:-files}.${TMPEXT:-tmp} ${FILENAME:-files}.${EXT:-list}; echo \"Created \$PWD/${FILENAME:-files}.${EXT:-list}\" 1>&2; }";
         eval "$CMD" );
     done )
 }
 
-list-rpm() { 
+list-rpm() {
  (NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
       [ "$NARG" -gt 1 ] && echo "$ARG: $*" || echo "$*"
     fi
   }
-	LOG="$PWD/$(basename "$0" .sh).log"
-	exec_cmd() {
-	 (
-	  echo "CMD: $@" 1>&2
-	  echo "CMD: $@" >>"$LOG"
-	  exec "$@")
-	}
-	for ARG in "$@"; do
+  LOG="$PWD/$(basename "$0" .sh).log"
+  exec_cmd() {
+   (
+    echo "CMD: $@" 1>&2
+    echo "CMD: $@" >>"$LOG"
+    exec "$@")
+  }
+  for ARG in "$@"; do
    (set -e
-	  trap 'rm -rf "$TEMP"' EXIT QUIT TERM INT
+    trap 'rm -rf "$TEMP"' EXIT QUIT TERM INT
     TEMP=$(mktemp -d "$PWD/${0##*/}-XXXXXX")
     mkdir -p "$TEMP"
-		case "$ARG" in
-			*://*) 
-			  if type wget >/dev/null 2>/dev/null; then
-				  exec_cmd wget -P "$TEMP" -q "$ARG"
-				elif type curl >/dev/null 2>/dev/null; then
-					exec_cmd curl -s -k -L -o "$TEMP/${ARG##*/}" "$ARG"
-				elif type lynx >/dev/null 2>/dev/null; then
-					exec_cmd lynx -source >"$TEMP/${ARG##*/}" "$ARG"
-				fi || exit $?
-				RPM="${ARG##*/}"
-			;;
-			*) RPM=$(realpath "$ARG") ;;
-		esac
+    case "$ARG" in
+      *://*)
+        if type wget >/dev/null 2>/dev/null; then
+          exec_cmd wget -P "$TEMP" -q "$ARG"
+        elif type curl >/dev/null 2>/dev/null; then
+          exec_cmd curl -s -k -L -o "$TEMP/${ARG##*/}" "$ARG"
+        elif type lynx >/dev/null 2>/dev/null; then
+          exec_cmd lynx -source >"$TEMP/${ARG##*/}" "$ARG"
+        fi || exit $?
+        RPM="${ARG##*/}"
+      ;;
+      *) RPM=$(realpath "$ARG") ;;
+    esac
     cd "$TEMP"
-		set -- $( (    7z l "$RPM" |sed -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
-		(exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |grep "\\.cpio\$")
-		if [ $# -le 0 ]; then
-			exit 1
-		fi
-		CPIOCMD="exec_cmd cpio -t 2>/dev/null"
-		case "$1" in
-			*.bz2) CPIOCMD="bzcat | $CPIOCMD" ;;
-			*.xz) CPIOCMD="xzcat | $CPIOCMD" ;;
-			*.gz) CPIOCMD="zcat | $CPIOCMD" ;;
-			*.cpio) ;;
-		esac
-		((set -x; exec_cmd 7z x -so "$RPM" "$1" ) ||
-	 { exec_cmd "${RPM2CPIO-rpm2cpio}" <"$RPM"; }
-		 ) 2>/dev/null |
+    set -- $( (    7z l "$RPM" |${SED-sed} -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
+    (exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |${GREP-grep} "\\.cpio\$")
+    if [ $# -le 0 ]; then
+      exit 1
+    fi
+    CPIOCMD="exec_cmd cpio -t 2>/dev/null"
+    case "$1" in
+      *.bz2) CPIOCMD="bzcat | $CPIOCMD" ;;
+      *.xz) CPIOCMD="xzcat | $CPIOCMD" ;;
+      *.gz) CPIOCMD="zcat | $CPIOCMD" ;;
+      *.cpio) ;;
+    esac
+    ((set -x; exec_cmd 7z x -so "$RPM" "$1" ) ||
+   { exec_cmd "${RPM2CPIO-rpm2cpio}" <"$RPM"; }
+     ) 2>/dev/null |
     eval "$CPIOCMD" | while read -r LINE; do
-			case "$LINE" in
-				./) LINE="/" ;;
-				./?*) LINE="${LINE#./}" ;;
-			esac
+      case "$LINE" in
+        ./) LINE="/" ;;
+        ./?*) LINE="${LINE#./}" ;;
+      esac
       output "$LINE"
-		done) ||
-		output "ERROR" 1>&2 
-	done)
+    done) ||
+    output "ERROR" 1>&2
+  done)
 }
 
 list-slackpkgs()
@@ -2835,12 +3654,12 @@ list-slackpkgs()
     for ARG in "$@";
     do
         find "$ARG" -type f -name "*.t?z";
-    done | sed 's,^\./,,' )
+    done | ${SED-sed} 's,^\./,,' )
 }
 
 list-subdirs()
 {
-    ( find ${@-.} -mindepth 1 -maxdepth 1 -type d | sed "s|^\./||" )
+    ( find ${@-.} -mindepth 1 -maxdepth 1 -type d | ${SED-sed} "s|^\./||" )
 }
 
 list-tolower()
@@ -2855,7 +3674,85 @@ list-toupper()
 
 list-upx()
 {
-    upx -l "$@" 2>&1 | sed '1 { :lp; N; /^\s*--\+/! b lp; d; }' | sed '$ { /[0-9]\sfiles\s\]$/d; } ; /^\s*[- ]\+$/d'
+    upx -l "$@" 2>&1 | ${SED-sed} '1 { :lp; N; /^\s*--\+/! b lp; d; }' | ${SED-sed} '$ { /[0-9]\sfiles\s\]$/d; } ; /^\s*[- ]\+$/d'
+}
+
+list-visual-studios() {
+ (NL="
+"
+  IFS="$NL"
+  SP=" "
+
+  while :; do
+    case "$1" in
+      -x | --debug) DEBUG=true; shift ;;
+      -c | -cl | --cl | --compiler) pushv O "CL" ; shift ;;
+      -b | -vsdir | --vsdir) pushv O "VSDIR" ; shift ;;
+      -d | -vcdir | --vcdir) pushv O "VCDIR" ; shift ;;
+      -v | -vcvars | --vcvars) pushv O "VCVARS"; shift ;;
+      -e | -devenv | --devenv) pushv O "DEVENV"; shift ;;
+      -t | -tool | --tool) pushv T "$(str_toupper "$2")"; pushv O "$(str_toupper "$2")"; shift 2 ;; -t=* | -tool=* | --tool=*) pushv T "$(str_toupper "${1#*=}")"; pushv O "$(str_toupper "${1#*=}")"; shift ;;
+      -p | -pathconv | --pathconv) PATHCONV="$2";  shift 2 ;; -p=* | -pathconv=* | --pathconv=*) PATHCONV="${1#*=}"; shift ;;
+      -t*) pushv T "${1#-?}"; pushv O "$(str_toupper TOOL_${1#-t})"; shift ;;
+
+      *) break ;;
+    esac
+  done
+  : ${PATHCONV="cygpath$NL-w"}
+  PATHCONV=${PATHCONV//" "/"$NL"}
+
+
+
+  [ -z "$O" ] && O="CL"
+
+  [ $# -eq 0 ] && PTRN="*" || PTRN="$(set -- $(vs2vc -c -0 "$@"); IFS=","; echo "$*")"
+
+  case "$PTRN" in
+    *,*) PTRN="{$PTRN}" ;;
+  esac
+
+  PTRN="\"$($PATHCONV "${ProgramFiles:-$PROGRAMFILES}")\"{,\" (x86)\"}/*Visual\ Studio\ ${PTRN}*/VC/bin/{,*/}cl.exe"
+  echo "PTRN=$PTRN" 1>&2
+  eval "ls -d $PTRN" 2>/dev/null |
+
+#  set -- "$($PATHTOOL "${ProgramFiles:-$PROGRAMFILES}")"{," (x86)"}/*Visual\ Studio\ [0-9]*/VC/bin/{,*/}cl.exe
+  #ls -d -- "$@" 2>/dev/null |
+  sort -V | while read -r CL; do
+    case "$CL" in
+      *amd64/*) ARCH="Win64" ;;
+      *arm/*) ARCH="ARM" ;;
+      *ia64/*) ARCH="IA64"   ;;
+      *) ARCH="" ;;
+    esac
+
+
+    TARGET=${CL##*/bin/}; TARGET=${TARGET%%cl.exe}; TARGET=${TARGET%/}
+    #: ${TARGET:="x86"}
+
+    VSDIR="${CL%%/VC*}"
+    VCDIR="$VSDIR/VC"
+    VCVARS="call \"$($PATHCONV "$VSDIR/VC/vcvarsall.bat")\"${TARGET:+ $TARGET}"
+    VSVER=${VSDIR##*/}
+    VSVER=${VSVER##*"Visual Studio "}
+
+
+    DEVENV="$VSDIR/Common7/IDE/devenv"
+
+    #echo "VSDIR: $VSDIR VSVER: $VSVER" 1>&2
+   VSNAME="Visual Studio $(vc2vs "${VSVER}")${ARCH:+ $ARCH}"
+   for VAR in $O; do
+	 case "$VAR" in
+	   DEVENV ) EXT=".exe" ;;
+	   *) EXT="" ;;
+	 esac
+     #CMD="\${PATHCONV:-echo} \"\${$VAR}\$EXT\""
+     CMD="echo \"\${$VAR}\$EXT\""
+     [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+     eval "$CMD"
+   done
+  done
+
+  )
 }
 
 list()
@@ -2951,9 +3848,25 @@ locate-filename()
         if [ -n "$TEST_ARGS" ]; then
             CMD="$CMD | filter-test \$TEST_ARGS";
         fi;
-        CMD="$CMD | (set -x ; grep \$GREP_ARGS \"\${EXPR#/}\") ";
+        CMD="$CMD | (set -x ; ${GREP-grep} \$GREP_ARGS \"\${EXPR#/}\") ";
         eval "$CMD";
     done )
+}
+
+lookup-grub-devicemap()
+{ 
+	arg=$(realpath "$1")
+    ( IFS='	 ';
+    while read -r grubdisk diskdev; do
+        realdev=$(realpath "$diskdev");
+        test -n "$realdev" || continue;
+        case "$arg" in 
+            $realdev*)
+                echo "$grubdisk";
+                exit
+            ;;
+        esac;
+    done ) < "${devicemap:-device.map}"
 }
 
 ls-dirs()
@@ -2962,22 +3875,29 @@ ls-dirs()
     for ARG in "$@";
     do
         ls --color=auto -d "$ARG"/*/;
-    done ) | sed 's,^\./,,; s,/$,,'
+    done ) | ${SED-sed} 's,^\./,,; s,/$,,'
 }
 
 ls-files()
 {
     ( [ -z "$@" ] && set -- .;
+		while :; do 
+			case "$1" in
+			 -*) OPTS="${OPTS:+$OPTS
+}$1"; shift ;;
+      *) break ;;
+		esac
+	done
     for ARG in "$@";
     do
-        ls --color=auto -d "$ARG"/*;
-    done ) | filter-test -f| sed 's,^\./,,; s,/$,,'
+        ls --color=auto -d $OPTS -- "$ARG"/*;
+    done ) | filter-test -f| ${SED-sed} 's,^\./,,; s,/$,,'
 }
 
 lsof-win()
 {
-#  (for PID in $(ps -aW | sed 1d |awkp 1); do
-#    handle -p "$PID" |sed "1d;2d;3d;4d;5d; s|^|$PID\\t|"
+#  (for PID in $(ps -aW | ${SED-sed} 1d |awkp 1); do
+#    handle -p "$PID" |${SED-sed} "1d;2d;3d;4d;5d; s|^|$PID\\t|"
 #  done)
  (while :; do
     case "$1" in
@@ -2992,13 +3912,13 @@ lsof-win()
   else
     CMD='handle -a'
   fi
-  eval "$CMD" 2>&1 | { 
+  eval "$CMD" 2>&1 | {
   TAB="	"
   CR=""
   IFS="$CR"
   while read -r LINE; do
     case "$LINE" in
-      *"pid: "*) 
+      *"pid: "*)
         LSOF_PID=${LINE##*"pid: "}
         LSOF_PID=${LSOF_PID%%" "*}
         EXE=${LINE%%" "*}
@@ -3008,7 +3928,136 @@ lsof-win()
 
       *) printf "%-10s %5d %s\n" "$EXE" "$LSOF_PID" "$LINE" ;;
     esac
-  done; })
+  done; }) |${SED-sed} -u 's,\\,/,g'
+}
+
+make-arith()
+{
+    echo '$(('"$@"'))'
+}
+
+make-cfg-sh() { 
+ (for ARG in "${@:-./configure}"; do
+    HELP=$("$ARG" --help=recursive ); ( echo "$HELP" | grep --color=auto --line-buffered -q '^\s*--.*dir' ) || HELP=$( ("$ARG" --help ; echo "$HELP") |sort -t- -k2 -n -u ); ( echo "$HELP" | grep --color=auto --line-buffered -q '^\s*--' ) || HELP=$("$ARG" --help ); { 
+      unset O; while read -r LINE; do
+          case "$LINE" in 
+              *--enable-[[:upper:]]* | *--with-[[:upper:]]* | *--without-[[:upper:]]* | *--disable-[[:upper:]]*)
+                  continue
+              ;;
+              *\(*--*)
+                  continue
+              ;;
+              *--enable* | *--disable* | *--with* | *--*dir*=*)
+                  LINE=${LINE#*--}
+              ;;
+              *)
+                  continue
+              ;;
+          esac
+          LINE=${LINE%%" "*}; LINE=${LINE%%$'\t'*}; LINE=${LINE%%[\',]*}; BRACKET=false
+          case "$LINE" in 
+              *\[*\]*)
+                  LINE=${LINE/"["/}; LINE=${LINE/"]"/}; BRACKET=TRUE
+              ;;
+          esac
+          case "$LINE" in 
+              *=*)
+                  OPT=${LINE%%=*}; VALUE=${LINE#*=}
+              ;;
+              *)
+                  OPT="$LINE"
+              ;;
+          esac
+          case "$LINE" in 
+              *\[* | *\]* | [0-9]*) continue
+
+              ;;
+          esac
+          VAR=$(tr [[:upper:]] [[:lower:]] <<<"${OPT//"-"/"_"}"); WHAT= DEFAULT=
+          case "$OPT" in 
+              with* | without*)
+                  WHAT=${VAR%%[-_]*}; VAR=${VAR#*_}
+              ;;
+              enable* | disable*)
+                  WHAT=${VAR%%[-_]*}; #VAR=${VAR#*_}; VALUE=
+          case "$WHAT" in 
+                      enable)
+                          DEFAULT=""
+                      ;;
+                      disable)
+                          DEFAULT="true"
+                      ;;
+                  esac
+              ;;
+              *dir*)
+                  WHAT=dir; VALUE=; ;;
+              prefix)
+                  WHAT=; VALUE=
+              ;;
+          esac
+          VAR=${VAR%" "}
+          case "$VAR" in 
+            *able-[0-9]*) continue ;;
+              build | target)
+                  SUBST=\"\${$VAR:-\$host}\"
+              ;;
+              includedir | libdir | libexecdir | bindir | sbindir)
+                  VALUE=\$prefix/${VAR%dir}; SUBST=\"\${$VAR:-$VALUE}\"
+              ;;
+              sysconfdir)
+                  VALUE=\$prefix/etc; SUBST=\"\${$VAR:-$VALUE}\"
+              ;;
+              localstatedir)
+                  VALUE=\$prefix/var; SUBST=\"\${$VAR:-$VALUE}\"
+              ;;
+              infodir | mandir | docdir | localedir)
+                  VALUE=\$prefix/share/${VAR%dir}; SUBST=\"\${$VAR:-$VALUE}\"
+              ;;
+              *dir)
+                  continue
+              ;;
+              *)
+                  SUBST=\"\${$VAR}\"
+              ;;
+          esac
+          case "$DEFAULT" in 
+              "")
+
+              ;;
+              *)
+                  pushv-unique V ": \${$VAR=\"$DEFAULT\"}"
+              ;;
+          esac
+          case "$WHAT" in 
+              *able| with | "")
+                case "$WHAT"  in
+                  *able) unset SUBST 
+                  #[ "$WHAT" = enable ] && unset WHAT 
+                  ;;
+                esac
+
+                  [ "$WHAT" = enable ] &&  VAR=${VAR#*[-_]}
+                  pushv-unique O "  ${VAR:+\${$VAR:+--${WHAT:+$WHAT-}${OPT#*-}${SUBST:+=$SUBST}}} \\"
+              ;;
+              *)
+                  pushv-unique O "  --$OPT${VALUE:+=$SUBST} \\"
+              ;;
+          esac
+      done; echo "$V
+
+$ARG \\
+$O
+"'  "$@"'
+      } <<< "$HELP"; done )
+}
+
+make-sizes-tmp()
+{
+    ${SED-sed} -n '/ [0-9]\+ /p' $(list-mediapath 'ls-lR.list') | awkp 5 > $TEMP/sizes.tmp;
+    for N in $(histogram.awk <$TEMP/sizes.tmp|${GREP-grep} -v '^1 '|awkp 2|sort -n); do
+      test "$N" -le 0 && continue
+      echo "/^[^ ]\+\s\+[0-9]\+\s\+[0-9]\+\s\+[0-9]\+\s\+$N /p"
+      done |(set -x; tee $TEMP/sizes.${SED-sed} >/dev/null)
 }
 
 make-slackpkg()
@@ -3024,7 +4073,7 @@ IFS=";, $IFS"
    set -- $EXCLUDE '*~' '*.bak' '*.rej' '*du.txt' '*.list' '*.log' 'files.*' '*.000' '*.tmp'
    IFS="
 "
-  EXCLUDELIST="{$(set -- $(for_each str_quote "$@"); IFS=','; echo "$*")}"
+  EXCLUDELIST="{$(set -- $(for-each str_quote "$@"); IFS=','; echo "$*")}"
     for ARG in $ARGS;
     do
         test -d "$ARG";
@@ -3033,11 +4082,6 @@ IFS=";, $IFS"
         eval "$cmd";
     done
     )
-}
-
-make_arith()
-{
-    echo '$(('"$@"'))'
 }
 
 map()
@@ -3145,7 +4189,141 @@ minfo()
    (CMD='mediainfo "$ARG" 2>&1'
     [ $# -gt 1 ] && CMD="$CMD | addprefix \"\$ARG:\""
     CMD="for ARG; do $CMD; done"
-    eval "$CMD")  | sed '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
+    eval "$CMD")  | ${SED-sed} '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
+}
+
+mkbuilddir() {
+ (Q=\"
+  FS=/
+  BS=\\	
+  add_def() {
+    V=$1
+    shift
+    old_IFS="$IFS"
+    IFS=";"
+    ARGS="$ARGS ^
+  -D $V=${Q}${*//$FS/$BS}${Q}"
+    IFS="$old_IFS"
+    unset old_IFS
+  }
+  # output_vcbuild <target> <Project|Solution> [Configuration]
+  output_vcbuild() {
+    : ${T=}
+    P="$2"
+    case "$1" in
+      *64*) : ${T:="x64"} ;;
+      *) : ${T:="Win32"} ;;
+    esac
+    case "$1" in
+      *2008* | *9.0*) echo "vcbuild \"${P/vcxproj/vcproj}\"${3:+ \"$3${T:+|$T}\"}" ;;
+      *) echo "msbuild \"${P}\"${3:+ /p:Configuration=\"$3\"}" ;;
+    esac
+  }
+  while :; do
+    case "$1" in
+      -x | --debug) DEBUG="true"; shift ;;
+      -64 | --64 | -x64 | --x64 | -amd64 | --amd64 | -x86_64 | --x86_64) ARCH="amd64" ;;
+      *) break ;;
+    esac
+  done
+  
+  for ARG; do
+   (case "$ARG" in
+       *.sln) VC=$(sln-version --vc "$ARG"); DIR=$(dirname "$ARG") ;;
+       *) VC=$(vs2vc "${ARG##*/}") ; DIR="$ARG" ;;
+    esac
+    
+    [ "$DEBUG" = true ] && debug "VC version: $VC"
+   
+    B=$(basename "$DIR")
+    
+   
+    CL=$(vcget "$VC" CL)
+    CMAKEGEN=$(vcget "$VC" CMAKEGEN)
+    : ${ARCH=$(vcget "$B" ARCH)}
+    VSA=${VS-$(vcget "$VC" VS)}${ARCH:+-$ARCH}
+    ABSDIR=$(cd "$DIR" >/dev/null && pwd -P)
+    SRCDIR=${ABSDIR%/build*}
+	if [ -e "$SRCDIR/CMakeLists.txt" ] ; then
+	  CMAKELISTS="$SRCDIR/CMakeLists.txt"
+      CMAKELISTS_ADD=$( ${SED-sed} -n "s|.*add_subdirectory(\s*\([^ )]*\)\s*).*|$SRCDIR/\1/CMakeLists.txt|p"  "$SRCDIR/CMakeLists.txt" )
+	  if [ -n "$CMAKELISTS_ADD" ]; then
+		pushv_unique CMAKELISTS $CMAKELISTS_ADD
+	  fi
+	  PROJECT=$(${SED-sed} -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
+	  CONFIGURE_CMD="
+cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
+  %* ^
+  ..\\..
+"	  
+	  BUILD_TYPE="RelWithDebInfo MinSizeRel Debug Release"
+	else
+	  SOLUTION=$(cd "$DIR" >/dev/null && ls -d *.sln)
+	fi
+    PREFIX="${SRCDIR##*/}\\${DIR##*/}"
+    [ -n "$INSTALLROOT" ] && INSTALLROOT=$(${PATHTOOL:-echo} "$INSTALLROOT")
+    if [ -n "$CMAKELISTS" ]; then
+	  if [ -z "$INSTALLROOT" ] && ${GREP-grep} -q -i "add_library\s*(" $CMAKELISTS ; then
+		case "$SRCDIR" in
+		  *-[0-9]*) INSTDIR=${SRCDIR##*/} ;;
+		  *) INSTDIR=${SRCDIR##*/}-$(isodate.sh -r "$SRCDIR") ;;
+		esac
+		  INSTALLROOT="E:/Libraries/${INSTDIR}/${B}"
+	  fi
+	  if ${GREP-grep} -q -i "install\s*(" $CMAKELISTS ; then
+		INSTALL_CMD=$(output_vcbuild "$B" INSTALL.vcxproj "Release")
+	  fi
+	  add_def CMAKE_INSTALL_PREFIX "${INSTALLROOT:-%PROGRAMFILES%\\$PREFIX}"
+	  add_def CMAKE_VERBOSE_MAKEFILE "TRUE"
+	  for VAR in BUILD_SHARED_LIBS ENABLE_SHARED; do
+	   if ${GREP-grep} -q "$VAR" $CMAKELISTS ; then
+	   add_def $VAR "TRUE"
+	   fi
+	  done
+	  if [ -n "$__BUILD_TYPE" ]; then
+		add_def CMAKE_BUILD_TYPE "$BUILD_TYPE"
+	  fi
+	fi
+  if [ -z "$ARCH" ]; then
+	pushv ARGS_LOOP 'for %%T in (Win32 x86) do if /I "%1" == "%%T" ('${nl}'  set TARGET=Win32'${nl}'  set ARCH=x86'${nl}'  shift'${nl}'  goto :args'${nl}')'
+	pushv ARGS_LOOP 'for %%T in (Win64 x64 AMD64) do if /I "%1" == "%%T" ('${nl}'  set TARGET=x64'${nl}'  set ARCH=amd64'${nl}'  shift'${nl}'  goto :args'${nl}')'
+	pushv IF_TARGET 'if "%TARGET%" == "" set TARGET=Win32'
+	pushv IF_TARGET 'if "%ARCH%" == "" set ARCH=x86'
+	 T="%TARGET%"
+   else
+	#IF_TARGET="if not \"%1\" == \"\" set ARGS=/target:\"%1\"${nl}"
+	ADD_ARGS=" %ARGS%"
+  fi
+	VCBUILDCMD=$(output_vcbuild "$(vcget "$VC" VS ARCH)" ${SOLUTION:-$PROJECT.sln} %%G)
+    pushv ARGS_LOOP 'for %%C in (Debug Release) do if /I "%1" == "%%C" ('${nl}'  set CONFIG=%%C'${nl}'  shift'${nl}'  goto :args'${nl}')'
+	pushv IF_TARGET 'if "%CONFIG%" == "" set CONFIG=Debug Release'
+	case "$VCBUILDCMD" in
+	  *vcbuild*)  pushv ARGS_LOOP 'for %%J in (clean rebuild) do if /I "%1" == "%%J" ('${nl}'  set ARGS= /%%J'${nl}'  shift'${nl}'  goto :args'${nl}')'  ;;
+	  *)  pushv ARGS_LOOP 'for %%J in (clean rebuild) do if /I "%1" == "%%J" ('${nl}'  set ARGS= /t:%%J'${nl}'  shift'${nl}'  goto :args'${nl}')'  ;;
+	esac
+	ADD_ARGS=" %ARGS%"
+	BUILD_TYPE="%CONFIG%"
+	VCVARSCMD=$(vcget "${VC}-x64" VCVARSCMD )
+	VCVARSCMD=${VCVARSCMD/amd64/%ARCH%}
+	
+	case "$VCBUILDCMD" in
+	  *"
+"*) VCBUILDCMD="(
+$VCBUILDCMD
+)" ;;
+    esac
+	
+	if [ -e "$CL" ]; then
+      echo "Generating script $DIR/build.cmd ($(vcget "$VC" VCNAME))" 1>&2
+      unix2dos >"$DIR/build.cmd" <<EOF
+@echo ${BATCHECHO:-off}
+cd %~dp0
+${ARGS_LOOP:+${nl}:args${nl}$ARGS_LOOP${nl}}${CONFIGURE_CMD:+${nl}$CONFIGURE_CMD${nl}}${IF_TARGET:+${nl}$IF_TARGET${nl}}${VCVARSCMD:+${nl}call $VCVARSCMD${nl}${BATCHECHO:+@echo $BATCHECHO${nl}}}
+for %%G in (${BUILD_TYPE:-Debug Release}) do $VCBUILDCMD${ADD_ARGS}
+${INSTALL_CMD}
+EOF
+    fi) || exit $?
+  done)
 }
 
 mktempdata()
@@ -3209,8 +4387,8 @@ mminfo()
 {
     ( for ARG in "$@";
     do
-        minfo "$ARG" | sed -n "s,^\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
-    done | sed 's,\s\+=,=,')
+        minfo "$ARG" | ${SED-sed} -n "s,^\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
+    done | ${SED-sed} 's,\s\+=,=,')
 }
 
 modules()
@@ -3296,10 +4474,10 @@ mount-remaining()
     [ "$UID" != 0 ] && SUDO=sudo
     for DEV in $(not-mounted-disks); do
         LABEL=` disk-label "$DEV"`
-				TYPE=` blkvars "$DEV" TYPE`
-				case "$TYPE" in
-					swap) continue ;;
-				esac
+        TYPE=` blkvars "$DEV" TYPE`
+        case "$TYPE" in
+          swap) continue ;;
+        esac
         MNTDIR="$MNT/${LABEL:-${DEV##*/}}"
         $SUDO mkdir -p "$MNTDIR";
         echo "Mounting $DEV to $MNTDIR ..." 1>&2
@@ -3310,16 +4488,16 @@ mount-remaining()
 
 mounted-devices() {
   (IFS=" "
-	unset PREV
-	while read -r DEV MNT FSTYPE OPTS A B; do
-		case "$DEV" in
-			rootfs | /dev/root) DEV=`get-rootfs` ;;
-			/*) ;;
-			*) continue	;;
-		esac
-		[ "$DEV" != "$PREV" ] && echo "$DEV"
-		PREV="$DEV"
-	done) </proc/mounts
+  unset PREV
+  while read -r DEV MNT FSTYPE OPTS A B; do
+    case "$DEV" in
+      rootfs | /dev/root) DEV=`get-rootfs` ;;
+      /*) ;;
+      *) continue	;;
+    esac
+    [ "$DEV" != "$PREV" ] && echo "$DEV"
+    PREV="$DEV"
+  done) </proc/mounts
 }
 
 mountpoint-by-label() {
@@ -3327,7 +4505,7 @@ mountpoint-by-label() {
  	"
   for MNT in $(wmic Path win32_volume where "Label='$1'" Get DriveLetter /format:list 2>&1); do
     case "$MNT" in
-      DriveLetter=*) 
+      DriveLetter=*)
         MNT=${MNT#DriveLetter=}
         MNT=${MNT:0:1}:
         break
@@ -3350,13 +4528,13 @@ mountpoint-by-label() {
 
 mountpoint-for-device()
 {
-    ( set -- $(grep "^$1 " /proc/mounts |awkp 2);
+    ( set -- $(${GREP-grep} "^$1 " /proc/mounts |awkp 2);
     echo "$1" )
 }
 
 mountpoint-for-file()
 {
-    ( df "$1" | sed 1d | awkp 6 )
+    ( df "$1" | ${SED-sed} 1d | awkp 6 )
 }
 
 mountpoints()
@@ -3390,7 +4568,7 @@ mountpoints()
         fi
     };
     CMD="lsmnt \"\$@\"";
-    [ "$USER" = true ] && CMD="$CMD | grep -vE '^(/\$|/proc|/sys|/dev)'";
+    [ "$USER" = true ] && CMD="$CMD | ${GREP-grep} -vE '^(/\$|/proc|/sys|/dev)'";
     eval "$CMD" )
 }
 
@@ -3461,7 +4639,7 @@ msyspath()
   exit $?)
 }
 
-multiline_list()
+multiline-list()
 {
  (IFS="
  "
@@ -3482,6 +4660,24 @@ $INDENT$LINE"'
  )
 }
 
+multiply-num() {
+ (for ARG; do
+    case "$ARG" in
+      *[0-9].* | *.[0-9]*) CMD='$(bc -l <<\EOF
+'$ARG'
+EOF
+)'  ;;
+      *) CMD='$(( '$ARG' ))' ;;
+    esac
+    eval "N=$CMD"
+    case "$N" in
+      .*) N="0$N" ;;
+      *.*0) while [ "$N" != "${N%0}" ]; do N=${N%0}; done ;;
+    esac
+    echo "${N%.}"
+  done)
+}
+
 multiply-resolution()
 {
     ( WIDTH=${1%%x*};
@@ -3496,7 +4692,7 @@ myip()
     do
         msg "Checking $host...";
         myip=$(curl -s --socks5 127.0.0.1:9050 "$host" |
-         sed -n -e "/${e_nn}127.0.0.1${e_nn}/ d"                   -e "/${e_nn}192.168\./ d"                   -e "/${e_nn}10\./ d"                   -e "/$e_ip/ {
+         ${SED-sed} -n -e "/${e_nn}127.0.0.1${e_nn}/ d"                   -e "/${e_nn}192.168\./ d"                   -e "/${e_nn}10\./ d"                   -e "/$e_ip/ {
                       s|^${e_nn}\\($e_ip\\)${e_nn}\$|\\1|
                       p
                       q
@@ -3567,7 +4763,7 @@ output-boot-entry()
     grub4dos)
        echo "title "${TITLE//"
 "/"\\n"}
-         [ "$CMDS" ] && echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS"| sed 's,^,#,'
+         [ "$CMDS" ] && echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS"| ${SED-sed} 's,^,#,'
        if [ "$KERNEL" ]; then
         echo "kernel $KERNEL"
        [ "$INITRD" ] && echo "initrd $INITRD"
@@ -3576,26 +4772,29 @@ output-boot-entry()
     ;;
     grub2)
        echo "menuentry \"$TITLE\" {"
-       echo "  linux $KERNEL"
-       echo "  initrd $INITRD"
+       echo "  linux${EFI} $KERNEL"
+       echo "  initrd${EFI} $INITRD"
        echo "}"
     ;;
     syslinux|isolinux)
-       [ -z "$LABEL" ] && LABEL=$(canonicalize -m 12 -l "$TITLE")
+       #[ -z "$LABEL" ] && 
+       
+       LABEL=$(canonicalize -m 16 -l "${TITLE//PartedMagic/pmagic}")
        echo "label $LABEL"
        echo "  menu label ${TITLE%%
 *}"
        if [ "$KERNEL" ]; then
          set -- $KERNEL
-         echo "  kernel $1"
+         echo "  kernel ${1%%" "*}"
+         args=${1#*" "}
          shift
          [ "$INITRD" ] && set -- initrd="$INITRD" "$@"
          [ $# -gt 0 ] &&
-         echo "  append" $@
+         echo "  append" $args $@
        fi
 
        if [ "$CMDS" ]; then
-         echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS" |sed 's,^,  #,'
+         echo -e "CMDS${TYPE:+ ($TYPE)}:\n$CMDS" |${SED-sed} 's,^,  #,'
          fi
 
      ;;
@@ -3604,9 +4803,51 @@ output-boot-entry()
  )
 }
 
+output-mingwvars() {
+ (: ${O=${1:+$1/}mingwvars.cmd}
+ echo "Outputting '${O//$FS/$BS}'..." 1>&2
+ case "$O" in
+   *.cmd | *.bat)
+	cat <<EOF | unix2dos >"$O"
+@echo off
+set PATH=%~dp0${SUBDIRNAME};%~dp0${SUBDIRNAME}\bin;%PATH%
+if "%1" == "" goto end
+cd "%1"
+:end
+echo Variables are set up for "${SUBDIRNAME}"
+EOF
+     ;;
+   *.sh | *.bash)
+     cat <<EOF >"$O"
+#!/bin/sh
+PATH="\${_}${SUBDIRNAME}:\${_}${SUBDIRNAME}/bin:\$PATH"
+echo "Variables are set up for ${SUBDIRNAME}" 1>&2
+EOF
+    ;;
+  esac
+)
+}
+
+output-startmingwprompt() {
+ (: ${O=${1:+$1/}start-mingw-prompt.bat}
+ echo "Outputting '${O//$FS/$BS}'..." 1>&2
+  cat <<EOF | unix2dos >"$O"
+@echo off
+set PATH=%~dp0${SUBDIRNAME};%~dp0${SUBDIRNAME}\bin;%PATH%
+rem echo %PATH%
+rem cd "%~dp0${SUBDIRNAME};%~dp0${SUBDIRNAME}\bin"
+cd "%~dp0"
+if "%1" == "" goto end
+cd "%1"
+:end
+cmd.exe /k "call %~dp0mingwvars.cmd"
+EOF
+)
+}
+
 packed-upx-files()
 {
-    upx -l "$@" 2>&1 | sed -n '$ { \,files\s*\]$,d } ;; $! { \,->, s,.*->\s\+[0-9]\+\s\+[.0-9]\+%\s\+[^ ]\+\s\+\(.*\),\1,p }'
+    upx -l "$@" 2>&1 | ${SED-sed} -n '$ { \,files\s*\]$,d } ;; $! { \,->, s,.*->\s\+[0-9]\+\s\+[.0-9]\+%\s\+[^ ]\+\s\+\(.*\),\1,p }'
 }
 
 parse-boot-entry()
@@ -3648,15 +4889,15 @@ parse-boot-entry()
     [ -z "$CMD" ] && continue
     if [ -z "$T"  ]; then
       clear-boot-entry
-	    case "$CMD" in
-	      menuentry) T=grub; TITLE=${LINE#*\"}; TITLE=${TITLE%\"*\{} ;;
-	      title) T=oldgrub; TITLE=${ARG}; TITLE=${TITLE//"\\n"/"$NL"} ;;
-	      label) T=syslinux LABEL=${ARG} ;;
+      case "$CMD" in
+        menuentry) T=grub; TITLE=${LINE#*\"}; TITLE=${TITLE%\"*\{} ;;
+        title) T=oldgrub; TITLE=${ARG}; TITLE=${TITLE//"\\n"/"$NL"} ;;
+        label) T=syslinux LABEL=${ARG} ;;
 #	      menu | *MENU*LABEL*) T=syslinux; TITLE=${LINE#*MENU}; TITLE=${TITLE#*LABEL}; TITLE=${TITLE#*label}; TITLE=${TITLE/^/} ;;
-	      *) continue ;;
-	    esac
-	    LABEL=${LABEL#' '}
-	    TITLE=${TITLE#' '}
+        *) continue ;;
+      esac
+      LABEL=${LABEL#' '}
+      TITLE=${TITLE#' '}
     else
     TYPE="$T"
     ARG=${ARG//"\\n"/"$NL"}
@@ -3710,9 +4951,9 @@ parse-boot-entry()
 partition-table-type()
 {
     ( if command-exists "parted"; then
-        parted "$1" p | sed -n 's,.*Table:\s\+,,p';
+        parted "$1" p | ${SED-sed} -n 's,.*Table:\s\+,,p';
     else
-        ( eval "$(  gdisk -l "$(disk-device-for-partition "$1")" |sed 's,\s*not present$,,' |sed -n  's,^\s*\([[:upper:]]\+\):\(\s*\)\(.*\),\1="\3",p')";
+        ( eval "$(  gdisk -l "$(disk-device-for-partition "$1")" |${SED-sed} 's,\s*not present$,,' |${SED-sed} -n  's,^\s*\([[:upper:]]\+\):\(\s*\)\(.*\),\1="\3",p')";
         if [ "$MBR" -a "$GPT" ]; then
             echo "mbr+gpt";
         else
@@ -3740,52 +4981,40 @@ path-executables()
     done ) 2> /dev/null
 }
 
-pathmunge()
-{
+pathmunge() { while :; do case "$1" in -s) PATHSEP="$2"; shift 2 ;; -v) PATHVAR="$2"; shift 2 ;; -e) EXPORT="export "; shift ;; -f) FORCE=true; shift ;; -a) AFTER=true; shift ;; *) break ;; esac; done; : ${PATHVAR=PATH}; local IFS=":"; : ${OS=`uname -o | head -n1`}; case "$OS:$1" in [Mm]sys:*[:\\]*) tmp="$1"; shift; set -- `${PATHTOOL:-msyspath} "$tmp"` "$@" ;; esac; IFS=" "; if ! eval "echo \"\${${PATHVAR}}\"" | ${GREP-grep} -E -q "(^|${PATHSEP-:})$1($|${PATHSEP-:})"; then if [ "$2" = after -o "$AFTER" = true ]; then CMD="${EXPORT}${PATHVAR}=\"\${${PATHVAR}:+\$${PATHVAR}${PATHSEP-:}}\$1\""; else CMD="${EXPORT}${PATHVAR}=\"\$1\${${PATHVAR}:+${PATHSEP-:}\$${PATHVAR}}\""; fi; fi;  [ "$FORCE" = true ] && CMD="pathremove \"$1\"; $CMD"; eval "CMD=\"$CMD\""; [ "$DEBUG" = true ] && eval "echo \"+ $CMD\" 1>&2"; eval "$CMD"; unset PATHVAR; }
+
+pathremove() { old_IFS="$IFS"; IFS=":"; RET=1; unset NEWPATH; for DIR in $PATH; do for ARG in "$@"; do case "$DIR" in $ARG) RET=0; continue 2 ;; esac; done; NEWPATH="${NEWPATH+$NEWPATH:}$DIR"; done; PATH="$NEWPATH"; IFS="$old_IFS"; unset NEWPATH old_IFS; return $RET; }
+
+pathtool() {
+ (EXPR= F=
   while :; do
     case "$1" in
-      -v) PATHVAR="$2"; shift 2 ;;
-      *) break ;;
+      -w | -m | -u) F="$1"; shift ;;
+      *) break ;
     esac
   done
-  local IFS=":";
-  : ${OS=`uname -o | head -n1`};
-  case "$OS:$1" in
-      [Mm]sys:*[:\\]*)
-          tmp="$1";
-          shift;
-          set -- `${PATHTOOL:-msyspath} "$tmp"` "$@"
-      ;;
-  esac;
-  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | grep -E -q "(^|:)$1($|:)"; then
-      if test "$2" = "after"; then
-          eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
-      else
-          eval "${PATHVAR-PATH}=\"\$1:\${${PATHVAR-PATH}}\"";
-      fi;
-  fi
-  unset PATHVAR
-}
+  [ $# -gt 0 ] && exec <<<"$*"
 
-pathremove() {
-  old_IFS="$IFS"
-  IFS=":"
-	RET=1
-  unset NEWPATH
+  case "$F" in
+    -w | -m) ROOTS=$(mount | ${SED-sed} -n '\|/cygdrive|! s,^\([^ ]*\) on \(.*\) type.*,\\|^.:|! { \\|^/cygdrive|! { s|^\2|\1| } };,p') ;;
+    *) ROOTS=$( mount  | ${SED-sed} -n '\|/cygdrive|! s,^\([^ ]*\) on \(.*\) type.*,\1\n\2,p' | ${SED-sed} '/^.:/ { s|/|\[\\\\/\]|g; N; s,\n,|, ; s,.*,s|^&|; , }') ;;
+  esac
 
-  for DIR in $PATH; do
-    for ARG; do
-      case "$DIR" in
-        $ARG) RET=0; continue 2 ;;
-      esac
-    done
-    NEWPATH="${NEWPATH+$NEWPATH:}$DIR"
-  done
+  EXPR="${EXPR:+$EXPR ;; }$ROOTS"
 
-  PATH="$NEWPATH"
-  IFS="$old_IFS"
-  unset NEWPATH old_IFS
-	return $RET
+  case "$F" in
+	-w | -m) EXPR="${EXPR:+$EXPR ;; }s|/cygdrive/\(.\)/\(.*\)|\1:/\2|" ;;
+	*) EXPR="${EXPR:+$EXPR ;; }s|^\(.\):|/cygdrive/\1|" ;;
+  esac
+
+
+  case "$F" in
+	-m | -u) EXPR="${EXPR:+$EXPR ;; }s|\\\\|/|g" ;;
+	-w) EXPR="${EXPR:+$EXPR ;; }s|/|\\\\|g" ;;
+  esac
+
+  [ "$DEBUG" = true ] && echo "+ ${SED-sed} '$EXPR'"
+  ${SED-sed} "$EXPR")
 }
 
 pdfpextr()
@@ -3806,20 +5035,20 @@ pdfpextr()
 
 pid-args()
 {
-  pid-of "$@" | sed -n  "/^[0-9]\+$/ s,^,-p\n,p"
+  pid-of "$@" | ${SED-sed} -n  "/^[0-9]\+$/ s,^,-p\n,p"
 }
 
 pid-of() {
-   (if ps --help 2>&1 |grep -q '\-W'; then
-       PGREP_CMD='ps -aW |grep -i "$ARG" | awkp'
+   (if ps --help 2>&1 |${GREP-grep} -q '\-W'; then
+       PGREP_CMD='ps -aW |${GREP-grep} -i "$ARG" | awkp'
     elif type pgrep 2>/dev/null >/dev/null; then
        PGREP_CMD='pgrep -f "$ARG"'
     else
-       PGREP_CMD='ps -ax | grep -i "$ARG" | awkp'
+       PGREP_CMD='ps -ax | ${GREP-grep} -i "$ARG" | awkp'
     fi
     for ARG in "$@"; do
       eval "$PGREP_CMD"
-    done | sed -n 's/^\([0-9]\+\)\r\?$/\1/p')
+    done | ${SED-sed} -n 's/^\([0-9]\+\)\r\?$/\1/p')
 }
 
 pkg-name()
@@ -3847,32 +5076,41 @@ pkgsearch()
     ( EXCLUDE='-common -data -debug -doc -docs -el -examples -fonts -javadoc -static -tests -theme';
     for ARG in "$@";
     do
-        sudo yum -y search "${ARG%%[!-A-Za-z0-9]*}" | grep --color=auto --color=auto --color=auto --color=auto -i "$ARG[^ ]* : ";
-    done | sed -n "/^[^ ]/ s,\..* : , : ,p" | grep --color=auto --color=auto --color=auto --color=auto -vE "($(IFS='| '; set -- $EXCLUDE; echo "$*"))" | uniq )
+        sudo yum -y search "${ARG%%[!-A-Za-z0-9]*}" | ${GREP-grep} --color=auto --color=auto --color=auto --color=auto -i "$ARG[^ ]* : ";
+    done | ${SED-sed} -n "/^[^ ]/ s,\..* : , : ,p" | ${GREP-grep} --color=auto --color=auto --color=auto --color=auto -vE "($(IFS='| '; set -- $EXCLUDE; echo "$*"))" | uniq )
 }
 
 player-file()
 {
   ( SED_SCRIPT=
-	while :; do
-					case "$1" in
-									-H|--no*hidden) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|/\\.|d" ; shift ;;
-									-P|--no*proc) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|^/proc|d" ; shift ;;
-					-x|--exclude) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|${2//*/.*}|d" ; shift 2  ;;
-					-x=*|--exclude=*) P=${1#*=}; SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|^"${P//"*"/".*"}"\$|d" ; shift   ;;
-					*) break ;;
-					esac
-	done
-	SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }s| ([^)]*)\$||"
-	  lsof -n $(pid-args "${@-mplayer}") 2> /dev/null 2> /dev/null 2> /dev/null 2> /dev/null | grep  -E ' [0-9]+[^ ]* +REG ' | grep --color=auto -vE ' (mem|txt|DEL) ' | cut-lsof NAME |sed "$SED_SCRIPT" )
+  while :; do
+          case "$1" in
+                  -H|--no*hidden) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|/\\.|d" ; shift ;;
+                  -P|--no*proc) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|^/proc|d" ; shift ;;
+          -x|--exclude) SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|${2//*/.*}|d" ; shift 2  ;;
+          -x=*|--exclude=*) P=${1#*=}; SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }\\|^"${P//"*"/".*"}"\$|d" ; shift   ;;
+          *) break ;;
+          esac
+  done
+  SED_SCRIPT="${SED_SCRIPT:+$SED_SCRIPT ;; }s| ([^)]*)\$||"
+    lsof -n $(pid-args "${@-mplayer}") 2> /dev/null 2> /dev/null 2> /dev/null 2> /dev/null | ${GREP-grep}  -E ' [0-9]+[^ ]* +REG ' | ${GREP-grep} --color=auto -vE ' (mem|txt|DEL) ' | cut-lsof NAME |${SED-sed} "$SED_SCRIPT" )
+}
+
+port-joinlines() { 
+  ${SED-sed} -n '/ @/ {
+    :lp
+    /\n *$/! { N; b lp; }
+    s|\n| - |g
+    s|[- ]*$||; p
+  }'
 }
 
 proc-by-pid() {
-  if ps --help 2>&1 |grep -q '\-W'; then
+  if ps --help 2>&1 |${GREP-grep} -q '\-W'; then
     PSARGS="-W"
   fi
   for ARG; do
-     ps $PSARGS -p "$ARG" | sed 1d
+     ps $PSARGS -p "$ARG" | ${SED-sed} 1d
   done |cut-ls-l 7
 }
 
@@ -3880,7 +5118,7 @@ proc-mount()
 {
     for ARG in "$@";
     do
-        ( grep --color=auto --color=auto --color=auto "^$ARG" /proc/mounts );
+        ( ${GREP-grep} --color=auto --color=auto --color=auto "^$ARG" /proc/mounts );
     done
 }
 
@@ -3892,17 +5130,12 @@ prof()
             . "$PROF"
         ;;
         edit)
-            "${2:-$EDITOR}" "$(cygpath -m "$PROF")"
+            "${2:-$EDITOR}" "$(${PATHTOOL:-echo} "$PROF")"
         ;;
     esac
 }
 
-pushv()
-{
-    eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
-}
-
-pushv_unique()
+pushv-unique()
 {
     local v=$1 s IFS=${IFS%${IFS#?}};
     shift;
@@ -3914,6 +5147,11 @@ pushv_unique()
             return 1;
         fi;
     done
+}
+
+pushv()
+{
+    eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
 }
 
 quiet()
@@ -3937,10 +5175,10 @@ randhex()
     done
 }
 
-random_acquire()
+random-acquire()
 {
     local n IFS="$newline";
-    for n in $(echo "$@" | hexdump -d | sed "s,^[0-9a-f]\+\s*,,;s,\s\+,\n,g");
+    for n in $(echo "$@" | hexdump -d | ${SED-sed} "s,^[0-9a-f]\+\s*,,;s,\s\+,\n,g");
     do
         local rot=$(( (${random_seed:-0xdeadbeef} + (n >> 11)) & 0x1f)) xor=$((${random_seed:-0xdeadbeef} - (n & 0x07ff)));
         random_seed=$(( ($(bitrotate $(( ${random_seed:-0xdeadbeef} )) $rot) ^ $xor) & 0xffffffff ));
@@ -3957,24 +5195,7 @@ rangearg()
     echo "$*" )
 }
 
-rcat()
-{
-    local opts= args=;
-    while test -n "$1"; do
-        case $1 in
-            *)
-                pushv args "$1"
-            ;;
-            -*)
-                pushv opts "$1"
-            ;;
-        esac;
-        shift;
-    done;
-    grep --color=auto --color=auto --color=auto --color=no $opts '.*' $args
-}
-
-regexp_to_fnmatch()
+regexp-to-fnmatch()
 {
     ( expr=$1;
     case $expr in
@@ -3998,12 +5219,12 @@ regexp_to_fnmatch()
     esac;
     case $expr in
         *'.*'*)
-            expr=`echo "$expr" | sed "s,\.\*,\*,g"`
+            expr=`echo "$expr" | ${SED-sed} "s,\.\*,\*,g"`
         ;;
     esac;
     case $expr in
         *'.'*)
-            expr=`echo "$expr" | sed "s,\.,\?,g"`
+            expr=`echo "$expr" | ${SED-sed} "s,\.,\?,g"`
         ;;
     esac;
     echo "$expr" )
@@ -4025,11 +5246,11 @@ reload()
     done;
     script=$(require -p -n ${1%.sh});
     name=${script%.sh}_sh;
-    var=$(echo lib/$name | sed -e s,/,_,g);
+    var=$(echo lib/$name | ${SED-sed} -e s,/,_,g);
     if test "$force" = yes; then
         verbose "Forcing reload of $script";
         local fn;
-        for fn in $(sed -n -e 's/^\([_a-z][_0-9a-z]*\)().*/\1/p' $shlibdir/$script);
+        for fn in $(${SED-sed} -n -e 's/^\([_a-z][_0-9a-z]*\)().*/\1/p' $shlibdir/$script);
         do
             case $fn in
                 require | verbose | msg)
@@ -4051,9 +5272,9 @@ remove-cond-include() {
   shift
 
   INCNAME="${INC##*/include/}"
-  INCDEF=HAVE_$(echo "$INCNAME" | sed 's,[/.],_,g' | tr '[[:'{lower,upper}':]]') 
+  INCDEF=HAVE_$(echo "$INCNAME" | ${SED-sed} 's,[/.],_,g' | tr '[[:'{lower,upper}':]]')
 
-  sed -i "\\|^\s*#\s*if[^\n]*def[^\n]*$INCDEF| {
+  ${SED-sed} -i "\\|^\s*#\s*if[^\n]*def[^\n]*$INCDEF| {
     :lp
     /#\s*endif/! { N; b lp; }
 
@@ -4062,6 +5283,11 @@ remove-cond-include() {
   }" "$@"
 
   )
+}
+
+remove-emptylines()
+{
+    ${SED-sed} -e '/^\s*$/d' "$@"
 }
 
 removeprefix()
@@ -4083,43 +5309,6 @@ removesuffix()
     CMD="while read -r LINE; do $CMD; done"
   fi
   eval "$CMD")
-}
-
-remove_emptylines()
-{
-    sed -e '/^\s*$/d' "$@"
-}
-
-require()
-{
-    local mask script retcode cmd="source" pre="";
-    while :; do
-        case $1 in
-            -p)
-                cmd="echo"
-            ;;
-            -n)
-                pre="$shlibdir/"
-            ;;
-            *)
-                break
-            ;;
-        esac;
-        shift;
-    done;
-    script=${1%.sh};
-    for mask in $shlibdir/$script.sh $shlibdir/*/${script%.sh}.sh $shlibdir/*/*/${script%.sh}.sh;
-    do
-        if test -r "$mask"; then
-            if test "$cmd" = echo && test -n "$pre"; then
-                mask=${mask#$pre};
-            fi;
-            $cmd "$mask";
-            return 0;
-        fi;
-    done;
-    echo "ERROR: loading shell script library $shlibdir/$script.sh" 1>&2;
-    return 127
 }
 
 retcode()
@@ -4200,25 +5389,25 @@ rgb()
     esac )
 }
 
+rm-arch()
+{
+    ( IFS="
+";
+    [ $# -gt 0 ] && exec <<< "$*";
+    ${SED-sed} 's,\.[^\.]*$,,' )
+}
+
+rm-ver()
+{
+    ( IFS="
+";
+    [ $# -gt 0 ] && exec <<< "$*";
+    ${SED-sed} 's,-[^-]*$,,' )
+}
+
 rmv()
 {
     "${COMMAND-command}" rsync -r --remove-source-files -v --partial --size-only --inplace -D --links "$@"
-}
-
-rm_arch()
-{
-    ( IFS="
-";
-    [ $# -gt 0 ] && exec <<< "$*";
-    sed 's,\.[^\.]*$,,' )
-}
-
-rm_ver()
-{
-    ( IFS="
-";
-    [ $# -gt 0 ] && exec <<< "$*";
-    sed 's,-[^-]*$,,' )
 }
 
 rpm-cmd() {
@@ -4233,7 +5422,7 @@ rpm-cmd() {
   done
 
  #CMD="addprefix \"\$ARG: \""
- CMD="sed \"s|^\\./|| ;; s|^|\$ARG: |\""
+ CMD="${SED-sed} \"s|^\\./|| ;; s|^|\$ARG: |\""
  #N=$#
 
   while [ $# -gt 0 ]; do
@@ -4243,11 +5432,11 @@ rpm-cmd() {
       #*://*) DLCMD="wget -q -O - \"\$ARG\" | rpm2cpio /dev/stdin" ;;
       #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
       #*://*) DLCMD="lynx -source \"\$ARG\" | rpm2cpio /dev/stdin" ;;
-    *://*) 
-      MIRRORLIST=`curl -s "$ARG.mirrorlist" |sed -n 's,\s*<li><a href="\([^"]*\.rpm\)">.*,\1,p'`
+    *://*)
+      MIRRORLIST=`curl -s "$ARG.mirrorlist" |${SED-sed} -n 's,\s*<li><a href="\([^"]*\.rpm\)">.*,\1,p'`
 
       if [ -n "$MIRRORLIST" ]; then
-        set -- $MIRRORLIST 
+        set -- $MIRRORLIST
       else
         set -- "$ARG"
       fi
@@ -4258,12 +5447,12 @@ rpm-cmd() {
         ;;
     esac
     CMD="$DLCMD | (${OUTPUT:+cd \"\$OUTPUT\"; }cpio \${OPTS:--t} 2>/dev/null)${CMD:+ | $CMD}"
-    while [ $# -gt 0 ]; do 
+    while [ $# -gt 0 ]; do
       eval "( $CMD ) 2>/dev/null" && exit 0
       #echo continue 1>&2
       shift
     done
-    
+
     echo "Failed to list $ARG" 1>&2
     exit 1)
   done
@@ -4275,6 +5464,24 @@ rpm-extract() {
 
 rpm-list() {
   rpm-cmd -t -- "$@"
+}
+
+samplerate()
+{
+  ( N=$#
+  for ARG in "$@";
+  do
+		EXPR='/^Sampling rate/ { s,^[^:]*:\s*,,; p }'
+    test $N -le 1 && P="" || P="$ARG:"
+
+		HZ=$(mediainfo "$ARG" | sed -n "$EXPR")
+
+		case "$HZ" in
+			*KHz) HZ=$(echo "${HZ% KHz} * 1000" | bc -l| sed 's,\.0*$,,') ;;
+		  *Hz) HZ=$(echo "${HZ% Hz}" | sed 's, ,,g') ;;
+		esac	
+		echo "$P$HZ" 
+	done)
 }
 
 scriptdir()
@@ -4291,7 +5498,55 @@ scriptdir()
     echo $absdir
 }
 
-set_ps1()
+search-fileknow()
+{ 
+  . require.sh
+  require url
+  for Q; do
+   (Q=${Q// /-}
+	Q=$(url_encode_args "=$Q")
+	SURL="http://fileknow.org/${Q#=}"
+	URLS=$SURL
+	PIPE="$(basename "${0#-}" .sh)-$$"
+	trap 'rm -f "$PIPE"' EXIT INT QUIT
+	rm -f "$PIPE"; mkfifo "$PIPE"
+	
+	while [ $(countv URLS) -gt 0 ]; do
+	  (set -x; dlynx.sh "$(indexv URLS 0)")	 >"$PIPE" &
+	  shiftv URLS
+	  while read -r LINE; do
+		case "$LINE" in
+		  */download/*) pushv DLS "$LINE" ;;
+		  *#[0-9]*) 		  
+		    OFFS=${LINE##*\#}
+		    OFFS=$(( (OFFS - 1) * 10 ))
+		    pushv URLS "$SURL?n=$OFFS" ;;
+		  *) continue ;;
+		esac
+        echo "$LINE"
+	  done <"$PIPE"
+	  wait 
+	done) || return $?	  
+  done 
+}
+
+set-builddir() {
+  CCPATH=$(which ${CC:-gcc})
+  case "$CCPATH" in
+    */mingw??/*) CCHOST=${CCPATH%%/mingw??/*}; CCHOST=${CCHOST##*/} ;;
+    *) CCHOST=$("$CCPATH" -dumpmachine);	CCHOST=${CCHOST%$r} ;;
+	esac
+	builddir=build/$CCHOST
+	mkdir -p $builddir
+	echo "$builddir"
+}
+
+set-devenv() {
+  DEST=${1%/bin*}/bin
+  PATH="$DEST:$(explode : "$PATH" |grep -v "$DEST"|implode :)"
+}
+
+set-ps1()
 {
     local b="\\[\\e[37;1m\\]" d="\\[\\e[0;38m\\]" g="\\[\\e[1;36m\\]" n="\\[\\e[0m\\]";
     export PS1="$n\\u$g@$n\\h$g<$n\\w$g>$n \\\$ "
@@ -4300,22 +5555,22 @@ set_ps1()
 sf-get-cvs-modules() {
  (CVSCMD="cvs -z3 -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG co"
 #  CVSPASS="cvs -d:pserver:anonymous@\$ARG.cvs.sourceforge.net:/cvsroot/\$ARG login"
-CVSPASS='echo "grep -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <<\\EOF >>~/.cvspass
+CVSPASS='echo "${GREP-grep} -q @$ARG.cvs.sourceforge.net ~/.cvspass 2>/dev/null || cat <<\\EOF >>~/.cvspass
 \1 :pserver:anonymous@$ARG.cvs.sourceforge.net:2401/cvsroot/$ARG A
 EOF"'
   for ARG; do
-    CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | sed -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
-	 (set -- $(eval "$CMD")
-		test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
-		CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
-		#[ -n "$DSTDIR" ] && CMD="(cd ${DSTDIR%/} && $CMD)"
-		CMD="echo \"$CMD\""
-		
-		CMD="for MODULE; do $CMD; done"
-		[ -n "$DSTDIR" ] && CMD="echo \"mkdir -p ${DSTDIR%/}\"; $CMD"
-		[ -n "$CVSPASS" ] && CMD="$CVSPASS; $CMD"
-		[ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
-		eval "$CMD")
+    CMD="curl -s http://$ARG.cvs.sourceforge.net/viewvc/$ARG/ | ${SED-sed} -n \"s|^\\([^<>/]\+\\)/</a>\$|\\1|p\""
+   (set -- $(eval "$CMD")
+    test $# -gt 1 && DSTDIR="${ARG}-cvs/\${MODULE}" || DSTDIR="${ARG}-cvs"
+    CMD="${CVSCMD} -d ${DSTDIR} -P \${MODULE}"
+    #[ -n "$DSTDIR" ] && CMD="(cd ${DSTDIR%/} && $CMD)"
+    CMD="echo \"$CMD\""
+
+    CMD="for MODULE; do $CMD; done"
+    [ -n "$DSTDIR" ] && CMD="echo \"mkdir -p ${DSTDIR%/}\"; $CMD"
+    [ -n "$CVSPASS" ] && CMD="$CVSPASS; $CMD"
+    [ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
+    eval "$CMD")
   done)
 }
 
@@ -4323,21 +5578,21 @@ sf-get-git-repos() {
   require xml
  (for ARG; do
     curl -s  "http://sourceforge.net/p/$ARG/code-git/ci/master/tree/" |
-			xml_get a data-url |
-			head -n1
-  done |
-    sed "s|-git\$|| ;; s|-code\$||" |
-    addsuffix "-git")
-}
-
-sf-get-svn-modules() { 
-  require xml
- (for ARG; do
-    curl -s http://sourceforge.net/p/"$ARG"/{svn,code}/HEAD/tree/ | 
       xml_get a data-url |
       head -n1
   done |
-    sed "s|-svn\$|| ;; s|-code\$||" |
+    ${SED-sed} "s|-git\$|| ;; s|-code\$||" |
+    addsuffix "-git")
+}
+
+sf-get-svn-modules() {
+  require xml
+ (for ARG; do
+    curl -s http://sourceforge.net/p/"$ARG"/{svn,code}/HEAD/tree/ |
+      xml_get a data-url |
+      head -n1
+  done |
+    ${SED-sed} "s|-svn\$|| ;; s|-code\$||" |
     addsuffix "-svn")
 }
 
@@ -4346,6 +5601,77 @@ shell-functions()
     ( . require.sh;
     require script;
     declare -f | script_fnlist )
+}
+
+shiftv()
+{
+  I=${2:-1}
+  
+    eval "while [ \$((I)) -gt 0 ]; do case \"\${$1}\" in
+    *[\$IFS]*) $1=\"\${$1#*[${IFS}]}\" ;;
+  *) $1=\"\" ;;
+esac 
+    : \$((I--))
+  done"
+}
+
+shortcut-cmd() {
+    readshortcut -a -f "$1" | ${SED-sed} 's,^Arguments:\s*\(.*\),-a\n"\1",
+    s,^Description:\s\+\(.*\),-d\n"\1",g
+    s,^Icon Library Offset:\s*\(.*\),-j\n\1,g
+    s,^Icon Library:\s*\(.*\),-i\n\"\1\",g
+    s,^Working Directory:\s*\(.*\),-w\n"\1",g
+    s,^Show Command:\s*\(.*\),-s\n"\1",g
+    s,^Target:\s*\(.*\),"\1",g
+    1 i\
+readshortcut
+'
+}
+
+show-builtin-defines() {
+ (NARG=$#
+  CMD='"$ARG" -dM -E - <<EOF
+EOF'
+  if [ "$NARG" -gt 1 ]; then
+    CMD="$CMD | addprefix \"\$ARG\":"
+  fi
+  eval "for ARG; do
+    $CMD
+  done")
+}
+
+sln-version() { 
+ (while :; do
+    case "$1" in
+      -x | --debug) DEBUG="true"; shift ;;
+      -vs* | --vs*) E='$VSVER'; shift ;;
+       -vc* | --vc*) E='$VCVER'; shift ;;
+      -f | --file) E='$FVER'; shift ;;
+      *) break ;;
+    esac
+  done
+  : ${E='"$FVER"${VSVER:+ "$VSVER"}'}
+  [ $# -gt 1 ] && E='"$ARG": '$E
+  
+  for ARG in "$@"; do
+   (exec < "$ARG"
+    read LINE
+    while [ "${#LINE}" -lt 4 ]; do  read  LINE ; done # skip BOM    
+    FVER=${LINE##*"Version "}
+    read -r LINE
+    case "$LINE" in
+      *\ 20[01][0-9]\ *) LINE=${LINE%%" ${LINE##*20[01][0-9]}"*} ;;
+    esac
+    case "$LINE" in 
+      *Version\ *) FVER=${LINE##*"Version "} ;;
+      *"Visual Studio 20"[01][0-9]*) VSVER=${LINE##*Visual*"Studio "}; VSVER=${VSVER%%" "*} ;;
+      *\ 20[01][0-9]) VSVER=${LINE##*" "} ;;
+    esac
+    case "$E" in
+      *\$VCVER*) VCVER=$(vs2vc "$VSVER") ;;
+    esac
+    eval "echo $E")
+  done)
 }
 
 some()
@@ -4365,8 +5691,23 @@ split()
     for _a__ in $_s__;
     do
         shift;
-        eval "$1='`echo "$_a__" | sed "s,','\\\\'',g"`'";
+        eval "$1='`echo "$_a__" | ${SED-sed} "s,','\\\\'',g"`'";
     done
+}
+
+splitrev () {
+   (IFS=${1-" "};
+    S=${IFS%"${IFS#?}"};
+    R=${2-"$S"}
+    while read -r LINE; do
+        set -- $LINE;
+        OUT=;
+        for F in "$@"; do
+            OUT="$F${OUT:+$R$OUT}";
+            shift
+        done
+        echo "$OUT"
+    done)
 }
 
 srate()
@@ -4378,12 +5719,12 @@ srate()
     test $N -le 1 && EXPR=".*$EXPR" || EXPR="$EXPR:"
     EXPR="s,$EXPR\\1\\2,p"
 
-    SRATE=$(file "$ARG" |sed -n "$EXPR" |sed 's,[Kk]$,000,')
+    SRATE=$(file "$ARG" |${SED-sed} -n "$EXPR" |${SED-sed} 's,[Kk]$,000,')
     #echo "EXPR='$EXPR'" 1>&2
 
     test -n "$SRATE" && echo "$SRATE" || (
-      #mminfo "$ARG" | sed -n "/Sampling rate[^=]*=/ { s,Hz,,; s,[Kk],000, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }" | tail -n1
-      SRATE=$(mminfo "$ARG" | sed -n "/Sampling rate[^=]*=/ { s,.*[:=],,; s,Hz,,; s,\.[0-9]*\$,, ; s|^|$ARG:|;  p }" | tail -n1)
+      #mminfo "$ARG" | ${SED-sed} -n "/Sampling rate[^=]*=/ { s,Hz,,; s,[Kk],000, ; s,\.[0-9]*\$,, ; s|^|$ARG:|; p }" | tail -n1
+      SRATE=$(mminfo "$ARG" | ${SED-sed} -n "/Sampling rate[^=]*=/ { s,.*[:=],,; s,Hz,,; s,\.[0-9]*\$,, ; s|^|$ARG:|;  p }" | tail -n1)
       SRATE=${SRATE##*:}
       case "$SRATE" in
           *[Kk])
@@ -4414,22 +5755,68 @@ submatch()
     done
 }
 
-subst_script()
+ subst-build-cmd() {
+  : ${vs=2013} ${vc=12}
+
+	s() {
+	  ${SED-sed} 's,20[01][0-9],'$vs',g ;; s, [8-9] , '$vc' ,g  ;; s, 1[0124] , '$vc' ,g' "$@"
+	}
+	for x in ${@:-build/vs2008-*/build.cmd}; do
+		y=$(s <<<"$x")
+		mkdir -p "$(dirname "$y")"
+		s < "$x" >"$y"
+		echo "$y"
+	done
+}
+
+subst-script()
 {
     local var script value IFS="$obj_s";
     for var in "$@";
     do
         if [ "$var" != "${var%%=*}" ]; then
             value=${var#*=};
-            value=`echo "$value" | sed 's,\\\\,\\\\\\\\,g'`;
+            value=`echo "$value" | ${SED-sed} 's,\\\\,\\\\\\\\,g'`;
             array_push script "s°@${var%%=*}@°`array_implode value '\n'`°g";
         else
             value=`var_get "$var"`;
-            value=`echo "$value" | sed 's,\\\\,\\\\\\\\,g'`;
+            value=`echo "$value" | ${SED-sed} 's,\\\\,\\\\\\\\,g'`;
             array_push script "s°@$var@°`array_implode value '\n'`°g";
         fi;
     done;
     array_implode script ';'
+}
+
+suffix-num() {
+ (for N; do
+    case "$N" in
+      [0-9]*P) N=$(multiply-num "${N%P} * 1099511627776") ;;
+      [0-9]*G) N=$(multiply-num "${N%G} * 1073741824") ;;
+      [0-9]*M) N=$(multiply-num "${N%M} * 1048576") ;;
+      [0-9]*[Kk]) N=$(multiply-num "${N%[Kk]} * 1024") ;;
+    esac
+    echo ${N%.*}
+  done)
+}
+
+svgsize() {
+(while :; do
+   case "$1" in
+		-xy | --xy) XY=true; shift ;;
+*) break ;;
+esac
+done
+
+  sed -n  's,.*viewBox=[^0-9]*\([0-9][0-9]*\)[^0-9][^0-9]*\([0-9][0-9]*\)[^0-9][^0-9]*\([0-9][0-9]*\)[^0-9][^0-9]*\([0-9][0-9]*\).*,\1 \2 \3 \4,p' "$@" | 
+	(IFS=" "; while  read -r x y w h; do
+
+	if [ "$XY" = true ]; then
+			echo x$(expr "$w" - "$x")Y$(expr "$h" - "$y")
+		else
+			echo $(expr "$w" - "$x") $(expr "$h" - "$y")
+	fi
+	done)
+	)
 }
 
 symlink-lib()
@@ -4474,7 +5861,7 @@ tcp-check() {
         for ARG; do
         HOST=${ARG%:*}
         PORT=${ARG#$HOST:}
-        
+
         if type tcping 2>/dev/null >/dev/null; then
           CMD='tcping -q -t "$TIMEOUT" "$HOST" "$PORT"; echo "$?"'
         else
@@ -4482,7 +5869,7 @@ tcp-check() {
         fi
 
         RET=`eval "$CMD"`
-        
+
         if [ "$RET" -eq 0 ]; then
           echo "$HOST:$PORT"
         fi
@@ -4504,7 +5891,7 @@ tempnam()
     echo "$name"
 }
 
-terminfo_file()
+terminfo-file()
 {
     ( for ARG in "$@";
     do
@@ -4526,9 +5913,9 @@ tgz2txz()
 
 title()
 {
-				(
+        (
 id3get "$1" 'TIT[0-9]'
-				)
+        )
 
 }
 
@@ -4537,13 +5924,13 @@ to-expr() { echo "${*//[!-a-zA-Z0-9_=%:\/ <>\']/.}"; }
 to-sed-expr()
 {
  ([ $# -gt 0 ] && exec <<<"$*"
-  sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
+  ${SED-sed} 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
 }
 
 to-sed-expr()
 {
  ([ $# -gt 0 ] && exec <<<"$*"
-  sed 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
+  ${SED-sed} 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
 }
 
 umount-all()
@@ -4567,12 +5954,12 @@ umount-matching()
 
 undotslash()
 {
-    sed -e "s:^\.\/::" "$@"
+    ${SED-sed} -e "s:^\.\/::" "$@"
 }
 
-unescape_newlines()
+unescape-newlines()
 {
-    sed -e ':start
+    ${SED-sed} -e ':start
   /\$/ {
   N
   s|\\\n[ \t]*||
@@ -4645,9 +6032,137 @@ usleep()
     sleep $((sec)).$usec
 }
 
-uuid_hexnums()
+uuid-hexnums()
 {
-    getuuid "$1" | sed "s,[0-9A-Fa-f][0-9A-Fa-f], ${2:-0x}&,g" | sed "s,^\s*,, ; s,\s\+,\n,g"
+    getuuid "$1" | ${SED-sed} "s,[0-9A-Fa-f][0-9A-Fa-f], ${2:-0x}&,g" | ${SED-sed} "s,^\s*,, ; s,\s\+,\n,g"
+}
+
+var-get() {
+ (while [ $# -gt 0 ]; do
+    eval "echo \"\$$1\""
+    shift
+  done)
+}
+
+vc2vs() {
+ (while :; do
+    case "$1" in
+      -c | --continue) CONT=true; shift ;;
+      -t | --trail*) TRAIL=true; shift ;;
+      *) break ;;
+    esac
+  done
+  for ARG; do
+   ARG=${ARG#*msvc}
+   ARG=${ARG#-}
+   ARG=${ARG##*"Visual Studio "}
+   ARG=${ARG%%[/\\]*}
+   ARG=${ARG#vc}
+   NUM=${ARG%%[!0-9.]*}
+   [ "$TRAIL" = true ] && T=${ARG#$NUM} || T=
+   case "${NUM}" in
+     8 | 8.0 | 8.00) echo 2005$T ;;
+     9 | 9.0 | 9.00) echo 2008$T ;;
+     10 | 10.0 | 10.00) echo 2010$T ;;
+     11 | 11.0 | 11.00) echo 2012$T ;;
+     12 | 12.0 | 12.00) echo 2013$T ;;
+     14 | 14.0 | 14.00) echo 2015$T ;;
+     *) [ "$CONT" = true ] && echo "$ARG" || { echo "No such Visual Studio version: $ARG" 1>&2; exit 1; } ;;
+   esac
+  done)
+}
+
+vcget() {
+  case "$1" in
+	*2005* | *2008* | *2010* | *2012* | *2013* | *2015*)
+	  VC=$(vs2vc -0 "$1")
+	  VS=$(vc2vs "$VC")
+      ARCH=${1#*$VS}
+	;;
+	  *)
+	  VS=$(vc2vs "$1")
+	  VC=$(vs2vc -0 "$VS")
+      ARCH=${1#*$VC}
+	;;
+  esac
+  ARCH=${ARCH#[!0-9A-Za-z_]}
+  case "$ARCH" in
+    x64) ARCH="amd64" ;;
+    amd64|amd64_arm|amd64_x86|arm|ia64|x86_amd64|x86_arm|x86_ia64) ;;
+    *) ARCH= ;;
+  esac
+
+  shift
+
+  VSINSTALLDIR="${PROGRAMFILES% (x86)}${ProgramW6432:+ (x86)}\\Microsoft Visual Studio $VC"
+  VCINSTALLDIR="$VSINSTALLDIR\\VC"
+  BINDIR="$VCINSTALLDIR\\bin${ARCH:+\\$ARCH}"
+  CL="$BINDIR\\cl.exe"
+  DevEnvDir="$VCINSTALLDIR\\Common7\\IDE"
+  DEVENV="$DevEnvDir\\devenv.exe"
+
+  BITS=${ARCH##*[!0-9]}
+
+
+  VCVARSALL="$VCINSTALLDIR\\vcvarsall.bat"
+
+  case "$VC" in
+    9.0) VCVARSARCH="$BINDIR\\vcvars${ARCH:-32}.bat" ;;
+    *) VCVARSARCH="$BINDIR\\vcvars${BITS:-32}.bat" ;;
+  esac
+
+  VCVARSCMD="\"$VCVARSALL\" ${ARCH:-x86}"
+
+  VCNAME="Microsoft Visual Studio $VC${ARCH:+ ($ARCH)}"
+  CMAKEGEN="Visual Studio ${VC%.0*} ${VS}"
+
+   VSVARS="${ARCH:+$VCVARSARCH}"
+   : ${VSVARS:="$VSINSTALLDIR\\Common7\\Tools\\vsvars32.bat"}
+
+  WindowsSdkDir=$(reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows" /v "CurrentInstallFolder" | ${SED-sed} -n "s|.*REG_SZ\s\+||p")
+
+  local $(${GREP-grep} -i -E "^\s*@?set \"?(INCLUDE|LIB|LIBPATH|FrameworkDir|FrameworkVersion|Framework35Version)=" "$VSVARS" | ${SED-sed} \
+   -e "s,.*set \"\?\([^\"]\+\)\"\?,\1,i" \
+   -e "s|%VCINSTALLDIR%|${VCINSTALLDIR//"\\"/"\\\\"}|g" \
+   -e "s|%VSINSTALLDIR%|${VSINSTALLDIR//"\\"/"\\\\"}|g" \
+   -e "s|%WindowsSdkDir%|${WindowsSdkDir//"\\"/"\\\\"}|g")
+
+  case "$ARCH" in
+    *amd64*) CMAKEGEN="$CMAKEGEN Win64" ;;
+  esac
+
+  [ $# -eq 0 ] && set -- VCINSTALLDIR
+
+  for VAR; do
+    eval "O=\$$VAR"
+    case "$O" in
+      *\;*) echo "$O" ;;
+      ?:\\*) ${PATHTOOL:-echo} "$O" ;;
+      *) echo "$O" ;;
+    esac
+  done
+}
+
+vcodec()
+{
+    ( IFS="
+";
+      CMD='echo "${ARG:+$ARG:}$D"'
+    while :; do
+       case "$1" in
+       *) break ;;
+     esac
+   done
+    N="$#";
+    for ARG in "$@"
+    do
+     ( D=$(mminfo "$ARG" |${SED-sed} -n 's,Codec ID=,,p ;  s,Writing library=,,p' )
+       set -- $D
+       [ $# -gt 1 ] && shift
+#        while [ $# -gt 1 ]; do shift; done
+        D="$1${2:+ $2}"
+        [ "$N" -gt 1 ] && eval "$CMD" || ARG= eval "$CMD") || exit $?
+    done )
 }
 
 verbose()
@@ -4665,12 +6180,26 @@ verbose()
     fi
 }
 
+verbosecmd() {
+  CMD='"$@"'
+  while :; do
+    case "$1" in
+      -2=1 | -err=out | -stderr=stdout) CMD="$CMD 2>&1"; shift ;;
+      -1=* | -out=* | -stdout=*) CMD="$CMD 1>${1#*=}"; shift ;;
+      -1+=* | -out+=* | -stdout+=*) CMD="$CMD 1>>${1#*=}"; shift ;;
+      *) break ;;
+    esac
+  done
+  echo "+ $@" 1>&2
+  eval "$CMD; return \$?"
+}
+
 video-height()
 {
     ( for ARG in "$@";
     do
         [ $# -gt 1 ] && PFX="$ARG: " || unset PFX;
-        mminfo "$ARG" | sed -n "s|^Height=|$PFX|p";
+        mminfo "$ARG" | ${SED-sed} -n "s|^Height=|$PFX|p";
     done )
 }
 
@@ -4679,7 +6208,7 @@ video-width()
     ( for ARG in "$@";
     do
         [ $# -gt 1 ] && PFX="$ARG: " || unset PFX;
-        mminfo "$ARG" | sed -n "s|^Width=|$PFX|p";
+        mminfo "$ARG" | ${SED-sed} -n "s|^Width=|$PFX|p";
     done )
 }
 
@@ -4687,7 +6216,7 @@ vlcfile()
 {
     ( IFS="
 ";
-    set -- ` handle -p $(vlcpid)|grep -vi "$(cygpath -m "$WINDIR"| sed 's,/,.,g')"  |sed -n -u 's,.*: File  (RW-)\s\+,,p'
+    set -- ` handle -p $(vlcpid)|${GREP-grep} -vi "$(${PATHTOOL:-echo} "$WINDIR"| ${SED-sed} 's,/,.,g')"  |${SED-sed} -n -u 's,.*: File  (RW-)\s\+,,p'
 `;
     for X in "$@";
     do
@@ -4698,40 +6227,69 @@ vlcfile()
 
 vlcpid()
 {
-    ( ps -aW | grep --color=auto --color=auto --color=auto --color=auto --color=auto --line-buffered --color=auto --line-buffered -i vlc.exe | awkp )
+    ( ps -aW | ${GREP-grep} --color=auto --color=auto --color=auto --color=auto --color=auto --line-buffered --color=auto --line-buffered -i vlc.exe | awkp )
 }
 
-volname() { 
-	(
-		[ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
-	if [ -d /dev/disk/by-label ]; then
-	  for ARG; do 
-			for link in /dev/disk/by-label/*; do
-				NAME=${link##*/}
-				dev=$(realpath "$link")
-				if [ "$dev" = "$ARG" ]; then
-					eval "$ECHO"
-				fi
-			 done
-		done
-	else
-		for ARG in "$@"; do
-				drive="$ARG"
-				case "$drive" in
-					?) drive="$drive:/" ;;
-					?:) drive="$drive/" ;;
-					*) drive=$(cygpath -m "$drive") ;;
-				esac  
-				drive=$(cygpath -m "$drive")
-				NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
-				eval "$ECHO"
-		done
-fi)
+volname() {
+ ([ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
+  if [ -d /dev/disk/by-label ]; then
+    for ARG; do
+      for link in /dev/disk/by-label/*; do
+        NAME=${link##*/}
+        dev=$(realpath "$link")
+        if [ "$dev" = "$ARG" ]; then
+          eval "$ECHO"
+        fi
+       done
+    done
+  else
+    for ARG in "$@"; do
+        drive="$ARG"
+        case "$drive" in
+          ?) drive="$drive:" ;;
+          ?:*) drive=${drive%%:*}: ;;
+          *) drive=$(${PATHTOOL:-echo} ${PATHTOOL:+-m} "$drive") ; drive=${drive%%:*}: ;;
+        esac  
+        #drive=$(${PATHTOOL:-echo} "$drive")
+        NAME=$(cmd /c "vol ${drive%%[\\/]*}" | ${SED-sed} -n '/Volume in drive/ s,.* is ,,p')
+        eval "$ECHO"
+    done
+  fi)
+}
+
+vs2vc() {
+ (NUL=0
+  while :; do
+    case "$1" in
+      -0 | -nul | --nul) : $((NUL++)); shift ;;
+      -c | --continue) CONT=true; shift ;;
+      -t | --trail*) TRAIL=true; shift ;;
+      *) break ;;
+    esac
+  done
+  N=
+  while [ $((NUL)) -gt 0 ]; do
+    N="${N}0"
+    : $((NUL--))
+  done
+     [ "$TRAIL" = true ] && T=${ARG#*20[0-9][0-9]} || T=
+
+  for ARG; do
+   case "$ARG" in
+     *2005*) echo 8${N:+.$N}$T ;;
+     *2008*) echo 9${N:+.$N}$T ;;
+     *2010*) echo 10${N:+.$N}$T ;;
+     *2012*) echo 11${N:+.$N}$T ;;
+     *2013*) echo 12${N:+.$N}$T ;;
+     *2015*) echo 14${N:+.$N}$T ;;
+     *) [ "$CONT" = true ] && echo "$ARG" || { echo "No such Visual Studio version: $ARG" 1>&2; exit 1; } ;;
+   esac
+  done)
 }
 
 w2c()
 {
-    ch_conv UTF-16 UTF-8 "$@"
+    ch-conv UTF-16 UTF-8 "$@"
 }
 
 waitproc()
@@ -4753,8 +6311,22 @@ warn()
     msg "WARNING: $@"
 }
 
+writefile() {
+ (while :; do
+   case "$1" in
+     -a | --append) APPEND=true; shift ;;
+     *) break ;;
+   esac
+  done
+  FILE="$1"
+  shift
+  CMD='for LINE; do echo "$LINE"; done'
+  [ "$APPEND" = true ] && CMD="$CMD >>\"\$FILE\"" || CMD="$CMD >\"\$FILE\""
+  eval "$CMD")
+}
+
 x-fn()
-{ 
+{
  (MATCH=p
   NOMATCH=D
   while :; do
@@ -4765,12 +6337,12 @@ x-fn()
     esac
     shift
   done
-  
+
   FN="$1";
   shift;
   #: ${XTRA="$XTRA; s/^/-->/; s/\n/\n-->/g"}
-  sed " :lp0 
-   \$ { /\n/! $NOMATCH; } 
+  ${SED-sed} " :lp0
+   \$ { /\n/! $NOMATCH; }
     N
     /\n/! b lp0
 
@@ -4780,7 +6352,7 @@ x-fn()
       :lp1
       N
       /)/! b lp1
-      
+
       :endargs
 
       /).*;\s*$/ b endfn
@@ -4805,42 +6377,77 @@ x-fn()
 }
 
 yaourt-cutnum() {
- #(NAME='\([^ \t/]\+\)';  sed "s|^${NAME}/${NAME}\s\+\(.*\)\s\+\(([0-9]\+)\)\(.*\)|\1/\2 \3 \5|")
- sed "s|\s\+\(([0-9]\+)\)\(.*\)| \2|"
+ #(NAME='\([^ \t/]\+\)';  ${SED-sed} "s|^${NAME}/${NAME}\s\+\(.*\)\s\+\(([0-9]\+)\)\(.*\)|\1/\2 \3 \5|")
+ ${SED-sed} "s|\s\+\(([0-9]\+)\)\(.*\)| \2|"
 }
 
 yaourt-cutver() {
  (NAME='\([^ \t/]\+\)'
- sed "s|^${NAME}/${NAME}\s\+\([^ \t]\+\)\s\+\(.*\)|\1/\2 \4|")
+ ${SED-sed} "s|^${NAME}/${NAME}\s\+\([^ \t]\+\)\s\+\(.*\)|\1/\2 \4|")
 }
 
 yaourt-joinlines() {
- (while :; do 
+ (P_VERSION=' ${VERSION}' P_NUM= P_STATE= P_DESC=' - ${DESC}'
+  while :; do
    case "$1" in
-		-n | --num*) CUT_NUM=true ;;
-		-s | --state) CUT_STATE=true ;;
-		*) break ;;
-		esac 
-		shift
-	done
-		while read -r LINE; do
+    -i | --installed) P_INSTALLED=yes ;;
+    -I | --not-installed) P_INSTALLED=no ;;
+    -n | --num*) P_NUM='${NUM:+ $NUM}' ;;
+    -s | --state) P_STATE='${STATE:+ $STATE}' ;;
+    -R | --no-repository) R_REPOSITORY='#*/' ;;
+    -V | --no-version) P_VERSION= ;;
+    -D | --no*desc*) P_DESC= ;;
+    *) break ;;
+    esac
+    shift
+  done
+	rep() { N=$1; shift ; C="$*"; O=; while [ $((N)) -gt 0 ]; do O="${O}$C";  : $((--N)); done; echo "$O"; }
+	pad() { W=$1; shift; S=$*; P=$(rep $(($W-${#S})) " "); echo "${S}${P}"; }
+    DESC= INSTALLED=
+		P_NAME='${NAME'$R_REPOSITORY'}'
+
+		P_NAME='$(pad 32 "'$P_NAME'")'; [ -n "$P_VERSION" ] && P_VERSION=' $(pad 20'$P_VERSION')'
+
+    P_CMD='if [ -n "$DESC"'${P_INSTALLED:+' -a "$P_INSTALLED" = "$INSTALLED"'}' ]; then
+        echo "'$P_NAME$P_VERSION$P_STATE$P_NUM$P_DESC'"
+      fi'
+    eval "p() { $P_CMD; }"
+    while read -r LINE; do
     case "$LINE" in
-			"   "*) PKG="${PKG:+$PKG - }${LINE#    }" ;;
-      *) 
-				[ -n "$PKG" ] && echo "$PKG"
-				PKG="${LINE}"
-				${CUT_STATE:-false} && 
-				PKG="${PKG% \[*\]}"
-				${CUT_NUM:-false} && PKG="${PKG% (*)}"
-				;;
-		esac
-	done
-	[ -n "$PKG" ] && echo "$PKG")
+      "   "*) 
+				[ "$DEBUG" = true ] && echo "DESC=\"\$DESC    ${LINE#    }\"" 1>&2
+				DESC="${DESC:+$DESC - }${LINE#    }" ;;
+      *)
+        p
+        DESC="${LINE}"
+
+				NAME=${DESC%%" "*}; DESC=${DESC#"$NAME "}
+				VERSION=${DESC%%" "*}; DESC=${DESC#*"$VERSION "}
+
+				STATE= NUM=
+				while :; do
+					case "$DESC" in
+						"["*"]"*) STATE=${DESC%%"]"*}"]"; DESC=${DESC#*"]"} ;;
+						"("*")"*) NUM=${DESC%%")"*}")"; DESC=${DESC#*")"} ;;
+						*) break ;;
+					esac
+					DESC=${DESC#" "}
+				done
+
+				case "$STATE" in
+				  *installed*) INSTALLED=yes ;;
+					*) INSTALLED=no ;;
+			  esac
+
+        ;;
+    esac
+  done
+  p)
 }
 
 yaourt-pkgnames() {
  (NAME='\([^ \t/]\+\)'
- sed -n "s|^${NAME}/${NAME}\s\+\(.*\)|\2|p")
+ ${SED-sed} -n "s|^${NAME}/${NAME}\s\+\(.*\)|\2|p")
 }
 
 yes()
@@ -4848,6 +6455,28 @@ yes()
     while :; do
         echo "${1-y}";
     done
+}
+
+yum-joinlines()
+{ 
+    ${SED-sed} '/^[^ ]/ { :lp; N; /\n\s.*:\s/ { s,\n\s\+:\s*, , ; b lp };  :lp2; /\n/ { P; D; b  lp2; } }' "$@"
+}
+
+yum-rpm-list-all-pkgs()
+{
+  require rpm
+
+  yum list all >yum.list
+  #${SED-sed} -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1,p' <yum.list >pkgs.list
+  ${SED-sed} -n 's,^\([^ ]\+\)\(\.[^.]\+\)\s.*,\1\2,p' <yum.list >pkgs.list
+  #rpm_list |sort |${SED-sed} 's,\.[^.]\+$,, ; s,\.[^.]\+$,, ; s,-[^-]\+$,, ; s,-[^-]\+$,,' >rpm.list
+  rpm_list |sort |${SED-sed}  "s|-\([^-]\+\)-\([^-]\+\)\.\([^.]\+\)\.\([^.]\+\)$|.\4|" >rpm.list
+
+  rpm_expr=^$(grep-e-expr $(<rpm.list))
+
+  ${GREP-grep} -v -E "$rpm_expr\$" <pkgs.list >available.list
+
+  (set -x; wc -l {yum,rpm,pkgs,available}.list)
 }
 
 _cygpath()
@@ -4887,7 +6516,7 @@ _cygpath()
             vappend EXPR 's,/,\\,g'
         ;;
     esac;
-    FLTR="sed -e \"\${EXPR}\"";
+    FLTR="${SED-sed} -e \"\${EXPR}\"";
     if [ $# -le 0 ]; then
         PRNT="";
     else
@@ -4910,7 +6539,7 @@ _msyspath()
   esac
   case $MODE in
     win*|mix*)
-      for MOUNT in $(mount | sed -n 's|\\|\\\\|g ;; s,\(.\):\\\(.\+\) on \(.*\) type .*,\1:\\\2|\3,p'); do
+      for MOUNT in $(mount | ${SED-sed} -n 's|\\|\\\\|g ;; s,\(.\):\\\(.\+\) on \(.*\) type .*,\1:\\\2|\3,p'); do
         DEV=${MOUNT%'|'*}
         MNT=${MOUNT##*'|'}
         test "$MNT" = / && DEV="$DEV\\\\"
@@ -4918,7 +6547,7 @@ _msyspath()
         add_to_script "/^.:/! s|^${MNT}|${DEV}|"
        done
 
-       #ROOT=$(mount | sed -n 's,\\,\\\\,g ;; s|\s\+on\s\+/\s\+.*||p')
+       #ROOT=$(mount | ${SED-sed} -n 's,\\,\\\\,g ;; s|\s\+on\s\+/\s\+.*||p')
       #add_to_script "/^.:/!  s|^|$ROOT|"
     ;;
   esac
@@ -4932,6 +6561,6 @@ _msyspath()
     win*)  add_to_script "s|^a:|A:|" "s|^b:|B:|" "s|^c:|C:|" "s|^d:|D:|" "s|^e:|E:|" "s|^f:|F:|" "s|^g:|G:|" "s|^h:|H:|" "s|^i:|I:|" "s|^j:|J:|" "s|^k:|K:|" "s|^l:|L:|" "s|^m:|M:|" "s|^n:|N:|" "s|^o:|O:|" "s|^p:|P:|" "s|^q:|Q:|" "s|^r:|R:|" "s|^s:|S:|" "s|^t:|T:|" "s|^u:|U:|" "s|^v:|V:|" "s|^w:|W:|" "s|^x:|X:|" "s|^y:|Y:|" "s|^z:|Z:|" ;;
   esac
   #echo "SCRIPT=$SCRIPT" 1>&2
- (sed "$SCRIPT" "$@")
+ (${SED-sed} "$SCRIPT" "$@")
  )
 }

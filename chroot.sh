@@ -18,7 +18,7 @@ bind-mounts()
 
   DIRS="dev dev/pts sys proc tmp"
 echo "ABSDIR=$ABSDIR" 1>&2
-  set -- $DIRS $(df -a 2>/dev/null | sed 1d | sed -n 's|.* /m|m|p' | grep -v "^${ABSDIR#/}")
+  set -- $DIRS $(df -a 2>/dev/null | ${SED-sed} 1d | ${SED-sed} -n 's|.* /m|m|p' | grep -v "^${ABSDIR#/}")
 
   for MNT; do
    (umount "$ABSDIR/$MNT" 2>/dev/null ||
@@ -37,10 +37,12 @@ echo "ABSDIR=$ABSDIR" 1>&2
         proc) mount -t proc proc proc ;;
         sys) mount -t sysfs sysfs sys ;;
         tmp) umount -f tmp 2>/dev/null; rm -rf tmp/* ;;
+				#dev/pts) mount -o bind /$MNT $MNT ;;
  #       dev/pts) mount -t devpts devpts  dev/pts -o rw,relatime,mode=600,ptmxmode=000 ;;
       mnt/*/mnt/*) continue ;; 
+			mnt/*) continue  ;;
 			*)
-       T=$(echo "$MNT"|sed 's,.*mnt.*mnt.*,,g')
+       T=$(echo "$MNT"|${SED-sed} 's,.*mnt.*mnt.*,,g')
 
 			 test -z "$T" && continue
 

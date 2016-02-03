@@ -31,14 +31,14 @@ set -e
 torrent_search()
 {
 
-  if is_url "$1"; then
+  if is-url "$1"; then
     url=$1
   else
     url="http://torrent-finder.com/show.php?q=$1&Browse=tabs&PageLoad=loadall&select=13"
   fi
 
   curl "$url" | 
-  sed 's,<iframe,\n&,g' | xml_attrs - iframe | grep 'id="sc[0-9]\+"' | 
+  ${SED-sed} 's,<iframe,\n&,g' | xml_attrs - iframe | grep 'id="sc[0-9]\+"' | 
   while read meta_result; do
     eval "$meta_result"
     echo "$src"

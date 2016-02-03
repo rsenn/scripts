@@ -13,7 +13,7 @@ script_getfn()
 { 
     local fn=$1;
     shift;
-    sed -n -e "/$fn\s*()/ {
+    ${SED-sed} -n -e "/$fn\s*()/ {
             s,^, ,
 
             /[^-0-9A-Za-z]$fn\s*()/ {
@@ -39,7 +39,7 @@ script_getfn()
 script_fnlist() 
 { 
     ( expr="\\([A-Za-z_][-A-Za-z0-9_]*\\)\\s*()" ob='{' cb='}';
-    script_nocomments "$@" | sed -n "/$expr/ {
+    script_nocomments "$@" | ${SED-sed} -n "/$expr/ {
       s/^.*[^-\$_0-9A-Za-z]$expr/\1/
       
       /^$expr/ {
@@ -53,7 +53,7 @@ script_fnlist()
 
 script_nocomments() 
 { 
-    sed -n -e "/^\s*#/! p" "$@"
+    ${SED-sed} -n -e "/^\s*#/! p" "$@"
 }
 
 fn_add_body()
@@ -78,7 +78,7 @@ fn_remove_body()
    FNBODY=${FNBODY#*"{"}
    FNBODY=${FNBODY%"}"*}
 
-   echo "$FNBODY"|sed -u 's,^    ,,')
+   echo "$FNBODY"|${SED-sed} -u 's,^    ,,')
  
 }
 
@@ -119,9 +119,9 @@ fi
    FNBODY=$(script_getfn "$FN" <"$INPUT_FILE" )
    [ "$REMOVE_BODY" = true -o "$REGENERATE_BODY" = true ] && FNBODY=$(fn_remove_body "$FNBODY")
    [ "$REGENERATE_BODY" = true ] && FNBODY=$(fn_add_body "$FNBODY" "$FN")
-   [ "$UNINDENT" = true ] && FNBODY=$(echo "$FNBODY"|sed -u 's,^\s*,,')
-   [ "$PRETTY_PRINT" = true ] && FNBODY=$(echo "$FNBODY"|sed -u '1 s,\s*(),(),')
-   [ "$COMPAT_MODE" = true ] && FNBODY=$(echo "$FNBODY"|sed -u 's,^\(\s*\)local\(\s*\),\1\2,')
+   [ "$UNINDENT" = true ] && FNBODY=$(echo "$FNBODY"|${SED-sed} -u 's,^\s*,,')
+   [ "$PRETTY_PRINT" = true ] && FNBODY=$(echo "$FNBODY"|${SED-sed} -u '1 s,\s*(),(),')
+   [ "$COMPAT_MODE" = true ] && FNBODY=$(echo "$FNBODY"|${SED-sed} -u 's,^\(\s*\)local\(\s*\),\1\2,')
 
    if [ "$FNBODY" ]; then
     ([ "$SHELL_PREFIX" = true ] && echo -e '#!/bin/sh\n'; echo "$FNBODY") >"$OUTPUT_FILE"
