@@ -59,7 +59,7 @@ check-7z() {
       OPTS="$OPTS${IFS:0:1}-si${1##*/}"
     fi 
       CMD="($CMD) 2>&1 | (cd \"\$OUTDIR\" >/dev/null; process${FILTER:+ | $FILTER})"
-#    echo "CMD: $CMD" 1>&2 
+[ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2 
      eval "$CMD") || exit $?
     shift
   done)

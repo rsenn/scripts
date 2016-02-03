@@ -45,11 +45,3 @@ rpm-cmd() {
     exit 1)
   done
 }
-
-rpm-list() {
-  rpm-cmd -t -- "$@"
-}
-
-rpm-extract() {
-  rpm-cmd -i -d -u -- "$@"
-}

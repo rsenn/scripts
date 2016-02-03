@@ -16,7 +16,7 @@ FLAGS_HELP="usage: `basename "$0"` [options] [input] [[-o] output]
 FLAGS "$@" || exit 1; shift ${FLAGS_ARGC}
 
 # ---------------------------------------------------------------------------
-TMPDIR=`mktemp -d -p . .${0##*/}.XXXXXXXXXX`
+TEMP=`mktemp -d -p . .${0##*/}.XXXXXXXXXX`
 INFILE=$1
 OUTFILE=${FLAGS_output:-$2}
 
@@ -33,13 +33,13 @@ case $OUTFILE in
   -|"") unset OUTFILE ;;
 esac
 
-trap 'rm -rf "$TMPDIR" "$OUTFILE"' HUP INT QUIT TERM
-trap 'rm -rf "$TMPDIR"' EXIT
+trap 'rm -rf "$TEMP" "$OUTFILE"' HUP INT QUIT TERM
+trap 'rm -rf "$TEMP"' EXIT
 
 [ "$INFILE" ] && exec <$INFILE
 [ "$OUTFILE" ] && exec >$OUTFILE
 
-cd "$TMPDIR"
+cd "$TEMP"
 
 cpio -d -i 1>/dev/null &&
 tar -c ${COMPRESS:+--use-compress-program="$COMPRESS"} .

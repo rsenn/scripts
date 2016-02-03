@@ -14,23 +14,23 @@ list-rpm() {
 	}
 	for ARG in "$@"; do
    (set -e
-	  trap 'rm -rf "$TMPDIR"' EXIT QUIT TERM INT
-    TMPDIR=$(mktemp -d "$PWD/${0##*/}-XXXXXX")
-    mkdir -p "$TMPDIR"
+	  trap 'rm -rf "$TEMP"' EXIT QUIT TERM INT
+    TEMP=$(mktemp -d "$PWD/${0##*/}-XXXXXX")
+    mkdir -p "$TEMP"
 		case "$ARG" in
 			*://*) 
 			  if type wget >/dev/null 2>/dev/null; then
-				  exec_cmd wget -P "$TMPDIR" -q "$ARG"
+				  exec_cmd wget -P "$TEMP" -q "$ARG"
 				elif type curl >/dev/null 2>/dev/null; then
-					exec_cmd curl -s -k -L -o "$TMPDIR/${ARG##*/}" "$ARG"
+					exec_cmd curl -s -k -L -o "$TEMP/${ARG##*/}" "$ARG"
 				elif type lynx >/dev/null 2>/dev/null; then
-					exec_cmd lynx -source >"$TMPDIR/${ARG##*/}" "$ARG"
+					exec_cmd lynx -source >"$TEMP/${ARG##*/}" "$ARG"
 				fi || exit $?
 				RPM="${ARG##*/}"
 			;;
 			*) RPM=$(realpath "$ARG") ;;
 		esac
-    cd "$TMPDIR"
+    cd "$TEMP"
 		set -- $( (    7z l "$RPM" |sed -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
 		(exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |grep "\\.cpio\$")
 		if [ $# -le 0 ]; then

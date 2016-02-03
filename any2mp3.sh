@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 MYNAME=`basename "${0%.sh}"`
@@ -56,14 +57,17 @@ duration()
 : ${AR=44100}
 
 for ARG; do
+(
 #    WAV="${ARG%.*}.wav"
     DIR=`dirname "$ARG"`
-    WAV=`mktemp "${MYNAME}-XXXXXX.wav"`
+    WAV=`mktemp ${TEMP+--tmpdir=$TEMP} "${MYNAME}-XXXXXX.wav"`
+trap 'rm -f "$WAV"' EXIT
+trap 'exit 3' INT TERM
 
     OUTPUT="${ARG%.*}.mp3"
     if [ "$DIR" ]; then
-  OUTPUT="$DIR"/`basename "$OUTPUT"`
-fi
+      OUTPUT="$DIR"/`basename "$OUTPUT"`
+    fi
 
     (set -x; 
 trap 'R=$?; rm -vf "$WAV"; exit $R' EXIT QUIT INT TERM
@@ -72,12 +76,20 @@ trap 'R=$?; rm -vf "$WAV"; exit $R' EXIT QUIT INT TERM
 
 case "${ARG##*/}" in
 	*.wav) WAV="$ARG" ;;
+	*.669 | *.amf | *.amf | *.dsm | *.far | *.gdm | *.gt2 | *.it | *.imf | *.mod | *.med | *.mtm | *.okt | *.s3m | *.stm | *.stx | *.ult | *.umx | *.apun | *.xm | *.mod) 
+	  #mikmod -q -d 5  -p 1 -o 16s -i -hq -reverb 1 -fadeout  -norc -x "${ARG}" ; 	  WAV="music.wav"
+	  xmp "$ARG" -d wav -o "$WAV" 
+	  SONG="${ARG##*/}"
+	;;
 	*)
 	(ffmpeg -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV") 
 	;;
-esac && 
-lame --alt-preset "$ABR" --resample 44100 -m j -h "$WAV" "$OUTPUT" &&
+esac && (set -e; set -x
+lame --alt-preset "$ABR" --resample 44100 -m j -h "$WAV" "$OUTPUT" 
+[ -n "$SONG" ] && id3v2 --song "$SONG" "$OUTPUT"
+) &&
 
 if $REMOVE; then rm -vf "$ARG"; fi) ||break
+) || { R=$?; if [ "$R" = 3 ]; then exit $R; fi; }
 done
 

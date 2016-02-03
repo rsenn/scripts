@@ -2,8 +2,8 @@
 
 IFS="
 "
-level=3
-: ${exclude="*.git*
+: ${level=3}
+: ${EXCLUDE="*.git*
 *~
 *.stackdump
 build/*
@@ -23,10 +23,14 @@ while :; do
   case "$1" in
     -[0-9]) level=${1#-}; shift ;;
     -t) type=$2; shift 2 ;;
-    -d=* | --dest*dir*=*) DESTDIR=${1#*=}; shift ;; -d | --dest*dir*) DESTDIR=$2; shift 2 ;;
+    -q | --quiet) QUIET=true; shift ;;
+    -d=* | --dest*dir*=*) DESTDIR=${1#*=}; shift ;; 
+    -d | --dest*dir*) DESTDIR=$2; shift 2 ;;
     -D | --no*date*) nodate=true; shift  ;;
-    -[EXx]) pushv exclude "$2"; shift 2 ;; -[EXx]=*) pushv exclude "${1#*=}"; shift ;;
-    -[EXx] | --exclude) pushv exclude "$2"; shift 2 ;; -e=* | --exclude=*) pushv exclude "${1#*=}"; shift ;;
+    -[EXx] | --exclude) pushv EXCLUDE "$2"; shift 2 ;; 
+    -[EXx]*) pushv EXCLUDE "${1#-?}"; shift ;; 
+    -[EXx]=*) pushv EXCLUDE "${1#*=}"; shift ;;
+    -e=* | --exclude=*) pushv EXCLUDE "${1#*=}"; shift ;;
     *) break ;;
   esac
 done
@@ -64,6 +68,7 @@ else
 fi
 
 #echo "dname=$dname" 1>&2 
+dir=${2:-.}
 
 if [ -z "$archive" ]; then
   
@@ -79,10 +84,9 @@ if [ -z "$archive" ]; then
   #echo "name=$name" 1>&2 
 
   archive=${DESTDIR:-..}/${name##*/}
-  [ "$nodate" != true ] && archive=$archive-`date ${dir:+-r "$dir"} +%Y%m%d`
+  [ "$nodate" != true ] && archive=$archive-$(isodate.sh -r ${dir:-.})   #`date ${dir:+-r "$dir"} +%Y%m%d`
   archive=$archive.${type:-7z}
 fi
-dir=${2-.}
 
 bce() {
  (IFS=" "; echo "$*" | (bc -l || echo "ERROR: Expression '$*'" 1>&2)) | sed -u '/\./ s,\.\?0*$,,'
@@ -92,7 +96,7 @@ bci() {
  (IFS=" "; : echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | sed -u 's,\.[0-9]\+$,,'
 }
 
-create-list() {
+create_list() {
  (output=
   SWITCH="$1"
   shift
@@ -133,11 +137,11 @@ implode()
   echo "$DATA")
 }
 
-dir-contents() {
-(echo "dir-contents \"$(implode '" "' "$@")\"" 1>&2
+dir_contents() {
+(echo "dir_contents \"$(implode '" "' "$@")\"" 1>&2
   case "$1" in 
 		. | "." | \".\" | .*) 
-			EXCLUDE="$(implode "|" $exclude)" 
+			EXCLUDE="$(implode "|" $EXCLUDE)" 
 			set -- $(ls -a -1 |grep -v -E '^(\.|\.\.)$' |sort -u |match -v "${EXCLUDE:-''}")
 			;;
 		*)
@@ -149,18 +153,19 @@ dir-contents() {
 
 set -f
 case "$archive" in
-  *.7z) cmd="${sevenzip:-7za} a -mx=$(( $level * 5 / 9 )) \"\$archive\" $(create-list "-x!" $exclude) \"$dir\"" ;;
-  *.zip) cmd="zip -${level} -r \"\$archive\" \"$dir\" $(create-list "-x " $exclude) " ;;
-  *.rar) cmd="rar a -m$(($level * 5 / 9)) -r $(create-list "-x" $exclude) \"\$archive\" \"$dir\"" ;;
-  *.txz|*.tar.xz) cmd="$TAR -cv $(create-list --exclude= $exclude) $(dir-contents \"$dir\") | xz -$level >\"\$archive\"" ;;
-  *.tlzma|*.tar.lzma) cmd="$TAR -cv $(create-list --exclude= $exclude) $(dir-contents "$dir") | lzma -$level >\"\$archive\"" ;;
-  *.tlzip|*.tar.lzip) cmd="$TAR -cv $(create-list --exclude= $exclude) $(dir-contents "$dir") | lzip -$level >\"\$archive\"" ;;
-  *.tlzo|*.tar.lzo) cmd="$TAR -cv $(create-list --exclude= $exclude) $(dir-contents "$dir") | lzop -$level >\"\$archive\"" ;;
-  *.tgz|*.tar.gz) cmd="$TAR -cv $(create-list --exclude= $exclude) $(dir-contents "$dir") | gzip -$level >\"\$archive\"" ;;
-  *.tbz2|*.tbz|*.tar.bz2) cmd="$TAR -cv $(create-list --exclude= $exclude) $(dir-contents "$dir") | bzip2 -$level >\"\$archive\"" ;;
+  *.iso) cmd="${genisoimage:-mkisofs} -f -l -R -J -o \"\$archive\"  $(create_list "-exclude " $EXCLUDE) \"$dir\"" ;;
+  *.7z) cmd="${sevenzip:-7za} a -mx=$(( $level * 5 / 9 )) \"\$archive\" $(create_list "-x!" $EXCLUDE) \"$dir\"" ;;
+  *.zip) cmd="zip -${level} -r \"\$archive\" \"$dir\" $(create_list "-x " $EXCLUDE) " ;;
+  *.rar) cmd="rar a -m$(($level * 5 / 9)) -r $(create_list "-x" $EXCLUDE) \"\$archive\" \"$dir\"" ;;
+  *.txz|*.tar.xz) cmd="$TAR -cv $(create_list --exclude= $EXCLUDE) $(dir_contents \"$dir\") | xz -$level >\"\$archive\"" ;;
+  *.tlzma|*.tar.lzma) cmd="$TAR -cv $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | lzma -$level >\"\$archive\"" ;;
+  *.tlzip|*.tar.lzip) cmd="$TAR -cv $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | lzip -$level >\"\$archive\"" ;;
+  *.tlzo|*.tar.lzo) cmd="$TAR -cv $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | lzop -$level >\"\$archive\"" ;;
+  *.tgz|*.tar.gz) cmd="$TAR -cv $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | gzip -$level >\"\$archive\"" ;;
+  *.tbz2|*.tbz|*.tar.bz2) cmd="$TAR -cv $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | bzip2 -$level >\"\$archive\"" ;;
 esac
 cmd='rm -vf "$archive";'$cmd
-cmd="($cmd) 2>&1"
+[ "$QUIET" = true ] && cmd="($cmd) 2>/dev/null" || cmd="($cmd) 2>&1"
 echo "cmd='$cmd'" 1>&2
 eval "(set -x; $cmd)" &&
 echo "Created archive '$archive'"

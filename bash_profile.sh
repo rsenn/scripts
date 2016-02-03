@@ -6,7 +6,8 @@ set -o vi
 IFS="
 "
 
-PATH="/bin:$PATH"
+PATH="/usr/bin:/bin:$PATH"
+PATH="/usr/sbin:/sbin:$PATH"
 
 [ "$HOSTNAME" = MSYS -o -n "$MSYSTEM" ] && OS="Msys"
 [ "$OSTYPE" ] && OS="$OSTYPE"
@@ -67,7 +68,7 @@ has_cmd gxargs && alias xargs='gxargs -d "\n"' || alias xargs='xargs -d "\n"'
 
 alias aria2c='aria2c --file-allocation=none --check-certificate=false'
 
-has_cmd wget && alias wget="wget --no-check-certificate --user-agent=\"\$USERAGENT\""
+has_cmd wget && alias wget="wget --no-use-server-timestamps --timeout=30 --tries=3 --no-check-certificate --user-agent=\"\$USERAGENT\""
 has_cmd tar && alias tar="tar --touch"
 has_cmd curl && alias curl="curl --insecure --user-agent \"\$USERAGENT\""
 has_cmd lynx && alias lynx="lynx -force_secure -accept_all_cookies -useragent=\"\$USERAGENT\""
@@ -101,7 +102,7 @@ if grep --help 2>&1 | grep -q '\--line-buffered'; then
 	GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--line-buffered"
 fi
 
-alias grep="/bin/grep $GREP_ARGS"
+alias grep="grep $GREP_ARGS"
 alias grepdiff='grepdiff --output-matching=hunk'
 
 #unalias cp  2>/dev/null
@@ -135,7 +136,7 @@ alias lsof='lsof 2>/dev/null'
 
 [ "$PS1" = '\s-\v\$ ' ] && unset PS1
 
-set-prompt()
+set_prompt()
 { [ -r "$HOME/.bash_prompt" ] && eval "PS1=\"$(<$HOME/.bash_prompt)\"" || PS1="$*"; }
 
 [ -d /cygdrive ]  && { CYGDRIVE="/cygdrive"; : ${OS="Cygwin"}; }
@@ -156,22 +157,24 @@ case "${OS}" in
     PATHTOOL=msyspath
     MSYSROOT=`msyspath -m / 2>/dev/null`
 
-    set-prompt '\e[32m\]\u@\h \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
+    set_prompt '\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '
+
+#    set_prompt '\e[32m\]\u@\h \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
    ;;
   *cygwin* |Cygwin* | CYGWIN*) 
     MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}" 
-   set-prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
+   set_prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
    PATHTOOL=cygpath
    CYGROOT=`cygpath -m /`
   ;;
 *) 
   MEDIAPATH="{/m*,$HOME/mnt}/*/"  
   if [ -e ~/.bash_prompt ]; then
-    set-prompt
+    set_prompt
   else
     case "$PS1" in
       *\\033*) ;;
-      *) : set-prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ " ;;
+      *) : set_prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ " ;;
     esac
   fi
  ;;
@@ -205,7 +208,7 @@ pathmunge() {
           set -- `$PATHTOOL "$tmp"` "$@"
       ;;
   esac;
-  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | /bin/grep -E -q "(^|:)$1($|:)"; then
+  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | grep -E -q "(^|:)$1($|:)"; then
       if test "$2" = "after"; then
           eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
       else
@@ -235,17 +238,17 @@ pathremove() {
   unset NEWPATH old_IFS
 	return $RET
 }
-list-mediapath()
+list_mediapath()
 {
   for ARG; do
     eval "ls -1 -d  -- $MEDIAPATH/\$ARG 2>/dev/null"
   done
 }
 
-add-mediapath()
+add_mediapath()
 {
   for ARG; do
-    set -- $(eval "list-mediapath $ARG"); while [ "$1" ]; do 
+    set -- $(eval "list_mediapath $ARG"); while [ "$1" ]; do 
         D="${1%/}"; [ -d "$D" ] || D=${D%/*}; 
       if [ -d "$D" ]; then
          [ "$ADD" = before ] && PATH="$D:$PATH" || PATH="$PATH:$D"
@@ -257,15 +260,19 @@ add-mediapath()
 
 #is-cmd() { type "$1" >/dev/null 2>/dev/null; }
 
-#echo -n "Adding mediapaths ... " 1>&2; add-mediapath "I386/" "I386/system32/" "Windows/" "Tools/" "HBCD/" "Program*/{Notepad2,WinRAR,Notepad++,SDCC/bin,gputils/bin}/"; echo "done" 1>&2
-#is-cmd "notepad2" || add-mediapath "Prog*/Notepad2"
+#echo -n "Adding mediapaths ... " 1>&2; add_mediapath "I386/" "I386/system32/" "Windows/" "Tools/" "HBCD/" "Program*/{Notepad2,WinRAR,Notepad++,SDCC/bin,gputils/bin}/"; echo "done" 1>&2
+#is-cmd "notepad2" || add_mediapath "Prog*/Notepad2"
 
+<<<<<<< HEAD
 #ADD=after add-mediapath Tools/
+=======
+#ADD=after add_mediapath Tools/
+>>>>>>> 0658de56bad89ea70e69e3b15ac8c16e72adedae
 
-#for DIR in $(list-mediapath "Prog*"/{UniExtract,Notepad*,WinRAR,7-Zip,WinZip}/ "Tools/" "I386/" "Windows"/{,system32/} "*.lnk"); do
+#for DIR in $(list_mediapath "Prog*"/{UniExtract,Notepad*,WinRAR,7-Zip,WinZip}/ "Tools/" "I386/" "Windows"/{,system32/} "*.lnk"); do
 #  DIR=${DIR%/}
 #  [ -d "$DIR" ] || DIR=${DIR%/*}
-#  pathmunge "${DIR}" after
+#  pathmunge "${DIR}"
 # done
 #
 #[ -d "$CYGDRIVE/c/Program Files/WinRAR" ] && PATH="$PATH:$CYGDRIVE/c/Program Files/WinRAR"
@@ -303,17 +310,6 @@ FNS="$HOME/.bash_functions"
 [ -d "x:/Windows" ] && : ${SystemRoot='x:\Windows'}
 [ -d "x:/I386" ] && : ${SystemRoot='x:\I386'}
 
-explore()
-{
- (r=`realpath "$1" 2>/dev/null`; [ "$r" ] || r=$1
-  r=${r%/.}
-  r=${r#./}
-  p=`$PATHTOOL -w "$r"`
-  set -x
-  "${SystemRoot:+$SystemRoot\\}explorer.exe" "/n,/e,$p"
- )
-}
-
 msiexec()
 {
     (  while :; do
@@ -340,14 +336,14 @@ CDPATH="."
 if [ -n "$USERPROFILE" -a -n "$PATHTOOL" ]; then
   USERPROFILE=`$PATHTOOL -m "$USERPROFILE"`
   if [ -d "$USERPROFILE" ]; then
-     pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`" after
+     pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`"
   
     DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" DOWNLOADS="$USERPROFILE/Downloads" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos"    MUSIC="$USERPROFILE/Music"
     
     [ -d "$DOCUMENTS/Sources" ] && SOURCES="$DOCUMENTS/Sources"
     
-    pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")" after
-    pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")" after
+    pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")"
+    pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")"
   fi
 fi
 
@@ -369,14 +365,14 @@ esac
 
 export LS_COLORS
 
-#[ -d /sbin ] && pathmunge /sbin
-#[ -d /usr/sbin ] && pathmunge /usr/sbin
 
-pathremove /bin && pathmunge /bin
-pathremove /sbin && pathmunge /sbin
-pathremove /usr/bin && pathmunge /usr/bin
-pathremove /usr/sbin && pathmunge /usr/sbin
+#pathremove /sbin && pathmunge /sbin 
+#pathremove /bin && pathmunge /bin
+#pathremove /usr/sbin && pathmunge /usr/sbin
+#pathremove /usr/bin && pathmunge /usr/bin
+#pathremove /usr/local/sbin && pathmunge /usr/local/sbin
+#pathremove /usr/local/bin && pathmunge /usr/local/bin 
 
-pathremove /usr/local/bin && pathmunge /usr/local/bin 
-pathremove /usr/local/sbin && pathmunge /usr/local/sbin
-
+if type gcc 2>/dev/null >/dev/null; then
+  builddir=build/`gcc -dumpmachine | sed 's,\r*$,,'`
+fi

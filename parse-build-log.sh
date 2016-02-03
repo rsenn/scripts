@@ -1,13 +1,13 @@
 #!/bin/bash
 
+IFS="
+"
 ws=" "
 cr=""
 ts="	"
 nl="
 "
-IFS="$nl"
 vs="$nl"
-IFS="$nl"
 sq="'"
 dq="\""
 sq="\`"
@@ -88,12 +88,13 @@ out_var() {
  (O= cn=
   [ $# -gt 1 ] && cn='$(toupper "$vn") = '
   for vn; do V=$(getv "$vn" " | ")
-		C="O=\"\${O+\$O\$ovs}${cn}${V}\""
+		C="O=\"\${O+\$O\$ovs}${cn}\${V}\""
 		eval "$C"
 	done
 	echo "$O"
 	var_dump O 1>&2 )
 }
+
 
 vifs=$'\t'
 vifs=" "
@@ -101,13 +102,17 @@ myvars="args${nl}defines${nl}depfile${nl}deptarget${nl}includes${nl}libs${nl}opt
 
 while read -r line; do
  (IFS="$nl $cr$ts"
-  set -- $line
+  case "$line" in
+    *\"* | *\'* ) #line=${line//"("/"\\("}; line=${line//")"/"\\)"}; 
+    eval "set -- "$line ;;
+    *) set -- $line ;;
+  esac || exit $?
 
   if [ $# -le 1 ]; then
 		continue
 	fi
 
-  cmd="$1"
+  CMD="$1"
   shift
   unset $myvars
 
@@ -141,32 +146,37 @@ while read -r line; do
 								   -c | /c) mode="preproc${nl}compile${nl}assemble"        ;;
                    -S | /S) mode="preproc${nl}compile"                     ;;
                    
-									 -* | /*) 
-													pushv opts_pos "$pos"
-
-													case "$1" in
-														*[\\/]*) addpath push opts "$1" ;;
-														*) pushv opts "$1" ;;
-													esac
-												;;
-									       *) 
-													pushv args_pos "$pos"
-
-													case "$1" in
-														*[\\/]*) addpath push args "$1" ;;
-														*) pushv args "$1" ;;
-													esac
-												;;
+									 -* | /*) pushv opts_pos "$pos"
+                            case "$1" in
+                              *[\\/]*) addpath push opts "$1" ;;
+                              *) pushv opts "$1" ;;
+                            esac ;;
+                            
+									       *) pushv args_pos "$pos"
+                            case "$1" in
+                              *[\\/]*) addpath push args "$1" ;;
+                              *) pushv args "$1" ;;
+                            esac ;;
                   esac
 		[ $((S)) -eq 1 ] && unset S
     shift $S
   done
   
-	output="cmd = $cmd"
+  unset output 
+#	output="cmd = $cmd"
+ 
+# if ! (test -n "$CMD" && type "$CMD" >/dev/null 2>/dev/null); then
+#    exit 1
+# fi
+# 
+	 pushv output "
+        CMD = $CMD$(ovs="${nl}${ts}" out_var $myvars)"
 
-	pushv output "$(ovs="${nl}${ts}" out_var $myvars)"
+#    for arg in $args; do test -f "$arg" || exit 1; done   
 
-	echo "$output"
+  
+
+echo "$output"
 
  )
 done

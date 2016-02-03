@@ -45,7 +45,7 @@ find_fonts()
   )
 }
 
-find-fonts()
+find_fonts()
 {
 
 for S in '' '*.part' '.!ut'; do
@@ -54,7 +54,7 @@ done
 }
 
 
-grep-fonts()
+grep_fonts()
 {
   EXTS="ttf otf bdf pcf fon"
 
@@ -62,7 +62,7 @@ grep-fonts()
 }
 
 
-locate-fonts()
+locate_fonts()
 {
     (IFS="
  "; EXTS="mp3 ogg flac mpc m4a m4b wma rm"

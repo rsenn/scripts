@@ -1,11 +1,16 @@
 #!/bin/bash
 
+MYNAME=`basename "$0" .sh` 
 IFS=$'\n\r'
 
 OPTS=
 REGEX= NOCASE=
 LOOKDIR= LOOKFILE= 
 WHOLE= SIZE=
+
+msg() {
+	echo "${MYNAME}: $@" 1>&2
+}
 
 usage()
 {
@@ -43,9 +48,25 @@ while :; do
 done
 set -f
 
-#: ${DATABASE=$(reg query 'HKCU\Software\Update\Databases\1_default' -v ArchiveName |sed -n 's,\\,/,g ;; s,.*REG_SZ\s\+,,p')}
-: ${DATABASE="$(for key in $(reg query 'HKCU\Software\Update\Databases' #| sed 's,\r$,,'
+if type reg 2>/dev/null >/dev/null; then
+	REG="reg"
+fi
+
+
+#: ${DATABASE=$("$REG" query 'HKCU\Software\Update\Databases\1_default' -v ArchiveName |sed -n 's,\\,/,g ;; s,.*REG_SZ\s\+,,p')}
+
+: ${DATABASE="$USERPROFILE/AppData/Roaming/Locate32/files.dbs"}
+
+if [ -n "$REG" ]; then
+: ${DATABASE="$(for key in $("$REG" query 'HKCU\Software\Update\Databases' #| sed 's,\r$,,'
 ); do key=${key%$'\r'}; test -z "$key" || reg query "$key" -v ArchiveName |sed -n '/ArchiveName/ { s,\r$,,; s,.*REG_SZ\s\+,,; s,\\,/,g; p; }'; done)"}
+fi
+
+if [ -z "$DATABASE" ]; then
+	msg "Missing database!"
+	exit 1
+fi
+
 
 #: ${DATABASE="$USERPROFILE/AppData/Roaming/Locate32/files.dbs"}
 
@@ -115,6 +136,7 @@ esac
 SED_EXPR="s|\\\\|/|g"
 #SED_EXPR="${SED_EXPR}; s|^a|A|; s|^b|B|; s|^c|C|; s|^d|D|; s|^e|E|; s|^f|F|; s|^g|G|; s|^h|H|; s|^i|I|; s|^j|J|; s|^k|K|; s|^l|L|; s|^m|M|; s|^n|N|; s|^o|O|; s|^p|P|; s|^q|Q|; s|^r|R|; s|^s|S|; s|^t|T|; s|^u|U|; s|^v|V|; s|^w|W|; s|^x|X|; s|^y|Y|; s|^z|Z|"
 SED_EXPR="${SED_EXPR}; s|^A|a|; s|^B|b|; s|^C|c|; s|^D|d|; s|^E|e|; s|^F|f|; s|^G|g|; s|^H|h|; s|^I|i|; s|^J|j|; s|^K|k|; s|^L|l|; s|^M|m|; s|^N|n|; s|^O|o|; s|^P|p|; s|^Q|q|; s|^R|r|; s|^S|s|; s|^T|t|; s|^U|u|; s|^V|v|; s|^W|w|; s|^X|x|; s|^Y|y|; s|^Z|z|"
+SED_EXPR="$SED_EXPR; /^ERROR: The system was unable to find the specified registry key or value./d"
 
 unset ARGS
 for ARG in $PARAMS; do
@@ -142,7 +164,7 @@ ARGS=$(echo "$ARGS" | sed 's,\*\+,*,g')
 
 addopt -lw
 set -f
-CMD="\"$LOCATE\" $OPTS -- \"\$ARG\""
+CMD="\"$LOCATE\" $OPTS -- \"\$ARG\" 2>&1"
 CMD="for ARG in \$ARGS; do (${DEBUG:+set -x; }$CMD) done"
 CMD="$CMD | sed \"\${SED_EXPR}\""
 [ "$DEBUG" = true ] && { echo "+ $CMD" 1>&2; : set -x; }

@@ -5,7 +5,7 @@ NL='
 '
 exec 9>&2
 
-grep-e-expr()
+grep_e_expr()
 { 
     echo "($(IFS="|
 	 $IFS";  set -- $*; echo "$*"))"
@@ -97,34 +97,34 @@ file_magic()
 unset INCLUDE_DIRS
 GREP_ARGS=""
 
-usage()
-{
-  echo "Usage: ${0##*/} [OPTIONS] ARGUMENTS...
-  -p, --mediapath=PATH     List of search paths.
-  -x, --debug              Show debug messages
-  -e, --exists             Show only existing files
-  -f, --want-file         Return only files
-  -F, --file              File magic
-  -i, --case-insensitive  Case insensitive search
-  -I, --case-sensitive    Case sensitive search
-      --color             Return colored list
-      --include=DIR       Include results in DIR
-  -x, --exclude=DIR       Exclude results from DIR
-  -c, --class              File type class
-  -m, --mixed             Mixed paths (see cygpath)
-  -l, --list              List
-  -s, --size              Filter file size
-  -S, --sort              Sort
-  One of: 
-    bin|exe|prog, archive, audio, fonts, image, incompl|part,
-    music, package|pkg, patch|diff, script, software, source, video,
-    vmware|vbox|virt|vdisk|vdi|qed|qcow|qemu|vmdk|vdisk, pdf|doc,
-    book|epub|mobi, font|truetype
-"
+usage() {
+  echo "Usage: ${0##*/} [OPTIONS] ARGUMENTS..."
+	echo "  -p, --mediapath=PATH     List of search paths."
+	echo "  -x, --debug              Show debug messages"
+	echo "  -e, --exists             Show only existing files"
+	echo "  -f, --want-file         Return only files"
+	echo "  -F, --file              File magic"
+	echo "  -i, --case-insensitive  Case insensitive search"
+	echo "  -I, --case-sensitive    Case sensitive search"
+	echo "      --color             Return colored list"
+	echo "      --include=DIR       Include results in DIR"
+	echo "  -x, --exclude=DIR       Exclude results from DIR"
+	echo "  -c, --class              File type class"
+	#echo "  -m, --mixed             Mixed paths (see cygpath)"
+	echo "  -l, --list              List"
+	echo "  -s, --size              Filter file size"
+	echo "  -S, --sort              Sort"
+	echo "  One of: "
+	echo "    bin|exe|prog, archive, audio, fonts, image, incompl|part,"
+	echo "    music, package|pkg, patch|diff, script, software, source, video,"
+	echo "    vmware|vbox|virt|vdisk|vdi|qed|qcow|qemu|vmdk|vdisk, pdf|doc,"
+	echo "    book|epub|mobi, font|truetype"
+	echo ""
   exit 0
 }
 
 EXCLUDE_DIRS='.*/\.wine/drive.*/\.wine/drive'
+MIXED_PATH=true
 
 while :; do
 	case "$1" in
@@ -137,7 +137,7 @@ while :; do
   	-E | --extension) EXTENSION="${EXTENSION:+$EXTENSION|}$2"; shift 2 ;;
   	-E=* | --extension=*) EXTENSION="${EXTENSION:+$EXTENSION|}${1#*=}"; shift  ;;
   	-E*) EXTENSION="${EXTENSION:+$EXTENSION|}${1#-E}"; shift  ;;
-  	-m | --mix*) MIXED_PATH=true; shift ;;
+  	#-m | --mix*) MIXED_PATH=true; shift ;;
   	-w | --win*) WIN_PATH=true; shift ;;
   
 	  -s=* | --size=*)  SIZE="${1#*=}"; shift ;;
@@ -180,7 +180,7 @@ while :; do
 
     --color) GREP_ARGS="${GREP_ARGS:+$IFS}--color"; shift ;;
   	--include) add_dir INCLUDE_DIRS "$2" ; shift 2 ;; --include=*) add_dir INCLUDE_DIRS "${1#*=}"; shift ;;
-  	-[EeXx] |--exclude) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;; -[EeXx]=* | --exclude=*) add_dir EXLUDE_DIRS "${1#*=}"; shift ;;
+  	-[EX] |--exclude) add_dir EXCLUDE_DIRS "$2" ; shift 2 ;; -[EX]=* | --exclude=*) add_dir EXLUDE_DIRS "${1#*=}"; shift ;;
   -*) echo "No such option '$1'." 1>&2; exit 1 ;;
   --) shift; break ;;	*) break ;;
 	esac
@@ -295,11 +295,11 @@ if [ "$EXIST_FILE" = true ]; then
   FILTERCMD="${FILTERCMD:+$FILTERCMD | }while read -r FILE; do test -e \"\$FILE\" && echo \"\$FILE\"; done"
 fi
 if [ -n "$INCLUDE_DIRS" ]; then
-  INCLUDE_DIR_EXPR=`grep-e-expr $INCLUDE_DIRS`
+  INCLUDE_DIR_EXPR=`grep_e_expr $INCLUDE_DIRS`
   FILTERCMD="${FILTERCMD:+$FILTERCMD | }grep -E \"^$INCLUDE_DIR_EXPR\""
 fi
 #if [ -n "$EXCLUDE_DIRS" ]; then
-#  EXCLUDE_DIR_EXPR=`grep-e-expr $EXCLUDE_DIRS`
+#  EXCLUDE_DIR_EXPR=`grep_e_expr $EXCLUDE_DIRS`
 #  FILTERCMD="$FILTERCMD |grep -v -E \"^$EXCLUDE_DIR_EXPR\""
 #fi
 
@@ -310,9 +310,16 @@ if [ -n "$EXTENSION" ]; then
 	EXPR=${EXPR:+${EXPR%".*"}.*}"\\.($EXTENSION)\$"
 fi
 
+#if [ "$WANT_FILE" = true ]; then
+#  case "$EXPR" in
+#     *'$') ;;
+#     *) EXPR="$EXPR\$" ;;
+#  esac
+#fi
+
 [ "$DEBUG" = true ] && echo "EXPR is $EXPR" 1>&2
 
-CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG ${FILTERCMD:+ | $FILTERCMD}"
+CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG"
 
 SED_EXPR="s,/files\\.list:,/,"
 
@@ -377,6 +384,7 @@ fi
 	
 [ "$DEBUG" = true ] && echo "Command is $CMD" 1>&2
 
+CMD="$CMD${FILTERCMD:+ | $FILTERCMD}"
 
 eval "($CMD) 2>/dev/null" 
 

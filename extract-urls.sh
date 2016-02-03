@@ -40,9 +40,11 @@ extract_urls()
     -e "s,%3[Aa]%2[Ff]%2[Ff],://,g" \
     | \
   sed \
+    -e "s,\([^a-z]\)\([a-z]\+\)://,\1\n\2://,g" \
     -e "s,http://,\n&,g" \
     -e "s,https://,\n&,g" \
     -e "s,ftp://,\n&,g" \
+    -e "s,git[^:]*://,\n&,g" \
     -e "s|href=\\([\"']\?\\)/|href=\\1\\n$URLBASE/|g" \
     | \
   sed -n \

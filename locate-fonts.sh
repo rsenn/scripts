@@ -45,7 +45,7 @@ find_fonts()
 	)
 }
 
-find-fonts()
+find_fonts()
 {
 
 for S in '' '*.part' '.!ut'; do
@@ -54,13 +54,13 @@ done
 }
 
 
-grep-fonts()
+grep_fonts()
 {
   exec grep -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))[^/]*\$"  "$@"
 }
 
 
-locate-fonts()
+locate_fonts()
 {
     (IFS="
  ";

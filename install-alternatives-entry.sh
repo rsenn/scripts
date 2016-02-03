@@ -4,14 +4,14 @@ NL="
 "
 IFS="$NL"
 
-cut-ver() 
+cut_ver() 
 { 
     cat "$@" | sed 's,-[0-9][^-.]*\(\.[0-9][^-.]*\)*$,,'
 }
 BINS="$*"
 BIN_1ST="$1"
 
-BINS_NO_VER=$(cut-ver <<<"$BINS")
+BINS_NO_VER=$(cut_ver <<<"$BINS")
 BINS_NO_VER_1ST=$(set -- $BINS_NO_VER; echo "$1")
 
 VER=${BIN_1ST#$BINS_NO_VER_1ST}
@@ -33,7 +33,7 @@ shift
 for BIN; do
 
 	[ "$BIN" = "$BIN_1ST" ] && continue
-	BIN_NOVER=$(cut-ver <<<"$BIN")
+	BIN_NOVER=$(cut_ver <<<"$BIN")
 	output --slave /usr/bin/"${BIN_NOVER##*/}" "${BIN_NOVER##*/}" "${BIN}"
 
 done

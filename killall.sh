@@ -1,4 +1,12 @@
 #!/bin/bash
+
+usage() {
+  echo "Usage: ${0##*/} [OPTIONS] <PATTERNS...>
+  
+  -x, --debug  Show debug messages
+" 1>&2
+}
+
 while :; do
 	case "$1" in
 	   -x) DEBUG=true; shift ;;
@@ -59,30 +67,39 @@ case `uname -o 2>/dev/null || uname` in
   *Darwin*) ;;
   *Linux*) ;;
   *)
-  if type taskkill.exe 2>/dev/null >/dev/null; then
+  if type kill.exe 2>/dev/null >/dev/null && (kill.exe --help 2>&1 | grep -q '\-f.*win32'); then
+    KILL="kill.exe"
+    KILLARGS="${KILLARGS:+
+}-f"
+  elif type taskkill.exe 2>/dev/null >/dev/null; then
     KILL="taskkill"
     KILLARGS="-F -PID"
-  elif type kill.exe 2>/dev/null >/dev/null; then
-    KILL="kill.exe"
-    KILLARGS="$KILLARGS
-  -f"
   fi
 ;;
 esac
+if [ $# -le 0 ]; then
+  echo "No pattern given!" 1>&2
+  usage
+  exit 1
+fi
 
+[ "$DEBUG" = true ] && echo "+ PS=$PS PSARGS=${PSARGS:+'$PSARGS'} ${PSFILTER:+PSFILTER='$PSFILTER' }KILL=$KILL KILLARGS=${KILLARGS:+'$KILLARGS'}" 1>&2
 
 PATTERN=\(`IFS='|'; echo "$*"`\)
 PSOUT=`eval "(${DEBUG:+set -x; }\"$PS\" $PSARGS) $PSFILTER"`
 PSMATCH=` echo "$PSOUT" | grep -i -E "$PATTERN"  |grep -v -E "(killall\\.sh|\\s$$\\s)"`
-PIDS=` echo "$PSMATCH" | $SED -n "/${0##*/}/! s,^[^0-9]*\([0-9][0-9]*\).*,\1,p"`
+set -- $(echo "$PSMATCH" | $SED -n "/${0##*/}/! s,^[^0-9]*\([0-9][0-9]*\).*,\1,p")
+PIDS="$*"
 
 if [ -z "$PIDS" ]; then
 
- (IFS="|$IFS"; echo "No matching process ($*)" 1>&2I)
+ (IFS="|$IFS"; echo "No matching process ($*)" 1>&2)
   exit 2
 fi
 echo "$PSMATCH"
 
-for PID in $PIDS; do
-  eval "(${DEBUG:+set -x; }${KILL:-kill} \$KILLARGS \$PID)"
-done
+CMD="(${DEBUG:+set -x; }${KILL:-kill} \$KILLARGS \$PID)"
+
+CMD="for PID in $PIDS; do $CMD; done"
+[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
+eval "$CMD"
