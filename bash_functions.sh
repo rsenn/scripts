@@ -5659,6 +5659,9 @@ sln-version() {
     while [ "${#LINE}" -lt 4 ]; do  read  LINE ; done # skip BOM    
     FVER=${LINE##*"Version "}
     read -r LINE
+    case "$LINE" in
+      *\ 20[01][0-9]\ *) LINE=${LINE%%" ${LINE##*20[01][0-9]}"*} ;;
+    esac
     case "$LINE" in 
       *Version\ *) FVER=${LINE##*"Version "} ;;
       *"Visual Studio 20"[01][0-9]*) VSVER=${LINE##*Visual*"Studio "}; VSVER=${VSVER%%" "*} ;;
