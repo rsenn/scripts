@@ -119,8 +119,16 @@ git_get_branch ()
 } 
 exec_bin()
 {
-  (IFS=" $IFS"; CMD="$*"
-  exec 10>&2
+
+  while :; do
+        case "$1" in
+          -f | --force) FORCE="true"; shift ;;
+          *) break ;;
+        esac
+  done
+
+  ([ "$FORCE" = true ] && set +e
+  IFS=" $IFS"; CMD="$*"
   [ "$VERBOSE" = true ] &&  echo -n "+ $CMD" 1>&10
   TMP="msg$$.tmp"
   trap 'rm -f "$TMP"' EXIT
@@ -137,21 +145,38 @@ exec_bin()
   O=$(<"$TMP")
   rm -f "$TMP"; trap '' EXIT
   if [ "$R" = 0 ] ; then
-    ERR=" OK" 
+    #ERR=" OK" 
+    ERR=
   else
-    ERR=" (ERROR: $R)"
+    ERR=" ERROR ($R)"
   fi
-    [ "$VERBOSE" = true ] &&  echo "${ERR:+$ERR}" 1>&10
+  [ "$R" != 0 ] &&  { O=${O//"$NL$NL"/"$NL"}; O=$(echo "$O"|sed '/^\s*$/d'|tail -n1); : log_msg -n "$O"; } || O=
+    [ "$VERBOSE" = true ] &&  echo "${ERR:+$ERR}${O:+: $O}" 1>&10
     
-  [ "$R" != 0 ] &&    log_msg "$O")
-  
+  [ "$FORCE" = true -a "$R" != 0 ] && R=0
+  exit $R)
+  return $?
 }
 log_msg() {
-	echo "${NL}$*${NL}" 1>&2
+ (PAD="$NL"
+   while :; do
+	case "$1" in
+	  -n | --nopad) PAD=""; shift ;;
+	  *) break ;;
+	esac
+  done
+
+	CMD="(IFS=\"\$NL$PAD\"; set -- \$*; echo \"${PAD}\${*"${MAXLINES:+:"1:$MAXLINES"}"}${PAD}\" 1>&10)"
+	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&10
+	eval "$CMD")
 }
 
 
 main() {
+  exec 10>&2
+  IFS="
+"
+  NEST=$(( ${NEST:-0} + 1 ))
   while :; do
         case "$1" in
           -x | --debug) DEBUG="true"; shift ;;
@@ -171,18 +196,18 @@ main() {
   for DIR ; do 
 
 
-	log_msg "Entering directory $DIR ..."
+	log_msg -n "($NEST) Entering directory $DIR ..."
 	
-	(
+	(set -e
 	cd "$DIR"
 	REMOTES=$(git_get_remote .|awkp)
-	 exec_bin git commit -m ... -a
+	 MAXLINES=5 exec_bin -f git commit -m ... -a
 	for R in $REMOTES; do
 	 exec_bin git pull "$R" $(git_get_branch)
 	exec_bin  git push "$R" $(git_get_branch)
 	done
 	) >/dev/null
-	log_msg "Leaving directory $DIR ..."
+	log_msg -n "($NEST) Leaving directory $DIR ..."
 
 
 
