@@ -49,7 +49,7 @@ cr=""
 
 CMD='grep $GREP_ARGS -i -E "\\.($(IFS="| "; set -- $EXTS;  echo "$*"))${PARTIAL_EXPR}${END}"  "$@"'
 
-if [ $# -gt 0 ]; then
+if [ $# -gt 1 ]; then
   GREP_ARGS="-H"
   case "$*" in
     *files.list*) FILTER='${SED-sed} "s|/files.list:|/|"' ;;
