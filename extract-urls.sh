@@ -27,11 +27,10 @@ http_get() {
 }
 extract_urls()
 {
-  sed \
-    -e 's|\x00\+\s*|\n|g' \
+  ${SED-sed} \
     -e "s,%3[Aa]%2[Ff]%2[Ff],://,g" \
     | \
-  sed \
+  ${SED-sed} \
     -e "s,\([^a-z]\)\([a-z]\+\)://,\1\n\2://,g" \
     -e "s,http://,\n&,g" \
     -e "s,https://,\n&,g" \
@@ -39,10 +38,9 @@ extract_urls()
     -e "s,git[^:]*://,\n&,g" \
     -e "s|href=\\([\"']\?\\)/|href=\\1\\n$URLBASE/|g" \
     | \
-  sed -n \
+  ${SED-sed} -n \
     -e "/^[-+0-9A-Za-z]\+:\/\// {
          s,[\"'<>{}\\\\()].*,,
-         s,[^[:print:]].*,,
          p
        }"
 }

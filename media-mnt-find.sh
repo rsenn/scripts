@@ -6,7 +6,7 @@ while :; do
     *) break ;;
   esac
 done
-FILTERCMD="sed -u 's,/files.list:,/,'"
+FILTERCMD="${SED-sed} -u 's,/files.list:,/,'"
 
 if [ "$MUST_EXIST" = true ]; then
   FILTERCMD="$FILTERCMD | while read -r FILE; do test -e \"\$FILE\" && echo \"\$FILE\"; done"

@@ -9,7 +9,7 @@ IFS="
 
 find */ -type f -follow \( -iname "*.mp3" -or -iname "*.ogg" \) $COND |
 while read x; do 
-  alpha=`echo "${x##*/}" | sed "s,^[^A-Za-z]*,,"`
+  alpha=`echo "${x##*/}" | ${SED-sed} "s,^[^A-Za-z]*,,"`
   test -r "$x" && echo "$alpha:$x"
 done | {
   unset tracks prev

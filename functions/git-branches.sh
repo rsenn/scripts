@@ -9,6 +9,6 @@ git-branches()
     esac
   done
   EXPR="s,^. ,, ;; $EXPR"
-  git branch -a | sed "$EXPR"
+  git branch -a | ${SED-sed} "$EXPR"
  )
 }

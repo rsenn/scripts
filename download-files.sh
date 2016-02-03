@@ -136,7 +136,7 @@ for URL in $URLS; do
         ${FLAGS_useragent:+-useragent="$FLAGS_useragent"} \
         `[ -s "$COOKIEFILE" ] && echo -cookie_file="$COOKIEFILE"` \
         -cookie_save_file="$COOKIEFILE" "$URL" |
-      sed -n "/^ *[0-9]\\+\\. / s/^ *[0-9]\\+\\. //p"
+      ${SED-sed} -n "/^ *[0-9]\\+\\. / s/^ *[0-9]\\+\\. //p"
     ;;
     *)
      (#set -x
@@ -155,7 +155,7 @@ for URL in $URLS; do
           esac
           echo "$FILE"
         done
-        #sed -e 's,[-+a-z]\+://,\n&,g' | grep '^[-+a-z]*://' | sed -e 's,[ ">].*,,' 
+        #${SED-sed} -e 's,[-+a-z]\+://,\n&,g' | grep '^[-+a-z]*://' | ${SED-sed} -e 's,[ ">].*,,' 
     ;;
   esac |  #|
  (grep -E -i "\.($EXTLIST)\$") |

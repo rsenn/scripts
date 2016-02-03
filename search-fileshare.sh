@@ -19,7 +19,7 @@ while :; do
   esac
 done
 
-NAME=`echo "$*" | sed -e 's,[^0-9A-Za-z]\+,-,g' -e 's,^[^0-9A-Za-z]\+,,' -e 's,[^0-9A-Za-z]\+$,,'`
+NAME=`echo "$*" | ${SED-sed} -e 's,[^0-9A-Za-z]\+,-,g' -e 's,^[^0-9A-Za-z]\+,,' -e 's,[^0-9A-Za-z]\+$,,'`
 echo "Canonical name is $NAME" 1>&2
 
 KEYWORDS="$*"

@@ -22,7 +22,7 @@ main()
 			TITLE=${TITLE%.*}
 			TITLE=${TITLE//"_"/" "}
 			TITLE=${TITLE//" - "/"-"}
-			TITLE=$(echo "$TITLE" | sed 's|[^[:alnum:]][0-9]\+p[^[:alnum:]]| |g ;; s|\[| |g ;;  s|\]| |g ;; s|[ _]\+| |g ;')
+			TITLE=$(echo "$TITLE" | ${SED-sed} 's|[^[:alnum:]][0-9]\+p[^[:alnum:]]| |g ;; s|\[| |g ;;  s|\]| |g ;; s|[ _]\+| |g ;')
 			RESOLUTION=$(resolution "$ARG")
 			BITRATE=$(bitrate "$ARG")
 	    echo "#EXTINF:$D,${TITLE}${RESOLUTION:+ [$RESOLUTION]}${BITRATE:+ ${BITRATE}kbps}"
@@ -43,7 +43,7 @@ duration()
     N="$#";
     for ARG in "$@"
     do
-        D=$(mminfo "$ARG" |sed -n 's,Duration=,,p' | head -n1);
+        D=$(mminfo "$ARG" |${SED-sed} -n 's,Duration=,,p' | head -n1);
         set -- $D;
         S=0;
         for PART in "$@";
@@ -72,8 +72,8 @@ mminfo()
 {
     ( for ARG in "$@";
     do
-        minfo "$ARG" | sed -n "s,^\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
-    done | sed 's,\s\+=,=,')
+        minfo "$ARG" | ${SED-sed} -n "s,^\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
+    done | ${SED-sed} 's,\s\+=,=,')
 }
 
 minfo()
@@ -82,12 +82,12 @@ minfo()
    (CMD='mediainfo "$ARG" 2>&1'
     [ $# -gt 1 ] && CMD="$CMD | addprefix \"\$ARG:\""
     CMD="for ARG; do $CMD; done"
-    eval "$CMD")  | sed '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
+    eval "$CMD")  | ${SED-sed} '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
 }
 
 resolution()
 {  
-  (minfo "$@"|sed -n "/Width\s*: / { N; /Height\s*:/ { s,Width\s*:,, ; s,[^:\n0-9]\+: \+\([^:]*\)\$,\1,g; s|^\s*||; s|\([0-9]\)\s\+\([0-9]\)|\1\2|g; s|\s*pixels||g;  s|\n|x|g; p } }")
+  (minfo "$@"|${SED-sed} -n "/Width\s*: / { N; /Height\s*:/ { s,Width\s*:,, ; s,[^:\n0-9]\+: \+\([^:]*\)\$,\1,g; s|^\s*||; s|\([0-9]\)\s\+\([0-9]\)|\1\2|g; s|\s*pixels||g;  s|\n|x|g; p } }")
 }
 
 bitrate()
@@ -100,12 +100,12 @@ bitrate()
     test $N -le 1 && EXPR=".*$EXPR" || EXPR="$EXPR:"
     EXPR="s,$EXPR\\1,p"
 
-    KBPS=$(file "$ARG" |sed -n "$EXPR")
+    KBPS=$(file "$ARG" |${SED-sed} -n "$EXPR")
     #echo "EXPR='$EXPR'" 1>&2
 
     test -n "$KBPS" && echo "$KBPS" || (
     R=0
-    set -- $(mminfo "$ARG"  |sed -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*Kbps\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
+    set -- $(mminfo "$ARG"  |${SED-sed} -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*Kbps\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
     for I ;  do R=` expr $R + ${I##*[:=]}` ; done 2>/dev/null
    [ "$N" -gt 1 ] && R="$ARG:$R"
       echo "$R"

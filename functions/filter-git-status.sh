@@ -23,5 +23,5 @@ filter-git-status()
   esac
   : ${MATCH="\\|^$PATTERN|"}
   : ${SUBST="/\"/ { s,^\(...\)\",\1,; s,\"\$,,; }; s|^...||p"}
-  exec sed $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
+  exec ${SED-sed} $ARGS "${MATCH:+$MATCH$MODIFIER} { $SUBST }")
 }

@@ -7,14 +7,14 @@ SDK_LIST=$(ls -d c:/"Program Files"*/"Microsoft SDKs"/Windows/v*)
 
 list_options() {
   echo  "$*" | 
-  sed \
+  ${SED-sed} \
 		-e "s,.*\(Microsoft Visual Studio [^/]*\)/VC,\1," \
 		-e "s,.*\(Microsoft SDKs\)/\(.*\)/\(.*\),Windows SDK \3," |
   sort -u
 }
 
 select_option() {
- (EXPR=$(echo "$*" | sed \
+ (EXPR=$(echo "$*" | ${SED-sed} \
    -e "s,\\.,\\\\.,g")
     #-e "#s,[^0-9\\\\.]*\([^/]*[.0-9\\\\]\+\)[^0-9\\\\.]*,\1," \
     #-e "#s,[^0-9\\\\v.A]*\([^/]*[v.A\\\\0-9]\+\)[^0-9\\\\.A]*,\1,")

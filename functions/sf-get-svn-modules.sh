@@ -5,6 +5,6 @@ sf-get-svn-modules() {
       xml_get a data-url |
       head -n1
   done |
-    sed "s|-svn\$|| ;; s|-code\$||" |
+    ${SED-sed} "s|-svn\$|| ;; s|-code\$||" |
     addsuffix "-svn")
 }

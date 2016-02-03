@@ -4,7 +4,7 @@ IFS="
 "
 URL="$1"
 
-EVAL=$(echo "$URL" | sed 's/page=\([0-9]\+\)/page={`seq -s, 1 \1`}/ ; s/\&/\\&/g')
+EVAL=$(echo "$URL" | ${SED-sed} 's/page=\([0-9]\+\)/page={`seq -s, 1 \1`}/ ; s/\&/\\&/g')
 
 eval "set -- $EVAL"
 echo "$*"

@@ -29,14 +29,14 @@ case "$OS" in
 	URL="https://soundcloud.com/search?$(url_encode_args q="$ARG")"
 	echo "URL is $URL" 1>&2
 	
-  #LINKS=`(http_get "$URL") | sed "s|>\\s*<|>\\n<|g" `
+  #LINKS=`(http_get "$URL") | ${SED-sed} "s|>\\s*<|>\\n<|g" `
 
  # LINKS=`(set -x; curl --location  "$URL") | grep --line-buffered -E '<(h3|div class="pagination")>'  | xml_get a href`
   LINKS=`extract-urls.sh "$URL"`
   echo LINKS = "$LINKS" 1>&2
 	TRACKS=`echo "$LINKS" | grep -v page=`
-	NAV=`echo "$LINKS" | sed -n 's,.*page=\([0-9]\+\).*,\1,p'`
-	BROWSE=`echo "$LINKS" | sed -n "/page=/ { s,^,http://soundcloud.com, ; s,\\&amp;,\\\\\\\\\\&,g ; s,page=[0-9]\+,page=\\\${PAGE}, ; p ; q ; }"`
+	NAV=`echo "$LINKS" | ${SED-sed} -n 's,.*page=\([0-9]\+\).*,\1,p'`
+	BROWSE=`echo "$LINKS" | ${SED-sed} -n "/page=/ { s,^,http://soundcloud.com, ; s,\\&amp;,\\\\\\\\\\&,g ; s,page=[0-9]\+,page=\\\${PAGE}, ; p ; q ; }"`
   PAGES=1
 
   for P in $NAV; do

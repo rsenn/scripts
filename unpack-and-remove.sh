@@ -37,13 +37,13 @@ while read ARG; do
   MASK="$FILE"
   case $FILE in
     *part[0-9]*.rar)
-      MASK=`echo "$FILE" | sed \
+      MASK=`echo "$FILE" | ${SED-sed} \
         -e "s/part[0-9][0-9]/part\[0-9\]\[0-9\]/" \
         -e "s/part[0-9]/part\[0-9\]/"
       ` ;;
     *.rar)
       if [ -e "${FILE%.rar}.r01" ]; then
-        MASK=`echo "$FILE" | sed \
+        MASK=`echo "$FILE" | ${SED-sed} \
           -e "s/\.rar\$/.r\[a0-9\]\[r0-9\]/" \
         ` 
       fi ;;

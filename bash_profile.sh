@@ -95,7 +95,7 @@ fi
 #	false find fmt fold groups head hostid id install join kill libtool \
 #	libtoolize link ln locate logname m4 md5sum mkdir mkfifo mknod mktemp mv \
 #	nice nl nohup nproc numfmt od oldfind paste pathchk pinky pr printenv printf \
-#	ptx pwd readlink realpath rm rmdir runcon sed seq sha1sum sha224sum sha256sum \
+#	ptx pwd readlink realpath rm rmdir runcon ${SED-sed} seq sha1sum sha224sum sha256sum \
 #	sha384sum sha512sum shred shuf sleep sort split stat stdbuf stty sum sync tac \
 #	tail tee test timeout touch tr true truncate tsort tty uname unexpand uniq \
 #	unlink updatedb uptime users vdir wc who whoami xargs yes
@@ -159,8 +159,11 @@ currentpath()
   [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}
   echo "$CWD")
 }
-
+echo OS=$OS 1>&2
 case "${OS}" in
+darwin*) 
+    MEDIAPATH="/Volumes/*/"
+    ;;
    msys* | Msys* |MSys* | MSYS*)
     MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
     PATHTOOL=msyspath
@@ -201,52 +204,6 @@ esac
 #
 #: ${PS1:='\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '}
 
-pathmunge() {
-  while :; do
-    case "$1" in
-      -v) PATHVAR="$2"; shift 2 ;;
-      *) break ;;
-    esac
-  done
-  local IFS=":";
-  : ${OS=`uname -o | head -n1`};
-  case "$OS:$1" in
-      [Mm]sys:*[:\\]*)
-          tmp="$1";
-          shift;
-          set -- `$PATHTOOL "$tmp"` "$@"
-      ;;
-  esac;
-  if ! eval "echo \"\${${PATHVAR-PATH}}\"" | grep -E -q "(^|:)$1($|:)"; then
-      if test "$2" = "after"; then
-          eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
-      else
-          eval "${PATHVAR-PATH}=\"\$1:\${${PATHVAR-PATH}}\"";
-      fi;
-  fi
-  unset PATHVAR
-}
-
-pathremove() {
-  old_IFS="$IFS"
-  IFS=":"
-	RET=1
-  unset NEWPATH
-
-  for DIR in $PATH; do
-    for ARG; do
-      case "$DIR" in
-        $ARG) RET=0; continue 2 ;;
-      esac
-    done
-    NEWPATH="${NEWPATH+$NEWPATH:}$DIR"
-  done
-
-  PATH="$NEWPATH"
-  IFS="$old_IFS"
-  unset NEWPATH old_IFS
-	return $RET
-}
 list_mediapath()
 {
   for ARG; do
@@ -289,6 +246,8 @@ notepad2() {
 
 #ADD=after add_mediapath Tools/
 
+pathmunge() { while :; do case "$1" in -s) PATHSEP="$2"; shift 2 ;; -v) PATHVAR="$2"; shift 2 ;; -e) EXPORT="export "; shift ;; -f) FORCE=true; shift ;; -a) AFTER=true; shift ;; *) break ;; esac; done; : ${PATHVAR=PATH}; local IFS=":"; : ${OS=`uname -o | head -n1`}; case "$OS:$1" in [Mm]sys:*[:\\]*) tmp="$1"; shift; set -- `${PATHTOOL:-msyspath} "$tmp"` "$@" ;; esac; IFS=" "; if ! eval "echo \"\${${PATHVAR}}\"" | ${GREP-grep} -E -q "(^|${PATHSEP-:})$1($|${PATHSEP-:})"; then if [ "$2" = after -o "$AFTER" = true ]; then CMD="${EXPORT}${PATHVAR}=\"\${${PATHVAR}:+\$${PATHVAR}${PATHSEP-:}}\$1\""; else CMD="${EXPORT}${PATHVAR}=\"\$1\${${PATHVAR}:+${PATHSEP-:}\$${PATHVAR}}\""; fi; fi;  [ "$FORCE" = true ] && CMD="pathremove \"$1\"; $CMD"; eval "CMD=\"$CMD\""; [ "$DEBUG" = true ] && eval "echo \"+ $CMD\" 1>&2"; eval "$CMD"; unset PATHVAR; }
+
 #for DIR in $(list_mediapath "Prog*"/{UniExtract,Notepad*,WinRAR,7-Zip,WinZip}/ "Tools/" "I386/" "Windows"/{,system32/} "*.lnk"); do
 #  DIR=${DIR%/}
 #  [ -d "$DIR" ] || DIR=${DIR%/*}
@@ -318,7 +277,7 @@ FNS="$HOME/.bash_functions"
 #{
 #  case "$MEDIAPATH" in
 #    *{*)
-#      MEDIA=$(ls  --color=no -d $MEDIAPATH" 2>/dev/null |sed -n 's,/*$,, ; s,.*/,,; /#[a-z]$/p')
+#      MEDIA=$(ls  --color=no -d $MEDIAPATH" 2>/dev/null |${SED-sed} -n 's,/*$,, ; s,.*/,,; /#[a-z]$/p')
 #      MEDIAPATH="/{$(IFS=",$IFS"; set -- $MEDIA; echo "$*")}"
 #      unset MEDIA
 #      ;;
@@ -393,7 +352,18 @@ export LS_COLORS
 #pathremove /usr/local/sbin && pathmunge /usr/local/sbin
 #pathremove /usr/local/bin && pathmunge /usr/local/bin
 
-if type gcc 2>/dev/null >/dev/null; then
-  builddir=build/`gcc -dumpmachine | sed 's,\r*$,,'`
+for p in /{opt,usr}/local/{s,}bin /opt/local/libexec/gnubin ; do
+  if [ -d "$p"  ]; then
+      pathremove "$p"
+      pathmunge "$p"
+
+  fi
+done
+
+if type ${CC-cc} 2>/dev/null >/dev/null; then
+  builddir=build/`${CC-cc} -dumpmachine | ${SED-sed} 's,\r*$,,'`
+  case "${CC-cc}" in
+    *clang*) builddir=${builddir%-gnu}-clang ;; 
+  esac
 fi
 }; _dot_bash_profile=1

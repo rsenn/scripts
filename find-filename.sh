@@ -54,7 +54,7 @@ find_filename()
 
     ${DEBUG-false} && echo "+ $@" 1>&2
 
-		("$@" 2>/dev/null)  |sed -u 's,^\.\/,,'
+		("$@" 2>/dev/null)  |${SED-sed} -u 's,^\.\/,,'
 	)
 }
 

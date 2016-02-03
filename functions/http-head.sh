@@ -15,7 +15,7 @@ http-head()
             {
                 echo -e "HEAD ${2} HTTP/1.1\r\nHost: ${1}\r\nConnection: close\r\n\r";
                 sleep $TIMEOUT
-            } | nc $HOST $PORT | sed "s/\r//g";
+            } | nc $HOST $PORT | ${SED-sed} "s/\r//g";
         fi;
     fi )
 }

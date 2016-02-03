@@ -1,4 +1,4 @@
 yaourt-pkgnames() {
  (NAME='\([^ \t/]\+\)'
- sed -n "s|^${NAME}/${NAME}\s\+\(.*\)|\2|p")
+ ${SED-sed} -n "s|^${NAME}/${NAME}\s\+\(.*\)|\2|p")
 }

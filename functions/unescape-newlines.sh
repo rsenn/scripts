@@ -1,6 +1,6 @@
 unescape-newlines()
 {
-    sed -e ':start
+    ${SED-sed} -e ':start
   /\$/ {
   N
   s|\\\n[ \t]*||

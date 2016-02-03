@@ -19,7 +19,7 @@ volname() {
           *) drive=$(${PATHTOOL:-echo} ${PATHTOOL:+-m} "$drive") ; drive=${drive%%:*}: ;;
         esac  
         #drive=$(${PATHTOOL:-echo} "$drive")
-        NAME=$(cmd /c "vol ${drive%%[\\/]*}" | sed -n '/Volume in drive/ s,.* is ,,p')
+        NAME=$(cmd /c "vol ${drive%%[\\/]*}" | ${SED-sed} -n '/Volume in drive/ s,.* is ,,p')
         eval "$ECHO"
     done
   fi)

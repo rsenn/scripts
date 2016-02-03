@@ -22,12 +22,12 @@ regexp-to-fnmatch()
     esac;
     case $expr in
         *'.*'*)
-            expr=`echo "$expr" | sed "s,\.\*,\*,g"`
+            expr=`echo "$expr" | ${SED-sed} "s,\.\*,\*,g"`
         ;;
     esac;
     case $expr in
         *'.'*)
-            expr=`echo "$expr" | sed "s,\.,\?,g"`
+            expr=`echo "$expr" | ${SED-sed} "s,\.,\?,g"`
         ;;
     esac;
     echo "$expr" )

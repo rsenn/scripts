@@ -1,5 +1,5 @@
 #!/bin/sh
-lvs | awk '{ print $1" "$2 }' | sed 1d | 
+lvs | awk '{ print $1" "$2 }' | ${SED-sed} 1d | 
 while read LV VG; do 
   lvchange -ay "/dev/$VG/$LV"
   mkdir -p "/mnt/$VG/$LV"

@@ -1,4 +1,4 @@
 filter-files-list()
 {
-    sed "s|/files\.list:|/|"
+    ${SED-sed} "s|/files\.list:|/|"
 }

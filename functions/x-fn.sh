@@ -14,7 +14,7 @@ x-fn()
   FN="$1";
   shift;
   #: ${XTRA="$XTRA; s/^/-->/; s/\n/\n-->/g"}
-  sed " :lp0
+  ${SED-sed} " :lp0
    \$ { /\n/! $NOMATCH; }
     N
     /\n/! b lp0

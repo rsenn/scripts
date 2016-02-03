@@ -89,7 +89,7 @@ cut_ls_l()
 
 file_magic() 
 { 
- (CMD='xargs -d "$NL" file --  | sed -u "s,:\\s\\+,: ,"'
+ (CMD='xargs -d "$NL" file --  | ${SED-sed} -u "s,:\\s\\+,: ,"'
   IFS="|$IFS"
 	[ "$*" = ".*" ] && set -- 
 	[ $# -gt 0 ] && CMD="$CMD | grep -i -E \": .*($*)\""
@@ -287,14 +287,14 @@ esac
 #        INDEXES=`for x in a b c d e f g h i j k l m n o p q r s t u v w x y z; do test -e $DRIVEPREFIX/$x/files.list && echo $DRIVEPREFIX/$x/files.list; done`
 #fi
 #
-MEDIAPATH="{$(set -- $( df 2>/dev/null | sed -u -n '\|/sys$|d ;; \|/sys |d ;; \|/proc|d ;; \|/dev$|d ;; \|/run|d ;; s,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^\\/]\+\s\([\\/]\)\(.*\),\1\2,p' | sort -u); IFS=","; echo "${*%/}")}"
+MEDIAPATH="{$(set -- $( df 2>/dev/null | ${SED-sed} -u -n '\|/sys$|d ;; \|/sys |d ;; \|/proc|d ;; \|/dev$|d ;; \|/run|d ;; s,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^\\/]\+\s\([\\/]\)\(.*\),\1\2,p' | sort -u); IFS=","; echo "${*%/}")}"
 
 FILEARG="\$INDEXES"
 case "$MEDIAPATH" in
   *"}") FILEARG="${MEDIAPATH}/files.list" ;;
 esac
 
-#FILTERCMD="sed -u 's,/files.list:,/,'"
+#FILTERCMD="${SED-sed} -u 's,/files.list:,/,'"
 FILTERCMD=
 
 if [ "$EXIST_FILE" = true ]; then
@@ -345,8 +345,8 @@ fi
 [ "$WIN_PATH" = true ] && SED_EXPR="${SED_EXPR:+$SED_EXPR ;; }/^[[:alnum:]]:[\\\\/]/ s|/|\\\\|g"
 
 
-# If $SED_EXPR contains a sed script, add it to the pipeline
-[ -n "$SED_EXPR" ] && CMD="$CMD | sed -u '$SED_EXPR'"
+# If $SED_EXPR contains a ${SED-sed} script, add it to the pipeline
+[ -n "$SED_EXPR" ] && CMD="$CMD | ${SED-sed} -u '$SED_EXPR'"
 
 
 # If we require an 'ls -l' listing, add an 'xargs ls' command to the pipeline 

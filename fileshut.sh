@@ -53,12 +53,12 @@ QURL="${URL}/find_files.php?${Q}"
 REFERER=""
 CURL="check_cookies; set ${DEBUG:-+x}; curl -q \${VERBOSE} -L \${COOKIE_ARGS} \${REFERER:+--referer \"\${REFERER}\"} \${SOCKS5:+-socks5 \"\${SOCKS5}\"} -A \"\${USER_AGENT}\""
 CMD="${CURL} \${QURL}"
-#FILTER="sed 's,\s, ,g ; s,<a,\n&,g' | sed -n '/^<a\\s\\+[a-z]\\+=/ { s,.*<a\\s\\+[a-z]\\+=\"\\?\\([^\"]*\\)\"\\?.*,\\1,p }'"
-FILTER="sed 's,\s, ,g ; s,<a,\n&,g ; s,\r*$,,' | sed -n '/^<a [a-z]\+=/ { :lp ;; /<\/a>/! { N ;; b lp } ;; s,.*<a [a-z]\+=\([^>]*\)>\([^<]*\)</a>,\1 \2, ;; /^\"/ { s,^\",, ;; s,\".*[\">],, } ;; s,^\",, ;; s,\"\$,, ;; p }'| grep -E '(^sendme|^/download)'"
+#FILTER="${SED-sed} 's,\s, ,g ; s,<a,\n&,g' | ${SED-sed} -n '/^<a\\s\\+[a-z]\\+=/ { s,.*<a\\s\\+[a-z]\\+=\"\\?\\([^\"]*\\)\"\\?.*,\\1,p }'"
+FILTER="${SED-sed} 's,\s, ,g ; s,<a,\n&,g ; s,\r*$,,' | ${SED-sed} -n '/^<a [a-z]\+=/ { :lp ;; /<\/a>/! { N ;; b lp } ;; s,.*<a [a-z]\+=\([^>]*\)>\([^<]*\)</a>,\1 \2, ;; /^\"/ { s,^\",, ;; s,\".*[\">],, } ;; s,^\",, ;; s,\"\$,, ;; p }'| grep -E '(^sendme|^/download)'"
 
-#FILTER="sed 's,<a,\n&,g' | grep -E '<a.(href=\"/download|onclick=\"sendme)'"
+#FILTER="${SED-sed} 's,<a,\n&,g' | grep -E '<a.(href=\"/download|onclick=\"sendme)'"
  
-#  |sed -n 's,.*/download.*\.html\$,${URL}/&,p; s,.*p=[0-9].*,${URL}/&,p'"
+#  |${SED-sed} -n 's,.*/download.*\.html\$,${URL}/&,p; s,.*p=[0-9].*,${URL}/&,p'"
 
 
 check_cookies()
@@ -105,7 +105,7 @@ esac
       */download/*.html) echo "$URL" ;; 
 
 			*sendme*)
-SENDME=$(echo "$URL" |sed 's,\r,,g ; s|[^a-z(),0-9]\+| |g ; s,\s\+, ,g ; s|\s*,\s*|, |g')
+SENDME=$(echo "$URL" |${SED-sed} 's,\r,,g ; s|[^a-z(),0-9]\+| |g ; s,\s\+, ,g ; s|\s*,\s*|, |g')
 (echo -n "$SENDME" |hexdump -C ) 1>&2
             
           I=${SENDME##*" "}

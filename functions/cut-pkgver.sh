@@ -1,4 +1,4 @@
 cut-pkgver()
 {
-    cat "$@" |sed 's,-[0-9]\+$,,g'
+    cat "$@" |${SED-sed} 's,-[0-9]\+$,,g'
 }
