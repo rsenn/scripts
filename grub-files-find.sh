@@ -38,7 +38,7 @@ main()
 
  (set -x; grep --binary-files=without-match -l -r -E "$GRUB_CFG_EXPR" "$@") |
  (while read -r FILE; do
-  set -- $( sed "$GRUB_MULTILINE_EXPR" <"$FILE"|grep -E "$GRUB_CFG_EXPR" "$FILE" | sed "s,^,$FILE:,")
+  set -- $( ${SED-sed} "$GRUB_MULTILINE_EXPR" <"$FILE"|grep -E "$GRUB_CFG_EXPR" "$FILE" | ${SED-sed} "s,^,$FILE:,")
   echo "$*"
   
   if [ $# -gt 3 ]; then

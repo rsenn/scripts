@@ -2,7 +2,7 @@
 #[ $# -eq 1 ] && { INPUT="$1"; GREPFLAGS="-H"; } || {
 #TMP=$(mktemp)
 #INPUT="$TMP"
-#(set -x; grep -H ".*" "${@:-files.list}" |sed -u "s,/files.list:,/,") >"$TMP"
+#(set -x; grep -H ".*" "${@:-files.list}" |${SED-sed} -u "s,/files.list:,/,") >"$TMP"
 #wc -l "$TMP" 1>&2
 #GREPFLAGS="-h"
 #}

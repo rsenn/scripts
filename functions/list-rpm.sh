@@ -1,4 +1,4 @@
-list-rpm() { 
+list-rpm() {
  (NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
@@ -18,7 +18,7 @@ list-rpm() {
     TEMP=$(mktemp -d "$PWD/${0##*/}-XXXXXX")
     mkdir -p "$TEMP"
     case "$ARG" in
-      *://*) 
+      *://*)
         if type wget >/dev/null 2>/dev/null; then
           exec_cmd wget -P "$TEMP" -q "$ARG"
         elif type curl >/dev/null 2>/dev/null; then
@@ -31,8 +31,8 @@ list-rpm() {
       *) RPM=$(realpath "$ARG") ;;
     esac
     cd "$TEMP"
-    set -- $( (    7z l "$RPM" |sed -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
-    (exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |grep "\\.cpio\$")
+    set -- $( (    7z l "$RPM" |${SED-sed} -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
+    (exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |${GREP-grep} "\\.cpio\$")
     if [ $# -le 0 ]; then
       exit 1
     fi
@@ -53,6 +53,6 @@ list-rpm() {
       esac
       output "$LINE"
     done) ||
-    output "ERROR" 1>&2 
+    output "ERROR" 1>&2
   done)
 }

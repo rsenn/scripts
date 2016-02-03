@@ -1,7 +1,14 @@
 index-of()
 {
-    io="$1";
-    shift;
-    s="$*";
-    for-each-char 'if [ "$io" = "$c" ]; then echo "$i"; return 0; fi' "$s"
+    ( needle="$1";
+    index=0;
+    while [ "$#" -gt 1 ]; do
+        shift;
+        if [ "$needle" = "$1" ]; then
+            echo "$index";
+            exit 0;
+        fi;
+        index=`expr "$index" + 1`;
+    done;
+    exit 1 )
 }

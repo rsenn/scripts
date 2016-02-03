@@ -44,7 +44,7 @@ implode()
 rpmfind()
 {
   q "$@"
-  FILTERCMD="sed \"s|<a|\n&|g\" | grep '</td></tr>'  | xml_get a href"
+  FILTERCMD="${SED-sed} \"s|<a|\n&|g\" | grep '</td></tr>'  | xml_get a href"
   SEARCHCMD="$DLCMD \"http://rpmfind.net/linux/rpm2html/search.php?query=\"${Q}\"&submit=Search+...&system=&arch=\" | $FILTERCMD"
   eval "$SEARCHCMD"
 }
@@ -53,7 +53,7 @@ rpmseek()
 {
   URL="http://search.rpmseek.com"
   q "$@"
-  FILTERCMD="sed 's|<a|\n&|g' | grep -i -E  '^<a.*(span class=\"suchergebnis\"|?hl=com.*PN)'  | xml_get a href | sed \"s|^?|/search.html&| ;; s|^/|\$URL/|\""
+  FILTERCMD="${SED-sed} 's|<a|\n&|g' | grep -i -E  '^<a.*(span class=\"suchergebnis\"|?hl=com.*PN)'  | xml_get a href | ${SED-sed} \"s|^?|/search.html&| ;; s|^/|\$URL/|\""
   SEARCHCMD="$DLCMD \"\$URL/search.html?hl=com&cs=\"$Q\":PN:0:0:1:0:0\" | $FILTERCMD"
   eval "$SEARCHCMD"
 }
@@ -63,7 +63,7 @@ pbone()
 {
   URL="http://rpm.pbone.net"
   q "$@"
-  FILTERCMD="sed 's|<a|\n&|g' | sed 's|<A|\n&|g' | grep -i -E '(</TD></TR>|search=)' | xml_get '[Aa]' '[Hh][Rr][Ee][Ff]' | sed \"s|^/|\$URL/|\""
+  FILTERCMD="${SED-sed} 's|<a|\n&|g' | ${SED-sed} 's|<A|\n&|g' | grep -i -E '(</TD></TR>|search=)' | xml_get '[Aa]' '[Hh][Rr][Ee][Ff]' | ${SED-sed} \"s|^/|\$URL/|\""
   SEARCHCMD="$DLCMD \"\$URL/index.php3?stat=3&search=\"${Q}\"&Search.x=0&Search.y=0&simple=1&srodzaj=4\" | $FILTERCMD"
   eval "$SEARCHCMD"
 }

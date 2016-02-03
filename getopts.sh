@@ -139,7 +139,7 @@ __getopts_createSingleCharParams()
 			
 			# Replace the multi letter parameter that has `=' after it with a single letter parameter
 			# that has a ` ' after it.
-			curr_param="$(sed -e "s/^$MultiLetterName\(=\|$\)/ $SingleLetterName /g" <<< $curr_param)"
+			curr_param="$(${SED-sed} -e "s/^$MultiLetterName\(=\|$\)/ $SingleLetterName /g" <<< $curr_param)"
 		done
 		ParsedParams="$ParsedParams $curr_param"
 	done
@@ -259,7 +259,7 @@ getopt_long()
 	#	 before back in place.
 	# 4. Replacing the ";" with ");". This way we close the array, and end the
 	#	 current command.
-	retval="$(echo $retval | sed -e "s/=' /=('/g" \
+	retval="$(echo $retval | ${SED-sed} -e "s/=' /=('/g" \
 								 -e "s/; */;/g" \
 								 -e "s/ /' '/g" \
 								 -e "s/__getopts__/ /g" \

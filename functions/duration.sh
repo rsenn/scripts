@@ -11,7 +11,7 @@ duration()
     N="$#";
     for ARG in "$@"
     do
-        D=$(mminfo "$ARG" |sed -n 's,Duration=,,p' | head -n1);
+        D=$(mminfo "$ARG" |${SED-sed} -n 's,Duration=,,p' | head -n1);
         set -- $D;
         S=0;
         for PART in "$@";

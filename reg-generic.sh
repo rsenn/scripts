@@ -10,9 +10,9 @@ reg_key_exists()
 
 reg_key_contains()
 {
- (PATTERN=`echo "$*" | sed -e 's,\\\\,\\\\\\\\,g' -e 's,^HKCU,HKEY_CURRENT_USER,'`
+ (PATTERN=`echo "$*" | ${SED-sed} -e 's,\\\\,\\\\\\\\,g' -e 's,^HKCU,HKEY_CURRENT_USER,'`
 
-  reg query "$*" 2>/dev/null | sed -n "s/^$PATTERN\\\\//p")
+  reg query "$*" 2>/dev/null | ${SED-sed} -n "s/^$PATTERN\\\\//p")
 }
 
 reg_value_exists()

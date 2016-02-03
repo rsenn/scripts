@@ -8,16 +8,16 @@ IFS="
 require xml
 require distrib
 
-SED=sed
+SED=${SED-sed}
 GREP=grep
 
-if sed --help 2>&1 | grep -q '\-u'; then
+if ${SED-sed} --help 2>&1 | grep -q '\-u'; then
   SEDOPTS="-u"
 else
 	SEDOPTS=
 fi
 
-sed() {
+${SED-sed}() {
 	( #set -- "${@//$IFS/ ;; }"
 	#set -x
 	 command $SED $SEDOPTS "$@")
@@ -60,15 +60,15 @@ log() {
 }
 
 ppa_to_repobase() {
- (CMD='sed -n "s|\\r*\$|| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://ppa.launchpad.net/\1/\2/ubuntu|p"'
+ (CMD='${SED-sed} -n "s|\\r*\$|| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://ppa.launchpad.net/\1/\2/ubuntu|p"'
 	[ $# -gt 0 ] && CMD="$CMD <<<\"\$*\""
 	eval "$CMD")
 }
 
 ppa_to_repodist() {
 (IFS="/"
-  #CMD='sed -n "s|\\r*\$|| ;; s|.*/\([^/]\+\)/\([^/]\+\)/ubuntu.*|\1/\2| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://www.ubuntuupdates.org/\1/\2/ubuntu/dists/${codename%/}${*:+/$*}|p"'
-  CMD='sed -n "s|\\r*\$|| ;; s|.*/\([^/]\+\)/\([^/]\+\)/ubuntu.*|\1/\2| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://ppa.launchpad.net/\1/\2/ubuntu/dists/${codename%/}${*:+/$*}|p"'
+  #CMD='${SED-sed} -n "s|\\r*\$|| ;; s|.*/\([^/]\+\)/\([^/]\+\)/ubuntu.*|\1/\2| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://www.ubuntuupdates.org/\1/\2/ubuntu/dists/${codename%/}${*:+/$*}|p"'
+  CMD='${SED-sed} -n "s|\\r*\$|| ;; s|.*/\([^/]\+\)/\([^/]\+\)/ubuntu.*|\1/\2| ;; s|^\([^/]\+\)/\([^/]\+\)\$|http://ppa.launchpad.net/\1/\2/ubuntu/dists/${codename%/}${*:+/$*}|p"'
 	eval "$CMD")
 }
 
@@ -174,9 +174,9 @@ xml_get a href | addprefix "http://www.ubuntuupdates.org")
 
 log "Got $(count $URLS) PPAs for ${release}${codename:+ ($codename)}"
 
-#EXT_URLS=$(http_get $URLS | sed -n '/>External PPA Homepage</p' | xml_get a href)
+#EXT_URLS=$(http_get $URLS | ${SED-sed} -n '/>External PPA Homepage</p' | xml_get a href)
 #log "Got $(count $EXT_URLS) URLs for ${release}${codename:+ ($codename)}"
-#(set -x; http_get $EXT_URLS)|sed -n "/^deb/ { 
+#(set -x; http_get $EXT_URLS)|${SED-sed} -n "/^deb/ { 
 #/<span/ {
 #  :lp
 #	  \,</span,! { N; s|\s\+| |g; b lp; }
@@ -185,14 +185,14 @@ log "Got $(count $URLS) PPAs for ${release}${codename:+ ($codename)}"
 #}"
 #
 
-http_get $URLS |sed -n "s|^\\s*|| ;; s|\\s*\$|| ;; /add-apt-repository/ s|.*ppa:||p" |
+http_get $URLS |${SED-sed} -n "s|^\\s*|| ;; s|\\s*\$|| ;; /add-apt-repository/ s|.*ppa:||p" |
 ppa_to_repobase | 
 ppa_to_repodist "Release" | while read -r RELEASE; do
 	log "Release: $RELEASE"
-	PACKAGES=$(curl -s "$RELEASE" |  sed -n "\\|/Packages.bz2\$| { s|^\s*[0-9a-f]\+\s\+[0-9]\+\s\+|${RELEASE%/Release}/|p }" )
+	PACKAGES=$(curl -s "$RELEASE" |  ${SED-sed} -n "\\|/Packages.bz2\$| { s|^\s*[0-9a-f]\+\s\+[0-9]\+\s\+|${RELEASE%/Release}/|p }" )
 	log "Got $(count $PACKAGES) from $RELEASE ..."
 	for PACKAGE in $PACKAGES ; do
-		curl -s "$PACKAGE"|bzcat |sed -n "/^Filename: / {
+		curl -s "$PACKAGE"|bzcat |${SED-sed} -n "/^Filename: / {
 		  s|^[^:]*:\s\+|${RELEASE%%/ubuntu/*}/ubuntu/|
 		  p
     }"

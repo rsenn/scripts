@@ -1,4 +1,4 @@
 disk-device-number()
 {
-    index-of "$(disk-device-letter "$1")" abcdefghijklmnopqrstuvwxyz
+    index_of "$(disk-device-letter "$1")"  a b c d e f g h i j k l m n o p q r s t u v w x y z
 }

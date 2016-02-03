@@ -12,7 +12,7 @@ view_genres()
 
 
 		href=`xml_get a href <<<"$LINE"` 
-		title=`sed "s,.*>\([^<]\+\)<.*,\1,"  <<<"$LINE"` 
+		title=`${SED-sed} "s,.*>\([^<]\+\)<.*,\1,"  <<<"$LINE"` 
 
 		test -n "$title" && echo http://modarchive.org/$href "$title"
 	done
@@ -29,7 +29,7 @@ URLS=`curl "http://modarchive.org/index.php?query=${1}&request=search&search_typ
 
 
 
-NPAGE=`sed -n 's,.*page=\([0-9]*\).*,\1,p' <<<"$URLS" | sort -n  |tail -n1` 
+NPAGE=`${SED-sed} -n 's,.*page=\([0-9]*\).*,\1,p' <<<"$URLS" | sort -n  |tail -n1` 
 
 eval "set http://modarchive.org/index.php?query=${1}\\&request=search\\&search_type=genre\\&page="{` seq -s, 1 $NPAGE`}
 

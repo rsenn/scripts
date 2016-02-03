@@ -8,9 +8,9 @@ index-tar()
          esac
          done
 
-FILTERCMD='sed "s,^\./,,"'
+FILTERCMD='${SED-sed} "s,^\./,,"'
 if [ $# -gt 1 ]; then
-        FILTERCMD=${FILTERCMD:+$FILTERCMD'|'}'sed "s|^|$ARG:|"';
+        FILTERCMD=${FILTERCMD:+$FILTERCMD'|'}'${SED-sed} "s|^|$ARG:|"';
     else
         unset FILTERCMD;
     fi

@@ -11,5 +11,5 @@ ls-files()
     for ARG in "$@";
     do
         ls --color=auto -d $OPTS -- "$ARG"/*;
-    done ) | filter-test -f| sed 's,^\./,,; s,/$,,'
+    done ) | filter-test -f| ${SED-sed} 's,^\./,,; s,/$,,'
 }

@@ -1,4 +1,4 @@
-for D in $(df -l|sed 1d|sort -nk3| awk '{ print $1 }'); do echo "$D
+for D in $(df -l|${SED-sed} 1d|sort -nk3| awk '{ print $1 }'); do echo "$D
 cd \\
 list-r64.exe >files.tmp
 del /f files.list

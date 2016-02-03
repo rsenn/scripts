@@ -29,6 +29,6 @@ mountpoints()
         fi
     };
     CMD="lsmnt \"\$@\"";
-    [ "$USER" = true ] && CMD="$CMD | grep -vE '^(/\$|/proc|/sys|/dev)'";
+    [ "$USER" = true ] && CMD="$CMD | ${GREP-grep} -vE '^(/\$|/proc|/sys|/dev)'";
     eval "$CMD" )
 }

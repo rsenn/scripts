@@ -35,7 +35,7 @@ output_first_existing() {
 
 # ---------------------------------------------------------------------------
 get_mingw_paths() {
-  SUBST="{$(df -l|sed 1d|awk '{ print $6 }'|implode ",")}/*mingw*{,/*,/*/*}/bin/*gcc{,.exe}"
+  SUBST="{$(df -l|${SED-sed} 1d|awk '{ print $6 }'|implode ",")}/*mingw*{,/*,/*/*}/bin/*gcc{,.exe}"
   eval set -- $SUBST
   output_existing "$@"
 }
@@ -98,7 +98,7 @@ get_mingw_output() {
   IFS="
 
 	"
-  set -- $("$BASEDIR/bin/gcc" "$@" | sed "s|^\\.\\./|${BASEDIR}/|")
+  set -- $("$BASEDIR/bin/gcc" "$@" | ${SED-sed} "s|^\\.\\./|${BASEDIR}/|")
   echo "$*")
 }
 

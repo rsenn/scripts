@@ -29,22 +29,22 @@ IFS="
 
 minfo()
 {
-    mediainfo "$@" 2>&1 |sed -u 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g' 
+    mediainfo "$@" 2>&1 |${SED-sed} -u 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g' 
 }
 
 bce()
 {
-    (IFS=" "; echo "$*" | (bc -l || echo "ERROR: Expression '$*'" 1>&2)) | sed -u '/\./ s,\.\?0*$,,'
+    (IFS=" "; echo "$*" | (bc -l || echo "ERROR: Expression '$*'" 1>&2)) | ${SED-sed} -u '/\./ s,\.\?0*$,,'
 }
 
 bci()
 {
-    (IFS=" "; : echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | sed -u 's,\.[0-9]\+$,,'
+    (IFS=" "; : echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | ${SED-sed} -u 's,\.[0-9]\+$,,'
 }
 
 duration()
 {
-    (for ARG; do minfo "$ARG" | info_get Duration| head -n1 ; done | sed 's,\([0-9]\+\)h,(\1 * 3600\)+, ; s,\([0-9]\+\)mn,(\1 * 60)+, ; s,\([0-9]\+\)s,\1+, ; s,+$,,' | bc -l)
+    (for ARG; do minfo "$ARG" | info_get Duration| head -n1 ; done | ${SED-sed} 's,\([0-9]\+\)h,(\1 * 3600\)+, ; s,\([0-9]\+\)mn,(\1 * 60)+, ; s,\([0-9]\+\)s,\1+, ; s,+$,,' | bc -l)
 
 }
 
@@ -139,13 +139,13 @@ fi
   VCODEC_OPTS="-level 41 -crf 20 -bufsize 20000k ${MAXRATE:+-maxrate $MAXRATE} -g 250 -r 20 -coder 1 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 ${FLAGS2:+-flags2 "$FLAGS2"} ${ME:+-me "$ME"} -subq 7 -me_range 16 -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -rc_eq 'blurCplx^(1-qComp)' -bf 16 -b_strategy 1 -bidir_refine 1 -refs 6 -deblockalpha 0 -deblockbeta 0"
   VCODEC_OPTS="-level 41 -crf 20 -bufsize 20000k ${MAXRATE:+-maxrate $MAXRATE} -g 250 -r 20 -coder 1 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 ${FLAGS2:+-flags2 "$FLAGS2"} ${ME:+-me "$ME"} -subq 7 -me_range 16 -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -rc_eq 'blurCplx^(1-qComp)' -bf 16 -b_strategy 1 -bidir_refine 1 -refs 6" 
 
-( ffmpeg -y -threads 2  \
+( ${FFMPEG-ffmpeg} -y -threads 2  \
   -i "$ARG" \
   -acodec libfaac ${AR:+-ar "$AR"} -ab "$ABR"k \
   ${SIZE:+-s "$SIZE"}   \
   -b "$VBR" -vcodec libx264 $VCODEC_OPTS \
   "$OUTPUT" 2>&1 
-) #| sed -u -e '1d; 2d; 3d; 4d; 5d; 6d; 7d; 8d; 9d; 10d; 11d'
+) #| ${SED-sed} -u -e '1d; 2d; 3d; 4d; 5d; 6d; 7d; 8d; 9d; 10d; 11d'
 
 exit 
   #X264OPTS="level_idc=12:bitrate=$((VBR )):bframes=16:subq=7:partitions=all:8x8dct:me=esa:me_range=23:frameref=6:trellis=1:b_pyramid:weight_b:mixed_refs:threads=0:qcomp=0.6:keyint=250:min-keyint=25:direct=temporal"

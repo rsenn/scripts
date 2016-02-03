@@ -3,7 +3,7 @@ tcp-check() {
         for ARG; do
         HOST=${ARG%:*}
         PORT=${ARG#$HOST:}
-        
+
         if type tcping 2>/dev/null >/dev/null; then
           CMD='tcping -q -t "$TIMEOUT" "$HOST" "$PORT"; echo "$?"'
         else
@@ -11,7 +11,7 @@ tcp-check() {
         fi
 
         RET=`eval "$CMD"`
-        
+
         if [ "$RET" -eq 0 ]; then
           echo "$HOST:$PORT"
         fi

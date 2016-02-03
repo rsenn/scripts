@@ -18,7 +18,7 @@ case "$OS" in
 esac
 
 eval "ls -d $MEDIAPATH/{Program*/*/*.exe,Tools/*.exe,PortableApps/*/*.exe} 2>/dev/null" |
-sed -u 's,/[^/]*$,,'|
+${SED-sed} -u 's,/[^/]*$,,'|
 uniq |
 #sort -u |
 { unset PREV

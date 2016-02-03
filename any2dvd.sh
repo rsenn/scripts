@@ -27,22 +27,22 @@ IFS="
 
 minfo()
 {
-    mediainfo "$@" 2>&1 |sed -u 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g' 
+    mediainfo "$@" 2>&1 |${SED-sed} -u 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g' 
 }
 
 bce()
 {
-    (IFS=" "; echo "$*" | (bc -l || echo "ERROR: Expression '$*'" 1>&2)) | sed -u '/\./ s,\.\?0*$,,'
+    (IFS=" "; echo "$*" | (bc -l || echo "ERROR: Expression '$*'" 1>&2)) | ${SED-sed} -u '/\./ s,\.\?0*$,,'
 }
 
 bci()
 {
-    (IFS=" "; : echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | sed -u 's,\.[0-9]\+$,,'
+    (IFS=" "; : echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | ${SED-sed} -u 's,\.[0-9]\+$,,'
 }
 
 duration()
 {
-    (for ARG; do minfo "$ARG" | info_get Duration| head -n1 ; done | sed 's,\([0-9]\+\)h,(\1 * 3600\)+, ; s,\([0-9]\+\)mn,(\1 * 60)+, ; s,\([0-9]\+\)s,\1+, ; s,+$,,' | bc -l)
+    (for ARG; do minfo "$ARG" | info_get Duration| head -n1 ; done | ${SED-sed} 's,\([0-9]\+\)h,(\1 * 3600\)+, ; s,\([0-9]\+\)mn,(\1 * 60)+, ; s,\([0-9]\+\)s,\1+, ; s,+$,,' | bc -l)
 
 }
 
@@ -123,11 +123,11 @@ fi
 unset VBR ABR AR 
 
     (set -x; 
-#ffmpeg -y -i "$ARG" -target pal-dvd ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR+-b "$VBR"}  ${ABR:+-ab "$ABR"} ${AR:+-ar "$AR"} -ac 2  "$OUTPUT"
+#${FFMPEG-ffmpeg} -y -i "$ARG" -target pal-dvd ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  ${VBR+-b "$VBR"}  ${ABR:+-ab "$ABR"} ${AR:+-ar "$AR"} -ac 2  "$OUTPUT"
 #mencoder -oac lavc -ovc lavc -of mpeg -mpegopts format=dvd:tsaf -vf ${SIZE:+scale=${SIZE%x*}:${SIZE#*x},}harddup ${AR:+-srate "$AR" -af lavcresample="$AR"} -lavcopts vcodec=mpeg2video:vrc_buf_size=1835:vrc_maxrate=9800:vbitrate=5000:keyint=15:vstrict=0:acodec=ac3${ABR:+abitrate="$ABR":}:aspect=16/9 -ofps 25 -o "$OUTPUT" "$ARG"
 
 
-transcode --verbose 2   -i "$ARG" -y ffmpeg --export_prof dvd-pal --export_asr 3 -o "${OUTPUT%.*}.m2v" -D0 -s2 -m "${OUTPUT%.*}.ac3" -J modfps=clonetype=3 --export_fps 25 &&
+transcode --verbose 2   -i "$ARG" -y ${FFMPEG-ffmpeg} --export_prof dvd-pal --export_asr 3 -o "${OUTPUT%.*}.m2v" -D0 -s2 -m "${OUTPUT%.*}.ac3" -J modfps=clonetype=3 --export_fps 25 &&
  mplex -f8 -o "$OUTPUT" "${OUTPUT%.*}".{m2v,ac3}
 
 

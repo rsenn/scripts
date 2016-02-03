@@ -1,10 +1,10 @@
-dump-shortcuts() { 
+dump-shortcuts() {
  (while :; do
    case "$1" in
     -*) pushv OPTS "$1"; shift ;;
      *) break ;;
    esac
   done
-  for-each 'readshortcut $OPTS -t -r "$1" | sed "N ;; s%\s*\n\s*% % ;; s%^%$1: %"' "$@"
+  for-each 'readshortcut $OPTS -t -r "$1" | ${SED-sed} "N ;; s%\s*\n\s*% % ;; s%^%$1: %"' "$@"
  )
 }

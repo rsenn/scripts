@@ -63,13 +63,13 @@ if type reg 2>/dev/null >/dev/null; then
 fi
 
 
-#: ${DATABASE=$("$REG" query 'HKCU\Software\Update\Databases\1_default' -v ArchiveName |sed -n 's,\\,/,g ;; s,.*REG_SZ\s\+,,p')}
+#: ${DATABASE=$("$REG" query 'HKCU\Software\Update\Databases\1_default' -v ArchiveName |${SED-sed} -n 's,\\,/,g ;; s,.*REG_SZ\s\+,,p')}
 
 : ${DATABASE="$USERPROFILE/AppData/Roaming/Locate32/files.dbs"}
 
 if [ -n "$REG" ]; then
-: ${DATABASE="$(for key in $("$REG" query 'HKCU\Software\Update\Databases' #| sed 's,\r$,,'
-); do key=${key%$'\r'}; test -z "$key" || reg query "$key" -v ArchiveName |sed -n '/ArchiveName/ { s,\r$,,; s,.*REG_SZ\s\+,,; s,\\,/,g; p; }'; done)"}
+: ${DATABASE="$(for key in $("$REG" query 'HKCU\Software\Update\Databases' #| ${SED-sed} 's,\r$,,'
+); do key=${key%$'\r'}; test -z "$key" || reg query "$key" -v ArchiveName |${SED-sed} -n '/ArchiveName/ { s,\r$,,; s,.*REG_SZ\s\+,,; s,\\,/,g; p; }'; done)"}
 fi
 
 if [ -z "$DATABASE" ]; then
@@ -90,7 +90,7 @@ if [ "$DEBUG" = true ]; then
 fi
 
 
-MEDIAPATH="/{$(set -- $(df -a 2>/dev/null |sed -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
+MEDIAPATH="/{$(set -- $(df -a 2>/dev/null |${SED-sed} -n 's,^[A-Za-z]\?:\?[\\/]\?[^ ]*\s[^/]\+\s/,,p'); IFS=","; echo "$*")}"
 
 pathconv() { (IFS="/\\"; S="${2-/}"; set -- $1; IFS="$S"; echo "$*"); }
 addopt() { for OPT; do OPTS="${OPTS:+$OPTS }${OPT}"; done; }
@@ -200,7 +200,7 @@ for ARG in $PARAMS; do
 }$ARG"
 done
 #ARGS=${ARGS//"**"/"*"}
-ARGS=$(echo "$ARGS" | sed 's,\*\+,*,g')
+ARGS=$(echo "$ARGS" | ${SED-sed} 's,\*\+,*,g')
 
 #[ -n "$EXTENSION" ] && addopt -t "$EXTENSION"
 
@@ -208,7 +208,7 @@ addopt -lw
 set -f
 CMD="\"$LOCATE\" $OPTS -- \"\$ARG\" 2>&1"
 CMD="for ARG in \$ARGS; do (${DEBUG:+set -x; }$CMD) done"
-CMD="$CMD | sed \"\${SED_EXPR}\""
+CMD="$CMD | ${SED-sed} \"\${SED_EXPR}\""
 [ "$DEBUG" = true ] && { echo "+ $CMD" 1>&2; : set -x; }
 [ "$EXISTS" = true ] && CMD="$CMD | while read -r R; do test -e \"\$R\" && echo \"\$R\"; done"
 eval "$CMD"

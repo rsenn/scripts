@@ -16,5 +16,5 @@ grep-e()
             *) WORDS="${WORDS+$WORDS$IFS}$1"; shift ;;
         esac;
     done;
-    grep -E $ARGS "$(grep-e-expr $WORDS)" ${LAST:+$LAST} )
+    ${GREP-grep} -E $ARGS "$(grep-e-expr $WORDS)" ${LAST:+$LAST} )
 }

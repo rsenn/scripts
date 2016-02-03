@@ -32,22 +32,22 @@ IFS="
 
 minfo()
 {
-    mediainfo "$@" 2>&1 |sed -u 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g' 
+    mediainfo "$@" 2>&1 |${SED-sed} -u 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g' 
 }
 
 bce()
 {
-    (IFS=" "; echo "$*" | (bc -l || echo "ERROR: Expression '$*'" 1>&2)) | sed -u '/\./ s,\.\?0*$,,'
+    (IFS=" "; echo "$*" | (bc -l || echo "ERROR: Expression '$*'" 1>&2)) | ${SED-sed} -u '/\./ s,\.\?0*$,,'
 }
 
 bci()
 {
-    (IFS=" "; : echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | sed -u 's,\.[0-9]\+$,,'
+    (IFS=" "; : echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | ${SED-sed} -u 's,\.[0-9]\+$,,'
 }
 
 duration()
 {
-    (for ARG; do minfo "$ARG" | info_get Duration| head -n1 ; done | sed 's,\([0-9]\+\)h,(\1 * 3600\)+, ; s,\([0-9]\+\)mn,(\1 * 60)+, ; s,\([0-9]\+\)s,\1+, ; s,+$,,' | bc -l)
+    (for ARG; do minfo "$ARG" | info_get Duration| head -n1 ; done | ${SED-sed} 's,\([0-9]\+\)h,(\1 * 3600\)+, ; s,\([0-9]\+\)mn,(\1 * 60)+, ; s,\([0-9]\+\)s,\1+, ; s,+$,,' | bc -l)
 
 }
 ABR=128
@@ -63,9 +63,9 @@ fi
     (set -x; 
 trap 'R=$?; rm -f "$WAV"; exit $R' EXIT QUIT INT TERM
 #mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"  2>/dev/null||
-   ffmpeg -y -i "$ARG"  -acodec pcm_${PCM:-s16le} ${SRATE:+-ar "$SRATE"}  ${CHANNELS:+-ac "$CHANNELS"} "$WAV"   || exit $?
+   ${FFMPEG-ffmpeg} -y -i "$ARG"  -acodec pcm_${PCM:-s16le} ${SRATE:+-ar "$SRATE"}  ${CHANNELS:+-ac "$CHANNELS"} "$WAV"   || exit $?
 trap '' EXIT QUIT INT TERM
 
   ) || break
-done #2>&1|sed -u '1d;2d;3d;/^\s\+lib/d'
+done #2>&1|${SED-sed} -u '1d;2d;3d;/^\s\+lib/d'
 

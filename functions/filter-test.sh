@@ -20,7 +20,7 @@ filter-test() {
 #" ARGN=$#; ARGS="$*"
   CMD='while read -r LINE; do
   [ '$ARGS' ] && echo "$LINE"
-done' 
+done'
 
   [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
   eval "$CMD")

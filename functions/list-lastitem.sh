@@ -1,4 +1,4 @@
 list-lastitem()
 {
-    sed -n '$p'
+    ${SED-sed} -n '$p'
 }

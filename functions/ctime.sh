@@ -22,5 +22,5 @@ ctime()
     E="$E\(${NW}\)${WS}";
     E="$E\(.*\)";
     [ $# -gt 1 ] && R="\2: \1" || R="\1";
-    ls --color=auto --color=auto --color=auto -l -n -d --time=ctime --time-style="${TS}" "$@" | sed "s/$E/$R/" )
+    ls --color=auto --color=auto --color=auto -l -n -d --time=ctime --time-style="${TS}" "$@" | ${SED-sed} "s/$E/$R/" )
 }

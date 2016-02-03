@@ -29,13 +29,13 @@ SEQ=$(set -- `seq -s , 1 $N`; IFS=","; echo "${*%,}")
 CMD="$DLCMD \"http://www.filestube.to/query.html?${Q}&select=All&Submit=Search&${HOSTING:+hosting=${HOSTING}&}page=\"{$SEQ}"
 
 [ "${X:--x}" = -x ] && echo "+ $CMD" 1>&2; eval "$CMD"|
-sed 's,<,\n<,g' | 
-sed -n "/resultsLink/ s,.*href=\"\\([^\"]*\\)\".*,http://www.filestube.com\\1,p" |
+${SED-sed} 's,<,\n<,g' | 
+${SED-sed} -n "/resultsLink/ s,.*href=\"\\([^\"]*\\)\".*,http://www.filestube.com\\1,p" |
 while read -r LINK; do
 #				echo "LINK=$LINK" 1>&2
     (   CMD="$DLCMD '$LINK'"; [ "${X:--x}" = -x ] && echo "+ $CMD" 1>&2; eval "$CMD")  | 
-		sed "s|>\s*<|>\n<|g" |
-		sed -n '\|<pre| { :lp; N; \|</pre|! b lp; p; }' |
-		sed "s|</\?pre[^>]*>||g"
+		${SED-sed} "s|>\s*<|>\n<|g" |
+		${SED-sed} -n '\|<pre| { :lp; N; \|</pre|! b lp; p; }' |
+		${SED-sed} "s|</\?pre[^>]*>||g"
 
-done | sed -u '/^\s*$/d'
+done | ${SED-sed} -u '/^\s*$/d'

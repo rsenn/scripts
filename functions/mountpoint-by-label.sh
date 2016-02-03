@@ -3,7 +3,7 @@ mountpoint-by-label() {
  	"
   for MNT in $(wmic Path win32_volume where "Label='$1'" Get DriveLetter /format:list 2>&1); do
     case "$MNT" in
-      DriveLetter=*) 
+      DriveLetter=*)
         MNT=${MNT#DriveLetter=}
         MNT=${MNT:0:1}:
         break

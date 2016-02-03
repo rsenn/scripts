@@ -3,7 +3,7 @@ cut-lsof() {
   [ $# -le 0 ] && set NAME
   CMD=
   is_num() { for N; do test "$N" -ge 0 2>/dev/null || return $?; done; }
-  
+
   for FIELD; do CMD="${CMD:+$CMD }\${$FIELD}"; done
   CMD="echo \"$CMD\""
   eval "print() { $CMD; }"
@@ -21,7 +21,7 @@ cut-lsof() {
             NAME="$NODE${NAME:+ $NAME}"; unset NODE
             set -- COMMAND PID USER FD TYPE DEVICE SIZE NAME
           fi
-          
+
           ;;
       esac
     fi
@@ -37,7 +37,7 @@ cut-lsof() {
         NAME=${NAME#*" "}
       ;;
     esac
-    while [ "$NAME" != "${NAME# }" ]; do NAME=${NAME#" "}; done		
+    while [ "$NAME" != "${NAME# }" ]; do NAME=${NAME#" "}; done
     print
     LINE=$((LINE + 1))
   done)

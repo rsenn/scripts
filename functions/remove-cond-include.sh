@@ -3,9 +3,9 @@ remove-cond-include() {
   shift
 
   INCNAME="${INC##*/include/}"
-  INCDEF=HAVE_$(echo "$INCNAME" | sed 's,[/.],_,g' | tr '[[:'{lower,upper}':]]') 
+  INCDEF=HAVE_$(echo "$INCNAME" | ${SED-sed} 's,[/.],_,g' | tr '[[:'{lower,upper}':]]')
 
-  sed -i "\\|^\s*#\s*if[^\n]*def[^\n]*$INCDEF| {
+  ${SED-sed} -i "\\|^\s*#\s*if[^\n]*def[^\n]*$INCDEF| {
     :lp
     /#\s*endif/! { N; b lp; }
 

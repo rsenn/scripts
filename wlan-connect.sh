@@ -1,10 +1,10 @@
 #!/bin/sh
 CONFIG="$HOME/wpa_supplicant.conf"
-IF=`iwconfig 2>&1 |grep IEEE.802 | sed 's,\s.*,,' |grep -v ^mon| head -n1`
+IF=`iwconfig 2>&1 |grep IEEE.802 | ${SED-sed} 's,\s.*,,' |grep -v ^mon| head -n1`
 
 if [ "$1" = "-l" ]; then
 	ifconfig $IF up
-  iwlist $IF scanning|grep ESSID|sed 's,:",=", ;s,^\s*,, ; s,ESSID="\(.*\)",\1,'           
+  iwlist $IF scanning|grep ESSID|${SED-sed} 's,:",=", ;s,^\s*,, ; s,ESSID="\(.*\)",\1,'           
   exit $?
 fi
 
@@ -15,7 +15,7 @@ IP=$3
 if [ $# -gt 1 ]; then
   CONFIG=`mktemp -p /tmp/ wpa_supplicant.conf-XXXXXX` 
   trap 'rm -f "$CONFIG"' EXIT
-  wpa_passphrase "$ESSID" "$PASS" | tee "$CONFIG" | sed "s|^|$CONFIG: |" ||exit $?
+  wpa_passphrase "$ESSID" "$PASS" | tee "$CONFIG" | ${SED-sed} "s|^|$CONFIG: |" ||exit $?
 fi
 
 set -x

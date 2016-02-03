@@ -39,7 +39,7 @@ for ARG; do
 
   case $TYPE in
     *:\ application/x-rar*) yes A | unrar x $OPTS "$FILE" 2>&1 ;;
-    *:\ application/x-zip* | *:\ application/zip*) yes A | unzip $OPTS "$FILE" 2>&1 | sed -e "s/^replace [^:]*\[A\]ll, [^:]*: //" ;;
+    *:\ application/x-zip* | *:\ application/zip*) yes A | unzip $OPTS "$FILE" 2>&1 | ${SED-sed} -e "s/^replace [^:]*\[A\]ll, [^:]*: //" ;;
     *:\ application/x-*) aunpack $OPT "$FILE" ;;
     *) echo "Unknown archive type:" $TYPE 1>&2 && exit 1 ;;
   esac) || {

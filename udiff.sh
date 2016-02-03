@@ -92,7 +92,7 @@ then
     "*/depcomp"
     "*/config.h.in"
     "*.alias"
-    "*.sed"
+    "*.${SED-sed}"
     "*/stamp*"
     "*.lt"
     "*/POTFILES"
@@ -106,7 +106,7 @@ fi
 
 #detected_exclusions=$(for dir in "$arg1" "$arg2"; do
 #  test -d "$dir" && find "$dir" -type f -name "*.in" -and -not -name "configure.in" -and -not -name "config.h.in";
-#done | sed 's,^.*/\(.*\)\.in$,\1,' | sort -u)
+#done | ${SED-sed} 's,^.*/\(.*\)\.in$,\1,' | sort -u)
 
 #for x in $detected_exclusions; do
 #  exclusions[${#exclusions[@]}]="$x"

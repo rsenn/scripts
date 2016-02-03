@@ -594,7 +594,7 @@ _flags_getoptStandard()
   # check for spaces in passed options
   for _flags_opt_ in "$@"; do
     # note: the silliness with the x's is purely for ksh93 on Ubuntu 6.06
-    _flags_match_=`echo "x${_flags_opt_}x" |sed 's/ //g'`
+    _flags_match_=`echo "x${_flags_opt_}x" |${SED-sed} 's/ //g'`
     if [ "${_flags_match_}" != "x${_flags_opt_}x" ]; then
       flags_error='the available getopt does not support spaces in options'
       flags_return=${FLAGS_ERROR}
@@ -630,7 +630,7 @@ _flags_getoptEnhanced()
   flags_return=${FLAGS_TRUE}
   _flags_shortOpts_=`_flags_genOptStr ${__FLAGS_OPTSTR_SHORT}`
   _flags_boolOpts_=`echo "${__flags_boolNames}" \
-      |sed 's/^ *//;s/ *$//;s/ /,/g'`
+      |${SED-sed} 's/^ *//;s/ *$//;s/ /,/g'`
   _flags_longOpts_=`_flags_genOptStr ${__FLAGS_OPTSTR_LONG}`
 
   __flags_opts=`${FLAGS_GETOPT_CMD} \

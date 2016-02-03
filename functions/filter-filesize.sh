@@ -18,13 +18,13 @@ filter-filesize() {
       *) break ;;
     esac
   done
-  xargs ls -l -d -n --time-style="+%s" -- | { 
+  xargs ls -l -d -n --time-style="+%s" -- | {
    set -- $OPS
    IFS=" "
-   CMD="test $*" 
+   CMD="test $*"
    while read -r MODE N USERID GROUPID FILESIZE DATETIME PATH; do
      #echo "$FILESIZE" 1>&2
-      eval "if $CMD; then echo \"\$PATH\"; fi" 
+      eval "if $CMD; then echo \"\$PATH\"; fi"
 
   done; }
   )

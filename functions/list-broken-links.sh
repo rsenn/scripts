@@ -4,7 +4,7 @@ list-broken-links() {
     BASE=`basename "$ARG"`
 
     TARGET=$(cd "$DIR"; readlink "$BASE")
-    
+
     ABS="$DIR/$TARGET"
 
     test -e "$ABS" || echo "$ARG"
