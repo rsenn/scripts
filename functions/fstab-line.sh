@@ -41,6 +41,10 @@ fstab-line()
         OPTS=${OPTS//,relatime/,noatime}
         OPTS=${OPTS//,blksize=[0-9]*/}
         OPTS=${OPTS//,errors=remount-ro/}
+        OPTS=${OPTS//,user_id=0/,user_id=${USER_ID:-0}}
+        OPTS=${OPTS//,uid=0/,uid=${USER_ID:-0}}
+        OPTS=${OPTS//,group_id=0/,group_id=${GROUP_ID:-0}}
+        OPTS=${OPTS//,gid=0/,gid=${GROUP_ID:-0}}
         printf "%-40s %-24s %-6s %-6s %6d %6d\n" "$DEV" "$MNTDIR" "${FSTYPE:-auto}" "${OPTS:-auto}" "${DUMP:-0}" "${PASS:-0}" );
     done )
 }

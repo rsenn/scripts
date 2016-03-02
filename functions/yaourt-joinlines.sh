@@ -13,15 +13,9 @@ yaourt-joinlines() {
     esac
     shift
   done
-	rep() { N=$1; shift ; C="$*"; O=; while [ $((N)) -gt 0 ]; do O="${O}$C";  : $((--N)); done; echo "$O"; }
-	pad() { W=$1; shift; S=$*; P=$(rep $(($W-${#S})) " "); echo "${S}${P}"; }
     DESC= INSTALLED=
-		P_NAME='${NAME'$R_REPOSITORY'}'
-
-		P_NAME='$(pad 32 "'$P_NAME'")'; [ -n "$P_VERSION" ] && P_VERSION=' $(pad 20'$P_VERSION')'
-
     P_CMD='if [ -n "$DESC"'${P_INSTALLED:+' -a "$P_INSTALLED" = "$INSTALLED"'}' ]; then
-        echo "'$P_NAME$P_VERSION$P_STATE$P_NUM$P_DESC'"
+        echo "${NAME'$R_REPOSITORY'}'$P_VERSION$P_STATE$P_NUM$P_DESC'"
       fi'
     eval "p() { $P_CMD; }"
     while read -r LINE; do
@@ -34,7 +28,7 @@ yaourt-joinlines() {
         DESC="${LINE}"
 
 				NAME=${DESC%%" "*}; DESC=${DESC#"$NAME "}
-				VERSION=${DESC%%" "*}; DESC=${DESC#*"$VERSION "}
+				VERSION=${DESC%%" "*}; DESC=${DESC#"$VERSION "}
 
 				STATE= NUM=
 				while :; do
