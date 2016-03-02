@@ -67,9 +67,9 @@ install: $(SCRIPTS)
 	  shift $$N; \
 	done
 	@N=1; set -- $(LINKS); while :; do \
-		  if test -L "$$1"; then \
-				echo "ln -sf $$(readlink "$$1")  $(DESTDIR)$(bindir)/$$1"; \
-				ln -sf $$(readlink "$$1")  $(DESTDIR)$(bindir)/$$1; \
+		  if test -n "$$1"; then \
+				echo "ln -sf "$${1%%-*}-filename.sh"  $(DESTDIR)$(bindir)/$$1"; \
+				ln -sf "$${1%%-*}-filename.sh"  $(DESTDIR)$(bindir)/$$1; \
 			fi; \
 	  [ $$# -lt $$N ] && break; \
 	  shift $$N; \
