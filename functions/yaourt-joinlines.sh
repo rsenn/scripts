@@ -2,7 +2,7 @@ yaourt-joinlines() {
 (while :; do
    case "$1" in 
 		 -R | --remove-repo*) REMOVE_REPO="s|^[^/ ]\\+/||"; shift ;;
-		 -V | --remove-ver*) REMOVE_VER="s|^\([^/ ]\\+\)/\([^/ ]\\+\) \([^ ]\) |\1 |"; shift ;;
+		 -V | --remove-ver*) REMOVE_VER="s|^\([^/ ]\\+\)/\([^/ ]\\+\) \([^ ]\\+\) |\1 |"; shift ;;
 		 -r | --remove-rat*) REMOVE_RATING="s|)\s\+\(([^)]\+)\)|)|"; shift ;;
 		 *) break ;;
 		esac
