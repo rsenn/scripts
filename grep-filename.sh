@@ -46,6 +46,7 @@ while :; do
 done
 
 cr=""
+GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--binary-files=text"
 
 CMD='grep $GREP_ARGS -i -E "\\.($(IFS="| "; set -- $EXTS;  echo "$*"))${PARTIAL_EXPR}${END}"  "$@"'
 
