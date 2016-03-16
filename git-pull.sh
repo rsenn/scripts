@@ -182,6 +182,7 @@ main() {
         case "$1" in
           -x | --debug) DEBUG="true"; shift ;;
           -v | --verbose) VERBOSE="true"; shift ;;
+          -C | --no*commit*) NO_COMMIT="true"; shift ;;
           -p | --print) EVALCMD="echo"; shift ;;
           *) break ;;
         esac
@@ -202,7 +203,7 @@ main() {
 	(set -e
 	cd "$DIR"
 	REMOTES=$(git_get_remote .|awkp)
-	 MAXLINES=5 exec_bin -f git commit -m ... -a
+	 [ "$NO_COMMIT" != true ] && MAXLINES=5 exec_bin -f git commit -m ... -a
 	for R in $REMOTES; do
 	 exec_bin git pull "$R" $(git_get_branch)
 	exec_bin  git push "$R" $(git_get_branch)

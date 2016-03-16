@@ -85,9 +85,16 @@ fi
 
 [ "$DEBUG" = true ] && echo "+ PS=$PS PSARGS=${PSARGS:+'$PSARGS'} ${PSFILTER:+PSFILTER='$PSFILTER' }KILL=$KILL KILLARGS=${KILLARGS:+'$KILLARGS'}" 1>&2
 
-PATTERN=\(`IFS='|'; echo "$*"`\)
+PATTERN="$*"
+case "$PATTERN" in
+	 *"^"*) #PATTERN="[0-9]:[0-9][0-9]\s+${PATTERN#"^"}" ;;
+	 PATTERN=${PATTERN//"^"/"[0-9]:[0-9][0-9]\s+"} ;;
+
+esac
+PATTERN=\(` set -- $PATTERN ; IFS='|';echo "$*"`\)
 PSOUT=`eval "(${DEBUG:+set -x; }\"$PS\" $PSARGS) $PSFILTER"`
-PSMATCH=` echo "$PSOUT" | grep -i -E "$PATTERN"  |grep -v -E "(killall\\.sh|\\s$$\\s)"`
+
+PSMATCH=` echo "$PSOUT" | ([ "$DEBUG" = true ] && set -x; grep -i -E "$PATTERN" ) |grep -v -E "(killall\\.sh|\\s$$\\s)"`
 set -- $(echo "$PSMATCH" | $SED -n "/${0##*/}/! s,^[^0-9]*\([0-9][0-9]*\).*,\1,p")
 PIDS="$*"
 
