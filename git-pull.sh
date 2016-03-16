@@ -151,7 +151,7 @@ exec_bin()
   else
     ERR=" ERROR ($R)"
   fi
-  [ "$R" != 0 ] &&  { O=${O//"$NL$NL"/"$NL"}; O=$(echo "$O"|sed '/^\s*$/d'|tail -n1); : log_msg -n "$O"; } || O=
+  [ "$R" != 0 ] &&  { O=${O//"$NL$NL"/"$NL"}; O=$(echo "$O"|sed '/^\s*$/d'|tail -n1); : log_msg -n "$O"; } #|| O=
     [ "$VERBOSE" = true ] &&  echo "${ERR:+$ERR}${O:+: $O}" 1>&10
     
   [ "$FORCE" = true -a "$R" != 0 ] && R=0
