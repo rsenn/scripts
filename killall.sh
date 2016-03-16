@@ -87,7 +87,9 @@ fi
 
 PATTERN="$*"
 case "$PATTERN" in
-	 "^"*) PATTERN="[0-9]:[0-9][0-9]\s+${PATTERN#"^"}" ;;
+	 *"^"*) #PATTERN="[0-9]:[0-9][0-9]\s+${PATTERN#"^"}" ;;
+	 PATTERN=${PATTERN//"^"/"[0-9]:[0-9][0-9]\s+"} ;;
+
 esac
 PATTERN=\(` set -- $PATTERN ; IFS='|';echo "$*"`\)
 PSOUT=`eval "(${DEBUG:+set -x; }\"$PS\" $PSARGS) $PSFILTER"`
