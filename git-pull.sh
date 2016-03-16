@@ -183,6 +183,7 @@ main() {
           -x | --debug) DEBUG="true"; shift ;;
           -v | --verbose) VERBOSE="true"; shift ;;
           -C | --no*commit*) NO_COMMIT="true"; shift ;;
+          -c | --command | --cmd) CUSTOM_CMD="$2"; shift 2 ;;
           -p | --print) EVALCMD="echo"; shift ;;
           *) break ;;
         esac
@@ -202,8 +203,10 @@ main() {
 	
 	(set -e
 	cd "$DIR"
+	pwd 1>&2
 	REMOTES=$(git_get_remote .|awkp)
-	 [ "$NO_COMMIT" != true ] && MAXLINES=5 exec_bin -f git commit -m ... -a
+	[ -n "$CUSTOM_CMD" ] && { IFS="$IFS "; MAXLINES=5 exec_bin -f ${CUSTOM_CMD}; }
+	[ "$NO_COMMIT" != true ] && { IFS="$IFS "; MAXLINES=5 exec_bin -f git commit -m ... -a; }
 	for R in $REMOTES; do
 	 exec_bin git pull "$R" $(git_get_branch)
 	exec_bin  git push "$R" $(git_get_branch)
