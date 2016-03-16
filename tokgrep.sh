@@ -67,7 +67,7 @@ pushv()
 
 main() {
 
-  OPTS=
+	OPTS="--binary-files=text"
   NTOKS=0
   MULTITOK=false
   
