@@ -6475,11 +6475,12 @@ yaourt-joinlines() {
 		 -I | --no*inst*) NO_INSTALLED="/\\[installed/!"; shift ;;
 		 -r | --remove-rat*) REMOVE_RATING="s|)\s\+\(([^)]\+)\)|)|"; shift ;;
 		 -n | --remove-num*) REMOVE_NUM="s|^\([^/ ]\\+\)/\([^/ ]\\+\) \([^ ]\\+\) \(([^)]\+)\)|\\1/\\2 \\3|"; shift ;;
+		 -s | --*sep*) COLSEP="$2";  shift 2 ;;
 		 *) break ;;
 		esac
 	done
 
-  EXPR="\\|^[^/ ]\\+/[^/ ]\\+\\s| { :lp; ${REMOVE_RATING}; ${REMOVE_NUM}; ${REMOVE_VER}; ${REMOVE_REPO}; N; /\\n\\s[^\\n]*$/ { s|\\n\\s\\+| \xAD |; b lp }; s,\\n\\s\\+, - ,g; :lp2; /\\n/ { ${NO_INSTALLED} P; D; b lp2; }; b lp }"
+  EXPR="\\|^[^/ ]\\+/[^/ ]\\+\\s| { :lp; ${REMOVE_RATING}; ${REMOVE_NUM}; ${REMOVE_VER}; ${REMOVE_REPO}; N; /\\n\\s[^\\n]*$/ { s|\\n\\s\\+|${COLSEP- - }|; b lp }; s,\\n\\s\\+, - ,g; :lp2; /\\n/ { ${NO_INSTALLED} P; D; b lp2; }; b lp }"
   exec sed -e "$EXPR" "$@")
 } 
 
@@ -6488,13 +6489,17 @@ yaourt-pkgnames() {
  ${SED-sed} -n "s|^${NAME}/${NAME}\s\+\(.*\)|\2|p")
 }
 
-yaourt-search()
-{ 
-    ( for Q in "$@";
-    do
-        ( IFS="| $IFS"; set -- $Q
-				yaourt -Ss $@ | yaourt-joinlines $OPTS | grep --colour=auto -i -E "($*)" );
-    done )
+yaourt-search() { 
+(while :; do
+   case "$1" in
+		-*) pushv OPTS "$1"; shift ;;
+		*) break ;;
+	esac
+  for Q in "$@"; do
+	 (IFS="| $IFS"; set -- $Q
+   command yaourt -Ss $@ | yaourt-joinlines -s "|" $OPTS | 
+   command grep -a --line-buffered --colour=auto -i -E "($*)")
+  done)
 }
 
 yes()
