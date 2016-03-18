@@ -2,7 +2,7 @@ yaourt-search ()
 { 
     ( for Q in "$@";
     do
-        ( IFS=" $IFS";
-        yaourt -Ss $Q | yaourt-joinlines $OPTS | grep --colour=auto -i -E "$(grep-e-expr $Q)" );
+        ( IFS="| $IFS"; set -- $Q
+				yaourt -Ss $@ | yaourt-joinlines $OPTS | grep --colour=auto -i -E "($*)" );
     done )
 }

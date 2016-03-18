@@ -15,10 +15,22 @@ build/*
 config.status
 CMakeCache.txt"}
 
+
 pushv()
 {
     eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
 }
+
+ARGS="$*"
+
+case "$EXCLUDE" in
+	*"
+"*) ;; 
+  *\ *) IFS="$IFS "; set -f ; set -- $EXCLUDE;  EXCLUDE="$*"; set +f; IFS="
+" ;;
+esac
+set -- $ARGS
+
 while :; do
   case "$1" in
     -[0-9]) level=${1#-}; shift ;;
