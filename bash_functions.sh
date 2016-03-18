@@ -4472,6 +4472,33 @@ mount-all()
     done
 }
 
+mount-diskimage()
+{ 
+    IMG="$1";
+		exec_cmd() {
+			echo "+ $@" 1>&2 
+			sudo "$@"
+		}
+    sfdisk -d "$IMG" | { 
+        IFS=" ";
+        : ${I:=1};
+        while read DEV PART; do
+            case "$PART" in 
+                *start=*)
+                    START=${PART##*start=};
+                    START=${START%%,*};
+                    START=$((START))
+                ;;
+							*) continue ;;
+            esac;
+            exec_cmd losetup -o $((START*512)) /dev/loop${I} "$1";
+            MNT=/media/"${IMG##*/}-part1";
+            exec_cmd mkdir -p "$MNT";
+            exec_cmd mount /dev/loop${I} "$MNT";
+        done
+    }
+}
+
 mount-matching()
 {
     ( MNTDIR="/mnt";
@@ -6459,6 +6486,15 @@ yaourt-joinlines() {
 yaourt-pkgnames() {
  (NAME='\([^ \t/]\+\)'
  ${SED-sed} -n "s|^${NAME}/${NAME}\s\+\(.*\)|\2|p")
+}
+
+yaourt-search()
+{ 
+    ( for Q in "$@";
+    do
+        ( IFS=" $IFS";
+        yaourt -Ss $Q | yaourt-joinlines $OPTS | grep --colour=auto -i -E "$(grep-e-expr $Q)" );
+    done )
 }
 
 yes()
