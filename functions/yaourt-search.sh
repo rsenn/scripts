@@ -3,7 +3,8 @@ yaourt-search() {
    case "$1" in
 		-*) pushv OPTS "$1"; shift ;;
 		*) break ;;
-	esac
+		esac
+	done
   for Q in "$@"; do
 	 (IFS="| $IFS"; set -- $Q
    command yaourt -Ss $@ | yaourt-joinlines -s "|" $OPTS | 

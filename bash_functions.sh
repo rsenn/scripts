@@ -6480,7 +6480,7 @@ yaourt-joinlines() {
 		esac
 	done
 
-  EXPR="\\|^[^/ ]\\+/[^/ ]\\+\\s| { :lp; ${REMOVE_RATING}; ${REMOVE_NUM}; ${REMOVE_VER}; ${REMOVE_REPO}; N; /\\n\\s[^\\n]*$/ { s|\\n\\s\\+|${COLSEP- - }|; b lp }; s,\\n\\s\\+, - ,g; :lp2; /\\n/ { ${NO_INSTALLED} P; D; b lp2; }; b lp }"
+  EXPR="\\|^[^/ ]\\+/[^/ ]\\+\\s| { :lp; ${REMOVE_RATING}; ${REMOVE_NUM}; ${REMOVE_VER}; ${REMOVE_REPO}; N; /\\n\\s[^\\n]*$/ { s,\\n\\s\\+,${COLSEP- - },; b lp }; s,\\n\\s\\+, - ,g; :lp2; /\\n/ { ${NO_INSTALLED} P; D; b lp2; }; b lp }"
   exec sed -e "$EXPR" "$@")
 } 
 
@@ -6494,7 +6494,8 @@ yaourt-search() {
    case "$1" in
 		-*) pushv OPTS "$1"; shift ;;
 		*) break ;;
-	esac
+		esac
+	done
   for Q in "$@"; do
 	 (IFS="| $IFS"; set -- $Q
    command yaourt -Ss $@ | yaourt-joinlines -s "|" $OPTS | 
