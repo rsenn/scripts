@@ -1,8 +1,7 @@
-yaourt-search () 
-{ 
-    ( for Q in "$@";
-    do
-        ( IFS="| $IFS"; set -- $Q
-				yaourt -Ss $@ | yaourt-joinlines $OPTS | grep --colour=auto -i -E "($*)" );
-    done )
+yaourt-search() { 
+ (for Q in "$@"; do
+	 (IFS="| $IFS"; set -- $Q
+   command yaourt -Ss $@ | yaourt-joinlines $OPTS | 
+   command grep -a --line-buffered --colour=auto -i -E "($*)")
+  done)
 }

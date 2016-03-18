@@ -10,6 +10,6 @@ yaourt-joinlines() {
 		esac
 	done
 
-  EXPR="\\|^[^/ ]\\+/[^/ ]\\+\\s| { :lp; ${REMOVE_RATING}; ${REMOVE_NUM}; ${REMOVE_VER}; ${REMOVE_REPO}; N; /\\n\\s[^\\n]*$/ { s|\\n\\s\\+| - |; b lp }; s,\\n\\s\\+, - ,g; :lp2; /\\n/ { ${NO_INSTALLED} P; D; b lp2; }; b lp }"
+  EXPR="\\|^[^/ ]\\+/[^/ ]\\+\\s| { :lp; ${REMOVE_RATING}; ${REMOVE_NUM}; ${REMOVE_VER}; ${REMOVE_REPO}; N; /\\n\\s[^\\n]*$/ { s|\\n\\s\\+| \xAD |; b lp }; s,\\n\\s\\+, - ,g; :lp2; /\\n/ { ${NO_INSTALLED} P; D; b lp2; }; b lp }"
   exec sed -e "$EXPR" "$@")
 } 
