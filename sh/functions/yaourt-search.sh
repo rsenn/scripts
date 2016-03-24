@@ -7,7 +7,7 @@ yaourt-search() {
 		*) break ;;
 		esac
 	done
- 
+set -- "${@//"^"/"/"}" 
  CMD="yaourt-search-cmd \"\${@//[![:alnum:]]/}\" | yaourt-search-output"
  if is-a-tty ; then
 	 CMD="$CMD | grep -E --color=yes \"$(grep-e-expr "$@")\""
