@@ -27,7 +27,7 @@ main() {
     else
       SOURCE_DIR=$MYDIR/functions
     fi
-		echo "SOURCE_DIR=$SOURCE_DIR" 1>&2
+#		echo "SOURCE_DIR=$SOURCE_DIR" 1>&2
     ARGS="$*"
     set -- $(ls -tdr $SOURCE_DIR/*.sh)
     set -- `echo "$*" |sort -fu` 

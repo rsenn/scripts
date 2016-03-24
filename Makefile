@@ -39,7 +39,7 @@ inst-slackpkg: slackpkg
 		cp -vf scripts-`date +%Y%m%d`-slackware.txz "$$x"; \
   done
 
-sh/bash_functions.sh: $(wildcard sh/functions/*.sh) | sh/functions-assemble.sh
+sh/bash_functions.sh: $(wildcard sh/functions/*.sh) sh/functions-assemble.sh
 	$(SHELL) sh/functions-assemble.sh $@
 
 PROFILE = $(wildcard profile/*.sh profile/*.zsh profile/*.bash)
