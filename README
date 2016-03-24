@@ -1,0 +1,20 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+curl -s https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | sh
