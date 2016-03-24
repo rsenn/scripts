@@ -1,8 +1,10 @@
+#!/bin/sh
+
 MYDIR=` dirname "$0" ` 
 
 [ $# -ge 1 ] ||set --  "$HOME"
 
-for x in "$MYDIR"/bash_*.bash; do
+for x in "$MYDIR"/bash/bash_*.bash; do
   b=`basename "$x" .bash` 
  for y; do 
    case "$b" in
