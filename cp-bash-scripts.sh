@@ -12,7 +12,7 @@ type make 2>/dev/null >/dev/null && MAKE="make" || MAKE=":"
 
 for DIR; do 
  (CMD=
-	for FILE in bash/bash_*.*sh; do
+	for FILE in bash/bash_*.bash; do
   BASE=`basename "$FILE"` 
 	BASE=${BASE%.*}
    case "$BASE" in
