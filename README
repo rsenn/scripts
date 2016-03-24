@@ -17,4 +17,4 @@
 
 
 
-curl -s https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | sh
+curl -skL https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | sh
