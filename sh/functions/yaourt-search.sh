@@ -5,12 +5,20 @@ yaourt-search() {
 		*) break ;;
 		esac
 	done
+ 
+ CMD="yaourt-search-cmd | yaourt-search-output"
+ eval "$CMD"
+ )
+}
+	yaourt-search-cmd() {
   for Q in "$@"; do
 	 (IFS="| $IFS"; set -- $Q
    command yaourt -Ss $@ | yaourt-joinlines -s "|" $OPTS | 
    command grep -a --line-buffered --colour=auto -i -E "($*)")
- done | { IFS=" "; while read -r NAME VERSION_DESC; do
-   DESC=${VERSION_DESC##*"|"}
+ done; }
+ yaourt-search-output() {
+	 IFS=" "; while read -r NAME VERSION_DESC; do
+	 DESC=${VERSION_DESC##*"|"}
 	 VERSION=${VERSION_DESC%%"|"*}
 	 NUM="(${VERSION#*"("}"
 	 VERSION=${VERSION%"$NUM"}
@@ -28,5 +36,4 @@ yaourt-search() {
 	echo "$N $V $DESC"
 	)
  done
- })
 }
