@@ -13,7 +13,7 @@ pushv()
 
 str_triml()
 {   
-    local s=$1 t x=${2-${IFS:-$space$nl$tabstop}};
+     s=$1 t= x=${2-${IFS:-$space$nl$tabstop}};
     while t="${s#[$x]}" && test "$t" != "$s"; do
         s="$t";
     done;
@@ -27,6 +27,7 @@ main() {
     else
       SOURCE_DIR=$MYDIR/functions
     fi
+		echo "SOURCE_DIR=$SOURCE_DIR" 1>&2
     ARGS="$*"
     set -- $(ls -tdr $SOURCE_DIR/*.sh)
     set -- `echo "$*" |sort -fu` 

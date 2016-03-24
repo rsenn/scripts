@@ -39,6 +39,9 @@ inst-slackpkg: slackpkg
 		cp -vf scripts-`date +%Y%m%d`-slackware.txz "$$x"; \
   done
 
+sh/bash_functions.sh: $(wildcard sh/functions/*.sh) | sh/functions-assemble.sh
+	$(SHELL) sh/functions-assemble.sh $@
+
 PROFILE = $(wildcard profile/*.sh profile/*.zsh profile/*.bash)
 SCRIPTS = $(AWK_SCRIPTS) $(BASH_SCRIPTS) $(FONTFORGE_SCRIPTS) $(PL_SCRIPTS) $(RB_SCRIPTS) $(SH_SCRIPTS)
 AWK_SCRIPTS = $(wildcard awk/*.awk)
