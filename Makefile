@@ -11,7 +11,7 @@ profiledir = ${sysconfdir}/profile.d
 
 INSTALL = install
 
-all: bash/bash_functions.sh
+all: bash/bash_functions.bash
 
 install-profile: $(PROFILE)
 	$(INSTALL) -d $(DESTDIR)$(profiledir)
@@ -39,7 +39,7 @@ inst-slackpkg: slackpkg
 		cp -vf scripts-`date +%Y%m%d`-slackware.txz "$$x"; \
   done
 
-bash/bash_functions.sh: $(wildcard sh/functions/*.sh) sh/functions-assemble.sh
+bash/bash_functions.bash: $(wildcard sh/functions/*.sh) sh/functions-assemble.sh
 	$(SHELL) sh/functions-assemble.sh $@
 
 PROFILE = $(wildcard profile/*.sh profile/*.zsh profile/*.bash)
