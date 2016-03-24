@@ -11,7 +11,7 @@ profiledir = ${sysconfdir}/profile.d
 
 INSTALL = install
 
-all:
+all: sh/bash_functions.sh
 
 install-profile: $(PROFILE)
 	$(INSTALL) -d $(DESTDIR)$(profiledir)

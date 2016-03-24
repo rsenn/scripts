@@ -1,1 +1,0 @@
-/usr/bin/find-images.sh
