@@ -1,20 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Install repos: Scripts sw-utils dirlist bsed
 
 curl -skL https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | sh
