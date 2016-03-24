@@ -13,10 +13,11 @@ do
 		bsed) BRANCH="inplace"; CMD=" make${IFS}sudo make install prefix=/usr" ;;
 		shish) CMD="./autogen.sh${IFS}./configure --prefix=/usr${IFS}make${IFS}sudo make install" ;;
 	esac
+		CMD="git reset --hard${IFS}$CMD"
 		CMD="git pull origin ${BRANCH:-master}${IFS}$CMD"
 		CMD="git fetch --all${IFS}$CMD"
 		CMD="cd $REPO${IFS}$CMD"
-		CMD="git clone ${BRANCH:+-b $BRANCH} --depth=1 https://github.com/rsenn/${REPO}.git${IFS}$CMD"
+		CMD="git clone ${BRANCH:+-b $BRANCH} --depth=1 https://github.com/rsenn/${REPO}.git || true${IFS}$CMD"
 
 		trap 'echo " (Result: $?)" 1>&2' EXIT
 		echo -n "Executing: $CMD " 1>&2
