@@ -7,7 +7,9 @@ yaourt-search() {
 		*) break ;;
 		esac
 	done
-set -- "${@//"^"/"/"}" 
+set -- ${@//"^"/"/"}
+set -- ${@//[.*]/" "}
+set -- ${@//[![:alnum:]]/}
  CMD="yaourt-search-cmd \"\${@//[![:alnum:]]/}\" | yaourt-search-output"
  if is-a-tty ; then
 	 CMD="$CMD | grep -E --color=yes \"$(grep-e-expr "$@")\""
@@ -20,7 +22,7 @@ set -- "${@//"^"/"/"}"
 yaourt-search-cmd() {
   for Q in "$@"; do
 	 (IFS="| $IFS"; set -- $Q
-   command yaourt -Ss $@ | yaourt-joinlines -s "|" $OPTS | 
+	 ([ "$DEBUG" = true ] && set -x; command yaourt -Ss $@) | yaourt-joinlines -s "|" $OPTS | 
    command grep -a --line-buffered --colour=auto -i -E "($*)")
  done
 }
