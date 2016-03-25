@@ -56,7 +56,8 @@ class JucerProject < REXML::Document
 		STDOUT.puts l + o.to_s
 	end
 
-  class JucerHash < Hash
+  """ JucerHash class """
+	class JucerHash < Hash
 		@tagname = ''
 		@tagpath = ''
 	  attr_accessor :tagname, :tagpath
@@ -84,6 +85,7 @@ class JucerProject < REXML::Document
 		end
 	end
 
+  """ HashArray class """
   class HashArray < Array
 		@tagname = ''
 	  attr_accessor :tagname
