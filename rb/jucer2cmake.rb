@@ -44,26 +44,29 @@ class JucerProject < REXML::Document
 		}
 	end
 
-	def JucerProject.quoteval(v)
+	def JucerProject.quoteval(v,noquote=false)
 			v = v.to_s
-			if not v.include? @@quote and v.match /[^0-9A-Za-z\/._]/ then
-				@@quote + v + @@quote
-			else
-				v
+			if not noquote then
+				if not v.include? @@quote and v.match /[^0-9A-Za-z\/._]/ then
+					v = @@quote + v + @@quote
+				end
 			end
+			return v
 	end
-	def JucerProject.hash2str(h, multiline=false, name="")
+	def JucerProject.hash2str(h, multiline=false, name="",noquote=false)
 			if multiline then
 				ml_t = "\n"
 				ml_s = "#{ml_t}  "
 			end
 			if h.is_a? Hash then
-				"{{#{ml_s}" + (name != "" ? "<"+name+">" : "") + h.map { |k,v| k.to_s + "=" + JucerProject.quoteval(v) }.join(",#{ml_s}") + "#{ml_t}}}"
+				"{{#{ml_s}" + (name != "" ? "<"+name+">" : "") + h.map { |k,v| k.to_s + "=" + JucerProject.quoteval(v,noquote) }.join(",#{ml_s}") + "#{ml_t}}}"
 			elsif h.is_a? JucerHash then
 				h.to_s(multiline, name)
 			elsif h.is_a? Array then
+				if h.first.is_a? Hash then noquote = true end
+
 				"[[#{ml_s}" + (name != "" ? "<"+name+">" : "") + h.map { |i| 
-					JucerProject.quoteval(i)
+					JucerProject.quoteval(i,noquote)
 				}.join(",#{ml_s}") + "#{ml_t}]]"
 			else
 				h.to_s
@@ -136,7 +139,7 @@ class JucerProject < REXML::Document
 			 if h.is_a? JucerHash then
 				 h.to_s( multiline, (h.tagname != "" ? h.tagname : self.tagname) + i.to_s )
 			else
-         JucerProject.hash2str(h, multiline, self.tagname)
+         JucerProject.hash2str(h, multiline, self.tagname, true)
 			 end
 			}.join(",\n ") + "\n]]"
 		end
