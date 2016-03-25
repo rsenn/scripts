@@ -114,9 +114,9 @@ fi
 alias grep="grep $GREP_ARGS"
 alias grepdiff='grepdiff --output-matching=hunk'
 
-#unalias cp  2>/dev/null
-#unalias mv  2>/dev/null
-#unalias rm 2>/dev/null
+unalias cp  2>/dev/null
+unalias mv  2>/dev/null
+unalias rm 2>/dev/null
 
 if [ "`id -u`" = 0 ]; then
     SUDO=command
