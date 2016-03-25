@@ -5,9 +5,9 @@ require 'pp'
 
 class JucerProject < REXML::Document
 
-	@@quote = "\""
+	@@quote = '"'
 
-	attr_accessor :project, :options, :files, :modules, :modulepaths, :exportformats, :configurations
+	attr_accessor :project, :options, :sources, :files, :modules, :modulepaths, :exportformats, :configurations
 
 	  def self.quote
 			  @@quote
@@ -24,10 +24,19 @@ class JucerProject < REXML::Document
 	end
 
   def properties
+			 tmpsources = Array.new(@files.map_cond("compile","1").get_value("file"))
+			 tmpres = Array.new(@files.map_cond("resource","1").get_value("file"))
+			 tmpres -= tmpsources
+			 tmpfiles = Array.new(@files.get_value("file"))
+			 tmpfiles -= tmpsources 
+			 tmpfiles -= tmpres
+
 		 { 
 			:project => @project, 
 			:options => @options,
-			:files => @files.get_value("file"),
+			:sources => tmpsources,
+			:resources => tmpres,
+			:files =>  tmpfiles,
 			:modules => @modules,
 			:modulepaths => @modulepaths.get_hash("id","path"),
 			:exportformats => @exportformats,
@@ -35,12 +44,30 @@ class JucerProject < REXML::Document
 		}
 	end
 
-	def JucerProject.hash2str(h, name="", multiline=false)
+	def JucerProject.quoteval(v)
+			v = v.to_s
+			if not v.include? @@quote and v.match /[^0-9A-Za-z\/._]/ then
+				@@quote + v + @@quote
+			else
+				v
+			end
+	end
+	def JucerProject.hash2str(h, multiline=false, name="")
 			if multiline then
 				ml_t = "\n"
 				ml_s = "#{ml_t}  "
-      end
-	  	"{{#{ml_s}" + (name != "" ? "<"+name+">" : "") + h.map { |k,v| k.to_s + "=" + @@quote + v.to_s + @@quote }.join(",#{ml_s}") + "#{ml_t}}}"
+			end
+			if h.is_a? Hash then
+				"{{#{ml_s}" + (name != "" ? "<"+name+">" : "") + h.map { |k,v| k.to_s + "=" + JucerProject.quoteval(v) }.join(",#{ml_s}") + "#{ml_t}}}"
+			elsif h.is_a? JucerHash then
+				h.to_s(multiline, name)
+			elsif h.is_a? Array then
+				"[[#{ml_s}" + (name != "" ? "<"+name+">" : "") + h.map { |i| 
+					JucerProject.quoteval(i)
+				}.join(",#{ml_s}") + "#{ml_t}]]"
+			else
+				h.to_s
+			end
 	end
 
 	""" Convert a REXML Elements List to a List of Hashes """
@@ -81,7 +108,7 @@ class JucerProject < REXML::Document
 				ml_t = "\n"
 				ml_s = "#{ml_t}  "
       end
-		  name + " {#{ml_s}" + self.map { |k,v| k + "=" + JucerProject.quote + v + JucerProject.quote }.join(",#{ml_s}") + "#{ml_t}}"
+		  name + " {#{ml_s}" + self.map { |k,v| k + "=" + JucerProject.quoteval(v) }.join(",#{ml_s}") + "#{ml_t}}"
 		end
 	end
 
@@ -109,7 +136,7 @@ class JucerProject < REXML::Document
 			 if h.is_a? JucerHash then
 				 h.to_s( multiline, (h.tagname != "" ? h.tagname : self.tagname) + i.to_s )
 			else
-         JucerProject.hash2str(h, self.tagname, multiline)
+         JucerProject.hash2str(h, multiline, self.tagname)
 			 end
 			}.join(",\n ") + "\n]]"
 		end
@@ -139,9 +166,7 @@ class JucerProject < REXML::Document
 			return r
 		end
 		def get_value(name) 
-			self.map { |h|
-				h[name]
-			}
+			Array.new(self.map { |h| h[name] })
 		end
 	end
              
@@ -167,6 +192,6 @@ JucerProject.debug doc.files.map_cond("compile", "1").get_value("file")
 
 p = doc.properties
 p.each do |k,v| 
-  JucerProject.debug(v.to_s(true), "\033[1;31mproperties."+k.to_s+"\033[0m")
+  JucerProject.debug(JucerProject.hash2str(v, true), "\033[1;31mproperties."+k.to_s+"\033[0m")
 end
 
