@@ -7,7 +7,7 @@ class JucerProject < REXML::Document
 
 	@@quote = "\""
 
-	attr_accessor :project, :options, :files, :modules, :modulepaths, :configurations
+	attr_accessor :project, :options, :files, :modules, :modulepaths, :exportformats, :configurations
 
 	  def self.quote
 			  @@quote
@@ -19,11 +19,28 @@ class JucerProject < REXML::Document
 		@files = get_elements("file")
 		@modules = get_elements("module")
 		@modulepaths = get_elements("modulepath")
+		@exportformats = get_elements("exportformats/*")
 		@configurations = get_elements("configuration")
 	end
 
-	def JucerProject.hash2str(h, name="")
-			"{{" + (name != "" ? "<"+name+">" : "") + h.map { |k,v| k.to_s + "=" + @@quote + v.to_s + @@quote }.join(",") + "}}"
+  def properties
+		 { 
+			:project => @project, 
+			:options => @options,
+			:files => @files.get_value("file"),
+			:modules => @modules,
+			:modulepaths => @modulepaths.get_hash("id","path"),
+			:exportformats => @exportformats,
+			:configurations => @configurations,
+		}
+	end
+
+	def JucerProject.hash2str(h, name="", multiline=false)
+			if multiline then
+				ml_t = "\n"
+				ml_s = "#{ml_t}  "
+      end
+	  	"{{#{ml_s}" + (name != "" ? "<"+name+">" : "") + h.map { |k,v| k.to_s + "=" + @@quote + v.to_s + @@quote }.join(",#{ml_s}") + "#{ml_t}}}"
 	end
 
 	""" Convert a REXML Elements List to a List of Hashes """
@@ -32,13 +49,17 @@ class JucerProject < REXML::Document
 	end
 
 	""" Output a debug message """
-	def JucerProject.debug(o)
-		STDOUT.puts o.to_s
+	def JucerProject.debug(o,l="")
+		if l != "" then
+		  l = String(l) + ": "
+		end
+		STDOUT.puts l + o.to_s
 	end
 
   class JucerHash < Hash
 		@tagname = ''
-	  attr_accessor :tagname
+		@tagpath = ''
+	  attr_accessor :tagname, :tagpath
 		def initialize(elem=REXML::Element.new,name="")
 			super({})
 			if elem.is_a? REXML::Element then
@@ -46,13 +67,20 @@ class JucerProject < REXML::Document
 					self.store(n, a.to_s)
 				end
         @tagname = elem.name
+				@tagpath = elem.xpath.gsub(/^\/*[A-Z]+\//, "").downcase
 			elsif elem.is_a? Hash then
 				self.merge!(elem)
 				@tagname = name
+				@tagpath = "//"+name
 			end
 		end
-		def to_s(name=@tagname)
-			name + " { " + self.map { |k,v| k + "=" + JucerProject.quote + v + JucerProject.quote }.join(", ") + " }"
+		def to_s(multiline=false, name=@tagname)
+			if @tagpath != "" then name = @tagpath end
+			if multiline then
+				ml_t = "\n"
+				ml_s = "#{ml_t}  "
+      end
+		  name + " {#{ml_s}" + self.map { |k,v| k + "=" + JucerProject.quote + v + JucerProject.quote }.join(",#{ml_s}") + "#{ml_t}}"
 		end
 	end
 
@@ -71,15 +99,15 @@ class JucerProject < REXML::Document
 			  @tagname = ""
 			end
 		end
-		def to_s
+		def to_s(multiline=false, name=@tagname)
       arr = self
-		  self.tagname + "[[\n " + self.map { |h| 
+		  name + "[[\n " + self.map { |h| 
 				i = arr.find_index(h)
 			 if not h.is_a? JucerHash then h = JucerHash.new h end
 			 if h.is_a? JucerHash then
-				 h.to_s( (h.tagname != "" ? h.tagname : self.tagname) + i.to_s )
+				 h.to_s( multiline, (h.tagname != "" ? h.tagname : self.tagname) + i.to_s )
 			else
-         JucerProject.hash2str(h, self.tagname)
+         JucerProject.hash2str(h, self.tagname, multiline)
 			 end
 			}.join(",\n ") + "\n]]"
 		end
@@ -98,6 +126,20 @@ class JucerProject < REXML::Document
 				  JucerHash.new h
 				end
 			}.delete_if { |h| h == nil })
+		end
+		def get_hash(attr_key, attr_value) 
+      r = Hash.new
+			self.map { |h|
+        k = h[attr_key]
+        v = h[attr_value]
+				r[k.to_sym] = v
+			}
+			return r
+		end
+		def get_value(name) 
+			self.map { |h|
+				h[name]
+			}
 		end
 	end
              
@@ -118,15 +160,11 @@ JucerProject.debug "Opening document #{filename}"
 doc = JucerProject.new file
 
 doc.load
-#jucerproject = doc.get_elements("jucerproject")
-#juceoptions = doc.get_elements("juceoptions")
-#files = doc.get_elements("FILE")
-#modules = doc.get_elements("MODULES")
 
-JucerProject.debug doc.files.map_cond("compile", "1") 
+JucerProject.debug doc.files.map_cond("compile", "1").get_value("file")
 
-JucerProject.debug doc.project
-JucerProject.debug doc.options
-#JucerProject.debug juceoptions
-#JucerProject.debug modules 
+p = doc.properties
+p.each do |k,v| 
+  JucerProject.debug(v.to_s(true), "\033[1;31mproperties."+k.to_s+"\033[0m")
+end
 
