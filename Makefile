@@ -84,3 +84,4 @@ install: $(SCRIPTS)
 	for PROG in ar as cc dlltool g++ gcc ld nm objcopy objdump ranlib strip; do \
 		ln -svf ../compiletrace.sh $(DESTDIR)$(datadir)/compiletrace/bin/$$PROG; \
 	done
+	ln -svf ../share/compiletrace/compiletrace.sh $(DESTDIR)$(bindir)/compiletrace
