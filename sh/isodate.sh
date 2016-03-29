@@ -4,6 +4,7 @@ FMT="%Y%m%d"
 
 while :; do
   case "$1" in
+    --debug | -x) DEBUG="true"; shift ;;
     -t | --time) FMT="$FMT %H:%M"; shift ;;
     --ref*=*) DFILE="${1#*=}"; shift ;;
     -r | --ref*) DFILE="$2"; shift 2 ;;
@@ -14,4 +15,5 @@ done
 if [ -e "$DFILE" ]; then
   UT=$(ls -n -l -d --time-style="+%s" "$DFILE" | awk '{ print $6 }')
 fi
+[ "$DEBUG" = true ] && set -x
 exec date ${UT:+--date="@${UT}"} +"$FMT" 
