@@ -11,6 +11,7 @@ datadir = ${prefix}/share
 profiledir = ${sysconfdir}/profile.d
 
 INSTALL = install
+LN_S = ln -sf
 
 all: bash/bash_functions.bash
 
@@ -58,6 +59,10 @@ LINKS = find-audio.sh find-archives.sh find-books.sh find-fonts.sh find-images.s
 
 install: $(SCRIPTS)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(RM) $(DESTDIR)$(bindir)/bash_{functions,profile}.sh
+	for NAME in bash_profile bash_functions; do \
+	  $(LN_S) $$NAME.bash $(DESTDIR)$(bindir)/$$NAME.sh; \
+    done
 	$(INSTALL) -m 755 $(AWK_SCRIPTS) $(DESTDIR)$(bindir)/
 	$(INSTALL) -m 755 $(BASH_SCRIPTS) $(DESTDIR)$(bindir)/
 	$(INSTALL) -m 755 $(FONTFORGE_SCRIPTS) $(DESTDIR)$(bindir)/
@@ -82,6 +87,6 @@ install: $(SCRIPTS)
 	$(INSTALL) -m 755 compiletrace/compiletrace.sh $(DESTDIR)$(datadir)/compiletrace
 	$(INSTALL) -d $(DESTDIR)$(datadir)/compiletrace/bin
 	for PROG in ar as cc dlltool g++ gcc ld nm objcopy objdump ranlib strip; do \
-		ln -svf ../compiletrace.sh $(DESTDIR)$(datadir)/compiletrace/bin/$$PROG; \
+		$(LN_S) ../compiletrace.sh $(DESTDIR)$(datadir)/compiletrace/bin/$$PROG; \
 	done
-	ln -svf ../share/compiletrace/compiletrace.sh $(DESTDIR)$(bindir)/compiletrace
+	$(LN_S) ../share/compiletrace/compiletrace.sh $(DESTDIR)$(bindir)/compiletrace
