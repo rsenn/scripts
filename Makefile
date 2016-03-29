@@ -61,6 +61,7 @@ install: $(SCRIPTS)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(RM) $(DESTDIR)$(bindir)/bash_{functions,profile}.sh
 	for NAME in bash_profile bash_functions; do \
+	  $(RM) $(DESTDIR)$(bindir)/$$NAME.sh; \
 	  $(LN_S) $$NAME.bash $(DESTDIR)$(bindir)/$$NAME.sh; \
     done
 	$(INSTALL) -m 755 $(AWK_SCRIPTS) $(DESTDIR)$(bindir)/
@@ -77,7 +78,8 @@ install: $(SCRIPTS)
 	done
 	@N=1; set -- $(LINKS); while :; do \
 		  if test -n "$$1"; then \
-				echo "ln -sf "$${1%%-*}-filename.sh"  $(DESTDIR)$(bindir)/$$1"; \
+				echo "$(RM) $(DESTDIR)$(bindir)/$$1; ln -sf "$${1%%-*}-filename.sh"  $(DESTDIR)$(bindir)/$$1"; \
+				$(RM) $(DESTDIR)$(bindir)/$$1; \
 				ln -sf "$${1%%-*}-filename.sh"  $(DESTDIR)$(bindir)/$$1; \
 			fi; \
 	  [ $$# -lt $$N ] && break; \
