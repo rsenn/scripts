@@ -29,10 +29,21 @@ echo "${CMD}" >>"$COMPILETRACE_LOG"
 }
 
 compiletrace() {
+   unset CMDS
 
+   while [ $# -gt 0 ]; do
+      A="$1"
+case "$A" in
+  --) A="; " ;;
+esac
+      CMDS="${CMDS+$CMDS }$A"
+	shift
+   done
   
-(set -x; 
-   env COMPILETRACE_LOG="$COMPILETRACE_LOG" PATH="$MYBINDIR:$PATH"  "$@")
+(set -x;
+export COMPILETRACE_LOG
+export PATH="$MYBINDIR:$PATH"
+eval "$CMDS")
 }
 
 compilecmd() {
@@ -45,6 +56,8 @@ exec_next "$@"
 : ${COMPILETRACE_LOG:="$PWD/$MYNAME-$$.log"}
 touch "$COMPILETRACE_LOG"
 export COMPILETRACE_LOG
+
+trap 'wc -l "$COMPILETRACE_LOG"' EXIT
 
 case "$MYNAME" in
   compiletrace) compiletrace "$@" ;;
