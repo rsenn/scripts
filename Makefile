@@ -7,6 +7,7 @@ prefix = /usr
 endif
 bindir = ${prefix}/bin
 sysconfdir = /etc
+datadir = ${prefix}/share
 profiledir = ${sysconfdir}/profile.d
 
 INSTALL = install
@@ -76,4 +77,10 @@ install: $(SCRIPTS)
 			fi; \
 	  [ $$# -lt $$N ] && break; \
 	  shift $$N; \
+	done
+	$(INSTALL) -d $(DESTDIR)$(datadir)/compiletrace
+	$(INSTALL) -m 755 compiletrace/compiletrace.sh $(DESTDIR)$(datadir)/compiletrace
+	$(INSTALL) -d $(DESTDIR)$(datadir)/compiletrace/bin
+	for PROG in ar as cc dlltool g++ gcc ld nm objcopy objdump ranlib strip; do \
+		ln -svf ../compiletrace.sh $(DESTDIR)$(datadir)/compiletrace/bin/$$PROG; \
 	done
