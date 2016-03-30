@@ -18,7 +18,7 @@ endif
 
 ifneq ($(LN_S),:)
 define symlink_script
-	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; $(LN_S) $1 $$L; echo "Link '$2' -> '$1'" 1>&2
+	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; $(LN_S) -v $1 $$L; : echo "Link '$2' -> '$1'" 1>&2
 endef
 else
 define symlink_script
