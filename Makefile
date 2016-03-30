@@ -10,8 +10,25 @@ sysconfdir = /etc
 datadir = ${prefix}/share
 profiledir = ${sysconfdir}/profile.d
 
-INSTALL = install
+ifeq ($(OS),Msys)
+LN_S = :
+else
 LN_S = ln -sf
+endif
+
+ifneq ($(LN_S),:)
+define symlink_script
+	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; $(LN_S) $1 $$L; echo "Created symlink $$L ." 1>&2; \
+	echo "Created symlink $2 ." 1>&2
+endef
+else
+define symlink_script
+	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; echo -e '#!/bin/sh\n$(if $3,$3,exec -a '$${L##*/}') "$$(dirname "$$0")/$1" "$$@"' >$$L; chmod a+x $$L; \
+	echo "Created symlink $2 ." 1>&2
+endef
+endif
+
+INSTALL = install
 
 all: bash/bash_functions.bash
 
@@ -60,10 +77,7 @@ LINKS = find-audio.sh find-archives.sh find-books.sh find-fonts.sh find-images.s
 install: $(SCRIPTS)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(RM) $(DESTDIR)$(bindir)/bash_{functions,profile}.sh
-	for NAME in bash_profile bash_functions; do \
-	  $(RM) $(DESTDIR)$(bindir)/$$NAME.sh; \
-	  $(LN_S) $$NAME.bash $(DESTDIR)$(bindir)/$$NAME.sh; \
-    done
+	$(foreach NAME,bash_profile bash_functions,$(call symlink_script,$(NAME).bash,$(DESTDIR)$(bindir)/$(NAME).sh,.))
 	$(INSTALL) -m 755 $(AWK_SCRIPTS) $(DESTDIR)$(bindir)/
 	$(INSTALL) -m 755 $(BASH_SCRIPTS) $(DESTDIR)$(bindir)/
 	$(INSTALL) -m 755 $(FONTFORGE_SCRIPTS) $(DESTDIR)$(bindir)/
@@ -89,6 +103,6 @@ install: $(SCRIPTS)
 	$(INSTALL) -m 755 compiletrace/compiletrace.sh $(DESTDIR)$(datadir)/compiletrace
 	$(INSTALL) -d $(DESTDIR)$(datadir)/compiletrace/bin
 	for PROG in ar as cc dlltool g++ gcc ld nm objcopy objdump ranlib strip; do \
-		$(LN_S) ../compiletrace.sh $(DESTDIR)$(datadir)/compiletrace/bin/$$PROG; \
+	  $(call symlink_script,../compiletrace.sh,$(DESTDIR)$(datadir)/compiletrace/bin/$$PROG); \
 	done
-	$(LN_S) ../share/compiletrace/compiletrace.sh $(DESTDIR)$(bindir)/compiletrace
+	$(call symlink_script,../share/compiletrace/compiletrace.sh,$(DESTDIR)$(bindir)/compiletrace)
