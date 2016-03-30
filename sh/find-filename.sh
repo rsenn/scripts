@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MYNAME=`basename "$0" .sh`
+: ${MYNAME=`basename "$0" .sh`}
 
 archives_EXTS="rar zip 7z cab tar tar.Z tar.gz tar.xz tar.bz2 tar.lzma tgz txz tbz2 tlzma"
 audio_EXTS="aif aiff flac m4a m4b mp2 mp3 mpc ogg raw rm wav wma"

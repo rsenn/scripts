@@ -22,7 +22,7 @@ define symlink_script
 endef
 else
 define symlink_script
-	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; echo -e '#!/bin/sh\n$(if $3,$3,exec -a '$${L##*/}') "$$(dirname "$$0")/'$1'" "$$@"' >$$L; chmod a+x $$L; echo "Link '$2' -> '$1'" 1>&2
+	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; echo -e '#!/bin/sh\n$(if $3,$3,exec -a '$${L##*/}') env MYNAME="'`basename "$$L" .sh`'" "$$(dirname "$$0")/'$1'" "$$@"' >$$L; chmod a+x $$L; echo "Link '$2' -> '$1'" 1>&2
 endef
 endif
 
