@@ -18,13 +18,11 @@ endif
 
 ifneq ($(LN_S),:)
 define symlink_script
-	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; $(LN_S) $1 $$L; echo "Created symlink $$L ." 1>&2; \
-	echo "Created symlink $2 ." 1>&2
+	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; $(LN_S) $1 $$L; echo "Link '$2' -> '$1'" 1>&2
 endef
 else
 define symlink_script
-	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; echo -e '#!/bin/sh\n$(if $3,$3,exec -a '$${L##*/}') "$$(dirname "$$0")/$1" "$$@"' >$$L; chmod a+x $$L; \
-	echo "Created symlink $2 ." 1>&2
+	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; echo -e '#!/bin/sh\n$(if $3,$3,exec -a '$${L##*/}') "$$(dirname "$$0")/$1" "$$@"' >$$L; chmod a+x $$L; echo "Link '$2' -> '$1'" 1>&2
 endef
 endif
 
@@ -77,7 +75,9 @@ LINKS = find-audio.sh find-archives.sh find-books.sh find-fonts.sh find-images.s
 install: $(SCRIPTS)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(RM) $(DESTDIR)$(bindir)/bash_{functions,profile}.sh
-	$(foreach NAME,bash_profile bash_functions,$(call symlink_script,$(NAME).bash,$(DESTDIR)$(bindir)/$(NAME).sh,.))
+	$(foreach NAME,bash_profile bash_functions,\
+	    $(call symlink_script,$(NAME).bash,$(DESTDIR)$(bindir)/$(NAME).sh,.)\
+	)
 	$(INSTALL) -m 755 $(AWK_SCRIPTS) $(DESTDIR)$(bindir)/
 	$(INSTALL) -m 755 $(BASH_SCRIPTS) $(DESTDIR)$(bindir)/
 	$(INSTALL) -m 755 $(FONTFORGE_SCRIPTS) $(DESTDIR)$(bindir)/
@@ -91,13 +91,10 @@ install: $(SCRIPTS)
 	  shift $$N; \
 	done
 	@N=1; set -- $(LINKS); while :; do \
-		  if test -n "$$1"; then \
-				echo "$(RM) $(DESTDIR)$(bindir)/$$1; ln -sf "$${1%%-*}-filename.sh"  $(DESTDIR)$(bindir)/$$1"; \
-				$(RM) $(DESTDIR)$(bindir)/$$1; \
-				ln -sf "$${1%%-*}-filename.sh"  $(DESTDIR)$(bindir)/$$1; \
-			fi; \
-	  [ $$# -lt $$N ] && break; \
-	  shift $$N; \
+	    if test -n "$$1"; then \
+		$(call symlink_script,$${1%%-*}-filename.sh,$(DESTDIR)$(bindir)/$$1); \
+	    fi; \
+	  [ $$# -lt $$N ] && break; shift $$N; \
 	done
 	$(INSTALL) -d $(DESTDIR)$(datadir)/compiletrace
 	$(INSTALL) -m 755 compiletrace/compiletrace.sh $(DESTDIR)$(datadir)/compiletrace
