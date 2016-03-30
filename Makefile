@@ -22,7 +22,7 @@ define symlink_script
 endef
 else
 define symlink_script
-	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; echo -e '#!/bin/sh\n$(if $3,$3,exec -a '$${L##*/}') "$$(dirname "$$0")/$1" "$$@"' >$$L; chmod a+x $$L; echo "Link '$2' -> '$1'" 1>&2
+	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; echo -e '#!/bin/sh\n$(if $3,$3,exec -a '$${L##*/}') "$$(dirname "$$0")/'$1'" "$$@"' >$$L; chmod a+x $$L; echo "Link '$2' -> '$1'" 1>&2
 endef
 endif
 
@@ -92,7 +92,8 @@ install: $(SCRIPTS)
 	done
 	@N=1; set -- $(LINKS); while :; do \
 	    if test -n "$$1"; then \
-		$(call symlink_script,$${1%%-*}-filename.sh,$(DESTDIR)$(bindir)/$$1); \
+		A=$${1%-*}; \
+		$(call symlink_script,$$A-filename.sh,$(DESTDIR)$(bindir)/$$1); \
 	    fi; \
 	  [ $$# -lt $$N ] && break; shift $$N; \
 	done
