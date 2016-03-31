@@ -2,7 +2,7 @@
 
 . require.sh
 
-. bash_functions.sh 
+. bash_functions.bash 
 
 IFS="
 "

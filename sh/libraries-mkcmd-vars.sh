@@ -3,7 +3,7 @@ IFS="
 "
 FS=/
 BS=\\
-. bash_functions.sh
+. bash_functions.bash
 MYNAME=`basename "$0" .sh`
 MYDIR=`dirname "$0"`
 main() {
