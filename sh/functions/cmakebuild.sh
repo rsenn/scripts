@@ -1,19 +1,23 @@
 cmakebuild() 
 { 
-is_interactive || set -e
     builddir=build/cmake
     destdir=${PWD}-linux
     : ${pkgdir=~/Packages}
     : ${python_config=/usr/bin/python2.7-config}
+    (
+    
+is_interactive || set -e
+    trap 'rm -f {cmake,make,install}.log' EXIT
     (set -x
      rm -rf $builddir/ $destdir/
      mkdir -p $builddir/)
 
-    (set -x 
+    (
      pushd $builddir 
      find_libpython() {
          ( set -- $(echo $($python_config --ldflags --libs )  |sed -n 's,.*-L\([^ ]*\) .*-lpython\([^ ]*\) .*,\1/libpython\2.a,p'; for ext in 'a' 'so.*' ; do (set -x; find $($python_config --exec-prefix)/lib*/ -maxdepth 3 -and -not -type d -and -name "libpython*$ext"); done); test -n "$1" -a -f "$1" && echo "$1")
      }
+     (set -x;
     cmake \
         -DCMAKE_VERBOSE_MAKEFILE=TRUE \
         -DCONFIG=Release \
@@ -26,18 +30,20 @@ is_interactive || set -e
         -DPYTHON_INCLUDE_DIR="$($python_config  --includes|sed 's,^-I\([^ ]*\) .*,\1,p' -n)" \
         -DPYTHON_LIBRARY="${PYTHON_LIBRARY:-`find_libpython`}" \
     "$@" \
-    ../.. 2>&1) >cmake.log
+    ../.. 2>&1)
+    ) >cmake.log
 
 
     (set -x
     make -C $builddir/ 2>&1 ) >make.log || { ERR=$?; grep '(Stop|failed|error:)' -E  -C3 make.log; exit $?; }
-    (set -x
+    (
     trap '${SUEXEC:-command} rm -rf "$destdir"' EXIT
-    (${SUEXEC:-command} make DESTDIR="$destdir" -C $builddir/ install -i 2>&1 ) >install.log
+    (set -x; ${SUEXEC:-command} make DESTDIR="$destdir" -C $builddir/ install -i 2>&1 ) >install.log
     pushd "$destdir"
     mkdir -p "$pkgdir"
-    make-archive.sh -d "$pkgdir" -t txz -9 -r -D)
+    (set -x; make-archive.sh -v -d "$pkgdir" -t txz -9 -r -D) && notice Created archive "$pkgdir"/"${PWD##*/}"*.txz
+    )
     set +e
 
-
+    )
 }
