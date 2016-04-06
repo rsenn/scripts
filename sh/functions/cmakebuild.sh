@@ -41,7 +41,7 @@ is_interactive || set -e
     (set -x; ${SUEXEC:-command} make DESTDIR="$destdir" -C $builddir/ install -i 2>&1 ) >install.log
     pushd "$destdir"
     mkdir -p "$pkgdir"
-    (set -x; make-archive.sh -v -d "$pkgdir" -t txz -9 -r -D) && notice Created archive "$pkgdir"/"${PWD##*/}"*.txz
+    (set -x; make-archive.sh -q -v -d "$pkgdir" -t txz -9 -r -D) && notice Created archive "$pkgdir"/"${PWD##*/}"*.txz
     )
     set +e
 
