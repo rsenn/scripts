@@ -14,15 +14,15 @@ cmakebuild()
     is_interactive || set -e
 
     trap 'rm -f {cmake,make,install}.log' EXIT
-    (: set -x
-     rm -rf $builddir/ $destdir/
-     mkdir -p $builddir/)
+    (: 
+     exec_bin rm -rf $builddir/ $destdir/
+     exec_bin mkdir -p $builddir/)
 
     (
      
-     ( set -x;
+     ( 
      cd "$builddir" &&
-    cmake \
+    exec_bin cmake \
         -DCMAKE_VERBOSE_MAKEFILE=TRUE \
         -DCONFIG=Release \
         -DBUILD_SHARED_LIBS=ON \
@@ -38,14 +38,14 @@ cmakebuild()
     ) >cmake.log
 
 
-    ( set -x
-    make -C $builddir/ 2>&1 )     >make.log || { ERR=$?; grep '(Stop|failed|error:)' -E  -C3 make.log; exit $?; }
+    ( 
+    exec_bin make -C $builddir/ 2>&1 )     >make.log || { ERR=$?; grep '(Stop|failed|error:)' -E  -C3 make.log; exit $?; }
     (
         trap '${SUEXEC:-command} rm -rf "$destdir"' EXIT
-        (set -x; ${SUEXEC:-command} make DESTDIR="$destdir" -C $builddir/ install -i 2>&1 ) \
+        (exec_bin ${SUEXEC:-command} make DESTDIR="$destdir" -C $builddir/ install -i 2>&1 ) \
             >install.log
         mkdir -p "$pkgdir"
-        (set -x; cd "$destdir" && make-archive.sh -q -v -d "$pkgdir" -t txz -9 -r -D)  \
+        (cd "$destdir" && exec_bin make-archive.sh -q -v -d "$pkgdir" -t txz -9 -r -D)  \
         && notice Created archive "$pkgdir"/"${PWD##*/}"*.txz
     )
     set +e
