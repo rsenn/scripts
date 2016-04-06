@@ -76,8 +76,12 @@ install: $(SCRIPTS)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(RM) $(DESTDIR)$(bindir)/bash_{functions,profile}.sh
 	$(foreach NAME,bash_profile bash_functions,\
-	    $(call symlink_script,$(NAME).bash,$(DESTDIR)$(bindir)/$(NAME).sh,.)\
-	)
+	$(INSTALL) -m 755 bash/$(NAME).bash $(DESTDIR)$(bindir)/$(NAME).sh; \
+	$(INSTALL) -m 755 bash/$(NAME).bash $(DESTDIR)$(bindir)/$(NAME).bash; \
+        )
+#	$(foreach NAME,bash_profile bash_functions,\
+#	    $(call symlink_script,$(NAME).bash,$(DESTDIR)$(bindir)/$(NAME).sh,.)\
+#	)
 	$(INSTALL) -m 755 $(AWK_SCRIPTS) $(DESTDIR)$(bindir)/
 	$(INSTALL) -m 755 $(BASH_SCRIPTS) $(DESTDIR)$(bindir)/
 	$(INSTALL) -m 755 $(FONTFORGE_SCRIPTS) $(DESTDIR)$(bindir)/
