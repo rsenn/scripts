@@ -2,8 +2,8 @@
 
 IFS="
 "
-: ${level=3}
-: ${EXCLUDE="*.git*
+: ${level:=3}
+: ${EXCLUDE:="*.git*
 *~
 *.stackdump
 build/*
