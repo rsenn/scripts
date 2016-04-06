@@ -51,6 +51,10 @@ main() {
 		esac
 	done
 
+        case "$type" in
+            *xz*) level=$((level * 6 / 9)) ;;
+        esac
+
 	type gtar 2>/dev/null >/dev/null && TAR=gtar ||
 	{ type gtar 2>/dev/null >/dev/null && TAR=gtar; }
 	: ${TAR=tar}
