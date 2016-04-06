@@ -20,7 +20,15 @@ str_triml()
     echo "$s"
 }
 
-main() {
+functions_assemble() {
+     while :; do
+        case "$1" in
+          -x | --debug) DEBUG=true; shift ;;
+          *) break ;;
+        esac
+      done
+      
+
     if [ -n "$1" -a -d "$1" ]; then
      SOURCE_DIR="$1"
      shift
@@ -54,4 +62,5 @@ output() {
 #    echo "CMD='$CMD'" 1>&2 
     eval "$CMD"
 }
-main "$@"
+
+functions_assemble "$@"
