@@ -4,6 +4,8 @@ cmakebuild()
     destdir=${PWD}-linux
     : ${pkgdir=~/Packages}
     : ${python_config=/usr/bin/python2.7-config}
+    : ${CXX:=`cmd-path g++`}
+    : ${CC:=`cmd-path gcc`}
      find_libpython() {
          ( set -- $(echo $($python_config --ldflags --libs )  |sed -n 's,.*-L\([^ ]*\) .*-lpython\([^ ]*\) .*,\1/libpython\2.a,p'; for ext in 'a' 'so.*' ; do ( find $($python_config --exec-prefix)/lib*/ -maxdepth 3 -and -not -type d -and -name "libpython*$ext"); done); test -n "$1" -a -f "$1" && echo "$1")
      }
@@ -25,9 +27,9 @@ cmakebuild()
         -DCONFIG=Release \
         -DBUILD_SHARED_LIBS=ON \
         -DCMAKE_{C,CXX}_FLAGS="-fPIC" \
-        -DCMAKE_CXX_COMPILER="${CXX:-`which g++`}" \
-        -DCMAKE_C_COMPILER="${CC:-`which gcc`}" \
-        -DCMAKE_INSTALL_PREFIX="$($python_config --exec-prefix)" \
+        -DCMAKE_CXX_COMPILER="$CXX" \
+        -DCMAKE_C_COMPILER="$CC" \
+        -DCMAKE_INSTALL_PREFIX="${prefix:-/usr/local}" \
         -DPYTHON_EXECUTABLE="$($python_config --exec-prefix)/bin/python2" \
         -DPYTHON_INCLUDE_DIR="$($python_config  --includes|sed 's,^-I\([^ ]*\) .*,\1,p' -n)" \
         -DPYTHON_LIBRARY="${PYTHON_LIBRARY:-`find_libpython`}" \
