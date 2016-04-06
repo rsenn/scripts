@@ -9,11 +9,12 @@ cmakebuild()
 
 
     cmdexec()  { 
-        (E='command "$@"'
+        (IFS=";"
+         E="$*"
         while :; do
                 case "$1" in 
                     -o) E="exec >>$2; $E"; shift 2 ;; -o*) E="exec >>${1#-o}; $E"; shift ;;
-                    -w) cd "$2"; shift 2 ;;
+                -w) E="(cd '$2' && $E)"; shift 2 ;;     -w*) E="(cd '${1#-w}' && $E)"; shift ;;
                 -m) E="$E 2>&1"; shift ;;
             *) break ;;
             esac
@@ -26,9 +27,11 @@ cmakebuild()
     }
 
      find_libpython() {
-         ( set -- $(echo $($python_config --ldflags --libs )  |sed -n 's,.*-L\([^ ]*\) .*-lpython\([^ ]*\) .*,\1/libpython\2.a,p'; for ext in 'a' 'so.*' ; do ( find $($python_config --exec-prefix)/lib*/ -maxdepth 3 -and -not -type d -and -name "libpython*$ext"); done); test -n "$1" -a -f "$1" && echo "$1") \
+         ( set -- $(echo $(cmdexec "$python_config" --ldflags --libs )  |sed -n 's,.*-L\([^ ]*\) .*-lpython\([^ ]*\) .*,\1/libpython\2.a,p'; for ext in 'a' 'so.*' ; do ( find $(cmdexec "$python_config" --exec-prefix)/lib*/ -maxdepth 3 -and -not -type d -and -name "libpython*$ext"); done); test -n "$1" -a -f "$1" && echo "$1") \
              2>/dev/null
      }
+
+     python_version=$(cmdexec "$python_config" --cflags|sed 's,.*python\([0-9.]*\) .*,\1,p' -n)
 
     (
     
@@ -42,8 +45,7 @@ cmakebuild()
     (
      
      ( 
-     cd "$builddir" &&
-    cmdexec -m -o cmake.log cmake \
+    cmdexec -m -w "$builddir" -o cmake.log cmake \
         -DCMAKE_VERBOSE_MAKEFILE=TRUE \
         -DCONFIG=Release \
         -DBUILD_SHARED_LIBS=ON \
@@ -51,13 +53,12 @@ cmakebuild()
         -DCMAKE_CXX_COMPILER="$CXX" \
         -DCMAKE_C_COMPILER="$CC" \
         -DCMAKE_INSTALL_PREFIX="${prefix:-/usr/local}" \
-        -DPYTHON_EXECUTABLE="$($python_config --exec-prefix)/bin/python2" \
-        -DPYTHON_INCLUDE_DIR="$($python_config  --includes|sed 's,^-I\([^ ]*\) .*,\1,p' -n)" \
+        -DPYTHON_EXECUTABLE="$(cmdexec "$python_config" --exec-prefix)/bin/python${python_version}" \
+        -DPYTHON_INCLUDE_DIR="$(cmdexec "$python_config"  --includes|sed 's,^-I\([^ ]*\) .*,\1,p' -n)" \
         -DPYTHON_LIBRARY="${PYTHON_LIBRARY:-`find_libpython`}" \
     "$@" \
     ../.. )
-     a
-    ) >cmake.log
+    ) 
 
 
      
