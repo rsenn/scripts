@@ -21,7 +21,7 @@ pushv()
     eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
 }
 
-main() {
+make_archive() {
 	ARGS="$*"
 
 	case "$EXCLUDE" in
@@ -37,6 +37,7 @@ main() {
 			-[0-9]) level=${1#-}; shift ;;
 			-t) type=$2; shift 2 ;;
 			-x | --debug) DEBUG=true; shift ;;
+                    -v | --verbose) VERBOSE=$(( ${VERBOSE:-0} + 1 )); shift ;;
 			-q | --quiet) QUIET=true; shift ;;
 			-r | --remove*) REMOVE=true; shift ;;
 			-d=* | --dest*dir*=*) DESTDIR=${1#*=}; shift ;; 
@@ -127,9 +128,9 @@ main() {
 	esac
 	cmd='rm -vf "$archive";'$cmd
 	[ "$QUIET" = true ] && cmd="($cmd) 2>/dev/null" || cmd="($cmd) 2>&1"
-	echo "cmd='$cmd'" 1>&2
+	[ "$VERBOSE" -ge 2 ] && echo "cmd='$cmd'" 1>&2
 	eval "(test \"\$DEBUG\" = true && set -x; $cmd)" &&
-	echo "Created archive '$archive'"
+	[ "$VERBOSE" -ge 1 ] && echo "Created archive '$archive'" 
 }
 
 bce() {
@@ -195,4 +196,4 @@ dir_contents() {
   IFS=" "; echo "$*")
 }
 
-main "$@"
+make_archive "$@"
