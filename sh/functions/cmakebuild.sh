@@ -3,7 +3,7 @@ cmakebuild()
 is_interactive || set -e
     builddir=build/cmake
     destdir=${PWD}-linux
-    : ${pkgdir=~/Downloads}
+    : ${pkgdir=~/Packages}
     : ${python_config=/usr/bin/python2.7-config}
     (set -x
      rm -rf $builddir/ $destdir/
@@ -34,9 +34,9 @@ is_interactive || set -e
     (set -x
     trap '${SUEXEC:-command} rm -rf "$destdir"' EXIT
     (${SUEXEC:-command} make DESTDIR="$destdir" -C $builddir/ install -i 2>&1 ) >install.log
-    mkdir -p $pkgdir
     pushd "$destdir"
-    make-archive.sh -d $pkgdir -t txz -9 -r -D)
+    mkdir -p "$pkgdir"
+    make-archive.sh -d "$pkgdir" -t txz -9 -r -D)
     set +e
 
 
