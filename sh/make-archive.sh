@@ -14,6 +14,28 @@ build/*
 config.status
 CMakeCache.txt"}
 
+max-length () 
+{ 
+    ( max=$1;
+    shift;
+    a=$*;
+    l=${#a};
+    [ $((l)) -gt $((max)) ] && a="${a:1:$((max - 3))}...";
+    echo "$a" )
+}
+cmdexec()  { 
+    IFS=" ""
+ " R= C= E='eval "$C"' EE=': ${R:=$?}; [ "$R" = "0" ] && unset R'
+    o() {  X_RM_O="${X_RM_O:+$X_RM_O$IFS}$1"; E="exec >>'$1'; $E"; }
+    while [ $# -gt 0 ]; do case "$1" in 
+                -o) o "$2"; shift 2 ;; -o*) o "${1#-o}"; shift ;;
+            -w) E="(cd '$2' && $E)"; shift 2 ;;     -w*) E="(cd '${1#-w}' && $E)"; shift ;;
+            -m) E="$E 2>&1"; shift ;;
+        *) break ;;
+        esac;  done;  C="$*"; EC=`max-length 120 "$C"`; [ "$DEBUG" = true ] && eval max-length 120 "EVAL: $E" 1>&2 
+    (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
+    echo -n "@@" $EC 1>&2;  eval "$E; $EE";  exit ${R:-0}) ; return $?
+}
 debug()
 {
     [ "$DEBUG" = true ] && echo "DEBUG: $@" 1>&2
@@ -123,8 +145,10 @@ make_archive() {
 	esac
 	cmd='rm -vf "$archive";'$cmd
 	[ "$QUIET" = true ] && cmd="($cmd) 2>/dev/null" || cmd="($cmd) 2>&1"
-        [ $(( ${VERBOSE:-0} )) -ge 2 ] && echo "cmd='$cmd'" 1>&2
-	eval "(test \"\$DEBUG\" = true && set -x; $cmd)" &&
+
+        verbose "cmd='$(max-length 120 "$cmd")'" 2
+        IFS="$IFS "
+	cmdexec $cmd  &&
 	verbose "Created archive '$archive'" 1
 }
 
