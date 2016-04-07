@@ -22,11 +22,10 @@ cmakebuild()
             esac
         done
         [ "$DEBUG" = true ] && echo "EVAL: $E" 1>&2 
-        (trap "$EE;  echo -n \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2; echo; exit \${R:-0}" EXIT
+        (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
         echo -n "@@" $C 1>&2 
 eval "$E; $EE"
-        echo ""  1>&2 
-) ; return $?
+exit ${R:-0}) ; return $?
     }
      find_libpython() {
          ( set -- $(echo $(cmdexec "$python_config" --ldflags --libs )  |sed -n 's,.*-L\([^ ]*\) .*-lpython\([^ ]*\) .*,\1/libpython\2.a,p'; for ext in 'a' 'so.*' ; do ( find $(cmdexec "$python_config" --exec-prefix)/lib*/ -maxdepth 3 -and -not -type d -and -name "libpython*$ext"); done); test -n "$1" -a -f "$1" && echo "$1") \
@@ -35,7 +34,7 @@ eval "$E; $EE"
      python_version=$(cmdexec "$python_config" --cflags|sed 's,.*python\([0-9.]*\) .*,\1,p' -n)
     is_interactive || set -e
   (set -e
-     trap 'rm -f {cmake,make,install}.log' EXIT
+     #trap 'rm -vf -- $X_RM_O {cmake,make,install}.log' EXIT
        cmdexec -m -o clean.log rm -rf "$builddir" "$destdir"
        cmdexec mkdir -p "$builddir"
             cmdexec -m -w "$builddir" -o cmake.log cmake \
@@ -51,12 +50,16 @@ eval "$E; $EE"
                 -DPYTHON_LIBRARY="${PYTHON_LIBRARY:-`find_libpython`}" \
             "$@" \
             ../.. 
+
+            ) || return $?
         cmdexec -m -o make.log make -C $builddir/      || { ERR=$?; grep '(Stop|failed|error:)' -E  -C3 make.log; return $?; }
-        )
        (set -e
-            trap 'cmdexec $SUEXEC rm -rf "$destdir"' EXIT
+            trap 'cmdexec $SUEXEC rm -rf -- "$destdir"' EXIT
             cmdexec -m -o install.log $SUEXEC make DESTDIR="$destdir" -C $builddir/ install -i   
             mkdir -p "$pkgdir"
             cmdexec -w "$destdir" -m -o pack.log make-archive.sh -q -v -d "$pkgdir" -t txz -9 -r -D && notice Created archive "$pkgdir"/"${PWD##*/}"*.txz
-        )
+            ) || return $?
+        R=$? 
+        [ "$R" = 0 ] && notice "cmakebuild done!"
+       #rm -vf -- $X_RM_O {cmake,make,install}.log
 }
