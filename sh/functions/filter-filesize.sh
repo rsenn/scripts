@@ -18,7 +18,7 @@ filter-filesize() {
       *) break ;;
     esac
   done
-  xargs ls -l -d -n --time-style="+%s" -- | {
+  xargs -d '\n' ls -l -d -n --time-style="+%s" -- | {
    set -- $OPS
    IFS=" "
    CMD="test $*"
