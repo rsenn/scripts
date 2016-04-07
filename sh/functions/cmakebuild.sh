@@ -2,10 +2,7 @@ cmakebuild()
 { 
     builddir=build/cmake
     destdir=${PWD}-linux
-    : ${pkgdir=~/Packages}
-    : ${python_config=/usr/bin/python2.7-config}
-    : ${CXX:=`cmd-path g++`}
-    : ${CC:=`cmd-path gcc`}
+
    unset X_RM_O
     cmdexec()  { 
         IFS="
@@ -31,8 +28,15 @@ exit ${R:-0}) ; return $?
          ( set -- $(echo $(cmdexec "$python_config" --ldflags --libs )  |sed -n 's,.*-L\([^ ]*\) .*-lpython\([^ ]*\) .*,\1/libpython\2.a,p'; for ext in 'a' 'so.*' ; do ( find $(cmdexec "$python_config" --exec-prefix)/lib*/ -maxdepth 3 -and -not -type d -and -name "libpython*$ext"); done); test -n "$1" -a -f "$1" && echo "$1") \
              2>/dev/null
      }
-     python_version=$(cmdexec "$python_config" --cflags|sed 's,.*python\([0-9.]*\) .*,\1,p' -n)
+
+    : ${pkgdir=~/Packages}
+    : ${python_config=/usr/bin/python2.7-config}
+    : ${python_version=$(cmdexec "$python_config" --cflags|sed 's,.*python\([0-9.]*\) .*,\1,p' -n)}
+    : ${CXX:=`cmd-path g++`}
+    : ${CC:=`cmd-path gcc`}
+
     is_interactive || set -e
+
   (set -e
      #trap 'rm -vf -- $X_RM_O {cmake,make,install}.log' EXIT
        cmdexec -m -o clean.log rm -rf "$builddir" "$destdir"
