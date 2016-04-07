@@ -25,13 +25,18 @@ eval "$E; $EE"
 exit ${R:-0}) ; return $?
     }
      find_libpython() {
-         ( set -- $(echo $(cmdexec "$python_config" --ldflags --libs )  |sed -n 's,.*-L\([^ ]*\) .*-lpython\([^ ]*\) .*,\1/libpython\2.a,p'; for ext in 'a' 'so.*' ; do ( find $(cmdexec "$python_config" --exec-prefix)/lib*/ -maxdepth 3 -and -not -type d -and -name "libpython*$ext"); done); test -n "$1" -a -f "$1" && echo "$1") \
-             2>/dev/null
+         ( set -- \
+             $(echo `$python_config --ldflags --libs`|sed -n 's,.*-L\([^ ]*\) .*-lpython\([^ ]*\) .*,\1/libpython\2.a,p') \
+             $(for ext in 'a' 'so.*' ; do find `$python_config --exec-prefix`/lib*/ -maxdepth 3 -and -not -type d -and -name "libpython*$ext"; done)
+             test -n "$1" -a -f "$1" && echo "$1")      2>/dev/null
      }
 
-    : ${pkgdir=~/Packages}
-    : ${python_config=/usr/bin/python2.7-config}
-    : ${python_version=$(cmdexec "$python_config" --cflags|sed 's,.*python\([0-9.]*\) .*,\1,p' -n)}
+    : ${pkgdir:=~/Packages}
+    : ${python_config:=/usr/bin/python2.7-config}
+    : ${python_version:=`$python_config --libs --cflags --includes --ldflags|sed -n '/ython[0-9][0-9.]\+/ { s|.*ython\([0-9][0-9.]\+\).*|\1|; p; q }'`}
+    : ${python_library:=`find_libpython`}
+    : ${python_executable:=`$python_config --exec-prefix)/bin/python${python_version}`}
+    : ${python_include_dir:=`$python_config --includes|sed -n 's,^-I\([^ ]*\) .*,\1,p' `}
     : ${CXX:=`cmd-path g++`}
     : ${CC:=`cmd-path gcc`}
 
@@ -49,9 +54,9 @@ exit ${R:-0}) ; return $?
                 -DCMAKE_CXX_COMPILER="$CXX" \
                 -DCMAKE_C_COMPILER="$CC" \
                 -DCMAKE_INSTALL_PREFIX="${prefix:-/usr/local}" \
-                -DPYTHON_EXECUTABLE="$(cmdexec "$python_config" --exec-prefix)/bin/python${python_version}" \
-                -DPYTHON_INCLUDE_DIR="$(cmdexec "$python_config"  --includes|sed 's,^-I\([^ ]*\) .*,\1,p' -n)" \
-                -DPYTHON_LIBRARY="${PYTHON_LIBRARY:-`find_libpython`}" \
+                -DPYTHON_EXECUTABLE="$python_executable" \
+                -DPYTHON_INCLUDE_DIR="$python_include_dir" \
+                -DPYTHON_LIBRARY="$python_library" \
             "$@" \
             ../.. 
 
