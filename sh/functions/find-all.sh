@@ -3,9 +3,11 @@ find-all() {
   
   (LOCATE=`cmd-path locate`
   
-   [ -z "$LOCATE" ] && LOCATE=locate32.sh 
+   [ -z "$LOCATE" ] && LOCATE=locate32.sh  || LOCATE="$LOCATE
+-i
+-r"
    
-   "$LOCATE" "$@" ; find-media.sh "$@") |sort -u 
+   $LOCATE "$@" ; find-media.sh "$@") |sort -u 
   
   }
 
