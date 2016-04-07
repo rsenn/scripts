@@ -1,4 +1,13 @@
-find-all() { (locate32.sh "$@" ; find-media.sh "$@") |sort -u ; }
+find-all() { 
+
+  
+  (LOCATE=`cmd-path locate`
+  
+   [ -z "$LOCATE" ] && LOCATE=locate32.sh 
+   
+   "$LOCATE" "$@" ; find-media.sh "$@") |sort -u 
+  
+  }
 
 findstring()
 {
