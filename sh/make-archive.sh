@@ -32,7 +32,7 @@ cmdexec()  {
             -w) E="(cd '$2' && $E)"; shift 2 ;;     -w*) E="(cd '${1#-w}' && $E)"; shift ;;
             -m) E="$E 2>&1"; shift ;;
         *) break ;;
-        esac;  done;  C="$*"; EC=`max-length 120 "$C"`; [ "$DEBUG" = true ] && eval max-length 120 "EVAL: $E" 1>&2 
+        esac;  done;  C="$*"; EC=`max-length $max_length "$C"`; [ "$DEBUG" = true ] && eval max-length $max_length "EVAL: $E" 1>&2 
     (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
     echo -n "@@" $EC 1>&2;  eval "$E; $EE";  exit ${R:-0}) ; return $?
 }
@@ -60,11 +60,12 @@ pushv()
 
 make_archive() {
 	ARGS="$*"
+        : ${max_length=120}
 	case "$EXCLUDE" in
 		*"
-	"*) ;; 
+"*) ;; 
 		*\ *) IFS="$IFS "; set -f ; set -- $EXCLUDE;  EXCLUDE="$*"; set +f; IFS="
-	" ;;
+" ;;
 	esac
 	set -- $ARGS
 	while :; do
@@ -95,7 +96,7 @@ make_archive() {
 	ABSDESTDIR=`cd "$DESTDIR" && pwd`
 	while [ -d "$1" ]; do
 		dirs="${dirs:+$dirs
-	}$1"; shift
+}$1"; shift
 	done
 	debug "+ dirs="$@ 
 	while [ $# -gt 0 ]; do
@@ -129,14 +130,19 @@ make_archive() {
 		archive=${DESTDIR:-..}/${name##*/}
 		[ "$nodate" != true ] && archive=$archive-$(isodate.sh -r ${dir:-.})   #`date ${dir:+-r "$dir"} +%Y%m%d`
 		archive=$archive.${type:-7z}
+        elif [ -n "$archive" -a -f "$archive" ]; then
+            if [ "$FORCE" != true ]; then
+            verbose "Archive '$archive' already exists!" 0
+            exit 1
+        fi
 	fi
 	set -f
 	case "$archive" in
-		*.iso) cmd="${genisoimage:-mkisofs} -f -l -R -J -o \"\$archive\"  $(create_list "-exclude " $EXCLUDE) \"$dir\"" ;;
-		*.7z) cmd="${sevenzip:-7za} a -mx=$(( $level * 5 / 9 )) \"\$archive\" $(create_list "-x!" $EXCLUDE) \"$dir\"" ;;
-                *.zip) cmd="zip -${level} $(test "$REMOVE" = true && echo -m) -r \"\$archive\" \"$dir\" $(create_list "-x " $EXCLUDE) " ;;
-                *.rar) cmd="rar a -m$(($level * 5 / 9)) $(test "$REMOVE" = true && echo -df) -r $(create_list "-x" $EXCLUDE) \"\$archive\" \"$dir\"" ;;
-		*.txz|*.tar.xz) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) $(dir_contents \"$dir\") | xz -$level >\"\$archive\"" ;;
+		*.iso) cmd="${genisoimage:-mkisofs} -f -l -R -J -o \"\$archive\"  $(create_list "-exclude " $EXCLUDE) \$dir" ;;
+		*.7z) cmd="${sevenzip:-7za} a -mx=$(( $level * 5 / 9 )) \"\$archive\" $(create_list "-x!" $EXCLUDE) \$dir" ;;
+                *.zip) cmd="zip -${level} $(test "$REMOVE" = true && echo -m) -r \"\$archive\" \$dir $(create_list "-x " $EXCLUDE) " ;;
+                *.rar) cmd="rar a -m$(($level * 5 / 9)) $(test "$REMOVE" = true && echo -df) -r $(create_list "-x" $EXCLUDE) \"\$archive\" \$dir" ;;
+		*.txz|*.tar.xz) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | xz -$level >\"\$archive\"" ;;
 		*.tlzma|*.tar.lzma) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | lzma -$level >\"\$archive\"" ;;
 		*.tlzip|*.tar.lzip) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | lzip -$level >\"\$archive\"" ;;
 		*.tlzo|*.tar.lzo) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | lzop -$level >\"\$archive\"" ;;
@@ -146,7 +152,7 @@ make_archive() {
 	cmd='rm -vf "$archive";'$cmd
 	[ "$QUIET" = true ] && cmd="($cmd) 2>/dev/null" || cmd="($cmd) 2>&1"
 
-        verbose "cmd='$(max-length 120 "$cmd")'" 2
+        verbose "cmd='$(max-length $max_length "$cmd")'" 2
         IFS="$IFS "
 	cmdexec $cmd  &&
 	verbose "Created archive '$archive'" 1
@@ -161,13 +167,16 @@ bci() {
 }
 
 create_list() {
- (output=
-  SWITCH="$1"
+ ( 
+ #: ${separator=" "}
+ : ${separator="','"}
+  #output=
+  output="$1{'"
   shift
   for arg; do
-    output="${output:+$output }${SWITCH}$arg"
+    output="${output:+$output$separator}$arg"
   done
-  echo "$output")
+  echo "$output'}")
 }
 
 match() {
@@ -187,23 +196,25 @@ esac'
   eval "$CMD")
 }
 
-implode()
-{
- (unset DATA SEPARATOR;
-  SEPARATOR="$1"; shift
-  CMD='DATA="${DATA+$DATA$SEPARATOR}$ITEM"'
-  if [ $# -gt 0 ]; then
-    CMD="for ITEM; do $CMD; done"
-  else
-    CMD="while read -r ITEM; do $CMD; done"
-  fi
-  eval "$CMD"
-  echo "$DATA")
+implode () 
+{ 
+    ( unset D S C I;
+    S="$1";
+    shift;
+    C='D="${D+$D$S}$I"';
+    if [ $# -gt 0 ]; then
+        C="for I; do $C; done";
+    else
+        C="while read -r I; do $C; done";
+    fi;
+    eval "$C";
+    echo "$D" )
 }
 
 dir_contents() {
 ( 
-verbose  "dir_contents \"$(implode '" "' "$@")\"" 3
+: ${SEP='" "'}
+verbose  "dir_contents \"$(implode "$SEP" "$@")\"" 3
   case "$1" in 
 		. | "." | \".\" | .*) 
 			EXCLUDE="$(implode "|" $EXCLUDE)" 
@@ -212,6 +223,8 @@ verbose  "dir_contents \"$(implode '" "' "$@")\"" 3
 		*)
 		  ;;
 	esac 
-  IFS=" "; echo "$*")
+        echo "\"$(implode "$SEP" "$@")\""
+  #IFS=" "; echo "$*"
+  )
 }
 make_archive "$@"
