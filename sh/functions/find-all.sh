@@ -7,7 +7,7 @@ find-all() {
 -i
 -r"
    
-   $LOCATE "$@" ; find-media.sh "$@") |sort -u 
+for ARG; do $LOCATE "$ARG"; done ; find-media.sh "$@") |sort -u 
   
   }
 
