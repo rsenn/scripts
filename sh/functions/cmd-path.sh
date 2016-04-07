@@ -11,7 +11,12 @@ cmd-path()
     esac
     O=$(<"$F"); rm -f "$F"; trap '' EXIT
 
-    P=${O#*" is "}
+    
+    case "$O" in
+        *" is /"*) P=${O#*" is "} ;;
+        *" is hashed ("*) P=${O#*"("}; P=${P%")"} ;;
+    esac
+
     if [ -n "$P" -a -e "$P" ]; then
         echo "$P"
     else
