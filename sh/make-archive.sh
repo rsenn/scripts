@@ -1,6 +1,8 @@
 #!/bin/bash
 IFS="
 "
+spc=" "
+bs="\\"
 : ${level:=3}
 : ${EXCLUDE="*.git*
 *~
@@ -25,16 +27,17 @@ max-length ()
 }
 cmdexec()  { 
     IFS=" ""
- " R= C= E='eval "$C"' EE=': ${R:=$?}; [ "$R" = "0" ] && unset R'
+    " R= C= E='eval "$C"' EE=': ${R:=$?}; [ "$R" = "0" ] && unset R'
+    [ "$DEBUG" = true ] && E='eval "echo \"XX: \$C\"" 1>&2;'$E
     o() {  X_RM_O="${X_RM_O:+$X_RM_O$IFS}$1"; E="exec >>'$1'; $E"; }
     while [ $# -gt 0 ]; do case "$1" in 
                 -o) o "$2"; shift 2 ;; -o*) o "${1#-o}"; shift ;;
             -w) E="(cd '$2' && $E)"; shift 2 ;;     -w*) E="(cd '${1#-w}' && $E)"; shift ;;
             -m) E="$E 2>&1"; shift ;;
         *) break ;;
-        esac;  done;  C="$*"; EC=`max-length $max_length "$C"`; [ "$DEBUG" = true ] && eval max-length $max_length "EVAL: $E" 1>&2 
+        esac;  done;  C="$*"; #EC=`max-length $max_length "$C"`; [ "$DEBUG" = true ] && eval max-length $max_length "EVAL: $E" 1>&2 
     (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
-    echo -n "@@" $EC 1>&2;  eval "$E; $EE";  exit ${R:-0}) ; return $?
+    eval "echo -n \"@@\" $EC 1>&2";  eval "($E); $EE";  exit ${R:-0}) ; return $?
 }
 debug()
 {
@@ -106,7 +109,7 @@ make_archive() {
 			esac
 		fi
 	done
-	DIR1=$(set -- $dirs; echo "${1##*/}")
+	DIR1=$(set -- ${dir//$spc/$bs$spc}s; echo "${1##*/}")
 	WD=${PWD}
 	if [ -n "$DIR1" -a "${DIR1#$WD}" != "${DIR1}" ]; then
 		dname=${DIR1#$WD}
@@ -142,14 +145,15 @@ make_archive() {
 		*.7z) cmd="${sevenzip:-7za} a -mx=$(( $level * 5 / 9 )) \"\$archive\" $(create_list "-x!" $EXCLUDE) \$dir" ;;
                 *.zip) cmd="zip -${level} $(test "$REMOVE" = true && echo -m) -r \"\$archive\" \$dir $(create_list "-x " $EXCLUDE) " ;;
                 *.rar) cmd="rar a -m$(($level * 5 / 9)) $(test "$REMOVE" = true && echo -df) -r $(create_list "-x" $EXCLUDE) \"\$archive\" \$dir" ;;
-		*.txz|*.tar.xz) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | xz -$level >\"\$archive\"" ;;
-		*.tlzma|*.tar.lzma) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | lzma -$level >\"\$archive\"" ;;
-		*.tlzip|*.tar.lzip) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | lzip -$level >\"\$archive\"" ;;
-		*.tlzo|*.tar.lzo) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | lzop -$level >\"\$archive\"" ;;
-		*.tgz|*.tar.gz) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | gzip -$level >\"\$archive\"" ;;
-		*.tbz2|*.tbz|*.tar.bz2) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) $(dir_contents "$dir") | bzip2 -$level >\"\$archive\"" ;;
+		*.tar) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) -f \"\$archive\"" ;;
+		*.txz|*.tar.xz) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | xz -$level >\"\$archive\"" ;;
+		*.tlzma|*.tar.lzma) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | lzma -$level >\"\$archive\"" ;;
+		*.tlzip|*.tar.lzip) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | lzip -$level >\"\$archive\"" ;;
+		*.tlzo|*.tar.lzo) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | lzop -$level >\"\$archive\"" ;;
+		*.tgz|*.tar.gz) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | gzip -$level >\"\$archive\"" ;;
+		*.tbz2|*.tbz|*.tar.bz2) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | bzip2 -$level >\"\$archive\"" ;;
 	esac
-	cmd='rm -vf "$archive";'$cmd
+	cmd='rm -vf -- "$archive"; '$cmd
 	[ "$QUIET" = true ] && cmd="($cmd) 2>/dev/null" || cmd="($cmd) 2>&1"
 
         verbose "cmd='$(max-length $max_length "$cmd")'" 2
@@ -213,7 +217,8 @@ implode ()
 
 dir_contents() {
 ( 
-: ${SEP='" "'}
+#: ${SEP='" "'}
+: ${SEP=' '}
 verbose  "dir_contents \"$(implode "$SEP" "$@")\"" 3
   case "$1" in 
 		. | "." | \".\" | .*) 
@@ -223,7 +228,7 @@ verbose  "dir_contents \"$(implode "$SEP" "$@")\"" 3
 		*)
 		  ;;
 	esac 
-        echo "\"$(implode "$SEP" "$@")\""
+       implode "$SEP" "$@"
   #IFS=" "; echo "$*"
   )
 }
