@@ -11,7 +11,7 @@ datadir = ${prefix}/share
 profiledir = ${sysconfdir}/profile.d
 
 ifeq ($(OS),Msys)
-LN_S = :
+LN_S = false
 else
 LN_S = ln -sf
 endif
@@ -76,9 +76,11 @@ install: $(SCRIPTS)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(RM) $(DESTDIR)$(bindir)/bash_{functions,profile}.sh
 	$(foreach NAME,bash_profile bash_functions,\
-	$(LN_S) $(NAME).bash $(DESTDIR)$(bindir)/$(NAME).sh; \
-	$(INSTALL) -m 755 bash/$(NAME).bash $(DESTDIR)$(bindir)/; \
-        )
+	    $(INSTALL) -m 755 bash/$(NAME).bash $(DESTDIR)$(bindir)/; \
+	    $(LN_S) $(NAME).bash $(DESTDIR)$(bindir)/$(NAME).sh || \
+            (cd $(DESTDIR)$(bindir) && junction $(NAME).sh $(NAME).bash) || \
+	    cp -v -f -- $(DESTDIR)$(bindir)/$(NAME).bash $(DESTDIR)$(bindir)/$(NAME).sh; \
+	)
 #	$(foreach NAME,bash_profile bash_functions,\
 #	    $(call symlink_script,$(NAME).bash,$(DESTDIR)$(bindir)/$(NAME).sh,.)\
 #	)
