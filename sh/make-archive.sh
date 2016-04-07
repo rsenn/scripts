@@ -14,6 +14,23 @@ build/*
 config.status
 CMakeCache.txt"}
 
+debug()
+{
+    [ "$DEBUG" = true ] && echo "DEBUG: $@" 1>&2
+}
+verbose() {
+   (M="$*" A=`eval "echo \"\${$#}\""` IFS="
+";
+    if [ "$#" = 1 ]; then
+        A=1;
+    fi;
+    if ! [ "$A" -ge 0 ]; then
+        A=0;
+    fi 2> /dev/null > /dev/null;
+    if [ $(( ${VERBOSE:-0} )) -ge "$A" ]; then
+        M "${M%?$A}";
+    fi)
+}
 pushv()
 {
     eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
@@ -43,7 +60,6 @@ make_archive() {
 			-[EXx]*) pushv EXCLUDE "${1#-?}"; shift ;; 
 			-[EXx]=*) pushv EXCLUDE "${1#*=}"; shift ;;
 			-e=* | --exclude=*) pushv EXCLUDE "${1#*=}"; shift ;;
-			-x | --debug) DEBUG=true; shift ;;
 			*) break ;;
 		esac
 	done
@@ -59,7 +75,7 @@ make_archive() {
 		dirs="${dirs:+$dirs
 	}$1"; shift
 	done
-	[ "$DEBUG"  = true ] && echo "+ dirs="$@ 1>&2 
+	debug "+ dirs="$@ 
 	while [ $# -gt 0 ]; do
 		if [ "$1" ]; then
 			case "$1" in
@@ -109,7 +125,7 @@ make_archive() {
 	[ "$QUIET" = true ] && cmd="($cmd) 2>/dev/null" || cmd="($cmd) 2>&1"
         [ $(( ${VERBOSE:-0} )) -ge 2 ] && echo "cmd='$cmd'" 1>&2
 	eval "(test \"\$DEBUG\" = true && set -x; $cmd)" &&
-	[ "$VERBOSE" -ge 1 ] && echo "Created archive '$archive'" 
+	verbose "Created archive '$archive'" 1
 }
 
 bce() {
@@ -117,7 +133,7 @@ bce() {
 }
 
 bci() {
- (IFS=" "; : echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | ${SED-sed} -u 's,\.[0-9]\+$,,'
+ (IFS=" "; : debug "EXPR: bci '$*'" ; bce "($*) + 0.5") | ${SED-sed} -u 's,\.[0-9]\+$,,'
 }
 
 create_list() {
@@ -163,7 +179,7 @@ implode()
 
 dir_contents() {
 ( 
-# echo "dir_contents \"$(implode '" "' "$@")\"" 1>&2
+verbose  "dir_contents \"$(implode '" "' "$@")\"" 3
   case "$1" in 
 		. | "." | \".\" | .*) 
 			EXCLUDE="$(implode "|" $EXCLUDE)" 

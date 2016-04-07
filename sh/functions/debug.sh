@@ -1,4 +1,4 @@
 debug()
 {
-    msg "DEBUG: $@"
+    [ "$DEBUG" = true ] && echo "DEBUG: $@" 1>&2
 }
