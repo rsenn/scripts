@@ -1,5 +1,4 @@
 #!/bin/bash
-
 IFS="
 "
 : ${level:=3}
@@ -15,7 +14,6 @@ build/*
 config.status
 CMakeCache.txt"}
 
-
 pushv()
 {
     eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
@@ -23,7 +21,6 @@ pushv()
 
 make_archive() {
 	ARGS="$*"
-
 	case "$EXCLUDE" in
 		*"
 	"*) ;; 
@@ -31,7 +28,6 @@ make_archive() {
 	" ;;
 	esac
 	set -- $ARGS
-
 	while :; do
 		case "$1" in
 			-[0-9]) level=${1#-}; shift ;;
@@ -51,53 +47,37 @@ make_archive() {
 			*) break ;;
 		esac
 	done
-
         case "$type" in
             *xz*) level=$((level * 6 / 9)) ;;
         esac
-
 	type gtar 2>/dev/null >/dev/null && TAR=gtar ||
 	{ type gtar 2>/dev/null >/dev/null && TAR=gtar; }
 	: ${TAR=tar}
-
-
-
 	[ "$DESTDIR" ] &&
 	ABSDESTDIR=`cd "$DESTDIR" && pwd`
-
-
 	while [ -d "$1" ]; do
 		dirs="${dirs:+$dirs
 	}$1"; shift
 	done
-
-
 	[ "$DEBUG"  = true ] && echo "+ dirs="$@ 1>&2 
 	while [ $# -gt 0 ]; do
-
 		if [ "$1" ]; then
 			case "$1" in
 				*.tar*|*.7z|*.rar|*.zip|*.t?z|*.cpio)   archive=$1; shift ;;
 			esac
 		fi
 	done
-
 	DIR1=$(set -- $dirs; echo "${1##*/}")
-
 	WD=${PWD}
-
 	if [ -n "$DIR1" -a "${DIR1#$WD}" != "${DIR1}" ]; then
 		dname=${DIR1#$WD}
 		dname=${dname#[\\/]}
 	else
 		dname="${WD}"
 	fi
-
 	#echo "dname=$dname" 1>&2 
 	dir=${2:-.}
-
 	if [ -z "$archive" ]; then
-		
 		if [ "$DESTDIR" ]; then
 			name=${dname#$ABSDESTDIR}
 			name=${name#/}
@@ -108,7 +88,6 @@ make_archive() {
 		name=${name#.}
 		name=${name%/}
 		#echo "name=$name" 1>&2 
-
 		archive=${DESTDIR:-..}/${name##*/}
 		[ "$nodate" != true ] && archive=$archive-$(isodate.sh -r ${dir:-.})   #`date ${dir:+-r "$dir"} +%Y%m%d`
 		archive=$archive.${type:-7z}
@@ -128,7 +107,7 @@ make_archive() {
 	esac
 	cmd='rm -vf "$archive";'$cmd
 	[ "$QUIET" = true ] && cmd="($cmd) 2>/dev/null" || cmd="($cmd) 2>&1"
-	[ "$VERBOSE" -ge 2 ] && echo "cmd='$cmd'" 1>&2
+        [ $(( ${VERBOSE:-0} )) -ge 2 ] && echo "cmd='$cmd'" 1>&2
 	eval "(test \"\$DEBUG\" = true && set -x; $cmd)" &&
 	[ "$VERBOSE" -ge 1 ] && echo "Created archive '$archive'" 
 }
@@ -183,7 +162,8 @@ implode()
 }
 
 dir_contents() {
-(echo "dir_contents \"$(implode '" "' "$@")\"" 1>&2
+( 
+# echo "dir_contents \"$(implode '" "' "$@")\"" 1>&2
   case "$1" in 
 		. | "." | \".\" | .*) 
 			EXCLUDE="$(implode "|" $EXCLUDE)" 
@@ -192,8 +172,6 @@ dir_contents() {
 		*)
 		  ;;
 	esac 
-	
   IFS=" "; echo "$*")
 }
-
 make_archive "$@"
