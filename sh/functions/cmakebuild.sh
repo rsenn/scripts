@@ -25,20 +25,33 @@ eval "$E; $EE"
 exit ${R:-0}) ; return $?
     }
      find_libpython() {
-         ( set -- \
-             $(echo `$python_config --ldflags --libs`|sed -n 's,.*-L\([^ ]*\) .*-lpython\([^ ]*\) .*,\1/libpython\2.a,p') \
-             $(for ext in 'a' 'so.*' ; do find `$python_config --exec-prefix`/lib*/ -maxdepth 3 -and -not -type d -and -name "libpython*$ext"; done)
-             test -n "$1" -a -f "$1" && echo "$1")      2>/dev/null
+        : ${python_config:=`cmd-path python-config`}
+
+        if [ -n "$python_config" -a -e "$python_config" ]; then
+        : ${python_version:=`$python_config --libs --cflags --includes --ldflags|sed -n '/ython[0-9][0-9.]\+/ { s|.*ython\([0-9][0-9.]\+\).*|\1|; p; q }'`}
+        python_exec_prefix=`$python_config --exec-prefix`
+        : ${python_executable:=`$python_config --exec-prefix`/bin/python${python_version}}
+        : ${python_include_dir:=`$python_config --includes|sed -n 's,^-I\([^ ]*\) .*,\1,p' `}
+        python_libs=`echo $($python_config --ldflags --libs)`
+        python_library=$( set -x; set -- $(echo $python_libs |sed -n 's,.*-L\([^ ]*\) .*-lpython\([^ ]*\) .*,\1/libpython\2.a,p')
+
+        set -- "$@" `for ext in 'a' 'so.*' ; do find "$python_exec_prefix"/lib*/ -maxdepth 4 -mindepth 1  -and -not -type d -and -name "libpython${python_version}*.$ext"; done`
+        while [ ! -e "$1" -a $# -gt 0 ]; do shift; done
+        echo "$@"
+             )
+
+             require var
+             var_s=" " var_dump python_{config,executable,include_dir,library,version}
+        else
+            errormsg "python-config not found!"
+        fi
      }
 
     : ${pkgdir:=~/Packages}
-    : ${python_config:=/usr/bin/python2.7-config}
-    : ${python_version:=`$python_config --libs --cflags --includes --ldflags|sed -n '/ython[0-9][0-9.]\+/ { s|.*ython\([0-9][0-9.]\+\).*|\1|; p; q }'`}
-    : ${python_library:=`find_libpython`}
-    : ${python_executable:=`$python_config --exec-prefix)/bin/python${python_version}`}
-    : ${python_include_dir:=`$python_config --includes|sed -n 's,^-I\([^ ]*\) .*,\1,p' `}
     : ${CXX:=`cmd-path g++`}
     : ${CC:=`cmd-path gcc`}
+
+    find_libpython
 
     is_interactive || set -e
 
