@@ -98,7 +98,7 @@ file_magic()
 }
 
 unset INCLUDE_DIRS
-GREP_ARGS=""
+GREP_ARGS="-a"
 
 usage() {
   echo "Usage: ${0##*/} [OPTIONS] ARGUMENTS..."
@@ -325,7 +325,7 @@ fi
 
 [ "$DEBUG" = true ] && echo "EXPR is $EXPR" 1>&2
 
-CMD="grep $GREP_ARGS -H -E \"\$EXPR\" $FILEARG"
+CMD="grep \$GREP_ARGS -H -E \"\$EXPR\" $FILEARG"
 
 SED_EXPR='s|\r$|| ;; s|/files\.list:|/|'
 
@@ -387,7 +387,9 @@ fi
 # If we're matching by 'file' magic, add the corresponding command to the
 # pipeline
 [ -n "$FILE_MAGIC" -a -z "$LIST" ] && CMD="$CMD | (set -f; IFS='|'; file_magic \$FILE_MAGIC)"
-	
+
+IFS=" $IFS"
+
 [ "$DEBUG" = true ] && eval "echo \"Command is ${CMD}\" 1>&2"
 
 CMD="$CMD${FILTERCMD:+ | $FILTERCMD}"
