@@ -11,7 +11,7 @@ choco-joinlines() {
     
     short "$s"
   }
-   short() {   n=$(tput cols);   s=$*; if [ "${#s}" -gt "$n" ]; then s=${s:0:$((n - 3))}...; fi; echo "$s"; }
+   short() {   : ${COLS=$(tput cols)};   s=$*; if [ "${#s}" -gt "$COLS" ]; then s=${s:0:$((COLS - 3))}...; fi; echo "$s"; }
   
   while LINENO=$(($LINENO + 1)); IFS=""; 	read -r LINE; do
     LINE=${LINE%$'\r'}
