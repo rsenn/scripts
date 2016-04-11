@@ -11,10 +11,12 @@ while :; do
   esac
 done
 
-if [ "${UID-`id -u`}" = 0 ]; then
-	SUDO=
-else
-  type sudo 2>/dev/null 1>/dev/null && SUDO="sudo" || SUDO=":"
+if [ "${SUDO+set}" != set ]; then
+  if [ "${UID-`id -u`}" = 0 -o -w /usr/bin ]; then
+      SUDO=
+  else
+    type sudo 2>/dev/null 1>/dev/null && SUDO="sudo" || SUDO=false
+  fi
 fi
 
 cleanup() {
