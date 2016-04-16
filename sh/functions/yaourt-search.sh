@@ -22,7 +22,7 @@ set -- ${@//[![:alnum:]]/}
 yaourt-search-cmd() {
   for Q in "$@"; do
 	 (IFS="| $IFS"; set -- $Q
-	 ([ "$DEBUG" = true ] && set -x; command yaourt -Ss $@) | yaourt-joinlines -s "|" $OPTS | 
+	 ([ "$DEBUG" = true ] && set -x; ${YAOURT:-${YAOURT:-command yaourt}} -Ss $@) | yaourt-joinlines -s "|" $OPTS | 
    command grep -a --line-buffered --colour=auto -i -E "($*)")
  done
 }
@@ -49,4 +49,4 @@ yaourt-search-output() {
     eval "echo \"$EVARS\"")
 	done
 }
-pacman-search() { yaourt-search "$@"; }
+pacman-search() { YAOURT="pacman" yaourt-search "$@"; }
