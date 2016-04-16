@@ -49,3 +49,4 @@ yaourt-search-output() {
     eval "echo \"$EVARS\"")
 	done
 }
+pacman-search() { yaourt-search "$@"; }
