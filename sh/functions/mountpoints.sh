@@ -1,7 +1,5 @@
 mountpoints()
 {
-  NL="
-"
     ( while :; do
         case "$1" in
             -u | --user)
@@ -31,6 +29,6 @@ mountpoints()
         fi
     };
     CMD="lsmnt \"\$@\"";
-    [ "$USER" = true ] && CMD="$CMD | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -vE '^(/\$|/proc|/sys|/dev)'";
+    [ "$USER" = true ] && CMD="$CMD | ${GREP-grep -a --line-buffered --color=auto} -vE '^(/\$|/proc|/sys|/dev)'";
     eval "$CMD" )
 }

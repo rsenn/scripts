@@ -1,7 +1,5 @@
 mountpoint-for-device()
 {
-  NL="
-"
-    ( set -- $(${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} "^$1 " /proc/mounts |awkp 2);
+    ( set -- $(${GREP-grep -a --line-buffered --color=auto} "^$1 " /proc/mounts |awkp 2);
     echo "$1" )
 }

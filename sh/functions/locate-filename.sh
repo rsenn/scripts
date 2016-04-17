@@ -1,7 +1,5 @@
 locate-filename()
 {
-  NL="
-"
     ( IFS="
  ";
     unset TEST_ARGS;
@@ -75,7 +73,7 @@ locate-filename()
         if [ -n "$TEST_ARGS" ]; then
             CMD="$CMD | filter-test \$TEST_ARGS";
         fi;
-        CMD="$CMD | (set -x ; ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} \$GREP_ARGS \"\${EXPR#/}\") ";
+        CMD="$CMD | (set -x ; ${GREP-grep -a --line-buffered --color=auto} \$GREP_ARGS \"\${EXPR#/}\") ";
         eval "$CMD";
     done )
 }

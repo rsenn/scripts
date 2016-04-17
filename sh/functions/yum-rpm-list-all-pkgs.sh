@@ -1,7 +1,5 @@
 yum-rpm-list-all-pkgs()
 {
-  NL="
-"
   require rpm
 
   yum list all >yum.list
@@ -12,7 +10,7 @@ yum-rpm-list-all-pkgs()
 
   rpm_expr=^$(grep-e-expr $(<rpm.list))
 
-  ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -v -E "$rpm_expr\$" <pkgs.list >available.list
+  ${GREP-grep -a --line-buffered --color=auto} -v -E "$rpm_expr\$" <pkgs.list >available.list
 
   (set -x; wc -l {yum,rpm,pkgs,available}.list)
 }

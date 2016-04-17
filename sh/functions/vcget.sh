@@ -1,7 +1,4 @@
-vcget()
-{
-  NL="
-"
+vcget() {
   case "$1" in
 	*2005* | *2008* | *2010* | *2012* | *2013* | *2015*)
 	  VC=$(vs2vc -0 "$1")
@@ -50,7 +47,7 @@ vcget()
 
   WindowsSdkDir=$(reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows" /v "CurrentInstallFolder" | ${SED-sed} -n "s|.*REG_SZ\s\+||p")
 
-  local $(${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -i -E "^\s*@?set \"?(INCLUDE|LIB|LIBPATH|FrameworkDir|FrameworkVersion|Framework35Version)=" "$VSVARS" | ${SED-sed} \
+  local $(${GREP-grep -a --line-buffered --color=auto} -i -E "^\s*@?set \"?(INCLUDE|LIB|LIBPATH|FrameworkDir|FrameworkVersion|Framework35Version)=" "$VSVARS" | ${SED-sed} \
    -e "s,.*set \"\?\([^\"]\+\)\"\?,\1,i" \
    -e "s|%VCINSTALLDIR%|${VCINSTALLDIR//"\\"/"\\\\"}|g" \
    -e "s|%VSINSTALLDIR%|${VSINSTALLDIR//"\\"/"\\\\"}|g" \

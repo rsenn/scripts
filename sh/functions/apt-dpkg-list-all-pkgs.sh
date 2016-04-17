@@ -1,7 +1,5 @@
 apt-dpkg-list-all-pkgs()
 {
-  NL="
-"
   require apt
   require dpkg
 
@@ -11,7 +9,7 @@ apt-dpkg-list-all-pkgs()
   dpkg_expr=^$(grep-e-expr $(<dpkg.list))
 
   awkp <apt.list >pkgs.list
-  ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -v -E "$dpkg_expr\$" <pkgs.list  >available.list
+  ${GREP-grep -a --line-buffered --color=auto} -v -E "$dpkg_expr\$" <pkgs.list  >available.list
 
   (set -x; wc -l {apt,dpkg,pkgs,available}.list)
 }

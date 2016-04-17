@@ -1,7 +1,4 @@
-pathmunge()
-{
-  NL="
-"
+pathmunge() { 
   while :; do
     case "$1" in -s) PATHSEP="$2"; shift 2 ;;
 		-v) PATHVAR="$2"; shift 2 ;;
@@ -19,7 +16,7 @@ pathmunge()
     esac
     IFS=" "
     FXPR="(^|${PATHSEP-:})$1($|${PATHSEP-:})"
-    if ! eval "echo \"\${${PATHVAR}}\" | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -E -q \"\$FXPR\""; then
+    if ! eval "echo \"\${${PATHVAR}}\" | ${GREP-grep -a --line-buffered --color=auto} -E -q \"\$FXPR\""; then
 	  if [ "$2" = after -o "$AFTER" = true ]
 		then CMD="${EXPORT}${PATHVAR}=\"\${${PATHVAR}:+\$${PATHVAR}${PATHSEP-:}}\$1\""
 		else CMD="${EXPORT}${PATHVAR}=\"\$1\${${PATHVAR}:+${PATHSEP-:}\$${PATHVAR}}\""

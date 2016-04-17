@@ -1,7 +1,4 @@
-list-rpm()
-{
-  NL="
-"
+list-rpm() {
  (NARG=$#
   output() {
     if [ -n "$*" -a "$#" -gt 0 ]; then
@@ -35,7 +32,7 @@ list-rpm()
     esac
     cd "$TEMP"
     set -- $( (    7z l "$RPM" |${SED-sed} -n "\$d; /^----------/ { n; /^------------------/ { :lp; \$! { d; b lp; }; } ; /^-/! { / files\$/! s|^...................................................  ||p }; }"  ||
-    (exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} "\\.cpio\$")
+    (exec_cmd "${RPM2CPIO-rpm2cpio}" >/dev/null; R=$?; [ $R -eq 0 ] && echo "$(basename "$RPM" .rpm).cpio"; exit $R) ) 2>/dev/null |uniq |${GREP-grep -a --line-buffered --color=auto} "\\.cpio\$")
     if [ $# -le 0 ]; then
       exit 1
     fi

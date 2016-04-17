@@ -1,8 +1,6 @@
 enable-some-swap()
 {
-  NL="
-"
-    ( SWAPS=` blkid|${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} 'TYPE="swap"'|cut -d: -f1 `;
+    ( SWAPS=` blkid|${GREP-grep -a --line-buffered --color=auto} 'TYPE="swap"'|cut -d: -f1 `;
     set -- $SWAPS;
     for SWAP in $SWAPS;
     do

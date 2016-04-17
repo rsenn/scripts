@@ -1,9 +1,6 @@
-make-cfg-sh()
-{
-  NL="
-"
+make-cfg-sh() { 
  (for ARG in "${@:-./configure}"; do
-    HELP=$("$ARG" --help=recursive ); ( echo "$HELP" | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -q '^\s*--.*dir' ) || HELP=$( ("$ARG" --help ; echo "$HELP") |sort -t- -k2 -n -u ); ( echo "$HELP" | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -q '^\s*--' ) || HELP=$("$ARG" --help ); { 
+    HELP=$("$ARG" --help=recursive ); ( echo "$HELP" | ${GREP-grep -a --line-buffered --color=auto} -q '^\s*--.*dir' ) || HELP=$( ("$ARG" --help ; echo "$HELP") |sort -t- -k2 -n -u ); ( echo "$HELP" | ${GREP-grep -a --line-buffered --color=auto} -q '^\s*--' ) || HELP=$("$ARG" --help ); { 
       unset O; while read -r LINE; do
           case "$LINE" in 
               *--enable-[[:upper:]]* | *--with-[[:upper:]]* | *--without-[[:upper:]]* | *--disable-[[:upper:]]*)

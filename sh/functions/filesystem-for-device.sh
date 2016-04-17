@@ -1,9 +1,7 @@
 filesystem-for-device()
 {
-  NL="
-"
  (DEV="$1";
-  set -- $(${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} "^$DEV " /proc/mounts |awkp 3)
+  set -- $(${GREP-grep -a --line-buffered --color=auto} "^$DEV " /proc/mounts |awkp 3)
   case "$1" in
     fuse*)
       TYPE=$(file -<"$DEV");
