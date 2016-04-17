@@ -36,7 +36,7 @@ main()
 " $IGNORE_EXTS` 
   #(set -o noglob ; find "$@" -not -type d -and -not \( -iname $FINDOPTS \) -exec file {} \;)
 
- (set -x; ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} --binary-files=without-match -l -r -E "$GRUB_CFG_EXPR" "$@") |
+ (set -x; ${GREP-grep -a --line-buffered --color=auto} --binary-files=without-match -l -r -E "$GRUB_CFG_EXPR" "$@") |
  (while read -r FILE; do
   set -- $( ${SED-sed} "$GRUB_MULTILINE_EXPR" <"$FILE"|grep -E "$GRUB_CFG_EXPR" "$FILE" | ${SED-sed} "s,^,$FILE:,")
   echo "$*"

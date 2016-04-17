@@ -8,4 +8,4 @@ if [ "`id -u`" != 0 ]; then
   exit 1
 fi
 
-iwlist "$IF" scanning | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -i -B6 -A1 KEY:off
+iwlist "$IF" scanning | ${GREP-grep -a --line-buffered --color=auto} -i -B6 -A1 KEY:off

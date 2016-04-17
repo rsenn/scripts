@@ -31,7 +31,7 @@ process_iso() {
 
   list_7z "$1" >"$LIST"
 
-  ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -iE '(/initr[^/]*\.img$|/bzImage|\.SQFS$)' "$LIST"
+  ${GREP-grep -a --line-buffered --color=auto} -iE '(/initr[^/]*\.img$|/bzImage|\.SQFS$)' "$LIST"
   )
 }
 

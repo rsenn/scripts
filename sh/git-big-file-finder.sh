@@ -13,7 +13,7 @@ NL="
 IFS=$'\n';
 
 # list all objects including their size, sort by size, take top 10
-objects=`git verify-pack -v .git/objects/pack/pack-*.idx | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -v chain | sort -k3nr | head`
+objects=`git verify-pack -v .git/objects/pack/pack-*.idx | ${GREP-grep -a --line-buffered --color=auto} -v chain | sort -k3nr | head`
 
 echo "All sizes are in kB's. The pack column is the size of the object, compressed, inside the pack file."
 
@@ -27,7 +27,7 @@ do
 	# extract the SHA
 	sha=`echo $y | cut -f 1 -d ' '`
 	# find the objects location in the repository tree
-	other=`git rev-list --all --objects | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} $sha`
+	other=`git rev-list --all --objects | ${GREP-grep -a --line-buffered --color=auto} $sha`
 	#lineBreak=`echo -e "\n"`
 	output="${output}\n${size},${compressedSize},${other}"
 done
