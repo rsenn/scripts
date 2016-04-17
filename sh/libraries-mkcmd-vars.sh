@@ -32,7 +32,7 @@ echo.
       vs*) ;;
       *) 
         set -- $(realpath $PWD/*/${TARGET/amd64/*64}*/bin)
-        grep -iE "(mingw-w64)" <<<"$*" | xargs cygpath -w |implode ';'|addprefix 'set PATH=%PATH%;'
+        ${GREP-grep -a --line-buffered --color=auto} -iE "(mingw-w64)" <<<"$*" | xargs cygpath -w |implode ';'|addprefix 'set PATH=%PATH%;'
       ;;
     esac
     realpath $PWD/*/${TARGET/amd64/*64}*/include|xargs cygpath -w |implode ';'|addprefix 'set INCLUDE=%INCLUDE%;'

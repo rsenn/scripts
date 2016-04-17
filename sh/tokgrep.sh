@@ -156,7 +156,7 @@ main() {
   set -- $OPTS -E -e "([^$CHARSET]|^)($TOKENS)([^$CHARSET]|\$)" --  $FILES
   
   
-  if grep --help 2>&1 |grep -q '\--color.*='; then
+  if ${GREP-grep -a --line-buffered --color=auto} --help 2>&1 |grep -q '\--color.*='; then
      pushv OPTS "--color=auto"
    fi
   
@@ -164,7 +164,7 @@ main() {
   echo "TOKLIST=$TOKLIST" 1>&2
     set -x
   fi
-  exec grep $OPTS "$@"
+  exec ${GREP-grep -a --line-buffered --color=auto} $OPTS "$@"
 }
 #set -x
 main "$@"

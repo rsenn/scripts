@@ -7,11 +7,11 @@
 file="$@"
 if [ -z "$file" ]; then file="-"; fi
 
-if uname -s | grep -iq cygwin; then
+if uname -s | ${GREP-grep -a --line-buffered --color=auto} -iq cygwin; then
     cygwin=1
-elif uname -s | grep -iq linux; then
+elif uname -s | ${GREP-grep -a --line-buffered --color=auto} -iq linux; then
     linux=1
-elif uname -s | grep -iq sunos; then
+elif uname -s | ${GREP-grep -a --line-buffered --color=auto} -iq sunos; then
     solaris=1
 else
     bsd=1
@@ -43,9 +43,9 @@ pproc() {
     if [ $linux ]; then
         ps -p $1 -o comm=
     elif [ $cygwin ]; then
-        ps -p $1 | ${SED-sed} -e 's/^I/ /' | grep -v PID
+        ps -p $1 | ${SED-sed} -e 's/^I/ /' | ${GREP-grep -a --line-buffered --color=auto} -v PID
     else
-        ps -p $1 -o comm= | grep -v PID
+        ps -p $1 -o comm= | ${GREP-grep -a --line-buffered --color=auto} -v PID
     fi
 }
 
@@ -53,21 +53,21 @@ ppid() {
     if [ $linux ]; then
         ps -p $1 -o ppid=
     elif [ $cygwin ]; then
-        ps -p $1 | ${SED-sed} -e 's/^I/ /' | grep -v PID | awk '{print $2}'
+        ps -p $1 | ${SED-sed} -e 's/^I/ /' | ${GREP-grep -a --line-buffered --color=auto} -v PID | awk '{print $2}'
     else
-        ps -p $1 -o ppid= | grep -v PID
+        ps -p $1 -o ppid= | ${GREP-grep -a --line-buffered --color=auto} -v PID
     fi
 }
 
 # Check if called from man, perldoc or pydoc
-if do_ps | grep -q '\(py\(thon\|doc\)\|man\|perl\(doc\)\?\([0-9.]*\)\?\)\>'; then
+if do_ps | ${GREP-grep -a --line-buffered --color=auto} -q '\(py\(thon\|doc\)\|man\|perl\(doc\)\?\([0-9.]*\)\?\)\>'; then
     proc=$$
     while next_parent=`ppid $proc` && [ $next_parent != 1 ]; do
-        if pproc $next_parent | grep -q 'man\>'; then
+        if pproc $next_parent | ${GREP-grep -a --line-buffered --color=auto} -q 'man\>'; then
             cat $file | ${SED-sed} -e 's/\[[^m]*m//g' | ${SED-sed} -e 's/.//g' | less_vim -c 'set ft=man' -; exit
-        elif pproc $next_parent | grep -q 'py\(thon\|doc\)\>'; then
+        elif pproc $next_parent | ${GREP-grep -a --line-buffered --color=auto} -q 'py\(thon\|doc\)\>'; then
             cat $file | ${SED-sed} -e 's/\[[^m]*m//g' | ${SED-sed} -e 's/.//g' | less_vim -c 'set ft=man' -; exit
-        elif pproc $next_parent | grep -q 'perl\(doc\)\?\([0-9.]*\)\?\>'; then
+        elif pproc $next_parent | ${GREP-grep -a --line-buffered --color=auto} -q 'perl\(doc\)\?\([0-9.]*\)\?\>'; then
             cat $file | ${SED-sed} -e 's/.//g' | less_vim -c 'set ft=man' -; exit
         fi
         proc=$next_parent

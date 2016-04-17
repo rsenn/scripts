@@ -3,4 +3,4 @@
 PATTERNS="*.part\$ *.!??\$ INCOMPL[^/]\$"
 
 cr=""
-exec grep -iE "($(IFS="| $IFS"; set $PATTERNS; echo "$*"))"  "$@"
+exec ${GREP-grep -a --line-buffered --color=auto} -iE "($(IFS="| $IFS"; set $PATTERNS; echo "$*"))"  "$@"

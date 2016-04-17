@@ -54,9 +54,9 @@ REFERER=""
 CURL="check_cookies; set ${DEBUG:-+x}; curl -q \${VERBOSE} -L \${COOKIE_ARGS} \${REFERER:+--referer \"\${REFERER}\"} \${SOCKS5:+-socks5 \"\${SOCKS5}\"} -A \"\${USER_AGENT}\""
 CMD="${CURL} \${QURL}"
 #FILTER="${SED-sed} 's,\s, ,g ; s,<a,\n&,g' | ${SED-sed} -n '/^<a\\s\\+[a-z]\\+=/ { s,.*<a\\s\\+[a-z]\\+=\"\\?\\([^\"]*\\)\"\\?.*,\\1,p }'"
-FILTER="${SED-sed} 's,\s, ,g ; s,<a,\n&,g ; s,\r*$,,' | ${SED-sed} -n '/^<a [a-z]\+=/ { :lp ;; /<\/a>/! { N ;; b lp } ;; s,.*<a [a-z]\+=\([^>]*\)>\([^<]*\)</a>,\1 \2, ;; /^\"/ { s,^\",, ;; s,\".*[\">],, } ;; s,^\",, ;; s,\"\$,, ;; p }'| grep -E '(^sendme|^/download)'"
+FILTER="${SED-sed} 's,\s, ,g ; s,<a,\n&,g ; s,\r*$,,' | ${SED-sed} -n '/^<a [a-z]\+=/ { :lp ;; /<\/a>/! { N ;; b lp } ;; s,.*<a [a-z]\+=\([^>]*\)>\([^<]*\)</a>,\1 \2, ;; /^\"/ { s,^\",, ;; s,\".*[\">],, } ;; s,^\",, ;; s,\"\$,, ;; p }'| ${GREP-grep -a --line-buffered --color=auto} -E '(^sendme|^/download)'"
 
-#FILTER="${SED-sed} 's,<a,\n&,g' | grep -E '<a.(href=\"/download|onclick=\"sendme)'"
+#FILTER="${SED-sed} 's,<a,\n&,g' | ${GREP-grep -a --line-buffered --color=auto} -E '<a.(href=\"/download|onclick=\"sendme)'"
  
 #  |${SED-sed} -n 's,.*/download.*\.html\$,${URL}/&,p; s,.*p=[0-9].*,${URL}/&,p'"
 
@@ -83,7 +83,7 @@ esac
 
 	if [ -z "$URLS" ]; then
 		echo -e "No results\!" 1>&2 
-		if grep -q -E '(recaptcha)' <<<"$DATA"; then
+		if ${GREP-grep -a --line-buffered --color=auto} -q -E '(recaptcha)' <<<"$DATA"; then
         REFERER="$QURL"
 			QURL=$(echo "$DATA" | xml_get iframe src )
 			if [ -z "$QURL" ]; then

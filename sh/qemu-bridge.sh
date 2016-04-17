@@ -42,7 +42,7 @@ do_dnsmasq() {
 }
 
 check_bridge() {
-    if do_brctl show | grep "^$1" > /dev/null 2> /dev/null; then
+    if do_brctl show | ${GREP-grep -a --line-buffered --color=auto} "^$1" > /dev/null 2> /dev/null; then
 	return 1
     else
 	return 0

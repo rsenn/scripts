@@ -27,7 +27,7 @@ if test -n "$BRIDGE"; then
   ifconfig "$IFACE" 0 up
 
   # discard the BRIDGE if the wlan interface is not added to it
-  if ! (brctl show | grep -q "^$BRIDGE.*$IFACE"); then
+  if ! (brctl show | ${GREP-grep -a --line-buffered --color=auto} -q "^$BRIDGE.*$IFACE"); then
     ip link set "$BRIDGE" down
     unset BRIDGE
   fi

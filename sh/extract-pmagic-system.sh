@@ -29,7 +29,7 @@ process_iso() {
 
   list_7z "$1" >"$LIST"
 
-  grep -iE '(/initr[^/]*\.img$|/bzImage|\.SQFS$)' "$LIST"
+  ${GREP-grep -a --line-buffered --color=auto} -iE '(/initr[^/]*\.img$|/bzImage|\.SQFS$)' "$LIST"
   )
 }
 

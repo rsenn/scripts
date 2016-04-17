@@ -40,7 +40,7 @@ removesuffix()
 
 
 eval "extract-urls.sh http://sourceforge.net/p/cygwin-ports/_list/git?page="{`seq -s, 0 27`}  2>/dev/null |
-   grep '/p/cygwin-ports/[^/]\+/$'|
+   ${GREP-grep -a --line-buffered --color=auto} '/p/cygwin-ports/[^/]\+/$'|
    removesuffix /|cut_dirname |
    addprefix git://git.code.sf.net/p/cygwin-ports/ |
    addsuffix .git

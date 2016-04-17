@@ -39,7 +39,7 @@ else
 	TO=$2
 fi
 
-if [ `echo $TO | grep -v 'svg$'` ]; then
+if [ `echo $TO | ${GREP-grep -a --line-buffered --color=auto} -v 'svg$'` ]; then
 	TO="$TO.svg"
 fi
 

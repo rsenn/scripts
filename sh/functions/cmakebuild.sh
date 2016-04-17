@@ -74,7 +74,7 @@ exit ${R:-0}) ; return $?
             ../.. 
 
             ) || return $?
-        cmdexec -m -o make.log make -C $builddir/      || { ERR=$?; grep '(Stop|failed|error:)' -E  -C3 make.log; return $?; }
+        cmdexec -m -o make.log make -C $builddir/      || { ERR=$?; ${GREP-grep -a --line-buffered --color=auto} '(Stop|failed|error:)' -E  -C3 make.log; return $?; }
        (set -e
             trap 'cmdexec $SUEXEC rm -rf -- "$destdir"' EXIT
             cmdexec -m -o install.log $SUEXEC make DESTDIR="$destdir" -C $builddir/ install -i   

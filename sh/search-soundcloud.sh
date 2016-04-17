@@ -31,10 +31,10 @@ case "$OS" in
 	
   #LINKS=`(http_get "$URL") | ${SED-sed} "s|>\\s*<|>\\n<|g" `
 
- # LINKS=`(set -x; curl --location  "$URL") | grep --line-buffered -E '<(h3|div class="pagination")>'  | xml_get a href`
+ # LINKS=`(set -x; curl --location  "$URL") | ${GREP-grep -a --line-buffered --color=auto} -E '<(h3|div class="pagination")>'  | xml_get a href`
   LINKS=`extract-urls.sh "$URL"`
   echo LINKS = "$LINKS" 1>&2
-	TRACKS=`echo "$LINKS" | grep -v page=`
+	TRACKS=`echo "$LINKS" | ${GREP-grep -a --line-buffered --color=auto} -v page=`
 	NAV=`echo "$LINKS" | ${SED-sed} -n 's,.*page=\([0-9]\+\).*,\1,p'`
 	BROWSE=`echo "$LINKS" | ${SED-sed} -n "/page=/ { s,^,http://soundcloud.com, ; s,\\&amp;,\\\\\\\\\\&,g ; s,page=[0-9]\+,page=\\\${PAGE}, ; p ; q ; }"`
   PAGES=1

@@ -36,7 +36,7 @@ for M in $MIRRORS; do
   fi
 
   set -- $(
-		cygsetup -l -a | grep -i -E "($ARGS)" 
+		cygsetup -l -a | ${GREP-grep -a --line-buffered --color=auto} -i -E "($ARGS)" 
   )
 
   if [ $# -ge 1 ]; then

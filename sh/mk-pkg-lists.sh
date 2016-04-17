@@ -88,7 +88,7 @@ yum-rpm-list-all-pkgs()
   done >"$rpm_exprfile"
 
   #for RPM; do
-  #  grep "^${RPM}\$" rpm.list 
+  #  ${GREP-grep -a --line-buffered --color=auto} "^${RPM}\$" rpm.list 
   #done >available.list
 
 
@@ -122,7 +122,7 @@ zypper_rpm_list_all_pkgs() {
   done >"$rpm_exprfile"
 
   #for RPM; do
-  #  grep "^${RPM}\$" rpm.list 
+  #  ${GREP-grep -a --line-buffered --color=auto} "^${RPM}\$" rpm.list 
   #done >available.list
 
 

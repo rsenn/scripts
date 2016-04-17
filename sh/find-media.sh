@@ -92,7 +92,7 @@ file_magic()
  (CMD='xargs -d "$NL" file --  | ${SED-sed} -u "s,:\\s\\+,: ,"'
   IFS="|$IFS"
 	[ "$*" = ".*" ] && set -- 
-	[ $# -gt 0 ] && CMD="$CMD | grep -i -E \": .*($*)\""
+	[ $# -gt 0 ] && CMD="$CMD | ${GREP-grep -a --line-buffered --color=auto} -i -E \": .*($*)\""
 		[ "$DEBUG" = true ] && echo "file_magic: CMD='$CMD'" 1>&9
 	eval "$CMD")
 }
@@ -263,7 +263,7 @@ esac
 #*Linux*|*linux*) : ${MEDIAPATH="/m*/*/"} ;;
 #esac
 #
-#case "$(command grep --help 2>&1)" in
+#case "$(command ${GREP-grep -a --line-buffered --color=auto} --help 2>&1)" in
 #  *--color*) GREP_ARGS="$GREP_ARGS --color=auto" ;;
 #esac
 #

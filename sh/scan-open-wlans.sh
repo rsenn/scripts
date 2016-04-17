@@ -6,4 +6,4 @@ if [ "`id -u`" != 0 ]; then
   exit 1
 fi
 
-iwlist "$IF" scanning | grep -i -B6 -A1 KEY:off
+iwlist "$IF" scanning | ${GREP-grep -a --line-buffered --color=auto} -i -B6 -A1 KEY:off

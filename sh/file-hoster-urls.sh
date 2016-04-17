@@ -188,4 +188,4 @@ pattern "https://soundcloud.com/$ALNUM"
 pattern "https://soundcloud.com/$FILENAME"
 pattern "https://www.mediafire.com/$FILENAME/$ALNUM"
 
-exec grep -E "^($PATTERNS)\$" "$@"
+exec ${GREP-grep -a --line-buffered --color=auto} -E "^($PATTERNS)\$" "$@"
