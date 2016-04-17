@@ -1,15 +1,15 @@
 if (id) > /dev/null 2>&1; then
 	userid() {
-		id $1 | tr ' =()' '\n:::' | ${GREP-grep -a --line-buffered --color=auto} ^uid: | cut -d: -f2
+		id $1 | tr ' =()' '\n:::' | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} ^uid: | cut -d: -f2
 	}
 	usergid() {
-		id $1 | tr ' =()' '\n:::' | ${GREP-grep -a --line-buffered --color=auto} ^gid: | cut -d: -f2
+		id $1 | tr ' =()' '\n:::' | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} ^gid: | cut -d: -f2
 	}
 	username() {
-		id $1 | tr ' =()' '\n:::' | ${GREP-grep -a --line-buffered --color=auto} ^uid: | cut -d: -f3
+		id $1 | tr ' =()' '\n:::' | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} ^uid: | cut -d: -f3
 	}
 	userpgroup() {
-		id $1 | tr ' =()' '\n:::' | ${GREP-grep -a --line-buffered --color=auto} ^gid: | cut -d: -f3
+		id $1 | tr ' =()' '\n:::' | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} ^gid: | cut -d: -f3
 	}
 	isuser() {
 		id $1 >/dev/null 2>&1

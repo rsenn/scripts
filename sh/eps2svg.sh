@@ -1,4 +1,6 @@
 #!/bin/sh
+NL="
+"
 
 # eps2svg: EPS to SVG vector command line image converter
 # David Griffith <davidgriffith@acm.org>
@@ -39,7 +41,7 @@ else
 	TO=$2
 fi
 
-if [ `echo $TO | ${GREP-grep -a --line-buffered --color=auto} -v 'svg$'` ]; then
+if [ `echo $TO | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -v 'svg$'` ]; then
 	TO="$TO.svg"
 fi
 

@@ -1,4 +1,6 @@
 #!/bin/sh
+NL="
+"
 #
 # -*-mode: shell-script-*-
 #
@@ -38,7 +40,7 @@ torrent_search()
   fi
 
   curl "$url" | 
-  ${SED-sed} 's,<iframe,\n&,g' | xml_attrs - iframe | ${GREP-grep -a --line-buffered --color=auto} 'id="sc[0-9]\+"' | 
+  ${SED-sed} 's,<iframe,\n&,g' | xml_attrs - iframe | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} 'id="sc[0-9]\+"' | 
   while read meta_result; do
     eval "$meta_result"
     echo "$src"

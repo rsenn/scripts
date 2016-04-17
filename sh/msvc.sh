@@ -1,4 +1,6 @@
 #!/bin/bash
+NL="
+"
 #
 # Wrapper for the MSVC++ compiler, making it behave like GNU C.
 #
@@ -599,7 +601,7 @@ pathmunge () {
         esac;
     done;
     old_IFS="$IFS"; IFS=":";
-    if ! eval "echo \"\${${PATHVAR-PATH}}\"" | ${GREP-grep -a --line-buffered --color=auto} -E -q "(^|:)$1($|:)"; then
+    if ! eval "echo \"\${${PATHVAR-PATH}}\"" | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -E -q "(^|:)$1($|:)"; then
         if test "$2" = "after"; then
             eval "${PATHVAR-PATH}=\"\${${PATHVAR-PATH}}:\$1\"";
         else

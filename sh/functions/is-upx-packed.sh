@@ -1,4 +1,6 @@
 is-upx-packed()
 {
-    list-upx "$1" | ${GREP-grep -a --line-buffered --color=auto} -q "\->.*$1"
+  NL="
+"
+    list-upx "$1" | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -q "\->.*$1"
 }

@@ -1,4 +1,6 @@
 #!/bin/sh
+NL="
+"
 
 IFS="
 "
@@ -11,7 +13,7 @@ require distrib
 SED=${SED-sed}
 GREP=grep
 
-if ${SED-sed} --help 2>&1 | ${GREP-grep -a --line-buffered --color=auto} -q '\-u'; then
+if ${SED-sed} --help 2>&1 | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -q '\-u'; then
   SEDOPTS="-u"
 else
 	SEDOPTS=
@@ -169,7 +171,7 @@ if [ $# -gt 0 ]; then
 	EXPR="($(IFS="|"; echo "$*"))"
 fi
 
-URLS=$(http_get "http://www.ubuntuupdates.org/ppas" | ${GREP-grep -a --line-buffered --color=auto} -E "/ppa/.*(dist=|>)${EXPR:-(${release}|${codename})}(['\"]|<)" |
+URLS=$(http_get "http://www.ubuntuupdates.org/ppas" | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -E "/ppa/.*(dist=|>)${EXPR:-(${release}|${codename})}(['\"]|<)" |
 xml_get a href | addprefix "http://www.ubuntuupdates.org")
 
 log "Got $(count $URLS) PPAs for ${release}${codename:+ ($codename)}"

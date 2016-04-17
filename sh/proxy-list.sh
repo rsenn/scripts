@@ -1,4 +1,6 @@
 #!/bin/sh
+NL="
+"
 
 # provide default values for the required path variables.
 # ---------------------------------------------------------------------------
@@ -22,7 +24,7 @@ proxy_list()
 {
   curl_get "$PROXY_url/" |
   xml_get a href | 
-  ${GREP-grep -a --line-buffered --color=auto} "$PROXY_mask" | {
+  ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} "$PROXY_mask" | {
     LISTS=
     while read LIST; do
       if ! isin $LIST $LISTS; then

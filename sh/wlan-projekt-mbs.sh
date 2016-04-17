@@ -1,4 +1,6 @@
 #!/bin/sh
+NL="
+"
 
 BRIDGE=`${SED-sed} -n 's,^\s*\(br[0-9]\+\):.*,\1,p' /proc/net/dev`
 
@@ -27,7 +29,7 @@ if test -n "$BRIDGE"; then
   ifconfig "$IFACE" 0 up
 
   # discard the BRIDGE if the wlan interface is not added to it
-  if ! (brctl show | ${GREP-grep -a --line-buffered --color=auto} -q "^$BRIDGE.*$IFACE"); then
+  if ! (brctl show | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -q "^$BRIDGE.*$IFACE"); then
     ip link set "$BRIDGE" down
     unset BRIDGE
   fi

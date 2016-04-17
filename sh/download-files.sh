@@ -1,4 +1,6 @@
 #!/bin/sh
+NL="
+"
 #
 # -*-mode: shell-script-*-
 #
@@ -97,15 +99,15 @@ COOKIEFILE=`mktemp cookie.XXXXXX`
 HEADERFILE=`mktemp header.XXXXXX`
 DATAFILE=`mktemp data.XXXXXX`
 
-trap ': ${GREP-grep -a --line-buffered --color=auto} --color -H ".*" "$COOKIEFILE"; rm -f "$COOKIEFILE"
-: ${GREP-grep -a --line-buffered --color=auto} --color -H ".*" "$HEADERFILE"; rm -f "$HEADERFILE"
+trap ': ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} --color -H ".*" "$COOKIEFILE"; rm -f "$COOKIEFILE"
+: ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} --color -H ".*" "$HEADERFILE"; rm -f "$HEADERFILE"
 : echo "Data: $DATAFILE"' EXIT
 
 # read cookies from cURL
 readcookies()
 {
 #  echo "Filtering for $EXTLIST ..." 1>&2
-#  ${GREP-grep -a --line-buffered --color=auto} -E -i "\.($EXTLIST)\$" |
+#  ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -E -i "\.($EXTLIST)\$" |
 #  while read FILE; do
 #    echo "Got file $FILE ." 1>&2
 #    echo "$FILE"
@@ -155,7 +157,7 @@ for URL in $URLS; do
           esac
           echo "$FILE"
         done
-        #${SED-sed} -e 's,[-+a-z]\+://,\n&,g' | ${GREP-grep -a --line-buffered --color=auto} '^[-+a-z]*://' | ${SED-sed} -e 's,[ ">].*,,' 
+        #${SED-sed} -e 's,[-+a-z]\+://,\n&,g' | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} '^[-+a-z]*://' | ${SED-sed} -e 's,[ ">].*,,' 
     ;;
   esac |  #|
  (grep -E -i "\.($EXTLIST)\$") |

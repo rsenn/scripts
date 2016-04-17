@@ -1,4 +1,6 @@
 #!/bin/sh
+NL="
+"
 
 unset PATTERNS
 
@@ -188,4 +190,4 @@ pattern "https://soundcloud.com/$ALNUM"
 pattern "https://soundcloud.com/$FILENAME"
 pattern "https://www.mediafire.com/$FILENAME/$ALNUM"
 
-exec ${GREP-grep -a --line-buffered --color=auto} -E "^($PATTERNS)\$" "$@"
+exec ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -E "^($PATTERNS)\$" "$@"

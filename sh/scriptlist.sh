@@ -28,7 +28,7 @@ ex() { (IFS="| $IFS"; set -- $EXCLUDE; echo "($*)"); }
 set -- *.{sh,awk,fontforge,bash,pl,py,rb,el}
 PATTERNS="$*"
 
-LIST=$(list `ls -d -- $PATTERNS | sort -u | ${GREP-grep -a --line-buffered --color=auto} -v '^\*\.'` |grep -v -E "$(ex $EXCLUDE)")
+LIST=$(list `ls -d -- $PATTERNS | sort -u | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -v '^\*\.'` |grep -v -E "$(ex $EXCLUDE)")
 
 IFS="
 "

@@ -1,4 +1,6 @@
 #!/bin/sh
+NL="
+"
 IFS="
 "
 FS=/
@@ -32,7 +34,7 @@ echo.
       vs*) ;;
       *) 
         set -- $(realpath $PWD/*/${TARGET/amd64/*64}*/bin)
-        ${GREP-grep -a --line-buffered --color=auto} -iE "(mingw-w64)" <<<"$*" | xargs cygpath -w |implode ';'|addprefix 'set PATH=%PATH%;'
+        ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -iE "(mingw-w64)" <<<"$*" | xargs cygpath -w |implode ';'|addprefix 'set PATH=%PATH%;'
       ;;
     esac
     realpath $PWD/*/${TARGET/amd64/*64}*/include|xargs cygpath -w |implode ';'|addprefix 'set INCLUDE=%INCLUDE%;'

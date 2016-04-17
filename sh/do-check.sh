@@ -1,4 +1,6 @@
 #!/bin/bash
+NL="
+"
 LIST="$1"
 NAME=${LIST%.list}
 EXPR=${NAME//[!0-9A-Za-z]/.*}
@@ -7,7 +9,7 @@ if [ -z "$2" ]; then
   CTX=20
 fi
 
-URLS=`grep -E -i ${CTX:+-C "$CTX"} "(${2-$EXPR})" "$LIST" | ${GREP-grep -a --line-buffered --color=auto} -v '^-'`
+URLS=`grep -E -i ${CTX:+-C "$CTX"} "(${2-$EXPR})" "$LIST" | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -v '^-'`
 IFS="
 "
 

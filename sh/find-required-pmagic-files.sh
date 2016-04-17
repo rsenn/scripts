@@ -1,4 +1,6 @@
 #!/bin/bash
+NL="
+"
 
 
 MYBASE=`basename "$0" .sh`
@@ -24,5 +26,5 @@ EXPR="(^bzImage|initramfs[^/]*\$|initrd[^/]*\$|initrd[^.]*\.img|pmodules/[^/]*\.
 (
   find . -type f
 ) |
-${SED-sed} -u 's,^\./,,' | ${GREP-grep -a --line-buffered --color=auto} -i -E $NOT "$EXPR" |
+${SED-sed} -u 's,^\./,,' | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -i -E $NOT "$EXPR" |
 sort -u

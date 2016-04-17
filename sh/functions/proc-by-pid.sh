@@ -1,5 +1,8 @@
-proc-by-pid() {
-  if ps --help 2>&1 |${GREP-grep -a --line-buffered --color=auto} -q '\-W'; then
+proc-by-pid()
+{
+  NL="
+"
+  if ps --help 2>&1 |${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -q '\-W'; then
     PSARGS="-W"
   fi
   for ARG; do

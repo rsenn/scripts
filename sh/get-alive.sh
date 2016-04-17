@@ -1,4 +1,6 @@
 #!/bin/bash
+NL="
+"
 
 IFS="
 "
@@ -14,7 +16,7 @@ IFS="
 
 ${SED-sed} -n \
   -e "s,.*\[\(.*\)\].*\(http://.*\),\2 \[\1\],p" $FROM \
-  | ${GREP-grep -a --line-buffered --color=auto} -E -i "($WHAT)" \
+  | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -E -i "($WHAT)" \
   | ${SED-sed} \
       -e 's,.\[[0-9]\+m,,g' \
   | cat | #: awk '{ print $1 }'  \

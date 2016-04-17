@@ -1,4 +1,6 @@
 #!/bin/bash
+NL="
+"
 
 MYNAME=`basename "$0" .sh`
 MYDIR=`dirname "$0"`
@@ -56,7 +58,7 @@ done
 grep_scripts()
 {
 
-  exec ${GREP-grep -a --line-buffered --color=auto} -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))[^/]*\$"  "$@"
+  exec ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))[^/]*\$"  "$@"
 }
 
 

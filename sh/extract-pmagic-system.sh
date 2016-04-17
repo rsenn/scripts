@@ -1,4 +1,6 @@
 #!/bin/sh
+NL="
+"
 
 list_7z() {
   7z l -slt "$1" | (IFS=" "; while read -r NAME EQ VALUE; do
@@ -29,7 +31,7 @@ process_iso() {
 
   list_7z "$1" >"$LIST"
 
-  ${GREP-grep -a --line-buffered --color=auto} -iE '(/initr[^/]*\.img$|/bzImage|\.SQFS$)' "$LIST"
+  ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -iE '(/initr[^/]*\.img$|/bzImage|\.SQFS$)' "$LIST"
   )
 }
 
