@@ -26,7 +26,10 @@ list_genre()
 (IFS="
 "
 URLS=`curl "http://modarchive.org/index.php?query=${1}&request=search&search_type=genre" |
-   ${GREP-grep -a --line-buffered --color=auto} -E '(view_by_moduleid|page=[0-9])' |xml_get a href` 
+   ${GREP-grep
+-a
+--line-buffered
+--color=auto} -E '(view_by_moduleid|page=[0-9])' |xml_get a href` 
 
 
 

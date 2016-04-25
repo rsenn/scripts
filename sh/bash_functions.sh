@@ -465,7 +465,10 @@ cleanup-desktop() {
  (mv -vf -- "$DESKTOP"/../../*/Desktop/* "$DESKTOP"
   cd "$DESKTOP"
   links=$( ls -ltdr --time-style=+%Y%m%d -- *.lnk|${GREP-grep -a --line-buffered --color=auto} "$(date +%Y%m%d|removesuffix '[0-9]')"|cut-ls-l )
-  set  -- $( ls -td -- $(ls-files|${GREP-grep -a --line-buffered --color=auto} -viE '(\.lnk$|\.ini$)'))
+  set  -- $( ls -td -- $(ls-files|${GREP-grep
+-a
+--line-buffered
+--color=auto} -viE '(\.lnk$|\.ini$)'))
   touch "$@"
   mv -vft "$DOCUMENTS" -- "$@" *" - Shortcut"*
   d=$(ls -d  ../Unused* )
@@ -2268,7 +2271,10 @@ $2"; shift 2 ;;
 
 grep-v-optpkgs()
 {
-    ${GREP-grep -a --line-buffered --color=auto} -v -E '\-(doc|dev|dbg|extra|lite|prof|extra|manual|data|examples|source|theme|manual|demo|help|artwork|contrib|svn$|bzr$|hg$|git$|cvs$)'
+    ${GREP-grep
+-a
+--line-buffered
+--color=auto} -v -E '\-(doc|dev|dbg|extra|lite|prof|extra|manual|data|examples|source|theme|manual|demo|help|artwork|contrib|svn$|bzr$|hg$|git$|cvs$)'
 }
 
 grep-v-unneeded-pkgs()
@@ -4081,7 +4087,10 @@ $O
 make-sizes-tmp()
 {
     ${SED-sed} -n '/ [0-9]\+ /p' $(list-mediapath 'ls-lR.list') | awkp 5 > $TEMP/sizes.tmp;
-    for N in $(histogram.awk <$TEMP/sizes.tmp|${GREP-grep -a --line-buffered --color=auto} -v '^1 '|awkp 2|sort -n); do
+    for N in $(histogram.awk <$TEMP/sizes.tmp|${GREP-grep
+-a
+--line-buffered
+--color=auto} -v '^1 '|awkp 2|sort -n); do
       test "$N" -le 0 && continue
       echo "/^[^ ]\+\s\+[0-9]\+\s\+[0-9]\+\s\+[0-9]\+\s\+$N /p"
       done |(set -x; tee $TEMP/sizes.${SED-sed} >/dev/null)
@@ -5189,7 +5198,10 @@ port-joinlines() {
 }
 
 proc-by-pid() {
-  if ps --help 2>&1 |${GREP-grep -a --line-buffered --color=auto} -q '\-W'; then
+  if ps --help 2>&1 |${GREP-grep
+-a
+--line-buffered
+--color=auto} -q '\-W'; then
     PSARGS="-W"
   fi
   for ARG; do
@@ -6310,7 +6322,10 @@ vlcfile()
 
 vlcpid()
 {
-    ( ps -aW | ${GREP-grep -a --line-buffered --color=auto} -i vlc.exe | awkp )
+    ( ps -aW | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -i vlc.exe | awkp )
 }
 
 volname() {

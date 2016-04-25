@@ -44,7 +44,10 @@ elif type tlist 2>/dev/null >/dev/null; then
   PS="tlist"
   PSARGS="-c"
   PSFILTER="2>&1 | $SED ':lp; N; \$! { b lp; } ; s,\\n\\s\\+,\\t,g'"
-elif (ps --help; ps -X -Y -Z) 2>&1 | ${GREP-grep -a --line-buffered --color=auto} -q '\-W'; then
+elif (ps --help; ps -X -Y -Z) 2>&1 | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -q '\-W'; then
   PS="ps"
   PSARGS="-aW"
 elif [ -e "$SYSTEMROOT/system32/wbem/wmic" ]; then
@@ -58,7 +61,10 @@ elif [ -e "$SYSTEMROOT/system32/wbem/wmic" ]; then
 done; }'   
 elif type ps 2>/dev/null >/dev/null; then
   PS="ps"
-  if (ps --help; ps -X -Y -Z) 2>&1 | ${GREP-grep -a --line-buffered --color=auto} -q '\-W'; then
+  if (ps --help; ps -X -Y -Z) 2>&1 | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -q '\-W'; then
     PSARGS="-aW"
   else
     PSARGS="axw"	
@@ -69,7 +75,10 @@ case `uname -o 2>/dev/null || uname` in
   *Darwin*) ;;
   *Linux*) ;;
   *)
-  if type kill.exe 2>/dev/null >/dev/null && (kill.exe --help 2>&1 | ${GREP-grep -a --line-buffered --color=auto} -q '\-f.*win32'); then
+  if type kill.exe 2>/dev/null >/dev/null && (kill.exe --help 2>&1 | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -q '\-f.*win32'); then
     KILL="kill.exe"
     KILLARGS="${KILLARGS:+
 }-f"

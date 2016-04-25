@@ -225,7 +225,10 @@ mplayer -ao pcm \
 # extra options to handle it correctly.
 # thanks to Kenneth Stailey for this patch!
 
-file audiodump.wav | ${GREP-grep -a --line-buffered --color=auto} -qs 'PCM, 8 bit'
+file audiodump.wav | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -qs 'PCM, 8 bit'
 if [ $? = 0 ]; then
    B=-b
    W=-w

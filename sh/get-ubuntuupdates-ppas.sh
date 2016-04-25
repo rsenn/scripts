@@ -13,7 +13,10 @@ require distrib
 SED=${SED-sed}
 GREP=grep
 
-if ${SED-sed} --help 2>&1 | ${GREP-grep -a --line-buffered --color=auto} -q '\-u'; then
+if ${SED-sed} --help 2>&1 | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -q '\-u'; then
   SEDOPTS="-u"
 else
 	SEDOPTS=
