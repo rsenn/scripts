@@ -152,6 +152,8 @@ make_archive() {
 		*.tlzo|*.tar.lzo) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | lzop -$level >\"\$archive\"" ;;
 		*.tgz|*.tar.gz) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | gzip -$level >\"\$archive\"" ;;
 		*.tbz2|*.tbz|*.tar.bz2) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | bzip2 -$level >\"\$archive\"" ;;
+                *.squashfs.*) cmd="mksquashfs ${dir//$spc/$bs$spc} \"\$archive\" -comp ${archive##*.}" ;;
+                *.squashfs*) cmd="mksquashfs  ${dir//$spc/$bs$spc} \"\$archive\" -comp lzma" ;;
 	esac
 	cmd='rm -vf -- "$archive"; '$cmd
 	[ "$QUIET" = true ] && cmd="($cmd) 2>/dev/null" || cmd="($cmd) 2>&1"
