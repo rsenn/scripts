@@ -1,0 +1,8 @@
+Install repos: Scripts sw-utils dirlist bsed
+
+curl -skL https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | sh
+wget --no-check-certificate -q -O - https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | sh
+lynx -source https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | sh
+links -source https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | zcat | sh
+elinks -source https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | sh
+w3m -dump_source https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | zcat | sh
