@@ -1,0 +1,4 @@
+is-absolute()
+{
+    ! is-relative "$@"
+}

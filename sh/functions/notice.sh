@@ -1,0 +1,4 @@
+notice()
+{
+    msg "NOTICE: $@"
+}
