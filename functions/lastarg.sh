@@ -1,4 +1,0 @@
-lastarg()
-{
-    ( eval echo "\${$#}" )
-}

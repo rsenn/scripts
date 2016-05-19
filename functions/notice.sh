@@ -1,4 +1,0 @@
-notice()
-{
-    msg "NOTICE: $@"
-}
