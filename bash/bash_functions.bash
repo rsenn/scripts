@@ -1919,7 +1919,7 @@ foreach-partition() {
     IFS="$old_IFS"
 }
 
-  for_each() {
+for_each() {
   ABORT_COND=' || return $?'
   while :; do 
     case "$1" in
@@ -1929,13 +1929,14 @@ foreach-partition() {
       *) break ;;
     esac
   done
+  ABORT_COND='{ unset CMD CHANGE_DIR ABORT_COND DEBUG;  [ "$PD" != "$PWD" ] && cd "$PD" >/dev/null; }'$ABORT_COND
   PD=$PWD
   CMD=$1
   if [ "$(type -t "$CMD")" = function ]; then
     CMD="$CMD \"\$@\""
   fi
   [ "$DEBUG" = true ] && CMD="echo \"+\${D:+\$D:} $CMD\" 1>&2; $CMD"
- [ "$CHANGE_DIR" = true ] &&  CMD='D=$1; cd "$D" >/dev/null;'$CMD';cd - >/dev/null'  || CMD='D=;'$CMD
+  [ "$CHANGE_DIR" = true ] &&  CMD='D=$1; cd "$D" >/dev/null;'$CMD';cd - >/dev/null'  || CMD='D=;'$CMD
   	
   if [ $# -gt 1 ]; then
     CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; }'$ABORT_COND'; done'
@@ -1943,9 +1944,7 @@ foreach-partition() {
     CMD='while read -r LINE; do set -- $LINE; { '$CMD'; }'$ABORT_COND'; done'
   fi
 #	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-  eval "$CMD"
-  unset CMD
-  [ "$PD" != "$PWD" ] && cd "$PD" >/dev/null
+  eval "$CMD; $ABORT_COND"
 }
 
 fstab-line()
