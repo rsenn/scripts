@@ -8,9 +8,14 @@ set -o vi
 
 IFS="
 "
-
-PATH="/usr/sbin:/sbin:$PATH"
-PATH="/usr/bin:/bin:$PATH"
+case "$PATH" in
+  */usr/sbin* |*sbin*) ;;
+  *) PATH="/usr/sbin:/sbin:$PATH" ;;
+esac
+case "$PATH" in
+  */usr/bin*) ;;
+  *) PATH="/usr/bin:/bin:$PATH" ;;
+esac
 
 [ "$HOSTNAME" = MSYS -o -n "$MSYSTEM" ] && OS="Msys"
 [ "$OSTYPE" ] && OS="$OSTYPE"
@@ -159,7 +164,7 @@ currentpath()
   [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}
   echo "$CWD")
 }
-echo OS=$OS 1>&2
+#echo OS=$OS 1>&2
 case "${OS}" in
 darwin*) 
     MEDIAPATH="/Volumes/*/"
