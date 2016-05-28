@@ -8,7 +8,7 @@ for_each() {
       *) break ;;
     esac
   done
-  ABORT_COND='{ unset CMD CHANGE_DIR ABORT_COND DEBUG;  [ "$PD" != "$PWD" ] && cd "$PD" >/dev/null; }'$ABORT_COND
+  ABORT_COND='{ unset CMD CHANGE_DIR ABORT_COND DEBUG;  [ "$PD" != "$PWD" ] && cd "$PD" >/dev/null; }; '$ABORT_COND
   PD=$PWD
   CMD=$1
   if [ "$(type -t "$CMD")" = function ]; then
