@@ -22,14 +22,14 @@ pathmunge() {
     FXPR="(^|${PATHSEP-:})$1($|${PATHSEP-:})"
     if ! eval "echo \"\${${PATHVAR}}\" | ${GREP-grep} -E -q \"\$FXPR\""; then
         if [ "$2" = after -o "$AFTER" = true ]; then
-            CMD="${EXPORT}${PATHVAR}=\"\${${PATHVAR}:+\$${PATHVAR}${PATHSEP-:}}\$1\""
+            CMD="${EXPORT}${PATHVAR}=\\\"\${${PATHVAR}:+\$${PATHVAR}${PATHSEP-:}}\$1\\\""
         else
-            CMD="${EXPORT}${PATHVAR}=\"\$1\${${PATHVAR}:+${PATHSEP-:}\$${PATHVAR}}\""
+            CMD="${EXPORT}${PATHVAR}=\\\"\$1\${${PATHVAR}:+${PATHSEP-:}\$${PATHVAR}}\\\""
         fi
     fi
     [ "$FORCE" = true ] && CMD="pathremove \"$1\"; $CMD"
     eval "CMD=\"$CMD\""
-    [ "$DEBUG" = true ] && eval "echo \"+ $CMD\" 1>&2"
+    [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
     eval "$CMD"
     unset PATHVAR
 }
