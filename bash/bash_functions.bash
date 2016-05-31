@@ -1920,33 +1920,32 @@ foreach-partition() {
     IFS="$old_IFS"
 }
 
-  for_each() {
-  ABORT_COND=' || return $?'
+for_each() {
+  ABORT_COND=' return $?'
   while :; do 
     case "$1" in
       -c | --cd | --ch*dir*) CHANGE_DIR=true; shift ;;
-      -f | --force) ABORT_COND=; shift ;;
+      -f | --force) ABORT_COND=' :'; shift ;;
       -x | --debug) DEBUG=true; shift ;;
       *) break ;;
     esac
   done
+  ABORT_COND=' { unset CMD CHANGE_DIR ABORT_COND DEBUG;  [ "$PD" != "$PWD" ] && cd "$PD" >/dev/null; '$ABORT_COND'; }'
   PD=$PWD
   CMD=$1
   if [ "$(type -t "$CMD")" = function ]; then
     CMD="$CMD \"\$@\""
   fi
   [ "$DEBUG" = true ] && CMD="echo \"+\${D:+\$D:} $CMD\" 1>&2; $CMD"
- [ "$CHANGE_DIR" = true ] &&  CMD='D=$1; cd "$D" >/dev/null;'$CMD';cd - >/dev/null'  || CMD='D=;'$CMD
+  [ "$CHANGE_DIR" = true ] &&  CMD='D=$1; cd "$D" >/dev/null;'$CMD';cd - >/dev/null'  || CMD='D=;'$CMD
   	
   if [ $# -gt 1 ]; then
-    CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; }'$ABORT_COND'; done'
+    CMD='while shift; [ "$#" -gt 0 ]; do { '$CMD'; } ||'$ABORT_COND'; done'
   else
-    CMD='while read -r LINE; do set -- $LINE; { '$CMD'; }'$ABORT_COND'; done'
+    CMD='while read -r LINE; do set -- $LINE; { '$CMD'; } ||'$ABORT_COND'; done'
   fi
 #	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
-  eval "$CMD"
-  unset CMD
-  [ "$PD" != "$PWD" ] && cd "$PD" >/dev/null
+  eval "$CMD; $ABORT_COND"
 }
 
 fstab-line()
@@ -6699,9 +6698,11 @@ yaourt-search() {
 set -- ${@//"^"/"/"}
 set -- ${@//[.*]/" "}
 set -- ${@//[![:alnum:]]/}
- CMD="yaourt-search-cmd \"\${@//[![:alnum:]]/}\" | yaourt-search-output"
- if is-a-tty ; then
-	 CMD="$CMD | ${GREP-grep -a --line-buffered --color=auto} -E --color=yes \"$(grep-e-expr "$@")\""
+ CMD="yaourt-search-cmd"
+ [ $# -gt 0 ] && CMD="$CMD \"\${@//[![:alnum:]]/}\"" 
+ CMD="$CMD | yaourt-search-output"
+ if is-a-tty; then
+	 [ $# -gt 0 ] && CMD="$CMD | ${GREP-grep -a --line-buffered --color=auto} -E --color=yes \"$(grep-e-expr "$@")\""
 	else
 		 NPAD= VPAD=
  fi
@@ -6709,6 +6710,7 @@ set -- ${@//[![:alnum:]]/}
 }
 
 yaourt-search-cmd() {
+  [ $# -gt 0 ] || set -- ""
   for Q in "$@"; do
 	 (IFS="| $IFS"; set -- $Q
 	 ([ "$DEBUG" = true ] && set -x; ${YAOURT:-${YAOURT:-command yaourt}} -Ss $@) | yaourt-joinlines -s "|" $OPTS | 
