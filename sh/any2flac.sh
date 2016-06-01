@@ -17,7 +17,7 @@ for ARG; do
   #OUTPUT="${ARG%.*}.flac"
   OUTPUT="$BASE.flac"
 
-  WAV=`mktemp "${BASE}XXXXXX.wav"`
+  WAV="${BASE}-$$.wav"
 
         trap 'rm -vf "$WAV"' EXIT QUIT INT TERM
 rm -f "$OUTPUT"

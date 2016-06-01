@@ -18,7 +18,7 @@ for ARG; do
   #OUTPUT="${ARG%.*}.amr-wb"
   OUTPUT="$BASE.amr-wb"
 
-  WAV=`mktemp "${BASE}XXXXXX.wav"`
+  WAV="${BASE}-$$.wav"
 
         trap 'rm -vf "$WAV"' EXIT QUIT INT TERM
 

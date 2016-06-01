@@ -66,7 +66,7 @@ for ARG; do
   #OUTPUT="${ARG%.*}.3gp"
   OUTPUT="$BASENAME.3gp"
 
-#  TMP=`mktemp "${BASE}XXXXXX.tmp"`
+#  TMP=mktemp "${BASE}-$$.tmp"
 
         trap 'rm -vf "$TMP"' EXIT QUIT INT TERM
 
