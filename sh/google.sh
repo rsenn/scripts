@@ -42,7 +42,7 @@ while :; do
     -s|--save*) SAVE_TMP=$TEMP/`basename "${0%.sh}"`$$.txt; echo -n >"$SAVE_TMP" ; shift ;;
     -t=*|--type=*) TYPE=${1%#*=}; shift ;; -t|--type) TYPE=$2; shift 2 ;;
     -c=*|--class=*) CLASS=${1%#*=}; shift ;; -c|--class) CLASS=$2; shift 2 ;;
-    -n=*|--results=*) RESULTS=${1%#*=}; shift ;; -n|--results) RESULTS=$2; shift 2 ;;
+    -n=*|--results=*) RESULTS=${1##*=}; shift ;; -n|--results) RESULTS=$2; shift 2 ;;
     -*) echo "Invalid argument '$1'." 1>&2; exit 1 ;;
     *) break ;;
   esac
