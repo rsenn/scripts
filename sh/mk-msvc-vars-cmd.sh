@@ -54,7 +54,10 @@ for SUBDIR in $SUBDIRS; do
   USELIBS=`
     for NAME in $LIBNAMES; do
       echo "$LIBDIRS" | 
-      ${GREP-grep -a --line-buffered --color=auto} "^${NAME}[-_][0-9]" |
+      ${GREP-grep
+-a
+--line-buffered
+--color=auto} "^${NAME}[-_][0-9]" |
       sort -V |
       tail -n1
     done

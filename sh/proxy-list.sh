@@ -24,7 +24,10 @@ proxy_list()
 {
   curl_get "$PROXY_url/" |
   xml_get a href | 
-  ${GREP-grep -a --line-buffered --color=auto} "$PROXY_mask" | {
+  ${GREP-grep
+-a
+--line-buffered
+--color=auto} "$PROXY_mask" | {
     LISTS=
     while read LIST; do
       if ! isin $LIST $LISTS; then

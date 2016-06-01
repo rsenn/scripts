@@ -1,7 +1,10 @@
 cleanup-desktop() {
  (mv -vf -- "$DESKTOP"/../../*/Desktop/* "$DESKTOP"
   cd "$DESKTOP"
-  links=$( ls -ltdr --time-style=+%Y%m%d -- *.lnk|${GREP-grep -a --line-buffered --color=auto} "$(date +%Y%m%d|removesuffix '[0-9]')"|cut-ls-l )
+  links=$( ls -ltdr --time-style=+%Y%m%d -- *.lnk|${GREP-grep
+-a
+--line-buffered
+--color=auto} "$(date +%Y%m%d|removesuffix '[0-9]')"|cut-ls-l )
   set  -- $( ls -td -- $(ls-files|${GREP-grep
 -a
 --line-buffered

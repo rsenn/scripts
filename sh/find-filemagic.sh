@@ -53,7 +53,10 @@ find_filename()
 
     ${DEBUG-false} && echo "+ $@" 1>&2
 
-    ([ "$DEBUG" = true ] && set -x; "$@" 2>/dev/null |xargs -n10 -d "$nl" file | ${GREP-grep -a --line-buffered --color=auto} -i -E ":[ \t]+(${MASKS})"
+    ([ "$DEBUG" = true ] && set -x; "$@" 2>/dev/null |xargs -n10 -d "$nl" file | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -i -E ":[ \t]+(${MASKS})"
     )
 	)
 }
