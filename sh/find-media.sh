@@ -263,10 +263,7 @@ esac
 #*Linux*|*linux*) : ${MEDIAPATH="/m*/*/"} ;;
 #esac
 #
-#case "$(command ${GREP-grep
--a
---line-buffered
---color=auto} --help 2>&1)" in
+#case "$(command ${GREP-grep -a --line-buffered --color=auto} --help 2>&1)" in
 #  *--color*) GREP_ARGS="$GREP_ARGS --color=auto" ;;
 #esac
 #
