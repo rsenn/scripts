@@ -136,21 +136,21 @@ fi
     MAXRATE=$((VBR -  (ABR * 1000) ))
     #FLAGS2="+brdo+dct8x8+bpyramid"
     #ME=umh
-  VCODEC_OPTS="-level 41 -crf 20 -bufsize 20000k ${MAXRATE:+-maxrate $MAXRATE} -g 250 -r 20 -coder 1 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 ${FLAGS2:+-flags2 "$FLAGS2"} ${ME:+-me "$ME"} -subq 7 -me_range 16 -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -rc_eq 'blurCplx^(1-qComp)' -bf 16 -b_strategy 1 -bidir_refine 1 -refs 6 -deblockalpha 0 -deblockbeta 0"
-  VCODEC_OPTS="-level 41 -crf 20 -bufsize 20000k ${MAXRATE:+-maxrate $MAXRATE} -g 250 -r 20 -coder 1 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 ${FLAGS2:+-flags2 "$FLAGS2"} ${ME:+-me "$ME"} -subq 7 -me_range 16 -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -rc_eq 'blurCplx^(1-qComp)' -bf 16 -b_strategy 1 -bidir_refine 1 -refs 6" 
+  #VCODEC_OPTS="-level 41 -crf 20 -bufsize 20000k ${MAXRATE:+-maxrate $MAXRATE} -g 250 -r 20 -coder 1 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 ${FLAGS2:+-flags2 "$FLAGS2"} ${ME:+-me "$ME"} -subq 7 -me_range 16 -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -rc_eq 'blurCplx^(1-qComp)' -bf 16 -b_strategy 1 -bidir_refine 1 -refs 6 -deblockalpha 0 -deblockbeta 0"
+  #VCODEC_OPTS="-level 41 -crf 20 -bufsize 20000k ${MAXRATE:+-maxrate $MAXRATE} -g 250 -r 20 -coder 1 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 ${FLAGS2:+-flags2 "$FLAGS2"} ${ME:+-me "$ME"} -subq 7 -me_range 16 -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -rc_eq 'blurCplx^(1-qComp)' -bf 16 -b_strategy 1 -bidir_refine 1 -refs 6" 
 
 ( ${FFMPEG-ffmpeg} -y -threads 2  \
   -i "$ARG" \
-  -acodec libfaac ${AR:+-ar "$AR"} -ab "$ABR"k \
+  -acodec aac ${AR:+-ar "$AR"} -b:a "$ABR"k \
   ${SIZE:+-s "$SIZE"}   \
-  -b "$VBR" -vcodec libx264 $VCODEC_OPTS \
+  -vcodec h264 ${VBR:+-b:v "$VBR"} $VCODEC_OPTS \
   "$OUTPUT" 2>&1 
 ) #| ${SED-sed} -u -e '1d; 2d; 3d; 4d; 5d; 6d; 7d; 8d; 9d; 10d; 11d'
 
 exit 
   #X264OPTS="level_idc=12:bitrate=$((VBR )):bframes=16:subq=7:partitions=all:8x8dct:me=esa:me_range=23:frameref=6:trellis=1:b_pyramid:weight_b:mixed_refs:threads=0:qcomp=0.6:keyint=250:min-keyint=25:direct=temporal"
   X264OPTS="nocabac:level_idc=30:bframes=0:global_header:threads=auto:subq=5:frameref=6:partitions=all:trellis=1:chroma_me:me=umh:bitrate=$((VBR  / 1024 ))"
-        #AOPTS="-oac lavc -lavcopts o=acodec=libfaac,absf=aac_adtstoasc -srate 48000 -af channels=2"
+        #AOPTS="-oac lavc -lavcopts o=acodec=aac,absf=aac_adtstoasc -srate 48000 -af channels=2"
         AOPTS="-oac faac -faacopts mpeg=4:object=2:raw:br=$ABR"
 mencoder ${ASPECT+-aspect "$ASPECT"} -vf scale="${SIZE%%x*}:${SIZE#*x}",harddup -ovc x264 -x264encopts "$X264OPTS" \
   $AOPTS \
