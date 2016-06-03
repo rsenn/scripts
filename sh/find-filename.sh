@@ -15,6 +15,7 @@ software_EXTS="*setup*.exe *install*.exe *.msi *.msu *.cab *.vbox-extpack *.apk 
 sources_EXTS="c cs cc cpp cxx h hh hpp hxx ipp mm r java"
 videos_EXTS="3gp avi f4v flv m4v m2v mkv mov mp4 mpeg mpg ogm vob webm wmv"
 vmdisk_EXTS="vdi vmdk vhd qed qcow qcow2 vhdx hdd"
+project_EXTS="avrgccproj bdsproj cbproj coproj cproj cproject csproj dproj fsproj groupproj jsproj jucer lproj lsxproj metaproj packproj pbxproj pkgproj pmproj pnproj pro proj project pssproj shfbproj sln tmproj unityproj uvproj vbproj vcproj vcxproj vdproj vfproj webproj winproj wixproj zdsproj zfpproj"
 
 addexts() {
 eval "EXTS=\"\${EXTS:+\$EXTS }\${${1}_EXTS}\""
