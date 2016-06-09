@@ -75,7 +75,10 @@ esac
 
 	if [ -z "$URLS" ]; then
 		echo -e "No results\!" 1>&2 
-		if ${GREP-grep -a --line-buffered --color=auto} -q -E '(recaptcha)' <<<"$DATA"; then
+		if ${GREP-grep
+-a
+--line-buffered
+--color=auto} -q -E '(recaptcha)' <<<"$DATA"; then
         REFERER="$QURL"
 			QURL=$(echo "$DATA" | xml_get iframe src )
 			if [ -z "$QURL" ]; then

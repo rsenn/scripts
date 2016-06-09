@@ -76,7 +76,10 @@ __locks_findEffectiveDirname()
 		#    Expand `\'
 		#    Check that it does not contain `..' - it can be very dangerous
 		while echo "$DIR_NAME" |grep -q '\\'; do DIR_NAME=$(echo "$DIR_NAME" | xargs echo); done
-		echo "$DIR_NAME" | ${GREP-grep -a --line-buffered --color=auto} -q '\.\.' && return ${__locks_ERR_COULD_NOT_RESOLVE_DIR}
+		echo "$DIR_NAME" | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -q '\.\.' && return ${__locks_ERR_COULD_NOT_RESOLVE_DIR}
 		retval="$DIR_NAME" && return 0
 	fi
 
@@ -333,7 +336,10 @@ __locks_spinCleanup()
 	for spinfile in $(ls "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME"/*.spin 2> /dev/null) ; do
 		local pid=${spinfile%.spin}
 		pid=${pid##*/}
-		ps -ef | awk '{print $2}' | ${GREP-grep -a --line-buffered --color=auto} -q "^$pid$" || rm -f $spinfile
+		ps -ef | awk '{print $2}' | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -q "^$pid$" || rm -f $spinfile
 	done
 }
 
@@ -371,7 +377,10 @@ __locks_deadlockCleanup()
 	local lockfile
 	for lockfile in $(ls "${__locks_LOCKS_DIR}/$EFFECTIVE_DIRNAME/".lock.* 2> /dev/null) ; do
 		local pid=${lockfile##*/.lock.}
-		if ! ps -ef | awk '{print $2}' | ${GREP-grep -a --line-buffered --color=auto} -q "^$pid$"  ; then
+		if ! ps -ef | awk '{print $2}' | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -q "^$pid$"  ; then
 			rm -rf "$lockfile"
 		fi
 	done

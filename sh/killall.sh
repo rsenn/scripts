@@ -105,7 +105,10 @@ esac
 PATTERN=\(` set -- $PATTERN ; IFS='|';echo "$*"`\)
 PSOUT=`eval "(${DEBUG:+set -x; }\"$PS\" $PSARGS) $PSFILTER"`
 
-PSMATCH=` echo "$PSOUT" | ([ "$DEBUG" = true ] && set -x; ${GREP-grep -a --line-buffered --color=auto} -i -E "$PATTERN" ) |grep -v -E "(killall\\.sh|\\s$$\\s)"`
+PSMATCH=` echo "$PSOUT" | ([ "$DEBUG" = true ] && set -x; ${GREP-grep
+-a
+--line-buffered
+--color=auto} -i -E "$PATTERN" ) |grep -v -E "(killall\\.sh|\\s$$\\s)"`
 set -- $(echo "$PSMATCH" | $SED -n "/${0##*/}/! s,^[^0-9]*\([0-9][0-9]*\).*,\1,p")
 PIDS="$*"
 

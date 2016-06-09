@@ -34,7 +34,10 @@ grep_e()
             ;;
         esac;
     done;
-    ${GREP-grep -a --line-buffered --color=auto} -E $ARGS "$(grep_e-expr "$@")" ${LAST:+"$LAST"} )
+    ${GREP-grep
+-a
+--line-buffered
+--color=auto} -E $ARGS "$(grep_e-expr "$@")" ${LAST:+"$LAST"} )
 }
 
 grep_e-expr()

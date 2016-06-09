@@ -14,5 +14,8 @@ grephexnums()
         esac;
     done;
     set -x;
-    ${GREP-grep -a --line-buffered --color=auto} -E $ARGS "(${*#0x})" )
+    ${GREP-grep
+-a
+--line-buffered
+--color=auto} -E $ARGS "(${*#0x})" )
 }

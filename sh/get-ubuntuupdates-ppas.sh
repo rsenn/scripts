@@ -174,7 +174,10 @@ if [ $# -gt 0 ]; then
 	EXPR="($(IFS="|"; echo "$*"))"
 fi
 
-URLS=$(http_get "http://www.ubuntuupdates.org/ppas" | ${GREP-grep -a --line-buffered --color=auto} -E "/ppa/.*(dist=|>)${EXPR:-(${release}|${codename})}(['\"]|<)" |
+URLS=$(http_get "http://www.ubuntuupdates.org/ppas" | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -E "/ppa/.*(dist=|>)${EXPR:-(${release}|${codename})}(['\"]|<)" |
 xml_get a href | addprefix "http://www.ubuntuupdates.org")
 
 log "Got $(count $URLS) PPAs for ${release}${codename:+ ($codename)}"

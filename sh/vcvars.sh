@@ -22,7 +22,10 @@ select_option() {
     #-e "#s,[^0-9\\\\v.A]*\([^/]*[v.A\\\\0-9]\+\)[^0-9\\\\.A]*,\1,")
     
   SELECTION=$(echo "${LIST:-$VC_LIST
-$SDK_LIST}" | ${GREP-grep -a --line-buffered --color=auto} "$EXPR" )
+$SDK_LIST}" | ${GREP-grep
+-a
+--line-buffered
+--color=auto} "$EXPR" )
   set -- $SELECTION
 
   echo "S:" $SELECTION 1>&2
