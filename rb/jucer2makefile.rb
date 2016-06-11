@@ -21,6 +21,18 @@ class Array
       end
     end
   end
+  def join_quoted(sep)
+    o = self.map { |s| 
+      s = String(s)
+      if s.include? ' ' then
+        s.escape
+      else
+        s
+      end
+    }
+    #pp o
+    o.join(sep)
+  end
 end
 
 class String
@@ -28,7 +40,14 @@ class String
     return self.gsub(/[^_A-Za-z0-9]\+/, "_")
   end
   def doublequote
-    return '"'+self+'"'
+    if self.include? ' ' then
+      return '"'+self+'"'
+    else
+      return self
+    end
+  end
+  def escape
+    self.gsub(/ /, '\\ ')
   end
 end
 

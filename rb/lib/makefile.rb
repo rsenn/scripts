@@ -13,7 +13,7 @@ class MakeFile < BuildFile
      #     @name = name
       @body = body
       if not deps.instance_of? Array then
-        deps = deps.split(/\s+/)
+        deps = deps.split(/\n/)
       end
       @deps = deps
     end
@@ -22,7 +22,7 @@ class MakeFile < BuildFile
       if name.instance_of? String then target += name end;
       target += ":"
       if deps.size > 0 then
-        target +=  " " + deps.join(" ");
+        target +=  " " + deps.join_quoted(" ");
       end
       if body.size > 0 then
         target += "\n\t"+body.gsub("\n", "\n\t")+"\n"
@@ -59,8 +59,10 @@ class MakeFile < BuildFile
         target = t
       end
       srcs = r.sources[t]
+      objs = srcs.map { |src| src.gsub(/.*\/([^\/]+)\.[^.]*$/, "$(OBJDIR)/\\1.o") }
+      pp objs
       ccvar = srcs.any? { |s| s.match /\.c[xp][xp]$/ } ? "CXX" : "CC"
-      r.targets["$(OUTDIR)/"+target] = MakeFileTarget.new("$(#{ccvar}) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)", srcs.map { |src| src.gsub(/.*\/([^\/]+)\.[^.]*$/, "$(OBJDIR)/\\1.o") })
+      r.targets["$(OUTDIR)/"+target] = MakeFileTarget.new("$(#{ccvar}) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)", objs)
       r.targets["all"].deps.push_unique "$(OUTDIR)/"+target
     end
 
@@ -125,12 +127,13 @@ endif\n\n"
       deps = Array.new
       s.each do |src|
         obj = src.gsub(/.*\/([^\/]+)\.[^.]*$/, "$(OBJDIR)/\\1.o")
+#        if obj.include? " " then obj = obj.doublequote end
         deps.push_unique obj;
-        @targets[obj] = MakeFileTarget.new("$(CXX) $(DEFS) $(CXXFLAGS) -c -o $@ $<", src)
+        @targets[obj] = MakeFileTarget.new('$(CXX) $(DEFS) $(CXXFLAGS) -c -o "$@" "$<"', [src])
 #        @targets[obj] = MakeFileTarget.new( "", src)
       end
 
-      o.puts "#{name.canonicalize}_OBJECTS = "+deps.join(" ")
+      o.puts "#{name.canonicalize}_OBJECTS = "+deps.join_quoted(" ")
     end
 
     o.puts "\n"

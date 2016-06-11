@@ -36,6 +36,7 @@ class JucerFile < BuildFile
 
     modulepaths.each do |id,path|
       s = "#{path}/#{id}/#{id}.cpp"
+      #if s.include? " " then s = s.doublequote end
       h[targets[0]].push_unique s
     end
     return h
@@ -60,9 +61,10 @@ class JucerFile < BuildFile
       r.push_unique "$(shell $(CROSS_COMPILE)pkg-config --cflags #{p})"
     end
 
-    r.delete("-Wint-conversion")
-    r.delete("-Wshorten-64-to-32")
-    r.delete("-Wconstant-conversion")
+
+    [ "-Wint-conversion",  "-Wshorten-64-to-32", "-Wconstant-conversion", "-Wconversion", "-Woverloaded-virtual", "-Wshadow", "-Wsign-conversion" ].each do |flag|
+      r.delete flag
+    end
 
 
     split_and_concat_uniq r, sep
