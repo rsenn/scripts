@@ -113,6 +113,7 @@ endif\n\n"
 
     o.puts "ifeq ($(SYSTEM),mingw32)
   DEFS += -D__MINGW__=1 -DJUCE_MINGW=1  
+  LDFLAGS += -mwindows -static-libgcc -static-libstdc++
   LIBS +=  -lcomdlg32 -lgdi32 -lgdiplus -limm32 -lole32 -loleaut32 -lshell32 -lshlwapi -luuid -lversion -lwininet -lwinmm -lws2_32 -lwsock32 -lopengl32
 endif\n\n"
 
