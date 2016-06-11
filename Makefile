@@ -66,7 +66,8 @@ BASH_SCRIPTS = $(wildcard bash/*.bash)
 FONTFORGE_SCRIPTS = $(wildcard fontforge/*.fontforge)
 PL_SCRIPTS = $(wildcard pl/*.pl)
 PY_SCRIPTS = $(wildcard py/*.py)
-RB_SCRIPTS = $(wildcard rb/*.rb)
+RB_SCRIPTS = rb/am2cmake.rb rb/gencmake.rb rb/image-anim.rb rb/jucer2cmake.rb rb/pdfcompress.rb rb/png-analyze.rb
+
 #SH_SCRIPTS = $(wildcard *.sh)
 SH_SCRIPTS = $(wildcard sh/*.sh)
 LINKS = find-audio.sh find-archives.sh find-books.sh find-fonts.sh find-images.sh find-incomplete.sh find-music.sh find-packages.sh find-scripts.sh find-software.sh find-sources.sh find-videos.sh find-vmdisk.sh find-project.sh grep-archives.sh grep-audio.sh grep-books.sh grep-fonts.sh grep-images.sh grep-music.sh grep-packages.sh grep-scripts.sh grep-software.sh grep-sources.sh grep-videos.sh grep-vmdisk.sh
