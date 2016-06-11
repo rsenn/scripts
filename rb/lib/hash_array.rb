@@ -109,7 +109,7 @@ r = Hash.new
   end
            
   def HashArray.get_elements(s,xml)
-    HashArray.new xml.elements.to_a("//" + s.upcase)
+    HashArray.new xml.elements.to_a("//" + s)
   end
 
   def HashArray.get_element(s,xml)

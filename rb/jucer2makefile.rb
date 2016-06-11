@@ -1,86 +1,351 @@
 #!/usr/bin/env ruby
+
 require 'rexml/document'
+require 'rexml/encoding'
+require 'json'
 require 'pp'
 
 require_relative 'lib/hash_array.rb'
 require_relative 'lib/enum.rb'
 
+class Array
+  def push_unique(*args)
+    args.each do |a|
+      if self.index(a) == nil then
+        self.push(a)
+      end
+    end
+  end
+end
+
+class String
+  def canonicalize
+    return self.gsub(/[^_A-Za-z0-9]\+/, "_")
+  end
+  def doublequote
+    return '"'+self+'"'
+  end
+end
+
+""" BuildFile -------------------------------------------------------------- """
+""" ------------------------------------------------------------------------ """
 class BuildFile
-	class BuildType < Enum
-		enum_attr :guiapp
-		enum_attr :consoleapp
-		enum_attr :library
-		enum_attr :dll
-		enum_attr :audioplug
-	end
+  class ProjectType < Enum
+    enum_attr :guiapp
+    enum_attr :consoleapp
+    enum_attr :library
+    enum_attr :dll
+    enum_attr :audioplug
+  end
 
-	attr_accessor :build_type
-	attr_accessor :sources, :targets
-	attr_accessor :compile_flags, :link_flags
+  attr_accessor :project_type, :configurations
+  attr_accessor :sources, :targets
+  attr_accessor :defines, :compile_flags, :link_flags, :libs
 
-	def initialize
-      raise 'Doh! You are trying to instantiate an abstract class!'
-	end
+  def initialize(type = nil, sources = [], targets = [], compile_flags = "-g -O2 -Wall", link_flags = "-static-libgcc -static-libstdc++", libs = [])
 
-	def read(filename)
+     @project_type = ProjectType.new type
+     @configurations = [ "Debug", "Release" ]
+     @sources = sources
+     @targets = targets
+     @compile_flags = compile_flags
+     @link_flags = link_flags
+     @libs = libs
+
+
+     update_properties
+#      raise 'Doh! You are trying to instantiate an abstract class!'
+  end
+
+  def read(filename)
       raise 'Doh! You are trying to call a method on an abstract class!'
-	end
-	def write
+  end
+  def write
       raise 'Doh! You are trying to call a method on an abstract class!'
-	end
+  end
 
+  protected
+
+  def add_property(name, value = nil)
+    instance_eval { class << self; self end }.send(:attr_accessor, name.to_s.gsub(/^@*/,""))
+    if value != nil then
+      self.instance_variable_set(name, value)
+    end
+  end
+
+
+  def update_properties
+  end
 end
 
+def split_and_concat_uniq(s, sep = " ") 
+  if s.instance_of? Array then
+    s = s.join("\n")
+  end
+  s.split(/\s+/).uniq.join(sep)
+end 
+
+""" JucerFile -------------------------------------------------------------- """
+""" ------------------------------------------------------------------------ """
 class JucerFile < BuildFile
+  attr_accessor :file
 
-	""" initialize(filename) """
-	def initialize(filename=nil)
-		if filename != nil then
-			read filename
-		end
-	end
+  """ initialize(filename) """
+#  def initialize
+#    super.initialize
+#    if filename != nil then
+#      read filename
+#    end
+#  end
 
-	def read(filename)
-		@file = REXML::Document.new File.new(filename)
-	end
+  def read(filename)
+    @file = REXML::Document.new File.new(filename)
+  end
 
-	def write(o=$stdout)
-		@file.write(o)
-		$stdout << "\n"
-	end
+  def write(o=$stdout)
+    @file.write(o)
+    $stdout << "\n"
+  end
 
-	def targets
-		@file.elements.to_a("/JUCERPROJECT").map { |e| e.attribute("name") }
-	end
+  def targets
+    @file.elements.to_a("/JUCERPROJECT").map { |e| e.attribute("name").to_s }
+  end
 
-	def build_type
-		BuildType.new @file.elements.to_a("/JUCERPROJECT")[0].attribute("projectType").to_s
-	end
+  def project_type
+    ProjectType.new @file.elements.to_a("/JUCERPROJECT")[0].attributes["projectType"]
+  end
 
-	def sources
-		list = files.keep_if do |s| 
-			s['resource'] != "1" && s['compile'] == "1"
-		end	
-		list.map do |s|
-			s['file']
-		end		
-	end
+    """ Returns a list of source files """
+  def sources
+    h = Hash.new
+    h[targets[0]] = files "@compile=1" # and @resource=0"
+    return h
+  end
 
-	def compile_flags
-		HashArray.get_elements("exportformats/*", @file).map { |e| e["extraCompilerFlags"] }
-	end
+    """ Returns a list of ressource files """
+  def resources
+    files "@resource=0"
+  end
 
-	private
+    """ Returns compile flags for all the exporters which match the given expression """
+  def compile_flags(exporter = "*", sep = " ")
+    split_and_concat_uniq attribute("extraCompilerFlags", exporter).values, sep
+  end
 
-	def files
-		HashArray.get_elements("file", @file)
-	end	
+    """ Returns link flags for all the exporters which match the given expression """
+  def link_flags(exporter = "*", sep = " ")
+    f = linker(exporter, sep).map do |arg|
+      if not arg.match(/^[-\/][Ll]/) then
+        arg
+      end
+    end
+    f.join(" ")
+  end
+
+    """ Returns libraries for all the exporters which match the given expression """
+  def libs(exporter = "*", sep = " ")
+    f = linker(exporter, sep).map do |arg|
+      if arg.match(/^[-\/][Ll]/) then
+        arg
+      end
+    end
+    f.join(" ")
+  end
+
+    """ Returns link flags for all the exporters which match the given expression """
+  def defines(configuration = "*", exporter = "*", sep = " ", prefix = "-D")
+    r = configuration_attribute("defines", exporter).select do |k,v| 
+      configuration == "*" or k.match(configuration) or k == configuration
+    end.values.join("\n")
+
+    #r = split_and_concat_uniq(r.values, "\n")
+
+    r.split(/\s+/).map { |v| prefix + v }.join(sep)
+  end
+
+    """ Returns all configuration names """
+  def configurations(exporter = "*")
+    r = Array.new
+    export_formats(exporter).each do |f|
+      REXML::XPath.each(f, "//CONFIGURATION") do |c|
+        r.push_unique c.attributes["name"]
+      end
+    end
+    r
+  end
+
+  private
+    """ Returns link flags for all the exporters which match the given expression """
+  def linker(exporter = "*", sep = " ")
+    
+    f = Array.new
+
+
+    configuration_attribute("libraryPath", exporter).values.each do |libpath|
+      libpath.split(/\n/).each do |p|
+        p.strip!
+        p.gsub!(/\/*$/, "")
+
+#        p.gsub!(/^\${([^}]*)}/, "$(\\1)")
+        if p.match(/^\$[\({].*[\)}]$/) then next end
+
+        if p.match('[^A-Za-z0-9\\\\_/\${}\(\)]') then 
+          f.push_unique "-L "+p.doublequote 
+        else
+          f.push_unique "-L#{p}"
+        end
+      end
+    end
+
+    f += attribute("extraLinkerFlags", exporter).values
+
+    f.delete("")
+    f
+  end
+
+    """ Returns a list of files """
+  def files(cond="")
+    r = Array.new
+    REXML::XPath.each(@file, "//FILE" + (cond == "" ? "" : "["+cond+"]")) do |f|
+      r.push f.attributes["file"]
+    end
+    return r
+  end  
+
+  def export_formats(exporter = "*")
+    expr = "//EXPORTFORMATS/*"
+    if exporter != "*" then
+      expr += "[contains(name(),'"+exporter.gsub("*","")+"')]"
+    end
+    REXML::XPath.match(@file, expr)
+  end
+
+  def attribute(name, exporter = "*")
+    r = Hash.new
+    export_formats(exporter).each do |f|
+      n = f.attributes[name]
+      if n != nil then r[f.name] = n end
+    end
+    r
+  end
+
+  def configuration_attribute(name, exporter = "*")
+    r = Hash.new
+    export_formats(exporter).each do |f|
+      REXML::XPath.each(f, "//CONFIGURATION") do |c|
+        cfgname = c.attributes["name"]
+        a = c.attributes[name]
+        if a != nil then
+          if r.has_key?(cfgname) then
+            a = split_and_concat_uniq(r[cfgname]+"\n"+a, "\n")
+          end
+          r[cfgname] = a
+        end
+      end
+    end
+    r
+  end
+
 end
 
-myfile = JucerFile.new("/mnt/tmpdata/JuceSources/JUCE-soundradix/extras/Projucer/Projucer.jucer")
+""" MakeFile --------------------------------------------------------------- """
+""" ------------------------------------------------------------------------ """
+class MakeFile < BuildFile
 
-pp myfile.sources
-pp myfile.targets
-pp myfile.compile_flags
-pp myfile.build_type
+  attr_accessor :variables, :targets
+
+  class MakeFileTarget
+    attr_accessor :name, :deps, :body
+    def initialize(name, body = "", deps = "")
+      @name = name
+      @body = body
+      if deps.instance_of? Array then
+        deps = deps.join(" ")
+      end
+      @deps = deps
+    end
+    def write(o=$stdout)
+      target = "\n"
+      target += @name + ":";
+      if deps.size > 0 then
+        target +=  " " + deps;
+      end
+      if body.size > 0 then
+        target += "\n\t"+body.gsub("\n", "\n\t")+"\n"
+      end
+      target += "\n"
+      o.puts target
+    end
+  end
+
+  def self.clone(other)
+    #if not other.instance_of? BuildFile then raise "other not an instance of <BuildFile>"  end
+    compile_flags = other.compile_flags.split(/\s+/).reject{ |f| f.match /^\// }.uniq
+    link_flags = other.link_flags.split(/\s+/)
+
+    link_flags.push_unique "-static-libgcc", "-static-libstdc++"
+
+    r = MakeFile.new(other.project_type, other.sources, other.targets, compile_flags.join(" "), link_flags.join(" "), other.libs)
+    r.defines = other.defines;
+    r.configurations = other.configurations;
+    r.update_properties
+    r.targets = [ 
+      MakeFileTarget.new("all", "", r.targets),
+      MakeFileTarget.new(".c.o", "$(CC) $(DEFINES) $(CFLAGS) -c $<"),
+    ]   
+
+    r.sources.keys.each do |t|
+      ccvar = r.sources[t].any? { |s| s.match /\.c[xp][xp]$/ } ? "CXX" : "CC"
+      r.targets.push MakeFileTarget.new(t, "$(#{ccvar}) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)", "$("+t.canonicalize+"_OBJECTS)")
+    end
+
+    return r
+  end
+
+  def write(o=$stdout)
+    @variables.each do |n,v|
+      o.puts "#{n} = #{v}"
+    end
+    @targets.each do |t|
+      t.write o
+    end
+  end
+
+  def update_properties
+    add_property :@variables, { 
+       "CC" => "gcc",
+       "CXX" => "g++",
+       "CFLAGS" => @compile_flags,
+       "CXXFLAGS" => "$(CFLAGS)",
+       "LDFLAGS" => @link_flags,
+       "LIBS" => @libs,
+       "DEFINES" => @defines,
+    }
+    @sources.keys.each do |t|
+      #@variables[t.canonicalize+"_SOURCES"] = @sources[t].join(" ");
+      @variables[t.canonicalize+"_OBJECTS"] = @sources[t].map { |s| s.gsub(/\.[^.]*$/, ".o") }.join(" ");
+    end
+  end
+end
+
+myfile = JucerFile.new
+myfile.read "/mnt/tmpdata/Sources/ctrlr/Builds/VST/Ctrlr_Plugin_VST.jucer" #{}"/mnt/tmpdata/JuceSources/JUCE-soundradix/extras/Projucer/Projucer.jucer" #{} #
+
+#pp myfile.attribute("extraCompilerFlags")
+#pp myfile.export_formats("*LIN*")
+#pp myfile.attribute("extraCompilerFlags", "*")
+#pp myfile.attribute("extraLinkerFlags", "*")
+
+makefile = MakeFile.clone myfile
+makefile.write(File.new("Makefile.new", File::CREAT|File::TRUNC|File::WRONLY, 0644))
+
+puts "sources: "+ myfile.sources.flatten
+.join(" " )
+puts "targets: "+ myfile.targets.join(" ")
+puts "project type: " +myfile.project_type.to_s
+puts "defines: "+ myfile.defines("Release", "VS*")
+puts "compile flags: "+myfile.compile_flags("*LIN*")
+puts "link flags: "+myfile.link_flags("*LIN*")
+puts "configurations: "+myfile.configurations.join(", ")
+
 #myfile.write($stdout)
