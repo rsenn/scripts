@@ -54,18 +54,18 @@ LibMappingKDE4 = {
    "$(LIB_KIMPROXY)"    => "kimproxy",
    "$(LIB_KUTILS)"      => "${KDE4_KUTILS_LIBS}",
    "$(LIB_KSYCOCA)"     => "${KDE4_KIO_LIBS}",
-   "$(LIB_KOFFICEUI)"	=> "kofficeui",
-   "$(LIB_KOFFICECORE)"	=> "kofficecore",
-   "$(LIB_KSTORE)"		=> "kstore",
-   "$(LIB_KOTEXT)"		=> "kotext",
-   "$(LIB_KOPAINTER)"	=> "kopainter",
-   "$(LIB_KOPALETTE)"	=> "kopalette",
-   "$(LIB_KWMF)"		=> "kwmf",
-   "$(LIB_KOWMF)"		=> "kowmf",
-   "$(LIB_KFORMULA)"	=> "kformulalib",
-   "$(LIB_KOPROPERTY)"	=> "koproperty",
-   "$(LIB_KROSS_API)"	=> "krossapi",
-   "$(LIB_KROSS_MAIN)"	=> "krossmain"
+   "$(LIB_KOFFICEUI)"    => "kofficeui",
+   "$(LIB_KOFFICECORE)"    => "kofficecore",
+   "$(LIB_KSTORE)"        => "kstore",
+   "$(LIB_KOTEXT)"        => "kotext",
+   "$(LIB_KOPAINTER)"    => "kopainter",
+   "$(LIB_KOPALETTE)"    => "kopalette",
+   "$(LIB_KWMF)"        => "kwmf",
+   "$(LIB_KOWMF)"        => "kowmf",
+   "$(LIB_KFORMULA)"    => "kformulalib",
+   "$(LIB_KOPROPERTY)"    => "koproperty",
+   "$(LIB_KROSS_API)"    => "krossapi",
+   "$(LIB_KROSS_MAIN)"    => "krossmain"
 }
 
 $libMapping=LibMappingKDE3
@@ -492,8 +492,8 @@ class CMakeFile
       end
 
       if line =~ /^\s*KDE_DOCS\s*=/
-	 @installDoc=true
-	 return
+     @installDoc=true
+     return
       end
 
       if (line =~ /^\s*\S+_SOURCES\s*=/)
@@ -998,11 +998,11 @@ class CMakeFile
       file.printf("\n")
 
       if @installIcons
-		 file.printf("kde4_install_icons(${ICON_INSTALL_DIR})\n\n")
+         file.printf("kde4_install_icons(${ICON_INSTALL_DIR})\n\n")
       end
       
       if @installDoc
-	         file.printf("kde4_create_handbook(index.docbook INSTALL_DESTINATION ${HTML_INSTALL_DIR}/en)\n\n")
+             file.printf("kde4_create_handbook(index.docbook INSTALL_DESTINATION ${HTML_INSTALL_DIR}/en)\n\n")
       end
       #if @createDoxygenDocs
       #   file.printf("kde4_create_doxygen_docs( ")
