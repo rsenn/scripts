@@ -17,7 +17,7 @@ class BuildFile
 
   def initialize(type = nil, sources = [], targets = [], compile_flags = "-g -O2 -Wall", link_flags = "-static-libgcc -static-libstdc++", libs = [])
 
-     @project_type = ProjectType.new type
+     @project_type = (type.instance_of? ProjectType) ? type : ProjectType.new(type)
      @configurations = [ "Debug", "Release" ]
      @sources = sources
      @targets = targets
@@ -51,9 +51,13 @@ class BuildFile
   end
 end
 
-def split_and_concat_uniq(s, sep = " ") 
+def clean_list(s) 
   if s.instance_of? Array then
     s = s.join("\n")
   end
-  s.split(/\s+/).uniq.join(sep)
+  s.split(/\s+/).uniq
+end 
+
+def split_and_concat_uniq(s, sep = " ") 
+  clean_list(s).join(sep)
 end 

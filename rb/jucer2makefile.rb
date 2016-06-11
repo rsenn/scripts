@@ -51,21 +51,67 @@ def main
     outfile = "Makefile.#{name}"
   end
 
-  $stderr.puts "Entering directory #{dir} ..."
+  $stderr.puts "Entering directory '#{dir}'"
 
   Dir.chdir dir
 
-  $stderr.puts "Reading '#{infile}' ..."
+  $stderr.puts "Reading '#{dir}/#{infile}'"
 
   myfile = JucerFile.new
   myfile.read infile 
 
-  $stderr.puts "Writing '#{outfile}' ..."
+  $stderr.puts "Writing '#{dir}/#{outfile}'"
 
   of = MakeFile.clone myfile
-  of.write(File.new(dir+"/"+outfile, "r+", 0644))
+  of.write File.new(dir+"/"+outfile, "w+", 0644)
 
-  $stderr.puts "To run: make -C #{dir} -f #{outfile}"
+
+def write_header(fn, name, version, modulepaths)
+  header = File.new(fn, "w+", 0644)
+  header.puts '#ifndef JUCE_HEADER_H
+#define JUCE_HEADER_H
+
+#include "JuceLibraryCode/AppConfig.h"
+
+'
+  modulepaths.each do |id,path|
+    header.puts "#include \"#{path}/#{id}/#{id}.h\"\n"
+  end
+
+  header.puts "
+#if ! DONT_SET_USING_JUCE_NAMESPACE
+// If your code uses a lot of JUCE classes, then this will obviously save you
+// a lot of typing, but can be disabled by setting DONT_SET_USING_JUCE_NAMESPACE.
+using namespace juce;
+#endif
+
+#if ! JUCE_DONT_DECLARE_PROJECTINFO
+namespace ProjectInfo
+{
+    const char* const  projectName    = \"#{name}\";
+    const char* const  versionString  = \"#{version}\";
+    const int          versionNumber  = 0;
+}
+#endif
+
+#endif //JUCE_HEADER_H
+"
+end
+
+def write_appconfig(fn)
+    header = File.new(fn, "w+", 0644)
+  header.puts '#ifndef JUCE_APPCONFIG_H
+#define JUCE_APPCONFIG_H
+
+
+#endif //JUCE_APPCONFIG_H
+'
+end
+
+  write_header dir+"/JuceHeader.h", myfile.header[:name], myfile.header[:version], myfile.modulepaths
+  write_appconfig dir+"/AppConfig.h"
+
+  $stderr.puts "To run:\n    make -C '#{dir}' -f '#{outfile}'"
 
   if settings.debug then
     $stdout.puts "sources: "+ myfile.sources.flatten.join(" ")

@@ -33,6 +33,11 @@ class JucerFile < BuildFile
   def sources
     h = Hash.new
     h[targets[0]] = files "@compile=1" # and @resource=0"
+
+    modulepaths.each do |id,path|
+      s = "#{path}/#{id}/#{id}.cpp"
+      h[targets[0]].push_unique s
+    end
     return h
   end
 
@@ -43,7 +48,17 @@ class JucerFile < BuildFile
 
     """ Returns compile flags for all the exporters which match the given expression """
   def compile_flags(exporter = "*", sep = " ")
-    split_and_concat_uniq attribute("extraCompilerFlags", exporter).values, sep
+    r = attribute("extraCompilerFlags", exporter).values
+    r += modulepaths.values.uniq.map { |p| "-I#{p}" }
+
+    r.push_unique "-I."
+  r.push_unique "-I JuceLibraryCode"
+    
+    attribute("packages", exporter).each do |e,p|
+      r.push_unique "$(shell $(CROSS_COMPILE)pkg-config --cflags #{p})"
+    end
+
+    split_and_concat_uniq r, sep
   end
 
     """ Returns link flags for all the exporters which match the given expression """
@@ -63,18 +78,25 @@ class JucerFile < BuildFile
         arg
       end
     end
+
+    attribute("packages", exporter).each do |e,p|
+      f.push_unique "$(shell $(CROSS_COMPILE)pkg-config --libs #{p})"
+    end
+
     f.join(" ")
   end
 
     """ Returns link flags for all the exporters which match the given expression """
   def defines(configuration = "*", exporter = "*", sep = " ", prefix = "-D")
-    r = configuration_attribute("defines", exporter).select do |k,v| 
+    r = header[:defines].split(/[ \n]+/)
+
+    r += configuration_attribute("defines", exporter).select { |k,v| 
       configuration == "*" or k.match(configuration) or k == configuration
-    end.values.join("\n")
+    }.values
 
-    #r = split_and_concat_uniq(r.values, "\n")
+    r += options
 
-    r.split(/\s+/).map { |v| prefix + v }.join(sep)
+    clean_list(r).map { |v| prefix + v.gsub(/\"/, '\\"').gsub(/^([^=]*)=(.+)/, '\\1="\\2"') }.join(sep)
   end
 
     """ Returns all configuration names """
@@ -88,22 +110,40 @@ class JucerFile < BuildFile
     r
   end
 
+  def header
+    r = Hash.new
+    file.elements.to_a("/JUCERPROJECT")[0].attributes.to_a.each do |a|
+      name = a.name.to_sym
+      r[name] = a.value
+    end
+    r
+  end
+
+  def options
+    r = Array.new
+    file.elements.to_a("/JUCERPROJECT/JUCEOPTIONS)")[0].attributes.to_a.map do |a|
+      opt = a.name
+      opt += "="
+      opt += (a.value=="disabled") ? "0" : "1"
+      r.push_unique opt
+    end
+    r
+  end
+
+
   private
-    """ Returns link flags for all the exporters which match the given expression """
+
+      """ Returns link flags for all the exporters which match the given expression """
   def linker(exporter = "*", sep = " ")
-    
     f = Array.new
-
-
     configuration_attribute("libraryPath", exporter).values.each do |libpath|
       libpath.split(/\n/).each do |p|
+        p.gsub!('\\', '/')
         p.strip!
         p.gsub!(/\/*$/, "")
-
 #        p.gsub!(/^\${([^}]*)}/, "$(\\1)")
         if p.match(/^\$[\({].*[\)}]$/) then next end
-
-        if p.match('[^A-Za-z0-9\\\\_/\${}\(\)]') then 
+        if p.match('[^-.A-Za-z0-9\\\\_/\${}\(\)]') then 
           f.push_unique "-L "+p.doublequote 
         else
           f.push_unique "-L#{p}"
@@ -160,4 +200,27 @@ class JucerFile < BuildFile
     r
   end
 
+  public
+
+  def modulepaths(exporter = "*")
+    r = Hash.new
+    export_formats(exporter).each do |f|
+      REXML::XPath.each(f, "//MODULEPATH") do |m|
+        id = m.attributes["id"]
+        path = m.attributes["path"]
+        if id.size > 0 and path.size > 0 then
+          r[id] = path
+        end
+      end
+    end
+    r
+  end
+
+  def modules
+    r = Array.new
+    REXML::XPath.each(@file, "/JUCERPROJECT/MODULES/MODULES") do |e|
+      r.push e.attributes["id"]
+    end
+    r
+  end
 end
