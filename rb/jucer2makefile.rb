@@ -71,7 +71,12 @@ def write_header(fn, name, version, modulepaths)
   header.puts '#ifndef JUCE_HEADER_H
 #define JUCE_HEADER_H
 
-#include "JuceLibraryCode/AppConfig.h"
+//#include "JuceLibraryCode/AppConfig.h"
+
+#ifndef JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED
+#define JUCE_GLOBAL_MODULE_SETTINGS_INCLUDED 1
+#endif
+
 
 '
   modulepaths.each do |id,path|

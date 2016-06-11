@@ -47,8 +47,10 @@ class JucerFile < BuildFile
   end
 
     """ Returns compile flags for all the exporters which match the given expression """
-  def compile_flags(exporter = "*", sep = " ")
-    r = attribute("extraCompilerFlags", exporter).values
+  def compile_flags(exporter = "*", sep = " ") 
+    r = attribute("extraCompilerFlags", exporter).values.join(" ").split(/\s+/)
+    
+    pp r
     r += modulepaths.values.uniq.map { |p| "-I#{p}" }
 
     r.push_unique "-I."
@@ -57,6 +59,11 @@ class JucerFile < BuildFile
     attribute("packages", exporter).each do |e,p|
       r.push_unique "$(shell $(CROSS_COMPILE)pkg-config --cflags #{p})"
     end
+
+    r.delete("-Wint-conversion")
+    r.delete("-Wshorten-64-to-32")
+    r.delete("-Wconstant-conversion")
+
 
     split_and_concat_uniq r, sep
   end
@@ -95,6 +102,7 @@ class JucerFile < BuildFile
     }.values
 
     r += options
+    r.delete("")
 
     clean_list(r).map { |v| prefix + v.gsub(/\"/, '\\"').gsub(/^([^=]*)=(.+)/, '\\1="\\2"') }.join(sep)
   end
