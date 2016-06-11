@@ -55,15 +55,17 @@ class MakeFile < BuildFile
     r.sources.keys.each do |t|
       if r.project_type.to_sym == :library then
         target = "lib#{t}.a"
+		outdir = "$(LIBDIR)"
       else
+	    outdir = "$(BINDIR)"
         target = t
       end
       srcs = r.sources[t]
       objs = srcs.map { |src| src.gsub(/.*\/([^\/]+)\.[^.]*$/, "$(OBJDIR)/\\1.o") }
-      pp objs
+      #pp objs
       ccvar = srcs.any? { |s| s.match /\.c[xp][xp]$/ } ? "CXX" : "CC"
-      r.targets["$(OUTDIR)/"+target] = MakeFileTarget.new("$(#{ccvar}) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)", objs)
-      r.targets["all"].deps.push_unique "$(OUTDIR)/"+target
+      r.targets["#{outdir}/#{target}"] = MakeFileTarget.new("$(#{ccvar}) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)", objs)
+      r.targets["all"].deps.push_unique "#{outdir}/#{target}"
     end
 
     return r
@@ -93,20 +95,18 @@ endif\n\n"
     o.puts "$(info CHOST: $(CHOST))\n"
     o.puts "$(info SYSTEM: $(SYSTEM))\n"
 
+	o.puts "\nOUTDIR := build/$(CHOST)
+BINDIR := $(OUTDIR)
+LIBDIR := $(OUTDIR)\n"
+	
     o.puts "ifeq ($(CONFIG),Debug)
-  OUTDIR := $(CHOST)
-  BINDIR := $(OUTDIR)
-  LIBDIR := $(OUTDIR)
-  OBJDIR := $(OUTDIR)/intermediate/Debug
+  OBJDIR := $(OUTDIR)/Debug
   DEFS += -DDEBUG=1 -D_DEBUG=1 -UNDEBUG
   CFLAGS += -g -ggdb -O0
 endif\n\n"
 
     o.puts "ifeq ($(CONFIG),Release)
-  OUTDIR := $(CHOST)
-  BINDIR := $(OUTDIR)
-  LIBDIR := $(OUTDIR)
-  OBJDIR := $(OUTDIR)/intermediate/Release
+  OBJDIR := $(OUTDIR)/Release
   DEFS += -UDEBUG -DNDEBUG=1
   CFLAGS += -g -Wall -O3
 endif\n\n"
@@ -127,10 +127,8 @@ endif\n\n"
       deps = Array.new
       s.each do |src|
         obj = src.gsub(/.*\/([^\/]+)\.[^.]*$/, "$(OBJDIR)/\\1.o")
-#        if obj.include? " " then obj = obj.doublequote end
         deps.push_unique obj;
         @targets[obj] = MakeFileTarget.new('$(CXX) $(DEFS) $(CXXFLAGS) -c -o "$@" "$<"', [src])
-#        @targets[obj] = MakeFileTarget.new( "", src)
       end
 
       o.puts "#{name.canonicalize}_OBJECTS = "+deps.join_quoted(" ")

@@ -32,7 +32,12 @@ class JucerFile < BuildFile
     """ Returns a list of source files """
   def sources
     h = Hash.new
-    h[targets[0]] = files "@compile=1" # and @resource=0"
+    h[targets[0]] = files "@compile=1" # or @resource=1"
+	
+	pp header
+	if header[:includeBinaryInAppConfig] == "1" then
+	  h[targets[0]].push_unique "JuceLibraryCode/BinaryData.cpp"
+	end
 
     modulepaths.each do |id,path|
       s = "#{path}/#{id}/#{id}.cpp"
@@ -51,7 +56,7 @@ class JucerFile < BuildFile
   def compile_flags(exporter = "*", sep = " ") 
     r = attribute("extraCompilerFlags", exporter).values.join(" ").split(/\s+/)
     
-    pp r
+    #pp r
     r += modulepaths.values.uniq.map { |p| "-I#{p}" }
 
     r.push_unique "-I."

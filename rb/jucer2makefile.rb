@@ -122,18 +122,23 @@ namespace ProjectInfo
 "
 end
 
-def write_appconfig(fn)
+def write_appconfig(fn, jucerfile)
     header = File.new(fn, "w+", 0644)
   header.puts '#ifndef JUCE_APPCONFIG_H
 #define JUCE_APPCONFIG_H
+'
+  if jucerfile.header[:includeBinaryInAppConfig] == 1 then
+    header.puts '#include "JuceLibraryCode/BinaryData.h"'
+  end
 
+header.puts '
 
 #endif //JUCE_APPCONFIG_H
 '
 end
 
   write_header dir+"/JuceHeader.h", myfile.header[:name], myfile.header[:version], myfile.modulepaths
-  write_appconfig dir+"/AppConfig.h"
+  write_appconfig dir+"/AppConfig.h", myfile
 
   $stderr.puts "To run:\n    make -C '#{dir}' -f '#{outfile}'"
 
