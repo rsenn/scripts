@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
+require 'cli'
+require 'pathname'
 require 'rexml/document'
 require 'rexml/encoding'
 require 'json'
@@ -193,25 +196,51 @@ class JucerFile < BuildFile
 end
 
 
+settings = CLI.new do
+    switch :debug, :short  => :d, :description => 'debug messages'
+    argument :input_file,   :short => :i, :description => 'input file' #, :default => "/mnt/tmpdata/Sources/ctrlr/Builds/VST/Ctrlr_Plugin_VST.jucer"
+    argument :output_file, :short => :o, :required => false, :description => 'output file'
+end.parse! do |settings|
+  fail "No such file '#{settings.input_file}'" unless File.exist? String(settings.input_file)
+end
+
+
+
+dir = File.dirname(settings.input_file)
+name = File.basename(settings.input_file, ".jucer")
+infile = File.basename(settings.input_file.to_s)
+
+if settings.output_file then
+  outfile = settings.output_file.gsub(/#name/, name)
+else
+  outfile = "Makefile.#{name}"
+end
+
+$stderr.puts "Entering directory #{dir} ..."
+
+Dir.chdir dir
+
+$stderr.puts "Reading '#{infile}' ..."
 
 myfile = JucerFile.new
-myfile.read "/mnt/tmpdata/Sources/ctrlr/Builds/VST/Ctrlr_Plugin_VST.jucer" #{}"/mnt/tmpdata/JuceSources/JUCE-soundradix/extras/Projucer/Projucer.jucer" #{} #
+myfile.read infile 
 
-#pp myfile.attribute("extraCompilerFlags")
-#pp myfile.export_formats("*LIN*")
-#pp myfile.attribute("extraCompilerFlags", "*")
-#pp myfile.attribute("extraLinkerFlags", "*")
+$stderr.puts "Writing '#{outfile}' ..."
 
-makefile = MakeFile.clone myfile
-makefile.write(File.new("Makefile.new", File::CREAT|File::TRUNC|File::WRONLY, 0644))
+of = MakeFile.clone myfile
+of.write(File.new(dir+"/"+outfile, "r+", 0644))
 
-puts "sources: "+ myfile.sources.flatten
-.join(" " )
-puts "targets: "+ myfile.targets.join(" ")
-puts "project type: " +myfile.project_type.to_s
-puts "defines: "+ myfile.defines("Release", "VS*")
-puts "compile flags: "+myfile.compile_flags("*LIN*")
-puts "link flags: "+myfile.link_flags("*LIN*")
-puts "configurations: "+myfile.configurations.join(", ")
+$stderr.puts "To run: make -C #{dir} -f #{outfile}"
 
-#myfile.write($stdout)
+
+if settings.debug then
+  $stdout.puts "sources: "+ myfile.sources.flatten.join(" ")
+  $stdout.puts "targets: "+ myfile.targets.join(" ")
+  $stdout.puts "project type: " +myfile.project_type.to_s
+  $stdout.puts "defines: "+ myfile.defines("Release", "VS*")
+  $stdout.puts "compile flags: "+myfile.compile_flags("*LIN*")
+  $stdout.puts "link flags: "+myfile.link_flags("*LIN*")
+  $stdout.puts "configurations: "+myfile.configurations.join(", ")
+
+  #myfile.write($stdout)
+end
