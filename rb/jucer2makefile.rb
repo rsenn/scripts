@@ -32,16 +32,14 @@ class String
   end
 end
 
-
 def main
   settings = CLI.new do
-      switch :debug, :short  => :d, :description => 'debug messages'
-      argument :input_file,   :short => :i, :description => 'input file' #, :default => "/mnt/tmpdata/Sources/ctrlr/Builds/VST/Ctrlr_Plugin_VST.jucer"
-      argument :output_file, :short => :o, :required => false, :description => 'output file'
+    switch   :debug,       :short => :d,                     :description => 'debug messages'
+    argument :input_file,  :short => :i,                     :description => 'input file' #, :default => "/mnt/tmpdata/Sources/ctrlr/Builds/VST/Ctrlr_Plugin_VST.jucer"
+    argument :output_file, :short => :o, :required => false, :description => 'output file'
   end.parse! do |settings|
     fail "No such file '#{settings.input_file}'" unless File.exist? String(settings.input_file)
   end
-
 
   dir = File.dirname(settings.input_file)
   name = File.basename(settings.input_file, ".jucer")
@@ -68,7 +66,6 @@ def main
   of.write(File.new(dir+"/"+outfile, "r+", 0644))
 
   $stderr.puts "To run: make -C #{dir} -f #{outfile}"
-
 
   if settings.debug then
     $stdout.puts "sources: "+ myfile.sources.flatten.join(" ")
