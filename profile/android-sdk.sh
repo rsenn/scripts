@@ -1,4 +1,4 @@
-ANDROID_SDK_ROOT=/opt/adt-bundle-linux/sdk
+ANDROID_SDK_ROOT=/opt/android-sdk
 ANDROID_SDK_PATH=$ANDROID_SDK_ROOT
 
 #PATH="$ANDROID_SDK_ROOT/tools:$PATH"

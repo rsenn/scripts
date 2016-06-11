@@ -50,7 +50,7 @@ tiles = (TILE_COLS * TILE_ROWS).times.inject(Magick::ImageList.new) do |arr, idx
                img.dispatch( idx%TILE_COLS * TILE_WIDTH, 
                              idx/TILE_COLS * TILE_HEIGHT,
                              TILE_WIDTH, TILE_HEIGHT, 'RGB' )
-	             )
+                 )
 end
 
 # Basically go through the same kind of loop, but using composite

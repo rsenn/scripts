@@ -23,6 +23,7 @@ echo "Usage: ${0%.sh} [OPTIONS] <QUERIES...>
   -h, --help              Show this help
   -x, --debug             Show debug messages
   -v, --verbose           Show debug messages
+  -p, --dlprog=PROG       Set download program
   -n=NUM, --results=NUM   Set number of results
   
 Environment variables:
@@ -32,6 +33,8 @@ Environment variables:
   SOCKS_PROXY             Use this SOCKS v4 proxy
 "
 }
+
+: ${DLPROG="wget"}
 
 while :; do
   case "$1" in
@@ -43,6 +46,7 @@ while :; do
     -t=*|--type=*) TYPE=${1%#*=}; shift ;; -t|--type) TYPE=$2; shift 2 ;;
     -c=*|--class=*) CLASS=${1%#*=}; shift ;; -c|--class) CLASS=$2; shift 2 ;;
     -n=*|--results=*) RESULTS=${1##*=}; shift ;; -n|--results) RESULTS=$2; shift 2 ;;
+    -p=*|--dl*prog*=*) DLPROG=${1##*=}; shift ;; -p|--dlprog) DLPROG=$2; shift 2 ;;
     -*) echo "Invalid argument '$1'." 1>&2; exit 1 ;;
     *) break ;;
   esac
@@ -71,13 +75,17 @@ fi
 if [ -n "$SOCKS_PROXY" ]; then
   echo "Have SOCKS proxy: $SOCKS_PROXY" 1>&2
 fi
-DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks4a \"${SOCKS_PROXY#*://}\"} -A '$USER_AGENT'"
 
 [ "$DEBUG" = true ] && echo "DLCMD=$DLCMD" 1>&2
-#DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }wget -q -O - -U '$USER_AGENT'"
-#DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent '$USER_AGENT' 2>/dev/null"
-#DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }links -source"
-#DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null"
+
+case "$DLPROG" in
+  curl) DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks4a \"${SOCKS_PROXY#*://}\"} -A '$USER_AGENT'" ;;
+  wget) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }wget -q -O - -U '$USER_AGENT'" ;;
+  lynx) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent '$USER_AGENT' 2>/dev/null" ;;
+  links) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }links -source" ;;
+  w3m) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null" ;;
+  *) echo "No such download command: $DLPROG" 1>&2; exit 1 ;;
+esac
 
 ARGS="$*"
 
