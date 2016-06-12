@@ -102,7 +102,7 @@ class JucerFile < BuildFile
 
     """ Returns link flags for all the exporters which match the given expression """
   def defines(configuration = "*", exporter = "*", sep = " ", prefix = "-D")
-    r = header[:defines].split(/[ \n]+/)
+    r = String(header[:defines]).split(/[ \n]+/)
 
     r += configuration_attribute("defines", exporter).select { |k,v| 
       configuration == "*" or k.match(configuration) or k == configuration
