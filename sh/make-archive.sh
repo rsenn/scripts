@@ -177,11 +177,13 @@ create_list() {
   #output=
   output="$1{'"
   shift
+  list=
   [ $# -gt 0 ] && {
   for arg; do 
-    output="${output:+$output$separator}$arg"
+    list="${list:+$list$separator}$arg"
   done
-  echo "$output'}"
+  output="$output$list'}"
+  echo "$output"
   } )
 }
 
