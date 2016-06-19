@@ -34,7 +34,7 @@ class JucerFile < BuildFile
     h = Hash.new
     h[targets[0]] = files "@compile=1" # or @resource=1"
 	
-	pp header
+	#pp header
 	if header[:includeBinaryInAppConfig] == "1" then
 	  h[targets[0]].push_unique "JuceLibraryCode/BinaryData.cpp"
 	end
@@ -102,7 +102,11 @@ class JucerFile < BuildFile
 
     """ Returns link flags for all the exporters which match the given expression """
   def defines(configuration = "*", exporter = "*", sep = " ", prefix = "-D")
-    r = String(header[:defines]).split(/[ \n]+/)
+    r = []
+
+    if header.has_key? :defines then
+        r = header[:defines].split(/[ \n]+/)
+    end
 
     r += configuration_attribute("defines", exporter).select { |k,v| 
       configuration == "*" or k.match(configuration) or k == configuration
