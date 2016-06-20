@@ -2250,6 +2250,11 @@ get-mingw-properties() {
   done)
 }
 
+get-prefix()
+{ 
+    cygpath -a $(${CC:-gcc} -print-search-dirs |sed -n 's,.*:\s\+=\?,,; s,/bin.*,,p ; s,/lib.*,,p' |head -n1)
+}
+
 get-property()
 {
     ${SED-sed} -n "/$1=/ {
