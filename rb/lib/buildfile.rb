@@ -1,14 +1,14 @@
-
+require_relative 'enum.rb'
 
 """ BuildFile -------------------------------------------------------------- """
 """ ------------------------------------------------------------------------ """
 class BuildFile
   class ProjectType < Enum
-    enum_attr :guiapp
-    enum_attr :consoleapp
-    enum_attr :library
-    enum_attr :dll
-    enum_attr :audioplug
+    enum_attr :guiapp, 1
+    enum_attr :consoleapp, 2
+    enum_attr :library, 3
+    enum_attr :dll, 4
+    enum_attr :audioplug, 5
   end
 
   attr_accessor :project_type, :configurations
