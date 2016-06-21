@@ -110,7 +110,8 @@ arch2bit() {
 }
 
 arm-linux-gnueabihf-make() { 
-    ( CHOST=${0%-make};
+  (FNAME=${FUNCNAME[0]}
+		CHOST=${FNAME%-make};
 
 		if [ -n "$SYSROOT" -a -d "$SYSROOT" ]; then
 			export PKG_CONFIG_PATH="$(ls -d $SYSROOT/{usr/,}{lib/,share/}{,*/}pkgconfig 2>/dev/null |implode :)"
