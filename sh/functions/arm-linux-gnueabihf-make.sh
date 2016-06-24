@@ -1,3 +1,6 @@
+: ${arm_linux_gnueabihf_CFLAGS="-march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4"}
+: ${arm_linux_gnueabihf_CXXFLAGS=$arm_linux_gnueabihf_CFLAGS}
+
 arm-linux-gnueabihf-make() { 
   (FNAME=${FUNCNAME[0]}
 		CHOST=${FNAME%-make};
