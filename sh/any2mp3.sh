@@ -60,7 +60,7 @@ for ARG; do
 (
 #    WAV="${ARG%.*}.wav"
     DIR=`dirname "$ARG"`
-    WAV=${TEMP+--tmpdir=$TEMP} "${MYNAME}--$$.wav"
+    WAV="${MYNAME}-$$.wav"
 trap 'rm -f "$WAV"' EXIT
 trap 'exit 3' INT TERM
 
