@@ -117,7 +117,7 @@ arm-linux-gnueabihf-make() {
 			export PKG_CONFIG_PATH="$(ls -d $SYSROOT/{usr/,}{lib/,share/}{,*/}pkgconfig 2>/dev/null |implode :)"
 			export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
     fi
-    make CC="$CHOST-gcc${SYSROOT:+ --sysroot="$SYSROOT"}" CXX="$CHOST-g++${SYSROOT:+ --sysroot="$SYSROOT"}" "$@" )
+    make CC="$CHOST-gcc${SYSROOT:+ --sysroot="$SYSROOT"}" {CXX,LINK}="$CHOST-g++${SYSROOT:+ --sysroot="$SYSROOT"}" "$@" )
 }
 
 array()
