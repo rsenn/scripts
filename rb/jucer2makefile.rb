@@ -37,7 +37,7 @@ end
 
 class String
   def canonicalize
-    return self.gsub(/[^_A-Za-z0-9]\+/, "_")
+    return self.gsub(/[^_A-Za-z0-9]\+/, "_").gsub(/([[:lower:]])\ ([[:upper:]])/, "\\1\\2").gsub(" ", "_")
   end
   def doublequote
     if self.include? ' ' then
@@ -137,8 +137,8 @@ header.puts '
 '
 end
 
-  write_header dir+"/JuceHeader.h", myfile.header[:name], myfile.header[:version], myfile.modulepaths
-  write_appconfig dir+"/AppConfig.h", myfile
+#  write_header dir+"/JuceHeader.h", myfile.header[:name], myfile.header[:version], myfile.modulepaths
+#  write_appconfig dir+"/AppConfig.h", myfile
 
   $stderr.puts "To run:\n    make -C '#{dir}' -f '#{outfile}'"
 

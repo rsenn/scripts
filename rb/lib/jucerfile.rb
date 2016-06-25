@@ -340,7 +340,7 @@ class JucerFile < BuildFile
     file.elements.to_a("/JUCERPROJECT/JUCEOPTIONS)")[0].attributes.to_a.map do |a|
       opt = a.name
       opt += "="
-      opt += (a.value=="disabled") ? "0" : 1
+      opt += (a.value=="disabled") ? "0" : "1"
       r.push_unique opt
     end
     r
