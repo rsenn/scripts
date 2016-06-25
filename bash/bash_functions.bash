@@ -3321,13 +3321,12 @@ juce-mingw-build() {
 	P=$DIR/Builds/MinGW*
     (cd "$DIR"
      set -- *.jucer; J="$1"
-	  for JUCER in {Intro,Pro}jucer; do (set -x; $JUCER --resave "$J") && {
+	  for JUCER in {Pro,Intro}jucer; do (set -x; $JUCER --resave "$J") && {
 	   $JUCER --add-exporter "MinGW Makefile" "$J" 
-	   exit 0
 	 }
+  set -x; make -C Builds/MinGW*  $VARS $TARGETS && exit 0
 	done) || exit $?
 	
-  (set -x; make -C $P $VARS $TARGETS || exit $?)
   done)
 }
 
