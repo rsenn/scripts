@@ -312,7 +312,7 @@ class JucerFile < BuildFile
     }.values
     r += options
     r.delete("")
-    clean_list(r).map { |v| prefix + v.gsub(/\"/, '\\"').gsub(/^([^=]*)=(.+)/, '\\1="\\2"') }.join(sep)
+    clean_list(r).map { |v| prefix + v.gsub(/\"/, '\\\"').gsub(/^([^=]*)=(.+)/, '\\1="\\2"') }.join(sep)
   end
   
   """ Returns all configuration names """

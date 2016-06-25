@@ -60,7 +60,7 @@ for ARG; do
 (
 #    WAV="${ARG%.*}.wav"
     DIR=`dirname "$ARG"`
-    WAV=${TEMP+--tmpdir=$TEMP} "${MYNAME}--$$.wav"
+    WAV="${MYNAME}-$$.wav"
 trap 'rm -f "$WAV"' EXIT
 trap 'exit 3' INT TERM
 
@@ -85,6 +85,7 @@ case "${ARG##*/}" in
 	(${FFMPEG:-ffmpeg} -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV") 
 	;;
 esac && (set -e; set -x
+shineenc  -b "$ABR" -j "$WAV" "$OUTPUT"  ||
 lame --alt-preset "$ABR" --resample 44100 -m j -h "$WAV" "$OUTPUT" 
 [ -n "$SONG" ] && id3v2 --song "$SONG" "$OUTPUT"
 ) &&

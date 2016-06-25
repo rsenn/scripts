@@ -109,6 +109,31 @@ arch2bit() {
   done)
 }
 
+: ${arm_linux_gnueabihf_CFLAGS="-march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4"}
+: ${arm_linux_gnueabihf_CXXFLAGS=$arm_linux_gnueabihf_CFLAGS}
+
+arm-linux-gnueabihf-make() { 
+  (FNAME=${FUNCNAME[0]}
+		CHOST=${FNAME%-make};
+declare \
+	CC="$CHOST-gcc${SYSROOT:+ --sysroot="$SYSROOT"}"  \
+CXX="$CHOST-g++${SYSROOT:+ --sysroot="$SYSROOT"}" 
+
+		for VAR in CCFLAGS CXXFLAGS ; do 
+			eval "${VAR%FLAGS}=\"\$${VAR%FLAGS} \$${CHOST//-/_}_$VAR\""
+		done
+
+		set -- make CC="$CC" {CXX,CCLD,LINK}="$CXX" "$@" 
+
+		if [ -n "$SYSROOT" -a -d "$SYSROOT" ]; then
+			export PKG_CONFIG_PATH="$(ls -d $SYSROOT/{usr/,}{lib/,share/}{,*/}pkgconfig 2>/dev/null |implode :)"
+			export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
+    fi
+		[ "$DEBUG" = true ] && set -x
+
+		"$@")
+}
+
 array()
 {
     local IFS="$ARRAY_s";
@@ -3270,6 +3295,40 @@ join-lines() {
 				} 
 				s,\'$c'$,,
     }')
+}
+
+juce-mingw-build() { 
+ (: ${MSYS_HOME="e:/msys64"}
+  : ${MINGW_HOME="$MSYS_HOME/mingw64"}
+  unset VARS TARGETS DIRS
+  while [ $# -gt 0 ]; do
+    ARG="$1"; shift
+    if [ -d "$ARG" ]; then
+      pushv DIRS "$ARG"
+      continue
+    fi    
+    case "$ARG" in
+      *=*) pushv VARS "$ARG"; continue ;;
+      *) pushv TARGETS "$ARG" ;;
+    esac    
+  done 
+  [ -z "$DIRS" ] && DIRS=.
+  var_dump VARS DIRS TARGETS
+  export PKG_CONFIG_PATH="$(cygpath -a "${MINGW_HOME}"/*/pkgconfig | implode :)" PKG_CONFIG_SYSROOT_DIR="$(cygpath -am "${MSYS_HOME}")"
+
+  for P in $DIRS; do 
+    DIR=${P%/Builds*}
+	P=$DIR/Builds/MinGW*
+    (cd "$DIR"
+     set -- *.jucer; J="$1"
+	  for JUCER in {Intro,Pro}jucer; do (set -x; $JUCER --resave "$J") && {
+	   $JUCER --add-exporter "MinGW Makefile" "$J" 
+	   exit 0
+	 }
+	done) || exit $?
+	
+  (set -x; make -C $P $VARS $TARGETS || exit $?)
+  done)
 }
 
 killall-w32()
