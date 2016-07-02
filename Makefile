@@ -45,7 +45,7 @@ slackpkg:
 slackpkg: $(SCRIPTS) 
 	@set -x; distdir="_inst"; rm -rf $$distdir; mkdir -p $$distdir/$(bindir) $$distdir/root; \
 		$(INSTALL) -m 755 $(SCRIPTS) $$distdir/$(bindir)/; \
-		bash cp-bash-scripts.bash $$distdir/root/; \
+		bash cp-bash-scripts.sh $$distdir/root/; \
 		tar -cJf scripts-`date +%Y%m%d`-slackware.txz -C $$distdir .; \
 		rm -rf $$distdir
 
