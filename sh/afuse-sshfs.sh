@@ -14,13 +14,13 @@ export DEBUG
 
 if [ $# = 1 ]; then
   mkdir -p "$1"
-  mount_template="$ABSME %r %m"
-  #unmount_template="$ABSME -u %r %m"
-#  mount_template="sshfs -o reconnect %r:/ %m"
- unmount_template="fusermount -u -z %m"
+  MOUNTCMD="$ABSME %r %m"
+  #UMOUNTCMD="$ABSME -u %r %m"
+#  MOUNTCMD="sshfs -o reconnect %r:/ %m"
+ UMOUNTCMD="fusermount -u -z %m"
 
   [ ! -z "$DEBUG" ] && set -x
-  exec afuse -o mount_template="$mount_template",unmount_template="$unmount_template",allow_root${DEBUG:+,debug} "$1"
+  exec afuse -o mount_template="$MOUNTCMD",unmount_template="$UMOUNTCMD",allow_root${DEBUG:+,debug} "$1"
 
 elif [ $1 = "-u" ]; then
     shift
