@@ -16,7 +16,10 @@ while [ $# -gt 0 ]; do
 done
 
 case "$OPTIONS" in
-    *,debug | *,debug,* | debug,*) DEBUG=1 ;;
+    *,debug) DEBUG=1; OPTIONS=${OPTIONS%,debug} ;;
+    *,debug,*) DEBUG=1; OPTIONS=${OPTIONS//,debug,/,} ;;
+    debug,*) DEBUG=1; OPTIONS=${OPTIONS#debug,} ;;
+    debug) DEBUG=1; OPTIONS= ;;
 esac
 
 export DEBUG
@@ -42,7 +45,7 @@ if [ $# = 1 ]; then
  UMOUNTCMD="fusermount -u -z %m"
 
   [ -n "$DEBUG" ] && { exec 2>/dev/null; set -x; exec 2>&9; }
-  exec afuse -o mount_template="$MOUNTCMD",unmount_template="$UMOUNTCMD",allow_root${DEBUG:+,debug} "$1"
+  exec afuse -o mount_template="$MOUNTCMD",unmount_template="$UMOUNTCMD",allow_root${DEBUG:+,debug}${OPTIONS:+,$OPTIONS} "$1"
 
 elif [ $1 = "-u" ]; then
     shift
