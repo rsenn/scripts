@@ -30,7 +30,7 @@ fi
 
 
 set -- $ARGUMENTS
-  [ -n "$DEBUG" ] && echo "ARGUMENTS: $@" 1>&9
+  [ -n "$DEBUG" ] && echo "ARGUMENTS: $@" 2>&9
 
 [ "$1" = nodev ] && shift
 
@@ -41,14 +41,14 @@ if [ $# = 1 ]; then
 #  MOUNTCMD="sshfs -o reconnect %r:/ %m"
  UMOUNTCMD="fusermount -u -z %m"
 
-  [ -n "$DEBUG" ] && set -x && exec 2>&9 
+  [ -n "$DEBUG" ] && { exec 2>/dev/null; set -x; exec 2>&9; }
   exec afuse -o mount_template="$MOUNTCMD",unmount_template="$UMOUNTCMD",allow_root${DEBUG:+,debug} "$1"
 
 elif [ $1 = "-u" ]; then
     shift
 
   MOUNTPOINT="$1/${2%%[:/]*}"
-  [ -n "$DEBUG" ] && set -x && exec 2>&9
+  [ -n "$DEBUG" ] && { exec 2>/dev/null; set -x; exec 2>&9; }
   exec fusermount -u "$MOUNTPOINT"
 
 elif [ $# = 2 ]; then
@@ -71,7 +71,7 @@ esac
   ;;
   esac
 
-  [ -n "$DEBUG" ] && set -x && exec 2>&9
+  [ -n "$DEBUG" ] && { exec 2>/dev/null; set -x; exec 2>&9; }
   exec sshfs "$SSHSPEC" "$MOUNTPOINT" -o allow_root,reconnect
 else
     echo "Arguments: $@
