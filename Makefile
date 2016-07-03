@@ -6,6 +6,7 @@ else
 prefix = /usr
 endif
 bindir = ${prefix}/bin
+sbindir = ${prefix}/sbin
 sysconfdir = /etc
 datadir = ${prefix}/share
 profiledir = ${sysconfdir}/profile.d
@@ -111,3 +112,4 @@ install: $(SCRIPTS)
 	  $(call symlink_script,../compiletrace.sh,$(DESTDIR)$(datadir)/compiletrace/bin/$$PROG); \
 	done
 	$(call symlink_script,../share/compiletrace/compiletrace.sh,$(DESTDIR)$(bindir)/compiletrace)
+	$(call symlink_script,../bin/afuse-sshfs.sh,$(DESTDIR)$(sbindir)/mount.asshfs)

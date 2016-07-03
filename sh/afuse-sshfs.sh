@@ -2,15 +2,37 @@
 
 MYNAME=${0%.sh}
 ABSME=`realpath "$0"`
+IFS="
+"
+unset ARGUMENTS
 
-while :; do
+while [ $# -gt 0 ]; do
     case "$1" in
         -d | -x | --debug) DEBUG=1; shift ;;
-        *) break ;;
+        -o) OPTIONS="$2"; shift 2 ;;
+        *) ARGUMENTS=${ARGUMENTS:+$ARGUMENTS
+}$1; shift ;;
     esac
 done
 
+case "$OPTIONS" in
+    *,debug | *,debug,* | debug,*) DEBUG=1 ;;
+esac
+
 export DEBUG
+
+if [ -n "$DEBUG" ]; then
+    LOG=${MYNAME##*/}.log
+    echo "Writing to '$LOG'" >/dev/tty
+    exec 9>$LOG
+fi
+
+
+
+set -- $ARGUMENTS
+  [ -n "$DEBUG" ] && echo "ARGUMENTS: $@" 1>&9
+
+[ "$1" = nodev ] && shift
 
 if [ $# = 1 ]; then
   mkdir -p "$1"
@@ -19,14 +41,14 @@ if [ $# = 1 ]; then
 #  MOUNTCMD="sshfs -o reconnect %r:/ %m"
  UMOUNTCMD="fusermount -u -z %m"
 
-  [ ! -z "$DEBUG" ] && set -x
+  [ -n "$DEBUG" ] && set -x && exec 2>&9 
   exec afuse -o mount_template="$MOUNTCMD",unmount_template="$UMOUNTCMD",allow_root${DEBUG:+,debug} "$1"
 
 elif [ $1 = "-u" ]; then
     shift
 
   MOUNTPOINT="$1/${2%%[:/]*}"
-  [ ! -z "$DEBUG" ] && set -x
+  [ -n "$DEBUG" ] && set -x && exec 2>&9
   exec fusermount -u "$MOUNTPOINT"
 
 elif [ $# = 2 ]; then
@@ -49,14 +71,13 @@ esac
   ;;
   esac
 
-  [ ! -z "$DEBUG" ] && set -x
+  [ -n "$DEBUG" ] && set -x && exec 2>&9
   exec sshfs "$SSHSPEC" "$MOUNTPOINT" -o allow_root,reconnect
 else
-    echo "Usage: 
+    echo "Arguments: $@
+Usage: 
   ${MYNAME##*/} <mount-point>
-
     or
-
   ${MYNAME##*/} <mount-point> [user@]host:[dir]
 " 1>&2
   exit 1
