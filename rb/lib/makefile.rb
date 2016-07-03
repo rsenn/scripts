@@ -54,18 +54,18 @@ class MakeFile < BuildFile
 
     r.sources.keys.each do |t|
       if r.project_type.to_sym == :library then
-        target = "lib#{t}.a"
-		outdir = "$(LIBDIR)"
+		    outdir = "$(LIBDIR)"
+        target = "#{outdir}/lib#{t}.a"
       else
-	    outdir = "$(BINDIR)"
-        target = t
+	      outdir = "$(BINDIR)"
+        target = "#{outdir}/#{t}"
       end
       srcs = r.sources[t]
       objs = srcs.map { |src| src.gsub(/.*\/([^\/]+)\.[^.]*$/, "$(OBJDIR)/\\1.o") }
       #pp objs
       ccvar = srcs.any? { |s| s.match /\.c[xp][xp]$/ } ? "CXX" : "CC"
-      r.targets["#{outdir}/#{target}"] = MakeFileTarget.new("$(#{ccvar}) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)", objs)
-      r.targets["all"].deps.push_unique "#{outdir}/#{target}"
+      r.targets[target.escape] = MakeFileTarget.new("$(#{ccvar}) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)", objs)
+      r.targets["all"].deps.push_unique target
     end
 
     return r
