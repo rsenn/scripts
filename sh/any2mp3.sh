@@ -87,7 +87,9 @@ case "${ARG##*/}" in
 esac && (set -e; set -x
 shineenc  -b "$ABR" -j "$WAV" "$OUTPUT"  ||
 lame --alt-preset "$ABR" --resample 44100 -m j -h "$WAV" "$OUTPUT" 
+R=$?
 [ -n "$SONG" ] && id3v2 --song "$SONG" "$OUTPUT"
+exit $R
 ) &&
 
 if $REMOVE; then rm -vf "$ARG"; fi) ||break
