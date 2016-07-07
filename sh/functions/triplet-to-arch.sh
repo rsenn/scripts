@@ -1,7 +1,7 @@
 triplet-to-arch () 
 { 
     ( for TRIPLET;  do
-        OS= BITS=;
+        OS=; BITS=; TRIPLET=${TRIPLET##*/}
        (case "$TRIPLET" in 
             *x86?64* | *x64* | *amd64*)
                 BITS=64
