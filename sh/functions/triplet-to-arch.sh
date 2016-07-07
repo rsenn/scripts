@@ -1,9 +1,8 @@
 triplet-to-arch () 
 { 
-    ( for TRIPLET in "$@";
-    do
-        ( BITS=;
-        case "$TRIPLET" in 
+    ( for TRIPLET;  do
+        OS= BITS=;
+       (case "$TRIPLET" in 
             *x86?64* | *x64* | *amd64*)
                 BITS=64
             ;;
@@ -12,8 +11,8 @@ triplet-to-arch ()
             ;;
         esac;
         OS=${TRIPLET%-gnu};
-        OS=${OS##*/};
+        OS=${OS##*-};
         OS=${OS%32};
-        echo "$OS$BITS" );
+        echo "${OS##*-}$BITS" );
     done )
 }
