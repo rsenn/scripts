@@ -8,9 +8,14 @@ set -o vi
 
 IFS="
 "
-
-PATH="/usr/bin:/bin:$PATH"
-PATH="/usr/sbin:/sbin:$PATH"
+case "$PATH" in
+  */usr/sbin* |*sbin*) ;;
+  *) PATH="/usr/sbin:/sbin:$PATH" ;;
+esac
+case "$PATH" in
+  */usr/bin*) ;;
+  *) PATH="/usr/bin:/bin:$PATH" ;;
+esac
 
 [ "$HOSTNAME" = MSYS -o -n "$MSYSTEM" ] && OS="Msys"
 [ "$OSTYPE" ] && OS="$OSTYPE"
@@ -54,8 +59,8 @@ esac
 export LC_ALL LC_CTYPE LANG HISTSIZE HISTFILESIZE XLIB_SKIP_ARGB_VISUALS LESS LS_COLORS TERM
 
 has_cmd() {
-  test -e /bin/"$1" -o -e /usr/bin/"$1"
-	#type "$1" >/dev/null 2>/dev/null
+    test -e /bin/"$1" -o -e /usr/bin/"$1"
+    #type "$1" >/dev/null 2>/dev/null
 }
 #USERAGENT="Mozilla/5.0 (Windows NT 6.1; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0"
 #USERAGENT="Mozilla/5.0 (Windows; U; Windows NT based; de-CH) AppleWebKit/533.3 (KHTML, like Gecko)  QtWeb Internet Browser/3.7 http://www.QtWeb.net"
@@ -73,10 +78,10 @@ alias aria2c='aria2c --file-allocation=none --check-certificate=false'
 
 
 if has_cmd wget; then
-  if wget --help 2>&1 |grep -q '\--no-use-server-timestamps'; then
-    WGET_ARGS="${WGET_ARGS:+$WGET_ARGS }--no-use-server-timestamps"
-  fi
- alias wget="wget $WGET_ARGS --timeout=30 --tries=3 --no-check-certificate --user-agent=\"\$USERAGENT\""
+    if wget --help 2>&1 |grep -q '\--no-use-server-timestamps'; then
+        WGET_ARGS="${WGET_ARGS:+$WGET_ARGS }--no-use-server-timestamps"
+    fi
+    alias wget="wget $WGET_ARGS --timeout=30 --tries=3 --no-check-certificate --user-agent=\"\$USERAGENT\""
 fi
 has_cmd tar && alias tar="tar --touch"
 has_cmd curl && alias curl="curl --insecure --user-agent \"\$USERAGENT\""
@@ -86,29 +91,29 @@ has_cmd aria2c && alias aria2c="aria2c --check-certificate=false --file-allocati
 has_cmd gls && alias ls="gls \$LS_ARGS" || alias ls="ls \$LS_ARGS"
 
 if ls --help 2>&1 | grep -q '\--color'; then
-  LS_ARGS="--color=auto"
+    LS_ARGS="--color=auto"
 fi
 
 #for BIN in \
-#	awk base64 basename cat chcon chgrp chmod chown chroot cksum comm cp \
-#	csplit cut date dd df dir dircolors dirname du env expand expr factor \
-#	false find fmt fold groups head hostid id install join kill libtool \
-#	libtoolize link ln locate logname m4 md5sum mkdir mkfifo mknod mktemp mv \
-#	nice nl nohup nproc numfmt od oldfind paste pathchk pinky pr printenv printf \
-#	ptx pwd readlink realpath rm rmdir runcon ${SED-sed} seq sha1sum sha224sum sha256sum \
-#	sha384sum sha512sum shred shuf sleep sort split stat stdbuf stty sum sync tac \
-#	tail tee test timeout touch tr true truncate tsort tty uname unexpand uniq \
-#	unlink updatedb uptime users vdir wc who whoami xargs yes
+    #	awk base64 basename cat chcon chgrp chmod chown chroot cksum comm cp \
+    #	csplit cut date dd df dir dircolors dirname du env expand expr factor \
+    #	false find fmt fold groups head hostid id install join kill libtool \
+    #	libtoolize link ln locate logname m4 md5sum mkdir mkfifo mknod mktemp mv \
+    #	nice nl nohup nproc numfmt od oldfind paste pathchk pinky pr printenv printf \
+    #	ptx pwd readlink realpath rm rmdir runcon ${SED-sed} seq sha1sum sha224sum sha256sum \
+    #	sha384sum sha512sum shred shuf sleep sort split stat stdbuf stty sum sync tac \
+    #	tail tee test timeout touch tr true truncate tsort tty uname unexpand uniq \
+    #	unlink updatedb uptime users vdir wc who whoami xargs yes
 #do
 #	 has_cmd "g$BIN" && alias "$BIN=g$BIN"
 #done
 
 if grep --help 2>&1 | grep -q '\--color'; then
-	GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--color=auto"
+    GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--color=auto"
 fi
 
 if grep --help 2>&1 | grep -q '\--line-buffered'; then
-	GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--line-buffered"
+    GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--line-buffered"
 fi
 
 alias grep="grep $GREP_ARGS"
@@ -132,12 +137,12 @@ type apt-get 2>/dev/null >/dev/null && alias apt-get="$SUDO apt-get -y"
 type aptitude 2>/dev/null >/dev/null && alias aptitude="$SUDO aptitude -y"
 
 if has_cmd require.sh; then
-  . require.sh
+    . require.sh
 
-  require util
-  require algorithm
-  require list
-  require fs
+    require util
+    require algorithm
+    require list
+    require fs
 fi
 
 
@@ -154,42 +159,42 @@ set_prompt()
 
 currentpath()
 {
- (CWD="${1-$PWD}"
-  [ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=`$PATHTOOL -m "$CWD"`; }
-  [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}
-  echo "$CWD")
+    (CWD="${1-$PWD}"
+    [ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=`$PATHTOOL -m "$CWD"`; }
+    [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}
+    echo "$CWD")
 }
-echo OS=$OS 1>&2
+#echo OS=$OS 1>&2
 case "${OS}" in
-darwin*) 
-    MEDIAPATH="/Volumes/*/"
-    ;;
-   msys* | Msys* |MSys* | MSYS*)
-    MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
-    PATHTOOL=msyspath
-    MSYSROOT=`msyspath -m / 2>/dev/null`
+    darwin*) 
+        MEDIAPATH="/Volumes/*/"
+        ;;
+    msys* | Msys* |MSys* | MSYS*)
+        MEDIAPATH="$SYSDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
+        PATHTOOL=msyspath
+        MSYSROOT=`msyspath -m / 2>/dev/null`
 
-    set_prompt '\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '
+        set_prompt '\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '
 
-#    set_prompt '\e[32m\]\u@\h \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
-   ;;
-  *cygwin* |Cygwin* | CYGWIN*)
-    MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
-   set_prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
-   PATHTOOL=cygpath
-   CYGROOT=`cygpath -m /`
-  ;;
-*)
-  MEDIAPATH="{/m*,$HOME/mnt}/*/"
-  if [ -e ~/.bash_prompt ]; then
-    set_prompt
-  else
-    case "$PS1" in
-      *\\033*) ;;
-      *) : set_prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ " ;;
-    esac
-  fi
- ;;
+        #    set_prompt '\e[32m\]\u@\h \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
+        ;;
+    *cygwin* |Cygwin* | CYGWIN*)
+        MEDIAPATH="$CYGDRIVE/{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}"
+        set_prompt '\[\e]0;${OS}\w\a\]\n\[\e[32m\]$USERNAME@${HOSTNAME%.*} \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
+        PATHTOOL=cygpath
+        CYGROOT=`cygpath -m /`
+        ;;
+    *)
+        MEDIAPATH="{/m*,$HOME/mnt}/*/"
+        if [ -e ~/.bash_prompt ]; then
+            set_prompt
+        else
+            case "$PS1" in
+                *\\033*) ;;
+                *) : set_prompt "${ansi_yellow}\\u${ansi_none}@${ansi_red}${HOSTNAME%[.-]*}${ansi_none}:${ansi_bold}(${ansi_none}${ansi_green}\\w${ansi_none}${ansi_bold})${ansi_none} \\\$ " ;;
+            esac
+        fi
+        ;;
 esac
 
 #case "$OS" in
@@ -206,46 +211,80 @@ esac
 
 list_mediapath()
 {
-  for ARG; do
-    eval "ls -1 -d  -- $MEDIAPATH/\$ARG 2>/dev/null"
-  done
+    for ARG; do
+        eval "ls -1 -d  -- $MEDIAPATH/\$ARG 2>/dev/null"
+    done
 }
 
 add_mediapath()
 {
-  for ARG; do
-    set -- $(eval "list_mediapath $ARG"); while [ "$1" ]; do
+    for ARG; do
+        set -- $(eval "list_mediapath $ARG"); while [ "$1" ]; do
         D="${1%/}"; [ -d "$D" ] || D=${D%/*};
-      if [ -d "$D" ]; then
-         [ "$ADD" = before ] && PATH="$D:$PATH" || PATH="$PATH:$D"
-      fi
-      shift
-      done
-  done
+        if [ -d "$D" ]; then
+            [ "$ADD" = before ] && PATH="$D:$PATH" || PATH="$PATH:$D"
+        fi
+        shift
+    done
+done
 }
 
 #is-cmd() { type "$1" >/dev/null 2>/dev/null; }
 
 notepad2() {
- (for ARG; do
+    (for ARG; do
     if type realpath 2>/dev/null >/dev/null; then
-      P=$(realpath "$ARG") #; [ "$ARG" != "$P" ] && echo "realpath \"$ARG\" = $P" 1>&2
-      [ -e "$P" -a "$ARG" != "$P" ] && ARG="$P"
+        P=$(realpath "$ARG") #; [ "$ARG" != "$P" ] && echo "realpath \"$ARG\" = $P" 1>&2
+        [ -e "$P" -a "$ARG" != "$P" ] && ARG="$P"
     fi
     if type cygpath 2>/dev/null >/dev/null; then
-      P=$(cygpath -m "$ARG") #; [ "$ARG" != "$P" ] && echo "cygpath -m \"$ARG\" = $P" 1>&2
-      [ -e "$P" -a "$ARG" != "$P" ] && ARG="$P"
+        P=$(cygpath -m "$ARG") #; [ "$ARG" != "$P" ] && echo "cygpath -m \"$ARG\" = $P" 1>&2
+        [ -e "$P" -a "$ARG" != "$P" ] && ARG="$P"
     fi
- command notepad2 "$ARG" &
- done)
+    command notepad2 "$ARG" &
+done)
 }
 #alias notepad=notepad2
 
 #echo -n "Adding mediapaths ... " 1>&2; add_mediapath "I386/" "I386/system32/" "Windows/" "Tools/" "HBCD/" "Program*/{Notepad2,WinRAR,Notepad++,SDCC/bin,gputils/bin}/"; echo "done" 1>&2
 #is-cmd "notepad2" || add_mediapath "Prog*/Notepad2"
 
-
-pathmunge() { while :; do case "$1" in -s) PATHSEP="$2"; shift 2 ;; -v) PATHVAR="$2"; shift 2 ;; -e) EXPORT="export "; shift ;; -f) FORCE=true; shift ;; -a) AFTER=true; shift ;; *) break ;; esac; done; : ${PATHVAR=PATH}; local IFS=":"; : ${OS=`uname -o | head -n1`}; case "$OS:$1" in [Mm]sys:*[:\\]*) tmp="$1"; shift; set -- `${PATHTOOL:-msyspath} "$tmp"` "$@" ;; esac; IFS=" "; if ! eval "echo \"\${${PATHVAR}}\"" | ${GREP-grep} -E -q "(^|${PATHSEP-:})$1($|${PATHSEP-:})"; then if [ "$2" = after -o "$AFTER" = true ]; then CMD="${EXPORT}${PATHVAR}=\"\${${PATHVAR}:+\$${PATHVAR}${PATHSEP-:}}\$1\""; else CMD="${EXPORT}${PATHVAR}=\"\$1\${${PATHVAR}:+${PATHSEP-:}\$${PATHVAR}}\""; fi; fi;  [ "$FORCE" = true ] && CMD="pathremove \"$1\"; $CMD"; eval "CMD=\"$CMD\""; [ "$DEBUG" = true ] && eval "echo \"+ $CMD\" 1>&2"; eval "$CMD"; unset PATHVAR; }
+pathmunge() { 
+    if [ -e /bin/grep ]; then
+        GREP=/bin/grep
+    else
+        GREP=/usr/bin/grep
+    fi
+    while :; do
+        case "$1" in -s) PATHSEP="$2"; shift 2 ;;
+            -v) PATHVAR="$2"; shift 2 ;;
+            -e) EXPORT="export "; shift ;;
+            -f) FORCE=true; shift ;;
+            -a) AFTER=true; shift ;;
+            *) break ;;
+        esac
+    done
+    : ${PATHVAR=PATH}
+    local IFS=":"
+    : ${OS=`uname -o | head -n1`}
+    case "$OS:$1" in
+        [Mm]sys:*[:\\]*) tmp="$1"; shift; set -- `${PATHTOOL:-msyspath} "$tmp"` "$@" ;;
+    esac
+    IFS=" "
+    FXPR="(^|${PATHSEP-:})$1($|${PATHSEP-:})"
+    if ! eval "echo \"\${${PATHVAR}}\" | $GREP -E -q \"\$FXPR\""; then
+        if [ "$2" = after -o "$AFTER" = true ]
+        then CMD="${EXPORT}${PATHVAR}=\"\${${PATHVAR}:+\$${PATHVAR}${PATHSEP-:}}\$1\""
+        else CMD="${EXPORT}${PATHVAR}=\"\$1\${${PATHVAR}:+${PATHSEP-:}\$${PATHVAR}}\""
+        fi
+    fi
+    [ "$FORCE" = true ] && CMD="pathremove \"$1\"
+    $CMD"
+    #    eval "CMD=\"${CMD//\""
+    [ "$DEBUG" = true ] && eval "echo \"+ $CMD\" 1>&2"
+    eval "$CMD"
+    unset PATHVAR
+}
 
 #for DIR in $(list_mediapath "Prog*"/{UniExtract,Notepad*,WinRAR,7-Zip,WinZip}/ "Tools/" "I386/" "Windows"/{,system32/} "*.lnk"); do
 #  DIR=${DIR%/}
@@ -291,53 +330,55 @@ FNS="$HOME/.bash_functions"
 msiexec()
 {
     (  while :; do
-        case "$1" in
-          -* | /?) ARGS="${ARGS+$ARGS }$1"; shift ;;
-           *) break ;;
-           esac
-           done
+    case "$1" in
+        -* | /?) ARGS="${ARGS+$ARGS }$1"; shift ;;
+        *) break ;;
+    esac
+done
 
-    r=$(realpath "$1");
-    r=${r%/.};
-    r=${r#./};
-    p=$($PATHTOOL -w "$r");
-    ( set -x;
-    cmd /c "msiexec.exe $ARGS $p" ) )
+r=$(realpath "$1");
+r=${r%/.};
+r=${r#./};
+p=$($PATHTOOL -w "$r");
+( set -x;
+cmd /c "msiexec.exe $ARGS $p" ) )
 }
 
 if [ -e /etc/bash_completion -a "${BASH_COMPLETION-unset}" = unset ]; then
-  . /etc/bash_completion
+    . /etc/bash_completion
 fi
 
 CDPATH="."
 
 if [ -n "$USERPROFILE" -a -n "$PATHTOOL" ]; then
-  USERPROFILE=`$PATHTOOL -m "$USERPROFILE"`
-  if [ -d "$USERPROFILE" ]; then
-     pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`" after
+    USERPROFILE=`$PATHTOOL -m "$USERPROFILE"`
+    if [ -d "$USERPROFILE" ]; then
+        pathmunge -v CDPATH "`$PATHTOOL "$USERPROFILE"`" after
 
-    DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" DOWNLOADS="$USERPROFILE/Downloads" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos"    MUSIC="$USERPROFILE/Music"
+        DESKTOP="$USERPROFILE/Desktop" DOCUMENTS="$USERPROFILE/Documents" DOWNLOADS="$USERPROFILE/Downloads" PICTURES="$USERPROFILE/Pictures" VIDEOS="$USERPROFILE/Videos"    MUSIC="$USERPROFILE/Music"
 
-    [ -d "$DOCUMENTS/Sources" ] && SOURCES="$DOCUMENTS/Sources"
+        [ -d "$DOCUMENTS/Sources" ] && SOURCES="$DOCUMENTS/Sources"
 
-    pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")" after
-    pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")" after
-  fi
+        pathmunge -v CDPATH "$($PATHTOOL "$DOCUMENTS")" after
+        pathmunge -v CDPATH "$($PATHTOOL "$DESKTOP")" after
+    fi
 fi
 
 if [ -z "$DESKTOP" -a -n "$HOME" ]; then
-	[ -d "$HOME/Desktop" ] && DESKTOP="$HOME/Desktop"
-	[ -d "$HOME/Documents" ] && DOCUMENTS="$HOME/Documents"
-	[ -d "$HOME/Downloads" ] && DOWNLOADS="$HOME/Downloads"
-	[ -d "$HOME/Pictures" ] && PICTURES="$HOME/Pictures"
-	[ -d "$HOME/Videos" ] && VIDEOS="$HOME/Videos"
-	[ -d "$HOME/Music" ] && MUSIC="$HOME/Music"
+    [ -d "$HOME/Desktop" ] && DESKTOP="$HOME/Desktop"
+    [ -d "$HOME/Documents" ] && DOCUMENTS="$HOME/Documents"
+    [ -d "$HOME/Downloads" ] && DOWNLOADS="$HOME/Downloads"
+    [ -d "$HOME/Pictures" ] && PICTURES="$HOME/Pictures"
+    [ -d "$HOME/Videos" ] && VIDEOS="$HOME/Videos"
+    [ -d "$HOME/Music" ] && MUSIC="$HOME/Music"
 fi
 
-case "$MSYSTEM" in
-  *MINGW32*) [ -d /mingw/bin ] && pathmunge /mingw/bin ;;
-  *MINGW64*) [ -d /mingw64/bin ] && pathmunge /mingw64/bin ;;
-  *) LS_COLORS='di=01;34:ln=01;36:pi=35:so=01;35:do=01;35:bd=35;01:cd=35;01:or=31;01:ex=01;35';
+LS_COLORS='rs=0:di=01;34:ln=01;36:mh=00:pi=33:so=01;35:do=01;35:bd=33;01:cd=33;01:or=31;01:su=37:sg=30:ca=30:tw=30:ow=34:st=37:ex=01;33:'
+case "${MSYSTEM-unset}" in
+    unset)  ;;
+    *MINGW32*) [ -d /mingw/bin ] && pathmunge /mingw/bin ;;
+    *MINGW64*) [ -d /mingw64/bin ] && pathmunge /mingw64/bin ;;
+    *) LS_COLORS='di=01;34:ln=01;36:pi=35:so=01;35:do=01;35:bd=35;01:cd=35;01:or=31;01:ex=01;35';
 ;;
 esac
 

@@ -58,7 +58,10 @@ done
 
 grep_fonts()
 {
-  exec ${GREP-grep -a --line-buffered --color=auto} -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))[^/]*\$"  "$@"
+  exec ${GREP-grep
+-a
+--line-buffered
+--color=auto} -iE "\\.($(IFS="| $IFS"; set $EXTS; echo "$*"))[^/]*\$"  "$@"
 }
 
 

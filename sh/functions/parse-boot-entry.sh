@@ -23,7 +23,7 @@ parse-boot-entry()
     OLDIFS="$IFS"
     IFS=" "
     set -- $LINE
-    CMD=$(echo "$1" | tr [:upper:] [:lower:])
+    CMD=$(echo "$1" | tr "[:upper:]" "[:lower:]")
     shift
     ARG="$*"
     IFS="$OLDIFS"

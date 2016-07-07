@@ -15,7 +15,10 @@ for ARG; do
 
   cut_trailver "$TMP" |uniq  |while read -r NAME; do 
 #  echo "+ $NAME" 1>&2
-    ${GREP-grep -a --line-buffered --color=auto} "^${NAME}[^0-9A-Za-z][0-9]" "$TMP" |sort -V |tail -n1
+    ${GREP-grep
+-a
+--line-buffered
+--color=auto} "^${NAME}[^0-9A-Za-z][0-9]" "$TMP" |sort -V |tail -n1
   done
 
 done

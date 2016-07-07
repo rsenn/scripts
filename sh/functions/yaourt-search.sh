@@ -10,9 +10,14 @@ yaourt-search() {
 set -- ${@//"^"/"/"}
 set -- ${@//[.*]/" "}
 set -- ${@//[![:alnum:]]/}
- CMD="yaourt-search-cmd \"\${@//[![:alnum:]]/}\" | yaourt-search-output"
- if is-a-tty ; then
-	 CMD="$CMD | ${GREP-grep -a --line-buffered --color=auto} -E --color=yes \"$(grep-e-expr "$@")\""
+ CMD="yaourt-search-cmd"
+ [ $# -gt 0 ] && CMD="$CMD \"\${@//[![:alnum:]]/}\"" 
+ CMD="$CMD | yaourt-search-output"
+ if is-a-tty; then
+	 [ $# -gt 0 ] && CMD="$CMD | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -E --color=yes \"$(grep-e-expr "$@")\""
 	else
 		 NPAD= VPAD=
  fi
@@ -20,10 +25,14 @@ set -- ${@//[![:alnum:]]/}
 }
 
 yaourt-search-cmd() {
+  [ $# -gt 0 ] || set -- ""
   for Q in "$@"; do
 	 (IFS="| $IFS"; set -- $Q
 	 ([ "$DEBUG" = true ] && set -x; ${YAOURT:-${YAOURT:-command yaourt}} -Ss $@) | yaourt-joinlines -s "|" $OPTS | 
-   command ${GREP-grep -a --line-buffered --color=auto} -a --colour=auto -i -E "($*)")
+   command ${GREP-grep
+-a
+--line-buffered
+--color=auto} -a --colour=auto -i -E "($*)")
  done
 }
 

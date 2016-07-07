@@ -15,6 +15,7 @@ software_EXTS="*setup*.exe *install*.exe *.msi *.msu *.cab *.vbox-extpack *.apk 
 sources_EXTS="c cs cc cpp cxx h hh hpp hxx ipp mm r java"
 videos_EXTS="3gp avi f4v flv m4v m2v mkv mov mp4 mpeg mpg ogm vob webm wmv"
 vmdisk_EXTS="vdi vmdk vhd qed qcow qcow2 vhdx hdd"
+project_EXTS="avrgccproj bdsproj cbproj coproj cproj cproject csproj dproj fsproj groupproj jsproj jucer lproj lsxproj metaproj packproj pbxproj pkgproj pmproj pnproj pro proj project pssproj shfbproj sln tmproj unityproj uvproj vbproj vcproj vcxproj vdproj vfproj webproj winproj wixproj zdsproj zfpproj"
 
 addexts() {
 eval "EXTS=\"\${EXTS:+\$EXTS }\${${1}_EXTS}\""
@@ -54,18 +55,20 @@ find_filename()
 
     ${DEBUG-false} && echo "+ $@" 1>&2
 
-		("$@" 2>/dev/null)  |${SED-sed} -u 's,^\.\/,,'
+		("$@" 2>/dev/null)  |${SED-sed} -u "$EXPR"
 	)
 }
 
 main() {
   IFS="
   "
+  EXPR='s,^\.\/,,'
 
   while :; do
 	case "$1" in
 	  -depth | -maxdepth | -mindepth | -amin | -anewer | -atime | -cmin | -cnewer | -ctime | -fstype | -gid | -group | -ilname | -iname | -inum | -iwholename | -iregex | -links | -lname | -mmin | -mtime | -name | -newer | -path | -perm | -regex | -wholename | -size | -type | -uid | -used | -user | -xtype | -context | -printf | -fprint0 | -fprint | -fls) EXTRA_ARGS="${EXTRA_ARGS:+$EXTRA_ARGS$NL}$1$NL$2"; shift 2 ;;
 	  -print | -daystart | -follow | -regextype | -mount | -noleaf | -xdev | -ignore_readdir_race | -noignore_readdir_race | -empty | -false | -nouser | -nogroup | -readable | -writable | -executable | -true | -delete | -print0 | -ls | -prune | -quit) EXTRA_ARGS="${EXTRA_ARGS:+$EXTRA_ARGS$NL}$1"; shift ;;
+	  -q|--quote) EXPR=$EXPR'; s|"|\\"|g; s|.*|"&"|'; shift ;;
 	  -c|--completed) COMPLETED="true"; shift ;;
 	  -x|-d|--debug) DEBUG="true"; shift ;;
 	  *) break ;;
@@ -81,7 +84,7 @@ main() {
   fi
 
   for S; do
-	S="$S" find_filename $ARGS
+	S="$S" find_filename $ARGS || return $?
   done
 }
 

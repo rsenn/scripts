@@ -180,10 +180,14 @@ create_list() {
   #output=
   output="$1{'"
   shift
-  for arg; do
-    output="${output:+$output$separator}$arg"
+  list=
+  [ $# -gt 0 ] && {
+  for arg; do 
+    list="${list:+$list$separator}$arg"
   done
-  echo "$output'}")
+  output="$output$list'}"
+  echo "$output"
+  } )
 }
 
 match() {

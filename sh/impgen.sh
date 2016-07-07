@@ -13,7 +13,10 @@ done
 ARGS="$*"
 NM_S=`for P in $PATH; do ls -d "$P"/*-nm; done 2>/dev/null`
 
-set -- `for MATCH in cygwin msys mingw; do echo "$NM_S" | ${GREP-grep -a --line-buffered --color=auto} -i "$MATCH" ; done`
+set -- `for MATCH in cygwin msys mingw; do echo "$NM_S" | ${GREP-grep
+-a
+--line-buffered
+--color=auto} -i "$MATCH" ; done`
 
 for NM; do
 EXPORTS=`
