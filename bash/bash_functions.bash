@@ -3001,7 +3001,7 @@ index-dir() {
         exit
     fi
     echo "Indexing directory $PWD ..." 1>&2
-    TEMP=`mktemp "$PWD/XXXXXX.list"`
+    TEMP="$PWD/$$.list"
     trap 'rm -f "$TEMP"; unset TEMP' EXIT
     ( if type list-r${R64} 2>/dev/null >/dev/null; then  
         CMD=list-r${R64} 
@@ -6772,6 +6772,57 @@ waitproc()
 warn()
 {
     msg "WARNING: $@"
+}
+
+win-get-environment()
+{ 
+ ( unset S VAR KEY GLOBAL 
+  while :; do
+    case "$1" in
+      -m | --mixed) MIXED=true; shift ;;
+      -s=* | --separator=*) S=${1#*=}; shift ;;
+      -s*) S=${1#-s}; shift ;;
+      -s | --separator) S=$2; shift 2 ;;
+      -g | --global | --local*machine*) GLOBAL=true; shift ;;
+      *) break ;;
+    esac
+  done
+EXPR="s,.*REG_SZ\s\+\(.*\),\1, ; ${S+s|;|${S:-\\n}|g}"
+[ "$MIXED" = true ] && EXPR="$EXPR; s|\\\\|/|g"
+EXPR="/REG_SZ/ { $EXPR; p }"
+
+#echo "EXPR=$EXPR" 1>&2
+  [ "$GLOBAL" = true ] &&   KEY='HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' || KEY='HKCU\Environment'
+  [ $# -le 0 ] && set -- PATH
+  
+  for VAR ; do 
+    reg query "$KEY" /v "$VAR"
+  done | sed -n "$EXPR"
+    )
+}
+
+win-set-environment()
+{ 
+ ( unset VAR KEY GLOBAL  PRINT CMD
+ CMD='reg add "$KEY" /v "$VAR" /t REG_SZ /d "$DATA" /f'
+  while :; do
+    case "$1" in
+      -p | --print) CMD="echo \"${CMD//\"/\\\"}\""; shift ;;
+      -g | --global | --local*machine*) GLOBAL=true; shift ;;
+      *) break ;;
+    esac
+  done
+  [ "$GLOBAL" = true ] &&   KEY='HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' || KEY='HKCU\Environment'
+  
+  for VAR ; do 
+  (case "$VAR" in
+     *=*) DATA=${VAR#*=}; VAR=${VAR%%=*} ;;
+     *) eval "DATA=\${$VAR}" ;;
+   esac
+  
+    eval "$CMD") || exit $?
+  done 
+    )
 }
 
 writefile() {
