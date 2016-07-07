@@ -113,3 +113,4 @@ install: $(SCRIPTS)
 	done
 	$(call symlink_script,../share/compiletrace/compiletrace.sh,$(DESTDIR)$(bindir)/compiletrace)
 	$(call symlink_script,../bin/afuse-sshfs.sh,$(DESTDIR)$(sbindir)/mount.asshfs)
+	$(call symlink_script,../bin/afuse-curlftpfs.sh,$(DESTDIR)$(sbindir)/mount.aftpfs)
