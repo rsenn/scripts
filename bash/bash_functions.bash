@@ -265,6 +265,24 @@ bpm() {
   }"
 }
 
+build-arm-linux()
+{ 
+    ( for ARG in "$@";
+    do
+        ( cd "$ARG";
+        set -- *.jucer;
+        test -n "$1" -a -f "$1" && ( set -x;
+        Introjucer --add-exporter "Linux Makefile" "$1" || Projucer --add-exporter "Linux Makefile" "$1";
+        Introjucer --resave "$1" || Projucer --resave "$1" );
+        set -x;
+        PKG_CONFIG_PATH=$(cygpath -a m:/opt/debian-jessie-a20/usr/lib/pkgconfig) make -C Builds/Linux* CONFIG=Release SYSROOT=m:/opt/debian-jessie-a20 CROSS_COMPILE="arm-linux-gnueabihf-" CXX="g++ --sysroot=\$(SYSROOT)  -I\$(SYSROOT)/usr/include -march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4" ) || { 
+            r=$?;
+            echo "Failed $ARG" 1>&2;
+            exit $r
+        };
+    done )
+}
+
 c256()
 {
   value=$1
@@ -1747,10 +1765,11 @@ filter-num() {
       *) break ;;
     esac
   done
+  : ${S=$' \t\r'}
   : ${I:=1}
   CMDX=
   for N in $(seq 1 $((I+1))); do
-    CMDX="${CMDX:+$CMDX }\${F$N}"
+    CMDX="${CMDX:+$CMDX\$S}\${F$N}"
     FIELDS="${FIELDS:+$FIELDS }F$N"
   done
   CMDX="echo \"$CMDX\""
@@ -1759,7 +1778,7 @@ filter-num() {
   CMDX="N=\$F$I; $CMDX"
 
   CMD="while read -r $FIELDS; do [ \"\$DEBUG\" = true ] && echo \"$CMDX\" 1>&2; $CMDX; done"
-  CMD="IFS=\"${S-" c"}\"; "$CMD
+  CMD="IFS=\"${S-" 	"}\"; "$CMD
   [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
   eval "($CMD)")
 }
@@ -1976,7 +1995,8 @@ foreach-partition() {
 }
 
 for_each() {
-  ABORT_COND=' return $?'
+  unset RVAL
+  ABORT_COND=' return ${RVAL-$?}'
   while :; do 
     case "$1" in
       -c | --cd | --ch*dir*) CHANGE_DIR=true; shift ;;
@@ -1985,7 +2005,7 @@ for_each() {
       *) break ;;
     esac
   done
-  ABORT_COND=' { unset CMD CHANGE_DIR ABORT_COND DEBUG;  [ "$PD" != "$PWD" ] && cd "$PD" >/dev/null; '$ABORT_COND'; }'
+  ABORT_COND=' { RVAL=$?; unset CMD CHANGE_DIR ABORT_COND DEBUG;  [ "$PD" != "$PWD" ] && cd "$PD" >/dev/null; '$ABORT_COND'; }'
   PD=$PWD
   CMD=$1
   if [ "$(type -t "$CMD")" = function ]; then

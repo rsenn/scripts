@@ -36,8 +36,8 @@ cmdexec()  {
             -m) E="$E 2>&1"; shift ;;
         *) break ;;
         esac;  done;  C="$*"; #EC=`max-length $max_length "$C"`; [ "$DEBUG" = true ] && eval max-length $max_length "EVAL: $E" 1>&2 
-    (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
-    eval "echo -n \"@@\" $EC 1>&2";  eval "($E); $EE";  exit ${R:-0}) ; return $?
+#    (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
+    (eval "echo -n \"@@ $C\" 1>&2";  eval "($E); $EE";  exit ${R:-0}) ; return $?
 }
 debug()
 {

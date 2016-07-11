@@ -198,7 +198,7 @@ RATE=29.97
 #METAOPTS="-map_metadata -1"
     (IFS="$IFS "; set -x; "$FFMPEG" 2>&1  $FFMPEGOPTS  $METAOPTS -strict -2 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 $EXTRA_ARGS \
       ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  $BITRATE_ARG -acodec libmp3lame \
-      -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) && ([ "$REMOVE" = true ] && rm -vf "$ARG") ||
+      -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) && { [ "$REMOVE" = true ] && rm -vf "$ARG"; } ||
         break
         
    unset SIZE
