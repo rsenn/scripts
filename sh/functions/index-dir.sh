@@ -15,7 +15,7 @@ index-dir() {
         exit
     fi
     echo "Indexing directory $PWD ..." 1>&2
-    TEMP=`mktemp "$PWD/XXXXXX.list"`
+    TEMP="$PWD/$$.list"
     trap 'rm -f "$TEMP"; unset TEMP' EXIT
     ( if type list-r${R64} 2>/dev/null >/dev/null; then  
         CMD=list-r${R64} 

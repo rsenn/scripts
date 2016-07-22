@@ -26,7 +26,7 @@ max-length ()
     echo "$a" )
 }
 cmdexec()  { 
-    IFS=" ""
+   (IFS=" ""
     " R= C= E='eval "$C"' EE=': ${R:=$?}; [ "$R" = "0" ] && unset R'
     [ "$DEBUG" = true ] && E='eval "echo \"XX: \$C\"" 1>&2;'$E
     o() {  X_RM_O="${X_RM_O:+$X_RM_O$IFS}$1"; E="exec >>'$1'; $E"; }
@@ -36,8 +36,8 @@ cmdexec()  {
             -m) E="$E 2>&1"; shift ;;
         *) break ;;
         esac;  done;  C="$*"; #EC=`max-length $max_length "$C"`; [ "$DEBUG" = true ] && eval max-length $max_length "EVAL: $E" 1>&2 
-    (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
-    eval "echo -n \"@@\" $EC 1>&2";  eval "($E); $EE";  exit ${R:-0}) ; return $?
+#    (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
+    eval "echo -n \"@@ $C\" 1>&2";  eval "($E); $EE";  exit ${R:-0}) ; return $?
 }
 debug()
 {
@@ -152,9 +152,6 @@ make_archive() {
 		*.tlzo|*.tar.lzo) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | lzop -$level >\"\$archive\"" ;;
 		*.tgz|*.tar.gz) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | gzip -$level >\"\$archive\"" ;;
 		*.tbz2|*.tbz|*.tar.bz2) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | bzip2 -$level >\"\$archive\"" ;;
-                *.squashfs*) 
-                    #base=$(basename ${archive%%.squashfs*}); method=${base##*squashfs}; method=${method##*.};  
-                    : ${method:=${type#*squashfs}}; method=${method##*.} : ${method:=xz};  cmd="mksquashfs ${dir//$spc/$bs$spc} \"\$archive\" -all-root -comp ${method#.}" ;;
 	esac
 	cmd='rm -vf -- "$archive"; '$cmd
 	[ "$QUIET" = true ] && cmd="($cmd) 2>/dev/null" || cmd="($cmd) 2>&1"

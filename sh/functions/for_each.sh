@@ -1,5 +1,10 @@
 for_each() {
+<<<<<<< HEAD
   ABORT_COND=' return $?'
+=======
+  unset RVAL
+  ABORT_COND=' return ${RVAL-$?}'
+>>>>>>> 51c4e37a1ee33369020bc49e1bedea910735802b
   while :; do 
     case "$1" in
       -c | --cd | --ch*dir*) CHANGE_DIR=true; shift ;;
@@ -8,7 +13,12 @@ for_each() {
       *) break ;;
     esac
   done
+<<<<<<< HEAD
   ABORT_COND=' { unset CMD CHANGE_DIR ABORT_COND DEBUG;  [ "$PD" != "$PWD" ] && cd "$PD" >/dev/null; '$ABORT_COND'; }'
+=======
+  ABORT_COND=' { RVAL=$?; trap "" INT; unset CMD CHANGE_DIR ABORT_COND DEBUG;  [ "$PD" != "$PWD" ] && cd "$PD" >/dev/null; '$ABORT_COND'; }'
+  [ "$CHANGE_DIR" = true ] && trap "$ABORT_COND" INT
+>>>>>>> 51c4e37a1ee33369020bc49e1bedea910735802b
   PD=$PWD
   CMD=$1
   if [ "$(type -t "$CMD")" = function ]; then

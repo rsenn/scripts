@@ -185,7 +185,11 @@ case "${OS}" in
         CYGROOT=`cygpath -m /`
         ;;
     *)
+<<<<<<< HEAD
         MEDIAPATH="{/m*,$HOME/mnt}/*/"
+=======
+        MEDIAPATH="{/mnt,$HOME/mnt}/*/"
+>>>>>>> 51c4e37a1ee33369020bc49e1bedea910735802b
         if [ -e ~/.bash_prompt ]; then
             set_prompt
         else
