@@ -11,6 +11,7 @@ while :; do
     case "$1" in
    -abr=*|--abr=*) ABR="${1#*=}"; shift ;; -abr|--abr) ABR="$2"; shift 2 ;;
    -ar=*|--ar=*) AR="${1#*=}"; shift ;; -ar|--ar) AR="$2"; shift 2 ;;
+   -p) PRESET="$2"; shift 2 ;;
    -b) VBR="$2"; shift 2 ;;
    -d) DIR="$2"; shift 2 ;;
    -r) REMOVE=true; shift ;;
@@ -196,9 +197,9 @@ $((VBR + ABR))"
 
 RATE=29.97
 #METAOPTS="-map_metadata -1"
-    (IFS="$IFS "; set -x; "$FFMPEG" 2>&1  $FFMPEGOPTS  $METAOPTS -strict -2 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 $EXTRA_ARGS \
+    (IFS="$IFS "; set -x; "$FFMPEG" 2>&1  $FFMPEGOPTS  $METAOPTS -strict -2 -y -i "$ARG" $A  ${RATE:+-r $RATE}  -f mp4 -vcodec libx264 ${PRESET:+-preset "$PRESET"} $EXTRA_ARGS \
       ${ASPECT+-aspect "$ASPECT"} ${SIZE+-s "$SIZE"}  $BITRATE_ARG -acodec libmp3lame \
-      -ab "$ABR" -ar "$AR" -ac 2  "$OUTPUT" ) && { [ "$REMOVE" = true ] && rm -vf "$ARG"; } ||
+      -ab "$ABR" -ar "$AR" -ac 2  "${OUTPUT%.*}.out.mp4" ) && { mv -vf "${OUTPUT%.mp4}.out.mp4" "${OUTPUT}.mp4"; [ "$REMOVE" = true ] && rm -vf "$ARG"; } ||
         break
         
    unset SIZE
