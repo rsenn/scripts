@@ -1,6 +1,6 @@
 filter-num() {
  (IFS="
-"
+	"
   unset ARGS MODE
   push() {
   eval 'shift; '$1'=${'$1':+"$'$1'$S"}$*'
@@ -39,10 +39,11 @@ filter-num() {
       *) break ;;
     esac
   done
+  : ${S=$' \t\r'}
   : ${I:=1}
   CMDX=
   for N in $(seq 1 $((I+1))); do
-    CMDX="${CMDX:+$CMDX }\${F$N}"
+    CMDX="${CMDX:+$CMDX\$S}\${F$N}"
     FIELDS="${FIELDS:+$FIELDS }F$N"
   done
   CMDX="echo \"$CMDX\""
@@ -51,7 +52,7 @@ filter-num() {
   CMDX="N=\$F$I; $CMDX"
 
   CMD="while read -r $FIELDS; do [ \"\$DEBUG\" = true ] && echo \"$CMDX\" 1>&2; $CMDX; done"
-  CMD="IFS=\"${S-" c"}\"; "$CMD
+  CMD="IFS=\"${S-" 	"}\"; "$CMD
   [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
   eval "($CMD)")
 }

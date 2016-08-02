@@ -126,8 +126,8 @@ CXX="$CHOST-g++${SYSROOT:+ --sysroot="$SYSROOT"}"
 		set -- make CC="$CC" {CXX,CCLD,LINK}="$CXX" "$@" 
 
 		if [ -n "$SYSROOT" -a -d "$SYSROOT" ]; then
-			export PKG_CONFIG_PATH="$(ls -d $SYSROOT/{usr/,}{lib/,share/}{,*/}pkgconfig 2>/dev/null |implode :)"
-			export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
+		[ -z "$PKG_CONFIG_PATH" ] && export PKG_CONFIG_PATH="$(ls -d $SYSROOT/{usr/,}{lib/,share/}{,*/}pkgconfig 2>/dev/null |implode :)"
+		[ -z "$PKG_CONFIG_SYSROOT_DIR" ] && export PKG_CONFIG_SYSROOT_DIR="$SYSROOT"
     fi
 		[ "$DEBUG" = true ] && set -x
 
@@ -263,6 +263,24 @@ bpm() {
     s|^id3v2 tag info for \([^\n]*\) *: *\n *|\1: |
     p
   }"
+}
+
+build-arm-linux()
+{ 
+    ( for ARG in "$@";
+    do
+        ( cd "$ARG";
+        set -- *.jucer;
+        test -n "$1" -a -f "$1" && ( set -x;
+        Introjucer --add-exporter "Linux Makefile" "$1" || Projucer --add-exporter "Linux Makefile" "$1";
+        Introjucer --resave "$1" || Projucer --resave "$1" );
+        set -x;
+        PKG_CONFIG_PATH=$(cygpath -a m:/opt/debian-jessie-a20/usr/lib/pkgconfig) make -C Builds/Linux* CONFIG=Release SYSROOT=m:/opt/debian-jessie-a20 CROSS_COMPILE="arm-linux-gnueabihf-" CXX="g++ --sysroot=\$(SYSROOT)  -I\$(SYSROOT)/usr/include -march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4" ) || { 
+            r=$?;
+            echo "Failed $ARG" 1>&2;
+            exit $r
+        };
+    done )
 }
 
 c256()
@@ -1747,10 +1765,11 @@ filter-num() {
       *) break ;;
     esac
   done
+  : ${S=$' \t\r'}
   : ${I:=1}
   CMDX=
   for N in $(seq 1 $((I+1))); do
-    CMDX="${CMDX:+$CMDX }\${F$N}"
+    CMDX="${CMDX:+$CMDX\$S}\${F$N}"
     FIELDS="${FIELDS:+$FIELDS }F$N"
   done
   CMDX="echo \"$CMDX\""
@@ -1759,7 +1778,7 @@ filter-num() {
   CMDX="N=\$F$I; $CMDX"
 
   CMD="while read -r $FIELDS; do [ \"\$DEBUG\" = true ] && echo \"$CMDX\" 1>&2; $CMDX; done"
-  CMD="IFS=\"${S-" c"}\"; "$CMD
+  CMD="IFS=\"${S-" 	"}\"; "$CMD
   [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
   eval "($CMD)")
 }
@@ -3001,7 +3020,7 @@ index-dir() {
         exit
     fi
     echo "Indexing directory $PWD ..." 1>&2
-    TEMP=`mktemp "$PWD/XXXXXX.list"`
+    TEMP="$PWD/$$.list"
     trap 'rm -f "$TEMP"; unset TEMP' EXIT
     ( if type list-r${R64} 2>/dev/null >/dev/null; then  
         CMD=list-r${R64} 
@@ -3295,6 +3314,39 @@ join-lines() {
 				} 
 				s,\'$c'$,,
     }')
+}
+
+juce-mingw-build() { 
+ (: ${MSYS_HOME="e:/msys64"}
+  : ${MINGW_HOME="$MSYS_HOME/mingw64"}
+  unset VARS TARGETS DIRS
+  while [ $# -gt 0 ]; do
+    ARG="$1"; shift
+    if [ -d "$ARG" ]; then
+      pushv DIRS "$ARG"
+      continue
+    fi    
+    case "$ARG" in
+      *=*) pushv VARS "$ARG"; continue ;;
+      *) pushv TARGETS "$ARG" ;;
+    esac    
+  done 
+  [ -z "$DIRS" ] && DIRS=.
+  var_dump VARS DIRS TARGETS
+  export PKG_CONFIG_PATH="$(cygpath -a "${MINGW_HOME}"/*/pkgconfig | implode :)" PKG_CONFIG_SYSROOT_DIR="$(cygpath -am "${MSYS_HOME}")"
+
+  for P in $DIRS; do 
+    DIR=${P%/Builds*}
+	P=$DIR/Builds/MinGW*
+    (cd "$DIR"
+     set -- *.jucer; J="$1"
+	  for JUCER in {Pro,Intro}jucer; do (set -x; $JUCER --resave "$J") && {
+	   $JUCER --add-exporter "MinGW Makefile" "$J" 
+	 }
+  set -x; make -C Builds/MinGW*  $VARS $TARGETS && exit 0
+	done) || exit $?
+	
+  done)
 }
 
 killall-w32()
@@ -6355,6 +6407,25 @@ to-sed-expr()
   ${SED-sed} 's|[.*\\]|\\&|g ;; s|\[|\\[|g ;; s|\]|\\]|g')
 }
 
+triplet-to-arch()
+{ 
+    ( for TRIPLET;  do
+        OS=; BITS=; TRIPLET=${TRIPLET##*/}
+       (case "$TRIPLET" in 
+            *x86?64* | *x64* | *amd64*)
+                BITS=64
+            ;;
+            *i[3-8]86* | *x32* | *x86*)
+                BITS=32
+            ;;
+        esac;
+        OS=${TRIPLET%-gnu};
+        OS=${OS##*-};
+        OS=${OS%32};
+        echo "${OS##*-}$BITS" );
+    done )
+}
+
 umount-all()
 {
     for ARG in "$@";
@@ -6739,6 +6810,57 @@ waitproc()
 warn()
 {
     msg "WARNING: $@"
+}
+
+win-get-environment()
+{ 
+ ( unset S VAR KEY GLOBAL 
+  while :; do
+    case "$1" in
+      -m | --mixed) MIXED=true; shift ;;
+      -s=* | --separator=*) S=${1#*=}; shift ;;
+      -s*) S=${1#-s}; shift ;;
+      -s | --separator) S=$2; shift 2 ;;
+      -g | --global | --local*machine*) GLOBAL=true; shift ;;
+      *) break ;;
+    esac
+  done
+EXPR="s,.*REG_SZ\s\+\(.*\),\1, ; ${S+s|;|${S:-\\n}|g}"
+[ "$MIXED" = true ] && EXPR="$EXPR; s|\\\\|/|g"
+EXPR="/REG_SZ/ { $EXPR; p }"
+
+#echo "EXPR=$EXPR" 1>&2
+  [ "$GLOBAL" = true ] &&   KEY='HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' || KEY='HKCU\Environment'
+  [ $# -le 0 ] && set -- PATH
+  
+  for VAR ; do 
+    reg query "$KEY" /v "$VAR"
+  done | sed -n "$EXPR"
+    )
+}
+
+win-set-environment()
+{ 
+ ( unset VAR KEY GLOBAL  PRINT CMD
+ CMD='reg add "$KEY" /v "$VAR" /t REG_SZ /d "$DATA" /f'
+  while :; do
+    case "$1" in
+      -p | --print) CMD="echo \"${CMD//\"/\\\"}\""; shift ;;
+      -g | --global | --local*machine*) GLOBAL=true; shift ;;
+      *) break ;;
+    esac
+  done
+  [ "$GLOBAL" = true ] &&   KEY='HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment' || KEY='HKCU\Environment'
+  
+  for VAR ; do 
+  (case "$VAR" in
+     *=*) DATA=${VAR#*=}; VAR=${VAR%%=*} ;;
+     *) eval "DATA=\${$VAR}" ;;
+   esac
+  
+    eval "$CMD") || exit $?
+  done 
+    )
 }
 
 writefile() {

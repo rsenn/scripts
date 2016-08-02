@@ -55,7 +55,7 @@ output() {
     CMD='echo -e "#!/bin/bash\n"
     echo "$FUNCTIONS"'
     if [ -n "$1" ]; then
-      TMP=`mktemp "${MYNAME}-XXXXXX.tmp"`
+      TMP=${MYNAME}-$$.tmp
       trap  'rm -f "$TMP"' EXIT
       CMD="{ $CMD; } >\"\$TMP\"; mv -f \"\$TMP\" \"\$1\"; echo \"Wrote '\$1'.\" 1>&2"
     fi
