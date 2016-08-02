@@ -140,6 +140,19 @@ array()
     echo "$*"
 }
 
+asc2chr()
+{
+	(while :; do
+	   case "$1" in
+			   -n|-nonewline|--nonewline) NONL="-nonewline"; shift ;;
+				 *) break ;;
+			esac
+		done
+    CMD='echo "puts ${NONL:+$NONL }[format \"%c\" $ASC]"'
+		CMD="for ASC; do $CMD; done | tclsh"
+		eval "$CMD")
+}
+
 aspect()
 {
     ( case "$#" in
@@ -3464,7 +3477,7 @@ list-7z() {
   while [ $# -gt 0 ]; do
    (B=${1##*/}
     case "$1" in
-      *://*) INPUT="wget -q -O - \"\$1\"" ;;
+      *://*) INPUT="wget -q -O - \"\$1\""; ARCHVIE=$1 ;;
       *) ARCHIVE=$1  ;;
     esac
     case "$1" in
