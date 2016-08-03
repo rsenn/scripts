@@ -3670,7 +3670,7 @@ list-mediapath() {
   for ARG; do ARG=${ARG//" "/"\\ "}; ARG=${ARG//"("/"\\("};  ARG=${ARG//")"/"\\)"}; 
    CMD="${CMD:+$CMD; }ls -1 -d $OPTS -- $MEDIAPATH/${ARG#/} 2>/dev/null"; done
 
-  [ -n "$PATHTOOL_OPTS" ] && CMD="$PATHTOOL ${PATHTOOL_OPTS:--m} \$($CMD)"
+  [ -n "$PATHTOOL_OPTS" ] && CMD="${PATHTOOL:+$PATHTOOL ${PATHTOOL_OPTS:--m}}${PATHTOOL:-realpath} \$($CMD)"
   #CMD="for ARG; do $CMD; done"
   [ -n "$FILTER" ] &&	 CMD="($CMD) | $FILTER"
 [ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2
@@ -6995,10 +6995,7 @@ set -- ${@//[![:alnum:]]/}
  [ $# -gt 0 ] && CMD="$CMD \"\${@//[![:alnum:]]/}\"" 
  CMD="$CMD | yaourt-search-output"
  if is-a-tty; then
-	 [ $# -gt 0 ] && CMD="$CMD | ${GREP-grep
--a
---line-buffered
---color=auto} -E --color=yes \"$(grep-e-expr "$@")\""
+	 [ $# -gt 0 ] && CMD="$CMD | ${GREP-grep -a --line-buffered --color=auto} -E --color=yes \"$(grep-e-expr "$@")\""
 	else
 		 NPAD= VPAD=
  fi
@@ -7010,10 +7007,7 @@ yaourt-search-cmd() {
   for Q in "$@"; do
 	 (IFS="| $IFS"; set -- $Q
 	 ([ "$DEBUG" = true ] && set -x; ${YAOURT:-${YAOURT:-command yaourt}} -Ss $@) | yaourt-joinlines -s "|" $OPTS | 
-   command ${GREP-grep
--a
---line-buffered
---color=auto} -a --colour=auto -i -E "($*)")
+   command ${GREP-grep -a --line-buffered --color=auto} -a --colour=auto -i -E "($*)")
  done
 }
 
