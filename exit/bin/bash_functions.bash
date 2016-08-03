@@ -265,24 +265,6 @@ bpm() {
   }"
 }
 
-build-arm-linux()
-{ 
-    ( for ARG in "$@";
-    do
-        ( cd "$ARG";
-        set -- *.jucer;
-        test -n "$1" -a -f "$1" && ( set -x;
-        Introjucer --add-exporter "Linux Makefile" "$1" || Projucer --add-exporter "Linux Makefile" "$1";
-        Introjucer --resave "$1" || Projucer --resave "$1" );
-        set -x;
-        PKG_CONFIG_PATH=$(cygpath -a m:/opt/debian-jessie-a20/usr/lib/pkgconfig) make -C Builds/Linux* CONFIG=Release SYSROOT=m:/opt/debian-jessie-a20 CROSS_COMPILE="arm-linux-gnueabihf-" CXX="g++ --sysroot=\$(SYSROOT)  -I\$(SYSROOT)/usr/include -march=armv7-a -mtune=cortex-a7 -mfpu=neon-vfpv4" ) || { 
-            r=$?;
-            echo "Failed $ARG" 1>&2;
-            exit $r
-        };
-    done )
-}
-
 c256()
 {
   value=$1
@@ -1765,11 +1747,10 @@ filter-num() {
       *) break ;;
     esac
   done
-  : ${S=$' \t\r'}
   : ${I:=1}
   CMDX=
   for N in $(seq 1 $((I+1))); do
-    CMDX="${CMDX:+$CMDX\$S}\${F$N}"
+    CMDX="${CMDX:+$CMDX }\${F$N}"
     FIELDS="${FIELDS:+$FIELDS }F$N"
   done
   CMDX="echo \"$CMDX\""
@@ -1778,7 +1759,7 @@ filter-num() {
   CMDX="N=\$F$I; $CMDX"
 
   CMD="while read -r $FIELDS; do [ \"\$DEBUG\" = true ] && echo \"$CMDX\" 1>&2; $CMDX; done"
-  CMD="IFS=\"${S-" 	"}\"; "$CMD
+  CMD="IFS=\"${S-" c"}\"; "$CMD
   [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
   eval "($CMD)")
 }
@@ -4692,6 +4673,7 @@ $VCBUILDCMD
       echo "Generating script $DIR/build.cmd ($(vcget "$VC" VCNAME))" 1>&2
       unix2dos >"$DIR/build.cmd" <<EOF
 @echo ${BATCHECHO:-off}
+%~d0:
 cd %~dp0
 ${ARGS_LOOP:+${nl}:args${nl}$ARGS_LOOP${nl}}${CONFIGURE_CMD:+${nl}$CONFIGURE_CMD${nl}}${IF_TARGET:+${nl}$IF_TARGET${nl}}${VCVARSCMD:+${nl}call $VCVARSCMD${nl}${BATCHECHO:+@echo $BATCHECHO${nl}}}
 for %%G in (${BUILD_TYPE:-Debug Release}) do $VCBUILDCMD${ADD_ARGS}

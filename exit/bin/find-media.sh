@@ -302,7 +302,7 @@ if [ "$EXIST_FILE" = true ]; then
 fi
 if [ -n "$INCLUDE_DIRS" ]; then
   INCLUDE_DIR_EXPR=`grep_e_expr $INCLUDE_DIRS`
-  FILTERCMD="${FILTERCMD:+$FILTERCMD | }grep -E \"^$INCLUDE_DIR_EXPR\""
+  FILTERCMD="${FILTERCMD:+$FILTERCMD | }grep -a -E \"^$INCLUDE_DIR_EXPR\""
 fi
 #if [ -n "$EXCLUDE_DIRS" ]; then
 #  EXCLUDE_DIR_EXPR=`grep_e_expr $EXCLUDE_DIRS`

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 : ${MNTDIR:="$HOME/mnt"}
+: ${FUSEISO:=`which fuseiso`}
 
 while :; do
   case "$1" in
@@ -16,13 +17,17 @@ for ARG; do
   NAME=${FILE%.iso}
   MNT="$MNTDIR/$NAME"
 
-  umount "$MNT" 2>/dev/null
+  fusermount -u "$MNT" 2>/dev/null
   
   mkdir -p "$MNT"
 
   if [ ! -b "$ARG" -a ! -c "$ARG" ]; then
 
+    if [ -n "$FUSEISO" -a -f "$FUSEISO" -a -x "$FUSEISO" ]; then
+      fuseiso "$ARG" "$MNT" -o allow_other  || exit $?
+    else
       mount ${TYPE:+-t "$TYPE"} -o loop "$ARG" "$MNT" || exit $?
+    fi
   else
       mount "$ARG" "$MNT" || exit $?
   fi
