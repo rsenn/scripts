@@ -1,2 +1,0 @@
-ETC=@ETC@
-LOG=@LOG@
