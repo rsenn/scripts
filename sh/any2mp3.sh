@@ -85,7 +85,7 @@ case "${ARG##*/}" in
 	(${FFMPEG:-ffmpeg} -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV") 
 	;;
 esac && (set -e; set -x
-shineenc  -b "$ABR" -j "$WAV" "$OUTPUT"  ||
+shineenc  -b "$ABR" "$WAV" "$OUTPUT"  ||
 lame --alt-preset "$ABR" --resample 44100 -m j -h "$WAV" "$OUTPUT" 
 R=$?
 [ -n "$SONG" ] && id3v2 --song "$SONG" "$OUTPUT"

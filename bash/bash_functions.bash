@@ -4705,6 +4705,7 @@ $VCBUILDCMD
       echo "Generating script $DIR/build.cmd ($(vcget "$VC" VCNAME))" 1>&2
       unix2dos >"$DIR/build.cmd" <<EOF
 @echo ${BATCHECHO:-off}
+%~d0:
 cd %~dp0
 ${ARGS_LOOP:+${nl}:args${nl}$ARGS_LOOP${nl}}${CONFIGURE_CMD:+${nl}$CONFIGURE_CMD${nl}}${IF_TARGET:+${nl}$IF_TARGET${nl}}${VCVARSCMD:+${nl}call $VCVARSCMD${nl}${BATCHECHO:+@echo $BATCHECHO${nl}}}
 for %%G in (${BUILD_TYPE:-Debug Release}) do $VCBUILDCMD${ADD_ARGS}
