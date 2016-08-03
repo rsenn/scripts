@@ -1739,7 +1739,7 @@ filter-git-status()
 
 filter-num() {
  (IFS="
-"
+	"
   unset ARGS MODE
   push() {
   eval 'shift; '$1'=${'$1':+"$'$1'$S"}$*'
@@ -2397,7 +2397,7 @@ git-get-remote() {
     esac
   done
   [ $# -lt 1 ] && set -- .
-  [ $# -gt 1 ] && FILTER="${SED-sed} \"s|^|\$DIR: |\"" || FILTER=
+  [ $# -ge 1 ] && FILTER="${SED-sed} \"s|^|\$DIR: |\"" || FILTER=
 
   EXPR="s|\\s\\+| |g"
   if [ -n "$NAME" ]; then
