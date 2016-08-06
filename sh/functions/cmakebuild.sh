@@ -19,10 +19,12 @@ cmakebuild()
             esac
         done
         [ "$DEBUG" = true ] && echo "EVAL: $E" 1>&2 
-        (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
+        ( 
+        trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! \(exitcode: \$R\)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
         echo -n "@@" $C 1>&2 
 eval "$E; $EE"
-exit ${R:-0}) ; return $?
+exit ${R:-0} 
+        ) ; return $?
     }
      find_libpython() {
         : ${python_config:=`cmd-path python-config`}
