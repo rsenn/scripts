@@ -12,7 +12,7 @@ cmakebuild()
         while [ $# -gt 0 ]; do
                 case "$1" in 
                     -o) o "$2"; shift 2 ;; -o*) o "${1#-o}"; shift ;;
-                -w) E="(cd '$2' && $E)"; shift 2 ;;     -w*) E="(cd '${1#-w}' && $E)"; shift ;;
+                -w\) E="\(cd '$2' && $E\)"; shift 2 ;;     -w*\) E="\(cd '${1#-w}' && $E\)"; shift ;;
                 -m) E="$E 2>&1"; shift ;;
             *) C="${C:+$C
 }$1"; shift ;;
