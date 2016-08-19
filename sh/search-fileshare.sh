@@ -19,24 +19,30 @@ while :; do
   esac
 done
 
-NAME=`echo "$*" | ${SED-sed} -e 's,[^0-9A-Za-z]\+,-,g' -e 's,^[^0-9A-Za-z]\+,,' -e 's,[^0-9A-Za-z]\+$,,'`
-echo "Canonical name is $NAME" 1>&2
+search_fileshare() {
+  NAME=`echo "$*" | ${SED-sed} -e 's,[^0-9A-Za-z]\+,-,g' -e 's,^[^0-9A-Za-z]\+,,' -e 's,[^0-9A-Za-z]\+$,,'`
+  echo "Canonical name is $NAME" 1>&2
 
-KEYWORDS="$*"
-OUTPUT="$NAME.list"
+  KEYWORDS="$*"
+  OUTPUT="$NAME.list"
 
-{ RESULTS=1000
-  
- (set -x
-  google.sh $OPTS "$KEYWORDS $SET1"
-  google.sh $OPTS "$KEYWORDS $SET2"
-  google.sh $OPTS "$KEYWORDS $SET3")
+  { RESULTS=1000
+	
+   (set -x
+	google.sh $OPTS "$KEYWORDS $SET1"
+	google.sh $OPTS "$KEYWORDS $SET2"
+	google.sh $OPTS "$KEYWORDS $SET3")
 
-} \
-  | xargs -n10 -d "
-" extract-urls.sh \
-  | file-hoster-urls.sh \
-  | uniq \
-  | tee "$OUTPUT"
- 
-wc -l "$OUTPUT"
+  } \
+	| xargs -n10 -d "
+  " extract-urls.sh \
+	| file-hoster-urls.sh \
+	| uniq \
+	| tee "$OUTPUT"
+   
+  wc -l "$OUTPUT"
+}
+
+for ARG; do 
+  search_fileshare "$ARG"
+done
