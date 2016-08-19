@@ -116,6 +116,10 @@ if grep --help 2>&1 | grep -q '\--line-buffered'; then
     GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--line-buffered"
 fi
 
+if grep --help 2>&1 | grep -q '\--text'; then
+    GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--text"
+fi
+
 alias grep="grep $GREP_ARGS"
 alias grepdiff='grepdiff --output-matching=hunk'
 
