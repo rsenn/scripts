@@ -200,6 +200,7 @@ case "${OS}" in
         fi
         ;;
 esac
+MEDIAPATH="${MEDIAPATH%/}{,/{Users,home}/*}"
 
 #case "$OS" in
 #   *cygwin* |Cygwin* | CYGWIN* | msys* | Msys* |MSys* | MSYS*)
