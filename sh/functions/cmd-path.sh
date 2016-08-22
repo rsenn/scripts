@@ -1,4 +1,4 @@
-cmd-path() 
+cmd-path()
 { 
    (F=`mktemp`
     trap 'rm -vf --  "$F"' EXIT
@@ -14,7 +14,7 @@ cmd-path()
     
     case "$O" in
         *" is /"*) P=${O#*" is "} ;;
-        *" is hashed ("*) P=${O#*"("}; P=${P%")"} ;;
+        *" is hashed \("*) P=${O#*"\("}; P=${P%"\)"} ;;
     esac
 
     if [ -n "$P" -a -e "$P" ]; then

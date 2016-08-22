@@ -575,17 +575,19 @@ cmakebuild()
         while [ $# -gt 0 ]; do
                 case "$1" in 
                     -o) o "$2"; shift 2 ;; -o*) o "${1#-o}"; shift ;;
-                -w) E="(cd '$2' && $E)"; shift 2 ;;     -w*) E="(cd '${1#-w}' && $E)"; shift ;;
+                -w\) E="\(cd '$2' && $E\)"; shift 2 ;;     -w*\) E="\(cd '${1#-w}' && $E\)"; shift ;;
                 -m) E="$E 2>&1"; shift ;;
             *) C="${C:+$C
 }$1"; shift ;;
             esac
         done
         [ "$DEBUG" = true ] && echo "EVAL: $E" 1>&2 
-        (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
+        ( 
+        trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! \(exitcode: \$R\)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
         echo -n "@@" $C 1>&2 
 eval "$E; $EE"
-exit ${R:-0}) ; return $?
+exit ${R:-0} 
+        ) ; return $?
     }
      find_libpython() {
         : ${python_config:=`cmd-path python-config`}
@@ -668,7 +670,7 @@ cmd-path()
     
     case "$O" in
         *" is /"*) P=${O#*" is "} ;;
-        *" is hashed ("*) P=${O#*"("}; P=${P%")"} ;;
+        *" is hashed \("*) P=${O#*"\("}; P=${P%"\)"} ;;
     esac
 
     if [ -n "$P" -a -e "$P" ]; then
@@ -703,9 +705,9 @@ command-exists()
 compare-dirs()
 {
      diff -ru "$@" | ${SED-sed} -n \
-         -e "/^Binary files/ s,^Binary files \(.*\) and \(.*\) differ,\1 \2,p" \
-         -e "s,^Only in \(.*\): \(.*\),\1/\2,p" \
-         -e "/^diff/ { N; /\n---/ { N; /\n+++/ { s,\n.*,, ;; s,^diff\s\+,, ;; s,^-[^ ]* ,,g ;; p } } }"
+         -e "/^Binary files/ s,^Binary files \(.*\) and \(.*\) differ, ,p" \
+         -e "s,^Only in \(.*\): \(.*\),/,p" \
+         -e "/^diff/ { N; /---/ { N; /+++/ { s,.*,, ; s,^diff\s\+,, ; s,^-[^ ]* ,,g ; p } } }"
 }
 
 convert-boot-entries()
@@ -775,7 +777,7 @@ cpan-install()
 {
     for ARG in "$@";
     do
-        perl -MCPAN -e "CPAN::Shell->notest('install', '$ARG')";
+        perl -MCPAN -e "CPAN::Shell->notest\('install', '$ARG'\)";
     done
 }
 
@@ -784,10 +786,7 @@ cpan-search()
     ( for ARG in "$@";
     do
         ARG=${ARG//::/-};
-        URL=$(dlynx.sh "http://search.cpan.org/search?query=$ARG&mode=dist" |${GREP-grep
--a
---line-buffered
---color=auto} "/$ARG-[0-9][^/]*/\$" | sort -V | tail -n1 );
+        URL=`dlynx.sh "http://search.cpan.org/search?query=$ARG&mode=dist" |${GREP-grep -a --line-buffered --color=auto} "/$ARG-[0-9][^/]*/\$" | sort -V | tail -n1 `
         test -n "$URL" && {
             dlynx.sh "$URL" | grep-archives.sh | sort -V | tail -n1
         };
@@ -880,55 +879,12 @@ cut-ls-l()
         I=`expr $I - 1`;
     done;
     IFS=" ";
-    CMD="while read  -r $* P; do  echo \"\${P}\"; done";
+    CMD='while read  -r '$*' P;do  echo "$P"; done'
    #echo "+ $CMD" 1>&2;
     eval "$CMD" )
 }
 
-cut-lsof() {
- (IFS=" "
-  [ $# -le 0 ] && set NAME
-  CMD=
-  is_num() { for N; do test "$N" -ge 0 2>/dev/null || return $?; done; }
 
-  for FIELD; do CMD="${CMD:+$CMD }\${$FIELD}"; done
-  CMD="echo \"$CMD\""
-  eval "print() { $CMD; }"
-  set -- COMMAND PID USER FD TYPE DEVICE SIZE NODE NAME
-  LINE=1
-  while read -r "$@"; do
-    if [ "$LINE" -le 2 ]; then
-      case "$TYPE" in
-        TTY) set -- PID PARENT PGID WINPID TTY USERID STIME NAME; unset SIZE; LINE=$((LINE+1)); continue ;;
-        "("*")") set -- COMMAND PID FD TYPE NAME; FD="$USER" TYPE="$FD" MODE="$TYPE" NAME="$DEVICE${SIZE:+ $SIZE}${NODE:+ $NODE}${NAME:+ $NAME}" ;;
-         *)
-          if is_num "$COMMAND" "$PID" "$USER" "$FD" || [ "$COMMAND" = I ]; then
-            set -- PID PARENT PGID WINPID TTY USERID STIME NAME
-          elif [ "$LINE" -le 1 ] && (! is_num "$NODE" || [ -z "$NAME" ]); then
-            NAME="$NODE${NAME:+ $NAME}"; unset NODE
-            set -- COMMAND PID USER FD TYPE DEVICE SIZE NAME
-          fi
-
-          ;;
-      esac
-    fi
-    case "$NAME" in
-      "("*") "*) MODE=${NAME%%" "*}; NAME=${NAME#"("*") "} ;;
-      [0-2][0-9]:[0-5][0-9]:[0-5][0-9]" "*) STIME=${NAME%%" "*}; 		NAME=${NAME#[0-2][0-9]:[0-5][0-9]:[0-5][0-9]" "} ;;
-    esac
-    case "$PID" in
-      I) PID="$PARENT" PARENT="$PGID" PGID="$WINPID" WINPID="$TTY" TTY="$USERID" USERID="$STIME" STIME="${NAME%% *}" NAME="${NAME#* }" ;;
-    esac
-    case "${SIZE:-$STIME}" in
-      Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Dec)
-        NAME=${NAME#*" "}
-      ;;
-    esac
-    while [ "$NAME" != "${NAME# }" ]; do NAME=${NAME#" "}; done
-    print
-    LINE=$((LINE + 1))
-  done)
-}
 
 cut-num() {
  (while :; do
@@ -1020,7 +976,7 @@ dec2bin() {
  (NUM="$*"
   for N in $NUM; do
     case "$N" in
-      0x*) eval "N=\$(($N))" ;;
+      0x*\) eval "N=\$\(\($N\)\)" ;;
     esac
     echo "obase=2;$N" | bc -l
   done | addprefix "${P-0b}")
@@ -1384,7 +1340,8 @@ dump-shortcuts() {
      *) break ;;
    esac
   done
-  for-each 'readshortcut $OPTS -t -r "$1" | ${SED-sed} "N ;; s%\s*\n\s*% % ;; s%^%$1: %"' "$@"
+  for-each 'readshortcut $OPTS -t -r "$1" | ${SED-sed} "N ; s%\s*
+\s*% % ; s%^%$1: %"' "$@"
  )
 }
 

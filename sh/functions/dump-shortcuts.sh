@@ -5,6 +5,7 @@ dump-shortcuts() {
      *) break ;;
    esac
   done
-  for-each 'readshortcut $OPTS -t -r "$1" | ${SED-sed} "N ;; s%\s*\n\s*% % ;; s%^%$1: %"' "$@"
+  for-each 'readshortcut $OPTS -t -r "$1" | ${SED-sed} "N ; s%\s*
+\s*% % ; s%^%$1: %"' "$@"
  )
 }

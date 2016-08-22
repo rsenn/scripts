@@ -1,7 +1,7 @@
 compare-dirs()
 {
      diff -ru "$@" | ${SED-sed} -n \
-         -e "/^Binary files/ s,^Binary files \(.*\) and \(.*\) differ,\1 \2,p" \
-         -e "s,^Only in \(.*\): \(.*\),\1/\2,p" \
-         -e "/^diff/ { N; /\n---/ { N; /\n+++/ { s,\n.*,, ;; s,^diff\s\+,, ;; s,^-[^ ]* ,,g ;; p } } }"
+         -e "/^Binary files/ s,^Binary files \(.*\) and \(.*\) differ, ,p" \
+         -e "s,^Only in \(.*\): \(.*\),/,p" \
+         -e "/^diff/ { N; /---/ { N; /+++/ { s,.*,, ; s,^diff\s\+,, ; s,^-[^ ]* ,,g ; p } } }"
 }
