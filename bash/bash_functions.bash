@@ -575,7 +575,7 @@ cmakebuild()
         while [ $# -gt 0 ]; do
                 case "$1" in 
                     -o) o "$2"; shift 2 ;; -o*) o "${1#-o}"; shift ;;
-                -w\) E="\(cd '$2' && $E\)"; shift 2 ;;     -w*\) E="\(cd '${1#-w}' && $E\)"; shift ;;
+                -w) E="\(cd '$2' && $E\)"; shift 2 ;;     -w*) E="\(cd '${1#-w}' && $E\)"; shift ;;
                 -m) E="$E 2>&1"; shift ;;
             *) C="${C:+$C
 }$1"; shift ;;
@@ -4545,10 +4545,9 @@ mkbuilddir() {
   }
   # output_vcbuild <target> <Project|Solution> [Configuration]
   output_vcbuild() {
-    : ${T=}
     P="$2"
     case "$1" in
-      *64*) : ${T:="x64"} ;;
+      *64*) T=x64 ;;
       *) : ${T:="Win32"} ;;
     esac
     case "$1" in
@@ -4576,8 +4575,9 @@ mkbuilddir() {
     
    
     CL=$(vcget "$VC" CL)
-    CMAKEGEN=$(vcget "$VC" CMAKEGEN)
-    : ${ARCH=$(vcget "$B" ARCH)}
+    ARCH=$(vcget "$B" ARCH)
+    CMAKEGEN=$(vcget "$VC-$ARCH" CMAKEGEN)
+#    echo "ARCH=$ARCH" 1>&2
     VSA=${VS-$(vcget "$VC" VS)}${ARCH:+-$ARCH}
     ABSDIR=$(cd "$DIR" >/dev/null && pwd -P)
     SRCDIR=${ABSDIR%/build*}
@@ -4589,7 +4589,7 @@ mkbuilddir() {
 	  fi
 	  PROJECT=$(${SED-sed} -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
 	  CONFIGURE_CMD="
-cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
+cmake -G \"$(vcget "$VC-$ARCH" CMAKEGEN)\"$ARGS ^
   %* ^
   ..\\..
 "	  
@@ -4600,29 +4600,20 @@ cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
     PREFIX="${SRCDIR##*/}\\${DIR##*/}"
     [ -n "$INSTALLROOT" ] && INSTALLROOT=$(${PATHTOOL:-echo} "$INSTALLROOT")
     if [ -n "$CMAKELISTS" ]; then
-	  if [ -z "$INSTALLROOT" ] && ${GREP-grep
--a
---line-buffered
---color=auto} -q -i "add_library\s*(" $CMAKELISTS ; then
+	  if [ -z "$INSTALLROOT" ] && ${GREP-grep -a --line-buffered --color=auto} -q -i "add_library\s*(" $CMAKELISTS ; then
 		case "$SRCDIR" in
 		  *-[0-9]*) INSTDIR=${SRCDIR##*/} ;;
 		  *) INSTDIR=${SRCDIR##*/}-$(isodate.sh -r "$SRCDIR") ;;
 		esac
 		  INSTALLROOT="E:/Libraries/${INSTDIR}/${B}"
 	  fi
-	  if ${GREP-grep
--a
---line-buffered
---color=auto} -q -i "install\s*(" $CMAKELISTS ; then
+	  if ${GREP-grep -a --line-buffered --color=auto} -q -i "install\s*(" $CMAKELISTS ; then
 		INSTALL_CMD=$(output_vcbuild "$B" INSTALL.vcxproj "Release")
 	  fi
 	  add_def CMAKE_INSTALL_PREFIX "${INSTALLROOT:-%PROGRAMFILES%\\$PREFIX}"
 	  add_def CMAKE_VERBOSE_MAKEFILE "TRUE"
 	  for VAR in BUILD_SHARED_LIBS ENABLE_SHARED; do
-	   if ${GREP-grep
--a
---line-buffered
---color=auto} -q "$VAR" $CMAKELISTS ; then
+	   if ${GREP-grep -a --line-buffered --color=auto} -q "$VAR" $CMAKELISTS ; then
 	   add_def $VAR "TRUE"
 	   fi
 	  done
@@ -4650,8 +4641,11 @@ cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
 	ADD_ARGS=" %ARGS%"
 	BUILD_TYPE="%CONFIG%"
 	VCVARSCMD=$(vcget "${VC}-x64" VCVARSCMD )
-	VCVARSCMD=${VCVARSCMD/amd64/%ARCH%}
-	
+	#VCVARSCMD=${VCVARSCMD/amd64/%ARCH%}
+#	    echo "VCVARSCMD=$VCVARSCMD" 1>&2
+#	    echo "VC=$VC" 1>&2
+#	    echo "ARCH=$ARCH" 1>&2
+
 	case "$VCBUILDCMD" in
 	  *"
 "*) VCBUILDCMD="(
@@ -4660,14 +4654,14 @@ $VCBUILDCMD
     esac
 	
 	if [ -e "$CL" ]; then
-      echo "Generating script $DIR/build.cmd ($(vcget "$VC" VCNAME))" 1>&2
+#      echo "Generating script $DIR/build.cmd ($(vcget "$VC" VCNAME))" 1>&2
       unix2dos >"$DIR/build.cmd" <<EOF
 @echo ${BATCHECHO:-off}
-%~d0:
+%~d0
 cd %~dp0
 ${ARGS_LOOP:+${nl}:args${nl}$ARGS_LOOP${nl}}${CONFIGURE_CMD:+${nl}$CONFIGURE_CMD${nl}}${IF_TARGET:+${nl}$IF_TARGET${nl}}${VCVARSCMD:+${nl}call $VCVARSCMD${nl}${BATCHECHO:+@echo $BATCHECHO${nl}}}
 for %%G in (${BUILD_TYPE:-Debug Release}) do $VCBUILDCMD${ADD_ARGS}
-${INSTALL_CMD}
+rem ${INSTALL_CMD}
 EOF
     fi) || exit $?
   done)
@@ -6538,64 +6532,70 @@ vc2vs() {
 }
 
 vcget() {
+echo "vcget \"$1\" $2" 1>&2
   case "$1" in
 	*2005* | *2008* | *2010* | *2012* | *2013* | *2015*)
 	  VC=$(vs2vc -0 "$1")
 	  VS=$(vc2vs "$VC")
-      ARCH=${1#*$VS}
+      ARCH=${1##*$VS}
+      
 	;;
 	  *)
 	  VS=$(vc2vs "$1")
 	  VC=$(vs2vc -0 "$VS")
-      ARCH=${1#*$VC}
+      ARCH=${1##*${VC%.*}-}
 	;;
   esac
+  : ${ARCH:=x86}
   ARCH=${ARCH#[!0-9A-Za-z_]}
+  CMAKE_ARCH=
   case "$ARCH" in
-    x64) ARCH="amd64" ;;
-    amd64|amd64_arm|amd64_x86|arm|ia64|x86_amd64|x86_arm|x86_ia64) ;;
-    *) ARCH= ;;
+   amd64|x64) ARCH="amd64" CMAKE_ARCH="Win64" ;;
   esac
+  
+  case "$ARCH" in
+    amd64|amd64_arm|amd64_x86|arm|ia64|x86_amd64|x86_arm|x86_ia64) ARCHDIR="$ARCH" ;;
+    *) ARCHDIR= ;;
+  esac
+  
+echo "CMAKE_ARCH=$CMAKE_ARCH" 1>&2
 
   shift
 
   VSINSTALLDIR="${PROGRAMFILES% (x86)}${ProgramW6432:+ (x86)}\\Microsoft Visual Studio $VC"
   VCINSTALLDIR="$VSINSTALLDIR\\VC"
-  BINDIR="$VCINSTALLDIR\\bin${ARCH:+\\$ARCH}"
+  BINDIR="$VCINSTALLDIR\\bin${ARCHDIR:+\\$ARCHDIR}"
   CL="$BINDIR\\cl.exe"
   DevEnvDir="$VCINSTALLDIR\\Common7\\IDE"
   DEVENV="$DevEnvDir\\devenv.exe"
+  BITS=${ARCHDIR##*[!0-9]}
 
-  BITS=${ARCH##*[!0-9]}
-
+#echo "ARCH=$ARCH" 1>&2
 
   VCVARSALL="$VCINSTALLDIR\\vcvarsall.bat"
 
   case "$VC" in
-    9.0) VCVARSARCH="$BINDIR\\vcvars${ARCH:-32}.bat" ;;
+    9.0) VCVARSARCH="$BINDIR\\vcvars${ARCHDIR:-32}.bat" ;;
     *) VCVARSARCH="$BINDIR\\vcvars${BITS:-32}.bat" ;;
   esac
 
   VCVARSCMD="\"$VCVARSALL\" ${ARCH:-x86}"
 
-  VCNAME="Microsoft Visual Studio $VC${ARCH:+ ($ARCH)}"
-  CMAKEGEN="Visual Studio ${VC%.0*} ${VS}"
+  VCNAME="Microsoft Visual Studio $VC${ARCHDIR:+ ($ARCHDIR)}"
+  CMAKEGEN="Visual Studio ${VC%.0*} ${VS}" #${CMAKE_ARCH:+ $CMAKE_ARCH}"
 
-   VSVARS="${ARCH:+$VCVARSARCH}"
+   VSVARS="${ARCHDIR:+$VCVARSARCH}"
    : ${VSVARS:="$VSINSTALLDIR\\Common7\\Tools\\vsvars32.bat"}
 
   WindowsSdkDir=$(reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows" /v "CurrentInstallFolder" | ${SED-sed} -n "s|.*REG_SZ\s\+||p")
 
-  local $(${GREP-grep
--a
---line-buffered
---color=auto} -i -E "^\s*@?set \"?(INCLUDE|LIB|LIBPATH|FrameworkDir|FrameworkVersion|Framework35Version)=" "$VSVARS" | ${SED-sed} \
+  local $(${GREP-grep -a --line-buffered --color=auto} -i -E "^\s*@?set \"?(INCLUDE|LIB|LIBPATH|FrameworkDir|FrameworkVersion|Framework35Version)=" "$VSVARS" | ${SED-sed} \
    -e "s,.*set \"\?\([^\"]\+\)\"\?,\1,i" \
    -e "s|%VCINSTALLDIR%|${VCINSTALLDIR//"\\"/"\\\\"}|g" \
    -e "s|%VSINSTALLDIR%|${VSINSTALLDIR//"\\"/"\\\\"}|g" \
    -e "s|%WindowsSdkDir%|${WindowsSdkDir//"\\"/"\\\\"}|g")
 
-  case "$ARCH" in
+  case "$ARCHDIR" in
     *amd64*) CMAKEGEN="$CMAKEGEN Win64" ;;
   esac
 
@@ -6603,6 +6603,7 @@ vcget() {
 
   for VAR; do
     eval "O=\$$VAR"
+#    echo "O=\"$O\"" 1>&2
     case "$O" in
       *\;*) echo "$O" ;;
       ?:\\*) ${PATHTOOL:-echo} "$O" ;;
