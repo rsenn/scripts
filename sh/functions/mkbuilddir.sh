@@ -44,8 +44,8 @@ mkbuilddir() {
     
    
     CL=$(vcget "$VC" CL)
-    CMAKEGEN=$(vcget "$VC" CMAKEGEN)
     ARCH=$(vcget "$B" ARCH)
+    CMAKEGEN=$(vcget "$VC-$ARCH" CMAKEGEN)
 #    echo "ARCH=$ARCH" 1>&2
     VSA=${VS-$(vcget "$VC" VS)}${ARCH:+-$ARCH}
     ABSDIR=$(cd "$DIR" >/dev/null && pwd -P)
@@ -58,7 +58,7 @@ mkbuilddir() {
 	  fi
 	  PROJECT=$(${SED-sed} -n   's|.*project\s*(\s*\([^ )]\+\).*|\1|ip' "$SRCDIR/CMakeLists.txt")
 	  CONFIGURE_CMD="
-cmake -G \"$(vcget "$VC" CMAKEGEN)\"$ARGS ^
+cmake -G \"$(vcget "$VC-$ARCH" CMAKEGEN)\"$ARGS ^
   %* ^
   ..\\..
 "	  
@@ -126,7 +126,7 @@ $VCBUILDCMD
 #      echo "Generating script $DIR/build.cmd ($(vcget "$VC" VCNAME))" 1>&2
       unix2dos >"$DIR/build.cmd" <<EOF
 @echo ${BATCHECHO:-off}
-%~d0:
+%~d0
 cd %~dp0
 ${ARGS_LOOP:+${nl}:args${nl}$ARGS_LOOP${nl}}${CONFIGURE_CMD:+${nl}$CONFIGURE_CMD${nl}}${IF_TARGET:+${nl}$IF_TARGET${nl}}${VCVARSCMD:+${nl}call $VCVARSCMD${nl}${BATCHECHO:+@echo $BATCHECHO${nl}}}
 for %%G in (${BUILD_TYPE:-Debug Release}) do $VCBUILDCMD${ADD_ARGS}

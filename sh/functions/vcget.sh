@@ -1,5 +1,5 @@
 vcget() {
-#echo "vcget \"$1\" $2" 1>&2
+echo "vcget \"$1\" $2" 1>&2
   case "$1" in
 	*2005* | *2008* | *2010* | *2012* | *2013* | *2015*)
 	  VC=$(vs2vc -0 "$1")
@@ -15,15 +15,17 @@ vcget() {
   esac
   : ${ARCH:=x86}
   ARCH=${ARCH#[!0-9A-Za-z_]}
-  
+  CMAKE_ARCH=
   case "$ARCH" in
-    x64) ARCH="amd64" ;;
+   amd64|x64) ARCH="amd64" CMAKE_ARCH="Win64" ;;
   esac
   
   case "$ARCH" in
     amd64|amd64_arm|amd64_x86|arm|ia64|x86_amd64|x86_arm|x86_ia64) ARCHDIR="$ARCH" ;;
     *) ARCHDIR= ;;
   esac
+  
+echo "CMAKE_ARCH=$CMAKE_ARCH" 1>&2
 
   shift
 
@@ -47,7 +49,7 @@ vcget() {
   VCVARSCMD="\"$VCVARSALL\" ${ARCH:-x86}"
 
   VCNAME="Microsoft Visual Studio $VC${ARCHDIR:+ ($ARCHDIR)}"
-  CMAKEGEN="Visual Studio ${VC%.0*} ${VS}"
+  CMAKEGEN="Visual Studio ${VC%.0*} ${VS}" #${CMAKE_ARCH:+ $CMAKE_ARCH}"
 
    VSVARS="${ARCHDIR:+$VCVARSARCH}"
    : ${VSVARS:="$VSINSTALLDIR\\Common7\\Tools\\vsvars32.bat"}
