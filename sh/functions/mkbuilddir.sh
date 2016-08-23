@@ -130,7 +130,7 @@ $VCBUILDCMD
 cd %~dp0
 ${ARGS_LOOP:+${nl}:args${nl}$ARGS_LOOP${nl}}${CONFIGURE_CMD:+${nl}$CONFIGURE_CMD${nl}}${IF_TARGET:+${nl}$IF_TARGET${nl}}${VCVARSCMD:+${nl}call $VCVARSCMD${nl}${BATCHECHO:+@echo $BATCHECHO${nl}}}
 for %%G in (${BUILD_TYPE:-Debug Release}) do $VCBUILDCMD${ADD_ARGS}
-${INSTALL_CMD}
+rem ${INSTALL_CMD}
 EOF
     fi) || exit $?
   done)
