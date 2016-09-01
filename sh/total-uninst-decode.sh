@@ -6,6 +6,10 @@ total_uninstall_decode() {
  }
   while :; do
     case "$1" in
+      --registry-only*) NO_REG=false NO_FILES=true; shift ;;
+      --files-only*) NO_FILES=false NO_REG=true; shift ;;
+      --registry*|-r) NO_REG=false; shift ;;
+      --files*|-f) NO_FILES=false; shift ;;
       --no-files|-F) NO_FILES=true; shift ;;
       --no-registry|-R) NO_REG=true; shift ;;
       --debug | -x) DEBUG=true; shift ;;
