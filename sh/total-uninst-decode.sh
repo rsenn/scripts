@@ -1,7 +1,8 @@
 #!/bin/bash
-total_uninstall_decode() {
+total_uninst_decode() {
+  ME=${FUNCNAME[0]##*/}; ME=${ME//_/-}.sh; CR=$'\r'; FS="/"; BS="\\"; IFS="$IFS$CR"
  usage() {
- echo "Usage: ${FUNCNAME[0]##*/} [OPTIONS] <FILE>
+ echo "Usage: $ME [OPTIONS] <FILE>
  --help, -h   Show this help" 1>&2
  }
   while :; do
@@ -13,7 +14,7 @@ total_uninstall_decode() {
        *) break ;;
      esac
   done
-  CR=$'\r'; FS="/"; BS="\\"; IFS="$IFS$CR"
+
   if [ -s "$1" ]; then
 	exec <"$1"
   fi
@@ -67,4 +68,4 @@ total_uninstall_decode() {
 	  esac
   done					
 }
-total_uninstall_decode "$@"
+total_uninst_decode "$@"
