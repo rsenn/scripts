@@ -3,7 +3,14 @@ total_uninst_decode() {
   ME=${FUNCNAME[0]##*/}; ME=${ME//_/-}.sh; CR=$'\r'; FS="/"; BS="\\"; IFS="$IFS$CR"
  usage() {
  echo "Usage: $ME [OPTIONS] <FILE>
- --help, -h   Show this help" 1>&2
+  --debug, -x  Show debug messages
+  --help, -h   Show this help
+  
+  --registry-only   Show only registry dump
+  --files-only      Show only files list
+  --no-registry     Don't show registry dump
+  --no-files        Don't show files list
+ " 1>&2
  }
   while :; do
     case "$1" in
