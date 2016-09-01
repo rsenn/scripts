@@ -74,6 +74,7 @@ trap 'R=$?; rm -vf "$WAV"; exit $R' EXIT QUIT INT TERM
 #(cd "$DIR"; mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV##*/}" -vc null -vo null "${ARG##*/}"  2>/dev/null) &&
 #(mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV}" -vc null -vo null "${ARG}"  2>/dev/null) &&
 
+
 case "${ARG##*/}" in
 	*.wav) WAV="$ARG" ;;
 	*.669 | *.amf | *.amf | *.dsm | *.far | *.gdm | *.gt2 | *.it | *.imf | *.mod | *.med | *.mtm | *.okt | *.s3m | *.stm | *.stx | *.ult | *.umx | *.apun | *.xm | *.mod) 
@@ -84,7 +85,11 @@ case "${ARG##*/}" in
 	*)
 	(mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"  2>/dev/null||${FFMPEG:-ffmpeg} -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV") 
 	;;
-esac && (set -e; set -x
+esac && (
+if [ "$ARG" = "$OUTPUT" -a "$REMOVE" = true ]; then
+  REMOVE=false
+fi
+set -e; set -x
 shineenc  -b "$ABR" "$WAV" "$OUTPUT"  ||
 lame --alt-preset "$ABR" --resample 44100 -m j -h "$WAV" "$OUTPUT" 
 R=$?
