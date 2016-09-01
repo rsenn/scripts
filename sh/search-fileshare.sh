@@ -35,7 +35,7 @@ search_fileshare() {
 
   } \
 	| xargs -n10 -d "
-  " extract-urls.sh \
+" extract-urls.sh \
 	| file-hoster-urls.sh \
 	| uniq \
 	| tee "$OUTPUT"
