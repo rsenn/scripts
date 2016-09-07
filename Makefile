@@ -76,7 +76,8 @@ LINKS = find-audio.sh find-archives.sh find-books.sh find-fonts.sh find-images.s
 
 install: $(SCRIPTS)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
-	$(RM) $(DESTDIR)$(bindir)/bash_{functions,profile}.sh
+	$(RM) $(DESTDIR)$(bindir)/bash_profile.sh
+	$(RM) $(DESTDIR)$(bindir)/bash_functions.sh
 	$(foreach NAME,bash_profile bash_functions,\
 	    $(INSTALL) -m 755 bash/$(NAME).bash $(DESTDIR)$(bindir)/; \
 	    $(LN_S) $(NAME).bash $(DESTDIR)$(bindir)/$(NAME).sh || \
@@ -93,8 +94,8 @@ install: $(SCRIPTS)
 	$(INSTALL) -m 755 $(PY_SCRIPTS) $(DESTDIR)$(bindir)/
 	$(INSTALL) -m 755 $(RB_SCRIPTS) $(DESTDIR)$(bindir)/
 	@N=30; set -- $(SH_SCRIPTS); while :; do \
-	  echo "$(INSTALL) -m 755 $${@:1:$$N} $(DESTDIR)$(bindir)/"; \
-	  $(INSTALL) -m 755 $${@:1:$$N} $(DESTDIR)$(bindir)/; \
+	  echo "$(INSTALL) -m 755 `echo "$$*" | head -n$$N` $(DESTDIR)$(bindir)/"; \
+	  $(INSTALL) -m 755 `echo "$$*" | head -n$$N` $(DESTDIR)$(bindir)/; \
 	  [ $$# -lt $$N ] && break; \
 	  shift $$N; \
 	done
@@ -114,3 +115,6 @@ install: $(SCRIPTS)
 	$(call symlink_script,../share/compiletrace/compiletrace.sh,$(DESTDIR)$(bindir)/compiletrace)
 	$(call symlink_script,../bin/afuse-sshfs.sh,$(DESTDIR)$(sbindir)/mount.asshfs)
 	$(call symlink_script,../bin/afuse-curlftpfs.sh,$(DESTDIR)$(sbindir)/mount.aftpfs)
+
+clean:
+	$(RM) bash/bash_functions.bash

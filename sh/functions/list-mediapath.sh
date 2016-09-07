@@ -11,9 +11,9 @@ list-mediapath() {
       esac
   done
   for ARG; do ARG=${ARG//" "/"\\ "}; ARG=${ARG//"("/"\\("};  ARG=${ARG//")"/"\\)"}; 
-   CMD="${CMD:+$CMD; }set -- $MEDIAPATH${ARG#/} ; IFS=\$'\\n'; ls -1 -d $OPTS -- \$* 2>/dev/null"; done
+   CMD="${CMD:+$CMD; }set -- $MEDIAPATH/${ARG#/} ; IFS=\$'\\n'; ls -1 -d $OPTS -- \$* 2>/dev/null"; done
 
-  [ -n "$PATHTOOL_OPTS" ] && CMD="${PATHTOOL:+$PATHTOOL ${PATHTOOL_OPTS:--m}}${PATHTOOL:-realpath} \$($CMD)"
+  [ -n "$PATHTOOL_OPTS" ] && CMD="${PATHTOOL:+$PATHTOOL ${PATHTOOL_OPTS:--m}} \$($CMD)"
   #CMD="for ARG; do $CMD; done"
   [ -n "$FILTER" ] &&	 CMD="($CMD) | $FILTER"
 [ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2

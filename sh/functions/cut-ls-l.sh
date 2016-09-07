@@ -7,7 +7,7 @@ cut-ls-l()
         I=`expr $I - 1`;
     done;
     IFS=" ";
-    CMD="while read  -r $* P; do  echo \"\${P}\"; done";
+    CMD='while read  -r '$*' P;do  echo "$P"; done'
    #echo "+ $CMD" 1>&2;
     eval "$CMD" )
 }

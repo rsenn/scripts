@@ -1,6 +1,8 @@
 pid-of() {
  (: ${GREP=grep -a --line-buffered --color=auto}
-  if ps --help 2>&1 | $GREP -q '\-W'; then
+  if handle -h 2>&1 |grep -q '\-a'; then
+     PGREP_CMD="handle -a | $GREP -i \"\$ARG.*pid:\" | awkp 3"
+  elif ps --help 2>&1 | $GREP -q '\-W'; then
      PGREP_CMD="ps -aW | $GREP -i \"\$ARG\" | awkp"
   elif type pgrep 2>/dev/null >/dev/null; then
      PGREP_CMD='pgrep -f "$ARG"'
