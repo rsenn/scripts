@@ -86,35 +86,6 @@ class JucerProject < REXML::Document
         STDOUT.puts l + o.to_s
     end
 
-  """ JucerHash class """
-    class JucerHash < Hash
-        @tagname = ''
-        @tagpath = ''
-      attr_accessor :tagname, :tagpath
-        def initialize(elem=REXML::Element.new,name="")
-            super({})
-            if elem.is_a? REXML::Element then
-                elem.attributes.each do |n,a|
-                    self.store(n, a.to_s)
-                end
-        @tagname = elem.name
-                @tagpath = elem.xpath.gsub(/^\/*[A-Z]+\//, "").downcase
-            elsif elem.is_a? Hash then
-                self.merge!(elem)
-                @tagname = name
-                @tagpath = "//"+name
-            end
-        end
-        def to_s(multiline=false, name=@tagname)
-            if @tagpath != "" then name = @tagpath end
-            if multiline then
-                ml_t = "\n"
-                ml_s = "#{ml_t}  "
-      end
-          name + " {#{ml_s}" + self.map { |k,v| k + "=" + JucerProject.quoteval(v) }.join(",#{ml_s}") + "#{ml_t}}"
-        end
-    end
-
   """ HashArray class """
   class HashArray < Array
         @tagname = ''
