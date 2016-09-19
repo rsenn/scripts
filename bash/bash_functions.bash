@@ -449,12 +449,15 @@ choco-joinlines() {
     LINE=${LINE%$'\r'}
     IFS=$' \t'
     set -- $LINE
+    
+    
     case "$LINE" in
       "#"*) LINE=" $LINE" ;;
       "["*) LINE=" $LINE" ;;
     esac
     case "$LINE" in
       " "*) set -- "" "$@" ;;
+      *) LINE=${LINE%" [Approved]"*} ;;
     esac    
     if [ $# -eq 0 -a -n "$PKG" ]; then
 
