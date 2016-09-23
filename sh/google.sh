@@ -52,7 +52,7 @@ while :; do
   esac
 done
 
-: ${USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:26.0) Gecko/20100101 Firefox/26.0"}
+: ${USER_AGENT="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36"}
 : ${RESULTS=30}
 #HTTP_PROXY="127.0.0.1:8123"
 
@@ -76,17 +76,17 @@ if [ -n "$SOCKS_PROXY" ]; then
   echo "Have SOCKS proxy: $SOCKS_PROXY" 1>&2
 fi
 
-[ "$DEBUG" = true ] && echo "DLCMD=$DLCMD" 1>&2
 
 case "$DLPROG" in
-  curl) DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks4a \"${SOCKS_PROXY#*://}\"} -A '$USER_AGENT'" ;;
-  wget) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }wget -q -O - -U '$USER_AGENT'" ;;
-  lynx) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent '$USER_AGENT' 2>/dev/null" ;;
-  links) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }links -source" ;;
-  w3m) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null" ;;
+  curl*) DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks4a \"${SOCKS_PROXY#*://}\"} -A '$USER_AGENT'" ;;
+  wget*) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }wget -q -O - -U '$USER_AGENT'" ;;
+	lynx*) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent='$USER_AGENT' ${COOKIE:+-cookie_file='$COOKIE'} 2>/dev/null" ;;
+  links*) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }links -source" ;;
+  w3m*) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null" ;;
   *) echo "No such download command: $DLPROG" 1>&2; exit 1 ;;
 esac
 
+[ "$DEBUG" = true ] && echo "DLCMD=$DLCMD" 1>&2
 ARGS="$*"
 
 set -- 
