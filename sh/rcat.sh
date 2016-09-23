@@ -13,10 +13,7 @@ pushv()
 
 # rcat [options] [files...]
 #
-# A recursive 'cat' through ${GREP-grep
--a
---line-buffered
---color=auto} .*
+# A recursive 'cat' through 'grep'
 # ---------------------------------------------------------------------------
 rcat()
 {
@@ -29,7 +26,10 @@ rcat()
     esac
     shift
   done
-  ${GREP-grep -a --line-buffered --color=auto} --color=no $OPTS '^' $ARGS)
+  ${GREP-grep
+-a
+--line-buffered
+--color=auto} --color=no $OPTS '^' $ARGS)
 }
 
 
