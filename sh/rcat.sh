@@ -29,10 +29,7 @@ rcat()
     esac
     shift
   done
-  ${GREP-grep
--a
---line-buffered
---color=auto} --color=no $OPTS '^' $ARGS)
+  ${GREP-grep -a --line-buffered --color=auto} --color=no $OPTS '^' $ARGS)
 }
 
 
