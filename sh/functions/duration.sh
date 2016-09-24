@@ -20,7 +20,7 @@ duration()
                 *ms)
                     S=$(( (S * 1000 + ${PART%ms}) / 1000))
                 ;;
-                *mn)
+                *mn|*m | *min)
                     PART=${PART%%[!0-9]*};
                     S=$((S + $PART * 60))
                 ;;

@@ -215,8 +215,8 @@ bitrate()
   ( N=$#
   for ARG in "$@";
   do
-    #EXPR="\\s[^:]*\\s\\+\\([0-9]\\+\\)\\s*kbps.*"
-    EXPR=":\\s.*\s\\([0-9]\\+\\)\\s*kbps.*,"
+    #EXPR="\\s[^:]*\\s\\+\\([0-9]\\+\\)\\s*kb[p/]s.*"
+    EXPR=":\\s.*\s\\([0-9]\\+\\)\\s*kb[/p]s.*,"
     test $N -le 1 && EXPR=".*$EXPR" || EXPR="$EXPR:"
     EXPR="s,$EXPR\\1,p"
 
@@ -225,7 +225,7 @@ bitrate()
 
     test -n "$KBPS" && echo "$KBPS" || (
     R=0
-    set -- $(mminfo "$ARG"  |${SED-sed} -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*Kbps\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
+    set -- $(mminfo "$ARG"  |${SED-sed} -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*[kK]b[p/]s\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
 [ "$DEBUG" = true ] && echo "BR: $*" 1>&2
    #echo "$*" 1>&2
    # for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
@@ -1370,7 +1370,7 @@ duration()
                 *ms)
                     S=$(( (S * 1000 + ${PART%ms}) / 1000))
                 ;;
-                *mn)
+                *mn|*m | *min)
                     PART=${PART%%[!0-9]*};
                     S=$((S + $PART * 60))
                 ;;
@@ -4800,7 +4800,15 @@ mminfo()
     ( for ARG in "$@";
     do
         minfo "$ARG" | ${SED-sed} -n "s,^\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
-    done | ${SED-sed} 's,\s\+=,=,')
+    done | ${SED-sed} \
+        's,\s\+=,=,  ;;
+s|\([0-9]\) \([0-9]\)|\1\2|g
+/Duration/ { 
+  s|\([0-9]\) min|\1min|g
+  s|\([0-9]\) \([hdw]\)|\1\2|g
+  s|\([0-9]\) s$|\1s|
+  s|\([0-9]\+\) \([^ ]*b/s\)$|\1\2|
+}')
 }
 
 modules()
