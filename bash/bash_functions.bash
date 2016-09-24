@@ -2722,6 +2722,15 @@ hex-to-dec()
     eval 'echo $((0x'${1%% *}'))'
 }
 
+hex2bin() {
+ (
+  for N ; do
+    
+    echo "binary scan [binary format H* \"${N#0x}\"] B* b
+puts \$b"
+  done) | tclsh| addprefix "${P-0b}"
+}
+
 hex2chr()
 {
     echo "puts -nonewline [format \"%c\" 0x$1]" | tclsh
