@@ -8,13 +8,19 @@ SET3='+"sharingmatrix.com/file/"|"box.net/shared/"|"kewlshare.com/dl/"|"mega.co.
 
 #IFS=" $IFS"
 IFS=" °"
+S="°"
+
+pushv () 
+{ 
+    eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
+}
 
 while :; do
   case "$1" in
-    -s | --save-tmp) OPTS="${OPTS:+$OPTS
-}$1=${TEMP%[\\\\/}/`basename "${0%.sh}"`$$.txt"; shift ;;
-    -x | --debug | -v | --verbose | -s* | --save* | -t=* | --type=* | -c=* | --class=* | -n=* | --results=*) OPTS="${OPTS:+$OPTS
-}$1"; shift ;;
+    -s | --save-tmp) OPTS="${OPTS:+$OPTS$S}$1=${TEMP%[\\\\/}/`basename "${0%.sh}"`$$.txt"; shift ;;
+		-x | --debug) pushv OPTS "$1"; DEBUG=true; shift ;;
+    -v | --verbose | -s* | --save* | -t=* | --type=* | -c=* | --class=* | -n=* | --results=*) pushv OPTS "$1"; shift ;;
+    -p=*|--dl*prog*=*) pushv OPTS "$1"; shift ;; -p|--dlprog) pushv OPTS "$1" "$2"; shift 2 ;;
     *) break ;;
   esac
 done
@@ -28,7 +34,7 @@ search_fileshare() {
 
   { RESULTS=1000
 	
-   (set -x
+   ([ "$DEBUG" = true ] && set -x
 	google.sh $OPTS "$KEYWORDS $SET1"
 	google.sh $OPTS "$KEYWORDS $SET2"
 	google.sh $OPTS "$KEYWORDS $SET3")

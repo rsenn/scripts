@@ -13,10 +13,7 @@ pushv()
 
 # rcat [options] [files...]
 #
-# A recursive 'cat' through ${GREP-grep
--a
---line-buffered
---color=auto} .*
+# A recursive 'cat' through 'grep'
 # ---------------------------------------------------------------------------
 rcat()
 {
