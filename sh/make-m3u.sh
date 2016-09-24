@@ -46,7 +46,7 @@ minfo()
     eval "$CMD")  | ${SED-sed} '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
 }
 
-Vduration()
+duration()
 {
     ( IFS=" $IFS";
       CMD='echo "${ARG:+$ARG:}$S"'
