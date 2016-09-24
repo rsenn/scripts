@@ -4,30 +4,36 @@ IFS="
 "
 main()
 {
-	while :; do
-		case "$1" in
-			--) shift; break ;;
-			-h | --help) usage; exit 0 ;;
-			-x | --debug) DEBUG=true ;;
-			*) break ;;
-		esac
-		shift
-	done
-	set -f
-
-	echo "#EXTM3U"
-	for ARG; do
-		  D=$(duration "$ARG")
-			TITLE=${ARG##*/}
-			TITLE=${TITLE%.*}
-			TITLE=${TITLE//"_"/" "}
-			TITLE=${TITLE//" - "/"-"}
-			TITLE=$(echo "$TITLE" | ${SED-sed} 's|[^[:alnum:]][0-9]\+p[^[:alnum:]]| |g ;; s|\[| |g ;;  s|\]| |g ;; s|[ _]\+| |g ;')
-			RESOLUTION=$(resolution "$ARG")
-			BITRATE=$(bitrate "$ARG")
-	    echo "#EXTINF:$D,${TITLE}${RESOLUTION:+ [$RESOLUTION]}${BITRATE:+ ${BITRATE}kbps}"
-			echo "$ARG"
+  while :; do
+    case "$1" in
+      --) shift; break ;;
+      -h | --help) usage; exit 0 ;;
+      -x | --debug) DEBUG=true ;;
+      *) break ;;
+    esac
+    shift
   done
+  set -f
+
+  echo "#EXTM3U"
+  for ARG; do
+      D=$(duration "$ARG")
+      TITLE=${ARG##*/}
+      TITLE=${TITLE%.*}
+      TITLE=${TITLE//"_"/" "}
+      TITLE=${TITLE//" - "/"-"}
+      TITLE=$(echo "$TITLE" | ${SED-sed} 's|[^[:alnum:]][0-9]\+p[^[:alnum:]]| |g ;; s|\[| |g ;;  s|\]| |g ;; s|[ _]\+| |g ;')
+      RESOLUTION=$(resolution "$ARG")
+      BITRATE=$(bitrate "$ARG")
+      echo "#EXTINF:$D,${TITLE}${RESOLUTION:+ [$RESOLUTION]}${BITRATE:+ ${BITRATE}kbps}"
+      echo "$ARG"
+  done
+}
+
+
+resolution()
+{  
+  (minfo "$@"|${SED-sed} -n "/Width\s*: / { N; /Height\s*:/ { s,Width\s*:,, ; s,[^:\n0-9]\+: \+\([^:]*\)\$,\1,g; s|^\s*||; s|\([0-9]\)\s\+\([0-9]\)|\1\2|g; s|\s*pixels||g;  s|\n|x|g; p } }")
 }
 
 duration()
@@ -52,7 +58,7 @@ duration()
                 *ms)
                     S=$(( (S * 1000 + ${PART%ms}) / 1000))
                 ;;
-                *mn)
+                *mn|*m | *min)
                     PART=${PART%%[!0-9]*};
                     S=$((S + $PART * 60))
                 ;;
@@ -73,7 +79,15 @@ mminfo()
     ( for ARG in "$@";
     do
         minfo "$ARG" | ${SED-sed} -n "s,^\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
-    done | ${SED-sed} 's,\s\+=,=,')
+    done | ${SED-sed} \
+        's,\s\+=,=,  ;;
+s|\([0-9]\) \([0-9]\)|\1\2|g
+/Duration/ { 
+  s|\([0-9]\) min|\1min|g
+  s|\([0-9]\) \([hdw]\)|\1\2|g
+  s|\([0-9]\) s$|\1s|
+  s|\([0-9]\+\) \([^ ]*b/s\)$|\1\2|
+}')
 }
 
 minfo()
@@ -85,18 +99,13 @@ minfo()
     eval "$CMD")  | ${SED-sed} '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
 }
 
-resolution()
-{  
-  (minfo "$@"|${SED-sed} -n "/Width\s*: / { N; /Height\s*:/ { s,Width\s*:,, ; s,[^:\n0-9]\+: \+\([^:]*\)\$,\1,g; s|^\s*||; s|\([0-9]\)\s\+\([0-9]\)|\1\2|g; s|\s*pixels||g;  s|\n|x|g; p } }")
-}
-
 bitrate()
 {
   ( N=$#
   for ARG in "$@";
   do
-    #EXPR="\\s[^:]*\\s\\+\\([0-9]\\+\\)\\s*kbps.*"
-    EXPR=":\\s.*\s\\([0-9]\\+\\)\\s*kbps.*,"
+    #EXPR="\\s[^:]*\\s\\+\\([0-9]\\+\\)\\s*kb[p/]s.*"
+    EXPR=":\\s.*\s\\([0-9]\\+\\)\\s*kb[/p]s.*,"
     test $N -le 1 && EXPR=".*$EXPR" || EXPR="$EXPR:"
     EXPR="s,$EXPR\\1,p"
 
@@ -105,11 +114,15 @@ bitrate()
 
     test -n "$KBPS" && echo "$KBPS" || (
     R=0
-    set -- $(mminfo "$ARG"  |${SED-sed} -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*Kbps\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
-    for I ;  do R=` expr $R + ${I##*[:=]}` ; done 2>/dev/null
+    set -- $(mminfo "$ARG"  |${SED-sed} -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*[kK]b[p/]s\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
+[ "$DEBUG" = true ] && echo "BR: $*" 1>&2
+   #echo "$*" 1>&2
+   # for I; do R=` expr $R + ${I##*=}` ; done 2>/dev/null
+   R=${*##*:}
    [ "$N" -gt 1 ] && R="$ARG:$R"
       echo "$R"
       )
   done )
 }
+
 main "$@"

@@ -1,6 +1,5 @@
 filter-num() {
- (IFS="
-	"
+ (IFS=$'\n\t\r '
   unset ARGS MODE
   push() {
   eval 'shift; '$1'=${'$1':+"$'$1'$S"}$*'
@@ -52,7 +51,7 @@ filter-num() {
   CMDX="N=\$F$I; $CMDX"
 
   CMD="while read -r $FIELDS; do [ \"\$DEBUG\" = true ] && echo \"$CMDX\" 1>&2; $CMDX; done"
-  CMD="IFS=\"${S-" 	"}\"; "$CMD
+  CMD="IFS=\"\${S-" 	"}\"; "$CMD
   [ "$DEBUG" = true ] && echo "+ $CMD" 1>&2
   eval "($CMD)")
 }
