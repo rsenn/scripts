@@ -34,7 +34,7 @@ Environment variables:
 "
 }
 
-: ${DLPROG="wget"}
+: ${DLPROG="curl"}
 
 while :; do
   case "$1" in

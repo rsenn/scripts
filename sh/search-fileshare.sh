@@ -2,9 +2,9 @@
 
 : ${TEMP=/tmp/}
 
-SET1='+"share-online.biz/dl/"|"zippyshare.com/"|"mediafire.com/"|"uploadable.ch/"|"depositfiles.com/files"|"oron.com/"|"oboom.net/"'
-SET2='+"uploaded.net/"|"netload.in/"|"filefactory.com/file/"|"sendspace.com/file/"|"badongo.com/file/"|"uploadbox.com/files/"|"letitbit.net/download/'
-SET3='+"sharingmatrix.com/file/"|"box.net/shared/"|"kewlshare.com/dl/"|"mega.co.nz/"|"4shared.com/file/"|"ziddu.com/download/"|"zshare.net/download/"'
+SET1='+"mega.co.nz/"|"gboxes.com/"|"nitroflare.com/"|"turbobit.net/"|"zippyshare.com/"|"uploadable.ch/"|"depositfiles.com/"|"oron.com/"|"oboom.net/"'
+SET2='+"mediafire.com/"|"uploaded.net/"|"netload.in/"|"filefactory.com/"|"sendspace.com/"|"badongo.com/"|"uploadbox.com/"|"letitbit.net/'
+SET3='+"sharingmatrix.com/"|"box.net/"|"bitshare.com/"|"mega.co.nz/"|"4shared.com/"|"ziddu.com/"|"zshare.net/"'
 
 #IFS=" $IFS"
 IFS=" °"
