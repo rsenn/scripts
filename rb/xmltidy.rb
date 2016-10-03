@@ -2,6 +2,7 @@
 
 require 'nokogiri-pretty'
 require 'optparse'
+require 'pp'
 
 options = {
   :inplace => false,
@@ -26,9 +27,12 @@ begin
 
   end.parse!
 
-  p options
+  pp options
   file_name = ARGV.shift
-  doc = Nokogiri::XML(open(file_name)) do |cfg|
+  
+  doc = Nokogiri::XML(if file_name != nil
+    open(file_name) else $stdin
+  end) do |cfg|
 	cfg.options = Nokogiri::XML::ParseOptions::NOBLANKS | Nokogiri::XML::ParseOptions::NONET | Nokogiri::XML::ParseOptions::NOERROR
   end
 
