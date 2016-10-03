@@ -7,16 +7,19 @@ require 'pp'
 options = {
   :inplace => false,
   :indent => 2,
+  :charset => "UTF-8",
 }
 
 begin
+  myname = File.basename($0)
 
   OptionParser.new do |opts|
-    opts.banner = "Usage: main.rb [options]"
+    opts.banner = "Usage: #{myname} [options] [file]"
     opts.separator ""
     opts.separator "Specific options:"
     opts.on("-i", "--inplace", "In place") do |i|  options[:inplace] = i   end
     opts.on("-n", "--indent N", Integer, "Indentation depth") do |n| options[:indent] = n  end
+    opts.on("-c", "--charset N", String, "Character encoding") do |c| options[:charset] = c  end
     
     # No argument, shows at tail.  This will print an options summary.
     # Try it and see!
@@ -42,8 +45,9 @@ begin
     $stdout
   end
 	  
-  output_file.write( doc.to_xml :indent => options[:indent], :encoding => "UTF-8" )
+  output_file.write doc.to_xml :indent => options[:indent], :encoding => options[:charset]
+#  output_file.write doc.human
   output_file.close
-  #$stdout.puts doc.human
+  
 
 end
