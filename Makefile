@@ -67,7 +67,7 @@ BASH_SCRIPTS = $(wildcard bash/*.bash)
 FONTFORGE_SCRIPTS = $(wildcard fontforge/*.fontforge)
 PL_SCRIPTS = $(wildcard pl/*.pl)
 PY_SCRIPTS = $(wildcard py/*.py)
-RB_SCRIPTS = rb/am2cmake.rb rb/gencmake.rb rb/image-anim.rb rb/jucer2cmake.rb rb/pdfcompress.rb rb/png-analyze.rb
+RB_SCRIPTS = $(wildcard rb/*.rb)
 
 #SH_SCRIPTS = $(wildcard *.sh)
 SH_SCRIPTS = $(wildcard sh/*.sh)
