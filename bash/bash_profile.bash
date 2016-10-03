@@ -238,6 +238,8 @@ done
 
 notepad2() {
     (for ARG; do
+    ARG=$(cygpath "$ARG")
+    ARG=${ARG%%:*}
     if type realpath 2>/dev/null >/dev/null; then
         P=$(realpath "$ARG") #; [ "$ARG" != "$P" ] && echo "realpath \"$ARG\" = $P" 1>&2
         [ -e "$P" -a "$ARG" != "$P" ] && ARG="$P"

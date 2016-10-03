@@ -15,6 +15,7 @@ create_match_function() {
   shift
   for ARG in "${@:-"*"}"; do
     push FN "$ARG) return 0 ;;"
+    push FN "*\\'$ARG[.\\']*) return 0 ;;"
   done
   push FN "*) return 1 ;;
 esac
@@ -120,7 +121,7 @@ main() {
         NAME=${LINE#"Edit '"}; NAME=${NAME%%"'"*} 
         START_LINE="$LINENUM"
         
-        if match_name "$NAME"; then
+        if match_name "$NAME" || match_name "$LINE"; then
           MATCH_COND=true
                   		dbg "EDIT[$LINENUM]: $LINE"
 
