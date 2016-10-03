@@ -30,7 +30,7 @@ begin
 
   end.parse!
 
-  pp options
+#  pp options
   file_name = ARGV.shift
   
   doc = Nokogiri::XML(if file_name != nil
