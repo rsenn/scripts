@@ -3456,7 +3456,8 @@ link-mpd-music-dirs()
 }
 
 list-7z() {
- (while :; do
+ (CR=$'\r'
+  while :; do
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
       *) break ;;
@@ -3547,7 +3548,7 @@ list-7z() {
     fi
     ( #echo "CMD: $CMD" 1>&2
      eval "($CMD; echo) 2>/dev/null" ) |
-    { IFS=" "; unset PREV; while read -r NAME EQ VALUE; do
+    { IFS=" $CR"; unset PREV; while read -r NAME EQ VALUE; do      
         case "$NAME" in
           "Type") T=${VALUE}; continue ;;
           "Path") F=${VALUE//"\\"/"/"}; continue ;;
