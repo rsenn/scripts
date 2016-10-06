@@ -1,13 +1,9 @@
-resolution()                                                                                                                                                                                                                                                                         
-{                                                                                                                                                                                                                                                                                    
- (while [ $# -gt 0 ] ; do case "$1" in
-    -m | --mult*) RS="*" ; shift ;; 
+resolution() {
+ (	EXPR='/Width/N; /pixels/ { s,[^=\n]*=\([0-9]\+\)\s*pixels,\1,g; s,\n,x,p }'; while [ $# -gt 0 ] ; do case "$1" in
+    -m | --mult*) CMD="echo \$(($1 * $2))"; shift ;; 
     *) break ;;
   esac
   done
-
-EXPR="/Width\s*: / { N; /Height\s*:/ { s,Width\s*:,, ; s,[^:\n0-9]\+: \+\([^:]*\)\$,\1,g; s|^\s*||; s|\([0-9]\)\s\+\([0-9]\)|\1\2|g; s|\s*pixels||g;  s|\n|${RS-x}|g; p } }"
-  minfo "$@"|${SED-sed} -n "$EXPR"
-  )
+  mminfo "$@"|${SED-sed} -n "$EXPR")
 }                                                                                                                                                                                                                                                                                    
                                                                                                                                                                                                                                                                                      
