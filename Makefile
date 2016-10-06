@@ -67,6 +67,7 @@ PROFILE = \
   profile/256term.sh \
   profile/colorgrep.sh \
   profile/diet.sh \
+  profile/dircolors.sh \
   profile/grep-colors.sh \
   profile/history.sh \
   profile/juce.sh \
