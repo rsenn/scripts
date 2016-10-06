@@ -60,7 +60,20 @@ inst-slackpkg: slackpkg
 bash/bash_functions.bash: $(wildcard sh/functions/*.sh) sh/functions-assemble.sh
 	$(SHELL) sh/functions-assemble.sh $@ && chmod 644 "$@"
 
-PROFILE = $(wildcard profile/*.sh profile/*.zsh profile/*.bash)
+#PROFILE = $(wildcard profile/*.sh profile/*.zsh profile/*.bash)
+PROFILE = \
+  profile/00-path.sh \
+  profile/00-pathmunge.sh \
+  profile/256term.sh \
+  profile/browser-history.sh \
+  profile/colorgrep.sh \
+  profile/diet.sh \
+  profile/grep-colors.sh \
+  profile/history.sh \
+  profile/juce.sh \
+  profile/ssh-agent-takeover.sh \
+  profile/xterm-256color.sh
+
 SCRIPTS = $(AWK_SCRIPTS) $(BASH_SCRIPTS) $(FONTFORGE_SCRIPTS) $(PL_SCRIPTS) $(RB_SCRIPTS) $(SH_SCRIPTS)
 AWK_SCRIPTS = $(wildcard awk/*.awk)
 BASH_SCRIPTS = $(wildcard bash/*.bash)

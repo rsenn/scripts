@@ -168,7 +168,7 @@ log_msg() {
   done
 
 	CMD="(IFS=\"\$NL$PAD\"; set -- \$*; echo \"${PAD}\${*"${MAXLINES:+:"1:$MAXLINES"}"}${PAD}\" 1>&10)"
-	[ "$DEBUG" = true ] && echo "+ $CMD" 1>&10
+	#[ "$DEBUG" = true ] && echo "+ $CMD" 1>&10
 	eval "$CMD")
 }
 
@@ -198,12 +198,12 @@ main() {
   [ "$DEBUG" = true ] && echo "$# Arguments" 1>&2
   for DIR ; do 
 
-
+        DIR=${DIR%%/.git*}
 	log_msg -n "($NEST) Entering directory $DIR ..."
 	
 	(set -e
-	cd "$DIR"
-	pwd 1>&2
+	cd "$DIR" >/dev/null
+	#pwd 1>&2
 	REMOTES=$(git_get_remote .|awkp)
 	[ -n "$CUSTOM_CMD" ] && { IFS="$IFS "; MAXLINES=5 exec_bin -f ${CUSTOM_CMD}; }
 	[ "$NO_COMMIT" != true ] && { IFS="$IFS "; MAXLINES=5 exec_bin -f git commit -m ... -a; }
