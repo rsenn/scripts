@@ -73,4 +73,4 @@ locate_fonts()
  )
 }
 
-$MYNAME "$@"
+${MYNAME//-/_} "$@"

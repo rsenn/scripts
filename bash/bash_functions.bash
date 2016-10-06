@@ -7033,10 +7033,6 @@ yaourt-pkgnames() {
  ${SED-sed} -n "s|^${NAME}/${NAME}\s\+\(.*\)|\2|p")
 }
 
-pacman-search-cmd() { yaourt-search-cmd "$@"; }
-
-pacman-search-output() { yaourt-search-output "$@"; }
-
 yaourt-search() { 
 (NPAD=32; VPAD=24; : ${COLS=$(tput cols)}; while :; do
    case "$1" in
@@ -7047,13 +7043,15 @@ yaourt-search() {
 		esac
 	done
 set -- ${@//"^"/"/"}
-set -- ${@//[.*]/" "}
-set -- ${@//[![:alnum:]]/}
+#set -- ${@//[.*]/" "}
+#set -- ${@//\*/\.\*}
+#[!\.\*[:alnum:]]/}
+set -- ${@//[!.*[:alnum:]]/}
  CMD="yaourt-search-cmd"
- [ $# -gt 0 ] && CMD="$CMD \"\${@//[![:alnum:]]/}\"" 
+ [ $# -gt 0 ] && CMD="$CMD \"\${@//[!.*[:alnum:]]/}\"" 
  CMD="$CMD | yaourt-search-output"
  if is-a-tty; then
-	 [ $# -gt 0 ] && CMD="$CMD | ${GREP-grep -a --line-buffered --color=auto} -E --color=yes \"$(grep-e-expr "$@")\""
+     [ $# -gt 0 ] && CMD="$CMD | ${GREP-grep -a --line-buffered --color=auto} -E \"($(IFS="|"; echo "$*"))\""
 	else
 		 NPAD= VPAD=
  fi
@@ -7063,9 +7061,10 @@ set -- ${@//[![:alnum:]]/}
 yaourt-search-cmd() {
   [ $# -gt 0 ] || set -- ""
   for Q in "$@"; do
-	 (IFS="| $IFS"; set -- $Q
-	 ([ "$DEBUG" = true ] && set -x; ${YAOURT:-${YAOURT:-command yaourt}} -Ss $@) | yaourt-joinlines -s "|" $OPTS | 
-   command ${GREP-grep -a --line-buffered --color=auto} -a --colour=auto -i -E "($*)")
+      (IFS="| $IFS"; Q=${Q//"\\\\"/"\\"}; Q=${Q//"\\."/"."}; Q=${@//"\\*"/"*"}; set -- $Q
+	 ([ "$DEBUG" = true ] && set -x
+${YAOURT:-${YAOURT:-command yaourt}} -Ss $@) | yaourt-joinlines -s "|" $OPTS | 
+   command ${GREP-grep -a --line-buffered --color=auto}  -i -E "($*)")
  done
 }
 
