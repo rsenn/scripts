@@ -65,7 +65,6 @@ PROFILE = \
   profile/00-path.sh \
   profile/00-pathmunge.sh \
   profile/256term.sh \
-  profile/browser-history.sh \
   profile/colorgrep.sh \
   profile/diet.sh \
   profile/grep-colors.sh \
