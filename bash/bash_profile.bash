@@ -380,7 +380,11 @@ if [ -z "$DESKTOP" -a -n "$HOME" ]; then
     [ -d "$HOME/Music" ] && MUSIC="$HOME/Music"
 fi
 
-LS_COLORS='rs=0:di=01;34:ln=01;36:mh=00:pi=33:so=01;35:do=01;35:bd=33;01:cd=33;01:or=31;01:su=37:sg=30:ca=30:tw=30:ow=34:st=37:ex=01;33:'
+
+if [ -z "$LS_COLORS" ]; then
+  LS_COLORS='rs=0:di=01;34:ln=01;36:mh=00:pi=33:so=01;35:do=01;35:bd=33;01:cd=33;01:or=31;01:su=37:sg=30:ca=30:tw=30:ow=34:st=37:ex=01;33:'
+fi
+
 case "${MSYSTEM-unset}" in
     unset)  ;;
     *MINGW32*) [ -d /mingw/bin ] && pathmunge /mingw/bin ;;
