@@ -182,6 +182,7 @@ main() {
         case "$1" in
           -x | --debug) DEBUG="true"; shift ;;
           -v | --verbose) VERBOSE="true"; shift ;;
+          -R | --remote) REMOTE=$2; shift 2 ;;
           -C | --no*commit*) NO_COMMIT="true"; shift ;;
           -c | --command | --cmd) CUSTOM_CMD="$2"; shift 2 ;;
           -p | --print) EVALCMD="echo"; shift ;;
@@ -207,7 +208,7 @@ main() {
 	REMOTES=$(git_get_remote .|awkp)
 	[ -n "$CUSTOM_CMD" ] && { IFS="$IFS "; MAXLINES=5 exec_bin -f ${CUSTOM_CMD}; }
 	[ "$NO_COMMIT" != true ] && { IFS="$IFS "; MAXLINES=5 exec_bin -f git commit -m ... -a; }
-	for R in $REMOTES; do
+	for R in ${REMOTE:-$REMOTES}; do
 	 exec_bin git pull "$R" $(git_get_branch)
 	exec_bin  git push "$R" $(git_get_branch)
 	done
