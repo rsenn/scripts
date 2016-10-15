@@ -155,11 +155,13 @@ make_archive() {
 	esac
 	cmd='rm -vf -- "$archive"; '$cmd
 	[ "$QUIET" = true ] && cmd="($cmd) 2>/dev/null" || cmd="($cmd) 2>&1"
-
+    [ "$REMOVE" = true ] && cmd="$cmd && rm -rf \"\$dir\""
         verbose "cmd='$(max-length $max_length "$cmd")'" 2
+
         IFS="$IFS "
-	cmdexec $cmd  &&
-	verbose "Created archive '$archive'" 1
+	cmdexec $cmd  && {
+	  verbose "Created archive '$archive'" 1
+	}
 }
 
 bce() {
