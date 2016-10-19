@@ -355,7 +355,10 @@ if [ -e /etc/bash_completion -a "${BASH_COMPLETION-unset}" = unset ]; then
     . /etc/bash_completion
 fi
 
-CDPATH="."
+#CDPATH="."
+if [ -n "$CD" -a -d "$CD" ]; then
+  cd "$CD" >&/dev/null
+fi
 
 if [ -n "$USERPROFILE" -a -n "$PATHTOOL" ]; then
     USERPROFILE=`$PATHTOOL -m "$USERPROFILE"`
