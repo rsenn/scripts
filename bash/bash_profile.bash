@@ -133,7 +133,7 @@ else
     SUDO=sudo
 fi
 type gvim 2>/dev/null >/dev/null && alias gvim="gvim --remote-tab"
-type astyle 2>/dev/null >/dev/null && alias astyle="astyle --style=linux --indent=spaces=2 "
+type astyle 2>/dev/null >/dev/null && alias astyle="astyle --style=kr --indent=spaces=2 --unpad-paren --pad-oper --keep-one-line-{blocks,statements}"
 type yum 2>/dev/null >/dev/null && alias yum="$SUDO yum -y"
 type smart 2>/dev/null >/dev/null && alias smart="$SUDO smart -y"
 type zypper 2>/dev/null >/dev/null && alias zypper="$SUDO zypper"
@@ -355,7 +355,7 @@ if [ -e /etc/bash_completion -a "${BASH_COMPLETION-unset}" = unset ]; then
     . /etc/bash_completion
 fi
 
-#CDPATH="."
+CDPATH="."
 
 if [ -n "$USERPROFILE" -a -n "$PATHTOOL" ]; then
     USERPROFILE=`$PATHTOOL -m "$USERPROFILE"`
@@ -424,11 +424,4 @@ if type ${CC-gcc} 2>/dev/null >/dev/null; then
     *clang*) builddir=${builddir%-gnu}-clang ;; 
   esac
 fi
-
-if [ -n "$CD" -a  -d "$CD"  ]; then
-  cd "$CD"
-  unset CD
-fi
-
-
 }; _dot_bash_profile=1
