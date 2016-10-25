@@ -2,9 +2,9 @@ mminfo()
 {
     ( for ARG in "$@";
     do
-        minfo "$ARG" | ${SED-sed} -n "s,^\([^:]*\):\s*\(.*\),${2:+$ARG:}\1=\2,p";
+        minfo "$ARG" | ${SED-sed} -n "s|^\([^:]*\):\s*\(.*\)|${2:+$ARG:}\1=\2|p";
     done | ${SED-sed} \
-        's,\s\+=,=,  ;;
+        's|\s\+=|=|  ;;
 s|\([0-9]\) \([0-9]\)|\1\2|g
 /Duration/ { 
   s|\([0-9]\) min|\1min|g
