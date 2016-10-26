@@ -16,7 +16,8 @@ locate_videos()
     TRAILING="(\.!..|\.part|)"
   fi
 
- locate -i -r '.*' |grep -iE "\.($(IFS='| '; set -- $EXTS; echo "$*"))${TRAILING}\$"
+  [ $# -le 0 ] && set -- ".*"
+  for ARG; do locate -i -r "$ARG"; done |grep -iE "\.($(IFS='| '; set -- $EXTS; echo "$*"))${TRAILING}\$"
  )
 }
 

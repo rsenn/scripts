@@ -13,7 +13,8 @@ EXTS="$EXTS rar zip 7z tar.gz tar.xz tar.bz2 tgz txz tbz2 deb rpm iso daa dmg ru
 EXTS="$EXTS 7z app bin daa deb dmg exe iso msi msu cab vbox-extpack apk nrg pkg rar rpm run sh tar.Z tar.bz2 tar.gz tar.xz tbz2 tgz txz zip"
 
  
- locate -i -r '.*' |grep -iE "($(IFS='| '; set -- $(echo "$EXTS" |${SED-sed} "s,\*,\[^/]*,g ; s/\./\\\\./g"); echo "$*"))\$"
+  [ $# -le 0 ] && set -- ".*"
+  for ARG; do locate -i -r "$ARG"; done |grep -iE "($(IFS='| '; set -- $(echo "$EXTS" |${SED-sed} "s,\*,\[^/]*,g ; s/\./\\\\./g"); echo "$*"))\$"
  )
 }
 
