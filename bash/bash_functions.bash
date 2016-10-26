@@ -2273,7 +2273,7 @@ get-mingw-properties() {
 
 get-prefix()
 { 
-    cygpath -a $(${CC:-gcc} -print-search-dirs |sed -n 's,.*:\s\+=\?,,; s,/bin.*,,p ; s,/lib.*,,p' |head -n1)
+    ${CC:-gcc} -print-search-dirs |sed -n 's,.*:\s\+=\?,,; s,/bin.*,,p ; s,/lib.*,,p' |head -n1
 }
 
 get-property()
