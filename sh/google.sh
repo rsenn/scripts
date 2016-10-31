@@ -79,7 +79,7 @@ fi
 
 case "$DLPROG" in
   curl*) DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks4a \"${SOCKS_PROXY#*://}\"} -A '$USER_AGENT'" ;;
-  wget*) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }wget -q ${COOKIE:+--load-cookies='$COOKIE' }-O - -U '$USER_AGENT'" ;;
+  wget*) DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }wget -q ${COOKIE:+--load-cookies='$COOKIE' }-O - -U '$USER_AGENT'" ;;
 	lynx*) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent='$USER_AGENT' ${COOKIE:+-cookie_file='$COOKIE'} 2>/dev/null" ;;
   links*) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }links -source" ;;
   w3m*) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null" ;;
