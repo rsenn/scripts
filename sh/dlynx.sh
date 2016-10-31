@@ -30,6 +30,10 @@ while :; do
 
 [ "$SOURCE" = true ] || { [ "$DUMP" != true ] && { DUMP=true; WIDTH=16384; }; }
 
+if [ "$DUMP" != true -a "$SOURCE" != true ]; then
+	CMD="$CMD | grep ://"
+fi
+
 [ "$DUMP" = true ] && push OPTS -dump -nonumbers || push OPTS -listonly
 [ -n "$WIDTH" -a "$WIDTH" -gt 0 ] && push OPTS -width="$WIDTH"
 [ "$SOURCE" = true ] && { push OPTS -source; DUMP="false" ; }
