@@ -83,7 +83,9 @@ case "$DLPROG" in
 	lynx*) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent='$USER_AGENT' ${COOKIE:+-cookie_file='$COOKIE'} 2>/dev/null" ;;
   links*) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }links -source" ;;
   w3m*) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null" ;;
-  *) echo "No such download command: $DLPROG" 1>&2; exit 1 ;;
+  *) DLCMD="$DLPROG" ;;
+    
+    #echo "No such download command: $DLPROG" 1>&2; exit 1 ;;
 esac
 
 [ "$DEBUG" = true ] && echo "DLCMD=$DLCMD" 1>&2
