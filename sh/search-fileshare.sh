@@ -19,8 +19,8 @@ while :; do
   case "$1" in
     -s | --save-tmp) OPTS="${OPTS:+$OPTS$S}$1=${TEMP%[\\\\/}/`basename "${0%.sh}"`$$.txt"; shift ;;
 		-x | --debug) pushv OPTS "$1"; DEBUG=true; shift ;;
-    -v | --verbose | -s* | --save* | -t=* | --type=* | -c=* | --class=* | -n=* | --results=*) pushv OPTS "$1"; shift ;;
-    -p=*|--dl*prog*=*) pushv OPTS "$1"; shift ;; -p|--dlprog) pushv OPTS "$1" "$2"; shift 2 ;;
+    -v | --verbose | -s* | --save* | -t=* | --type=* | -c=* | --class=* | -n=* | --results=*) pushv OPTS "$1"; shift ;; 
+    -p=*|--dl*prog*=*) PROG="${1#*=}";  shift ;; -p|--dlprog) PROG="$2";  shift 2 ;;
     *) break ;;
   esac
 done
@@ -35,9 +35,9 @@ search_fileshare() {
   { RESULTS=1000
 	
    ([ "$DEBUG" = true ] && set -x
-	google.sh $OPTS "$KEYWORDS $SET1"
-	google.sh $OPTS "$KEYWORDS $SET2"
-	google.sh $OPTS "$KEYWORDS $SET3")
+	google.sh ${PROG:+-p="$PROG"} $OPTS "$KEYWORDS $SET1"
+	google.sh ${PROG:+-p="$PROG"} $OPTS "$KEYWORDS $SET2"
+	google.sh ${PROG:+-p="$PROG"} $OPTS "$KEYWORDS $SET3")
 
   } \
 	| xargs -n10 -d "
