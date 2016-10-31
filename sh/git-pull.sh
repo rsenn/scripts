@@ -173,16 +173,24 @@ log_msg() {
 }
 
 
-main() {
+git_pull() {
+
+  usage() {
+    echo "Usage: $(basename "$0") [OPTIONS] <DIRS...>
+  -v, --verbose
+  -R, --remote  
+" 1>&2
+  }
   exec 10>&2
   IFS="
 "
   NEST=$(( ${NEST:-0} + 1 ))
   while :; do
         case "$1" in
-          -x | --debug) DEBUG="true"; shift ;;
+          -h | --help) usage; exit 1 ;;
+                    -x | --debug) DEBUG="true"; shift ;;
           -v | --verbose) VERBOSE="true"; shift ;;
-          -R | --remote) REMOTE=$2; shift 2 ;;
+          -R | --remote) REMOTE=$2; shift 2 ;;       -R=* | --remote=*) REMOTE=${1#*=}; shift ;;
           -C | --no*commit*) NO_COMMIT="true"; shift ;;
           -c | --command | --cmd) CUSTOM_CMD="$2"; shift 2 ;;
           -p | --print) EVALCMD="echo"; shift ;;
@@ -220,4 +228,4 @@ main() {
   done
 }
 
-main "$@"
+git_pull "$@"
