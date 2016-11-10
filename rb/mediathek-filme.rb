@@ -28,7 +28,7 @@
 #$LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__) + '/../..')
 #$LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__) + '/../../lib')
 
-file = ARGV[0] ? ARGV[0] : "D:/Programs/MediathekView_11_2015.09.15/Einstellungen/.mediathek3/filme.json"
+file = ARGV[0] ? ARGV[0] : "C:/Users/roman/.mediathek3/filme.json" #D:/Programs/MediathekView_11_2015.09.15/Einstellungen/.mediathek3/filme.json"
 
 require 'yajl'
 

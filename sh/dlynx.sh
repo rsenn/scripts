@@ -35,7 +35,7 @@ if [ "$DUMP" != true -a "$SOURCE" != true ]; then
 fi
 
 [ "$DUMP" = true ] && push OPTS -dump -nonumbers || push OPTS -listonly
-[ -n "$WIDTH" -a "$WIDTH" -gt 0 ] && push OPTS -width="$WIDTH"
+[ -n "$WIDTH" ] && push OPTS -width="$WIDTH"
 [ "$SOURCE" = true ] && { push OPTS -source; DUMP="false" ; }
 
 #[ -n "$COOKIES" ] || OPTS="-cookie_file=\"\$COOKIES\""
