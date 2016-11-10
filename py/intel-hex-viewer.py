@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 import sys
 
 def parse_hex_line( line ):
