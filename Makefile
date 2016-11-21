@@ -84,7 +84,8 @@ RB_SCRIPTS = $(wildcard rb/*.rb)
 
 #SH_SCRIPTS = $(wildcard *.sh)
 SH_SCRIPTS = $(wildcard sh/*.sh)
-LINKS = find-audio.sh find-archives.sh find-books.sh find-fonts.sh find-images.sh find-incomplete.sh find-music.sh find-packages.sh find-scripts.sh find-software.sh find-sources.sh find-videos.sh find-vmdisk.sh find-project.sh grep-archives.sh grep-audio.sh grep-books.sh grep-fonts.sh grep-images.sh grep-music.sh grep-packages.sh grep-scripts.sh grep-software.sh grep-sources.sh grep-videos.sh grep-vmdisk.sh
+FN_LINKS = find-audio.sh find-archives.sh find-books.sh find-fonts.sh find-images.sh find-incomplete.sh find-music.sh find-packages.sh find-scripts.sh find-software.sh find-sources.sh find-videos.sh find-vmdisk.sh find-project.sh grep-archives.sh grep-audio.sh grep-books.sh grep-fonts.sh grep-images.sh grep-music.sh grep-packages.sh grep-scripts.sh grep-software.sh grep-sources.sh grep-videos.sh grep-vmdisk.sh
+CMD_LINKS = git-pull.sh
 #SH_SCRIPTS = $(shell ls -t -- *.sh)
 
 install: $(SCRIPTS)
@@ -112,10 +113,17 @@ install: $(SCRIPTS)
 	  [ $$# -lt $$N ] && break; \
 	  shift $$N; \
 	done
-	@N=1; set -- $(LINKS); while :; do \
+	@N=1; set -- $(FN_LINKS); while :; do \
 	    if test -n "$$1"; then \
 		A=$${1%-*}; \
 		$(call symlink_script,$$A-filename.sh,$(DESTDIR)$(bindir)/$$1); \
+	    fi; \
+	  [ $$# -lt $$N ] && break; shift $$N; \
+	done
+	@N=1; set -- $(CMD_LINKS); while :; do \
+	    if test -n "$$1"; then \
+		A=$${1%-*}; \
+		$(call symlink_script,$$A-cmd.sh,$(DESTDIR)$(bindir)/$$1); \
 	    fi; \
 	  [ $$# -lt $$N ] && break; shift $$N; \
 	done
