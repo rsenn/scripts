@@ -85,7 +85,7 @@ RB_SCRIPTS = $(wildcard rb/*.rb)
 #SH_SCRIPTS = $(wildcard *.sh)
 SH_SCRIPTS = $(wildcard sh/*.sh)
 FN_LINKS = find-audio.sh find-archives.sh find-books.sh find-fonts.sh find-images.sh find-incomplete.sh find-music.sh find-packages.sh find-scripts.sh find-software.sh find-sources.sh find-videos.sh find-vmdisk.sh find-project.sh grep-archives.sh grep-audio.sh grep-books.sh grep-fonts.sh grep-images.sh grep-music.sh grep-packages.sh grep-scripts.sh grep-software.sh grep-sources.sh grep-videos.sh grep-vmdisk.sh
-CMD_LINKS = git-pull.sh
+CMD_LINKS = git-pull.sh git-push.sh git-commit.sh git-fetch.sh
 #SH_SCRIPTS = $(shell ls -t -- *.sh)
 
 install: $(SCRIPTS)
