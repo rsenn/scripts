@@ -218,9 +218,14 @@ git_cmd() {
 	REMOTES=$(git_get_remote .|awkp)
 	[ -n "$CUSTOM_CMD" ] && { IFS="$IFS "; MAXLINES=5 exec_bin -f ${CUSTOM_CMD}; }
 	[ "$NO_COMMIT" != true ] && { IFS="$IFS "; MAXLINES=5 exec_bin -f git commit -m ... -a; }
+	case "$MYCMD" in
+	  pull|push) set -- "$R"  $(git_get_branch) ;;
+	  commit) set -- -m ... -a ;;
+	  fetch) set -- --all --tags ;;
+	esac
 	for R in ${REMOTE:-$REMOTES}; do
-	 exec_bin git $MYCMD "$R" $(git_get_branch)
-	exec_bin  git push "$R" $(git_get_branch)
+	 exec_bin git $MYCMD "$@"
+#	exec_bin  git push "$R" $(git_get_branch)
 	done
 	) >/dev/null
 	log_msg -n "($NEST) Leaving directory $DIR ..."
