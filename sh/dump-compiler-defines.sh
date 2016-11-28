@@ -1,8 +1,9 @@
 #!/bin/sh
 
 N=$#
-
- CMD='echo | "$COMPILER" -dM -E -  | sort'
+IFS="
+ "
+ CMD='echo | $COMPILER -dM -E -  | sort'
 
 while :; do
   case "$1" in
@@ -22,6 +23,8 @@ CMD="$CMD | ${SED-sed} \"s|^|\$COMPILER: |\""
 while [ $# -gt 0 ]; do
  (set -e
  COMPILER=${1:-cc}
+ set -- $COMPILER
+ COMPILER="$*"
 
    eval "$CMD"
  ) || exit $?
