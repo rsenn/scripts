@@ -200,6 +200,20 @@ bheader()
     quiet dd count="${1:-1}" bs="${2:-512}"
 }
 
+bin2dec() {
+  while [ $# -gt 0 ]; do
+	eval 'echo "$((2#'${1#0b}'))"'
+	shift
+  done
+}
+
+bin2hex() {
+  while [ $# -gt 0 ]; do
+	eval 'printf "0x%02x\n" "$((2#'${1#0b}'))"'
+	shift
+  done
+}
+
 bit2arch() {
  (for ARG; do
    case "$ARG" in
