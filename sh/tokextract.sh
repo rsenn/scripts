@@ -16,6 +16,7 @@ tokextract() {
 
   while :; do
 	 case "$1" in
+	   -N | --no*number*) NO_NUMBER=true; shift ;;
 	   -e | --expr*) tokexpr="$2"; shift 2 ;;
 	   -e=* | --expr*=*) tokexpr="${1#*=}"; shift ;;
 	   -e*) tokexpr="${1#-?}"; shift ;;
@@ -44,7 +45,9 @@ tokextract() {
 
   SED_ARGS=""
 
-  pushv FILTER "/^[0-9]/d"
+  if [ "$NO_NUMBER" != true ]; then
+	pushv FILTER "/^[0-9]/d"
+  fi
 
   set -f
 
