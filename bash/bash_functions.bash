@@ -6703,7 +6703,7 @@ echo "CMAKE_ARCH=$CMAKE_ARCH" 1>&2
    VSVARS="${ARCHDIR:+$VCVARSARCH}"
    : ${VSVARS:="$VSINSTALLDIR\\Common7\\Tools\\vsvars32.bat"}
 
-  WindowsSdkDir=$(reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows" /v "CurrentInstallFolder" | ${SED-sed} -n "s|.*REG_SZ\s\+||p")
+  WindowsSdkDir=$(cmd /c 'reg query "HKLM\SOFTWARE\Microsoft\Microsoft SDKs\Windows" /v "CurrentInstallFolder"' | ${SED-sed} -n "s|.*REG_SZ\s\+||p")
 
   local $(${GREP-grep -a --line-buffered --color=auto} -i -E "^\s*@?set \"?(INCLUDE|LIB|LIBPATH|FrameworkDir|FrameworkVersion|Framework35Version)=" "$VSVARS" | ${SED-sed} \
    -e "s,.*set \"\?\([^\"]\+\)\"\?,\1,i" \

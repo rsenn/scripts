@@ -15,6 +15,7 @@ REMOVE=false
 
 while :; do
     case "$1" in
+   -P) NOPIPE=true; shift ;;
    -r) REMOVE=true; shift ;;
    -b) ABR="$2"; shift 2 ;;
    -d) DESTDIR="$2"; shift 2 ;;
@@ -65,30 +66,28 @@ trap 'rm -f "$WAV"' EXIT
 trap 'exit 3' INT TERM
 
     OUTPUT="${ARG%.*}.mp3"
+    OUTPUT=${OUTPUT//[![:print:]]/""}
     if [ "$DESTDIR" ]; then
       OUTPUT="$DESTDIR"/`basename "$OUTPUT"`
     fi
 
-    (set -x; 
+    (#set -x; 
 trap 'R=$?; rm -vf "$WAV"; exit $R' EXIT QUIT INT TERM
+
 #(cd "$DIR"; mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV##*/}" -vc null -vo null "${ARG##*/}"  2>/dev/null) &&
 #(mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV}" -vc null -vo null "${ARG}"  2>/dev/null) &&
-CMD=
+DECODE=
 
 case "${ARG##*/}" in
 	*.wav) WAV="$ARG" ;;
 	*.669 | *.amf | *.amf | *.dsm | *.far | *.gdm | *.gt2 | *.it | *.imf | *.mod | *.med | *.mtm | *.okt | *.s3m | *.stm | *.stx | *.ult | *.umx | *.apun | *.xm | *.mod) 
 	  #mikmod -q -d 5  -p 1 -o 16s -i -hq -reverb 1 -fadeout  -norc -x "${ARG}" ; 	  WAV="music.wav"
-	  CMD='xmp "$ARG" -d wav -o -'
+	  DECODE='xmp "$ARG" -d wav -o -'
 	  SONG="${ARG##*/}"
 	;;
 	*)
-	
-	
-	CMD='${FFMPEG:-ffmpeg} -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 -' #"$WAV" ||
+	DECODE='${FFMPEG:-ffmpeg} -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 - ' #"$WAV" ||
 	#mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"  2>/dev/null
-	
-	 
 	;;
 esac
 
@@ -96,12 +95,20 @@ esac
 if [ "$ARG" = "$OUTPUT" -a "$REMOVE" = true ]; then
   REMOVE=false
 fi
-set -e; set -x
+
+set -e #; set -x
+
 if type shineenc >/dev/null 2>/dev/null; then
-CMD="$CMD | shineenc  -b \"\$ABR\" - \"\$OUTPUT\" "
+  ENCODE="shineenc  -b \"\$ABR\" - \"\$OUTPUT\" "
 else
-CMD="$CMD | lame --alt-preset \"\$ABR\" --resample 44100 -m j -h - \"\$OUTPUT\" "
+  ENCODE="lame --alt-preset \"\$ABR\" --resample 44100 -m j -h - \"\$OUTPUT\" "
 fi
+if [ "$NOPIPE" = true ]; then
+  CMD=${DECODE/" - "/" \"\$WAV\""}"; "${ENCODE/" - "/" \"\$WAV\" "}
+  else
+CMD="$DECODE | $ENCODE"
+fi
+echo "CMD: $CMD" 1>&2
 eval "$CMD"
 R=$?
 [ -n "$SONG" ] && id3v2 --song "$SONG" "$OUTPUT"
