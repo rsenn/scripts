@@ -108,8 +108,8 @@ if [ "$NOPIPE" = true ]; then
   else
 CMD="$DECODE | $ENCODE"
 fi
-echo "CMD: $CMD" 1>&2
-eval "$CMD"
+#echo "CMD: $CMD" 1>&2
+eval "(set -x; $CMD)"
 R=$?
 [ -n "$SONG" ] && id3v2 --song "$SONG" "$OUTPUT"
 exit $R
