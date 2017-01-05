@@ -12,38 +12,38 @@ CYGPATH=` which cygpath 2>/dev/null`
 
 find_scripts()
 {
-	(
+  (
    IFS="
-	 "
-		[ "$#" -le 0 ] && set -- *
+   "
+    [ "$#" -le 0 ] && set -- *
 
-		set -f 
+    set -f 
 
-		set find "$@" 
+    set find "$@" 
 
-		CONDITIONS=
+    CONDITIONS=
 
-		for EXT in $EXTS; do
-			 if [ "$CONDITIONS" ]; then
-				 CONDITIONS="$CONDITIONS
-	-or"
-			 fi
-			 CONDITIONS="$CONDITIONS
-	-iname
-	*.$EXT${S}"
-		done
+    for EXT in $EXTS; do
+       if [ "$CONDITIONS" ]; then
+         CONDITIONS="$CONDITIONS
+  -or"
+       fi
+       CONDITIONS="$CONDITIONS
+  -iname
+  *.$EXT${S}"
+    done
 
-		CONDITIONS="$CONDITIONS
-	-and -type f -and -size +3M" 
+    CONDITIONS="$CONDITIONS
+  -and -type f -and -size +3M" 
 
-		set "$@" "(" $CONDITIONS ")" 
+    set "$@" "(" $CONDITIONS ")" 
 
-		"$@" 2>/dev/null  |${SED-sed} -u 's,^\.\/,,' |while read -r P; do
-		( 
-			${CYGPATH:+$CYGPATH -m "$P"}
-		)
-		done
-	)
+    "$@" 2>/dev/null  |${SED-sed} -u 's,^\.\/,,' |while read -r P; do
+    ( 
+      ${CYGPATH:+$CYGPATH -m "$P"}
+    )
+    done
+  )
 }
 
 find_scripts()
