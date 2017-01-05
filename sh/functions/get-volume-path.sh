@@ -1,11 +1,10 @@
 get-volume-path() {
-  (for ARG; do
-  if [ -e /dev/disk/by-label/"$ARG" ]; then
-      DEV=/dev/disk/by-label/"$ARG" 
-    LABEL=${DEV##*/}
-    DEV=$(realpath "$DEV")
-  fi
+  (
+  RF="[^ ]\+\s\+"
+  for ARG; do
+  df "$(  get-volume-list |sed -n "\\|\\s$ARG\$| { s|\s.*||; p }")" |sed "1d; s|^${RF}${RF}${RF}${RF}${RF}||"
 
 
    done)
+}
 
