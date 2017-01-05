@@ -2339,7 +2339,7 @@ get-tempdir() {
 get-volume-list() {
  (
 
- set -- $(df -l|sed '1d; s|\s\+.*||;  \|^/dev|! { \|^.:|! d }')
+ set -- $(df -l | sed '1d; s|\s\+.*||;  \|^/dev|! { \|^.:|! d }; /^.:/ s|[/\\].*||')
  while [ $# -gt 0 ]; do
      
      
