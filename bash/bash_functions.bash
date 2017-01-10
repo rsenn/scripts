@@ -1840,7 +1840,7 @@ filter()
 find-all() { 
 
   
-  (LOCATE=`cmd-path locate`
+  (: ${LOCATE=`cmd-path locate`}
   
    [ -z "$LOCATE" ] && LOCATE=locate32.sh  || LOCATE="$LOCATE
 -i
