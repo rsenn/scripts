@@ -1840,7 +1840,7 @@ filter()
 find-all() { 
 
   
-  (LOCATE=`cmd-path locate`
+  (: ${LOCATE=`cmd-path locate`}
   
    [ -z "$LOCATE" ] && LOCATE=locate32.sh  || LOCATE="$LOCATE
 -i
@@ -2334,6 +2334,40 @@ get-tempdir() {
     fi
   fi
   echo "${TEMPDIR//"\\"/"/"}")
+}
+
+get-volume-list() {
+ (
+
+ set -- $(df -l | sed '1d; s|\s\+.*||;  \|^/dev|! { \|^.:|! d }; /^.:/ s|[/\\].*||')
+ while [ $# -gt 0 ]; do
+     
+     
+     echo "$1" $(volname "$1")
+     shift
+ done
+
+ 
+# set -- $(df -hl|sed -n '\|^/dev/.d| { s,\s.*,, ; s|.*/||; p }'|grep-e-expr)
+#  ls -la -d -n --time-style=+%s -- /dev/disk/by-label/* | grep -E "/$(IFS="|"; echo "$*")\$" |
+#  { IFS=" "; while read -r MODE N USR GRP SIZE TIME LABEL _A DEVICE; do echo "/dev/${DEVICE##*/}" "${LABEL##*/}"; done; }
+
+)
+}
+
+
+ 
+
+get-volume-path() {
+  (
+  get-volume-list |sed "\\|\s${1}\$| { s|\s${1}\$||; \\|/|! { s|\$|/| }; p }" -n 
+#  RF="[^ ]\+\s\+"
+#  for ARG; do
+#  df "$(  get-volume-list |sed -n "\\|\\s$ARG\$| { s|\s.*||; p }")" |sed "1d; s|^${RF}${RF}${RF}${RF}${RF}||"
+#
+#
+#   done
+)
 }
 
 getuuid()
