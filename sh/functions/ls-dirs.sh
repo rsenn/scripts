@@ -1,8 +1,6 @@
-ls-dirs()
-{
-    ( [ -z "$@" ] && set -- .;
-    for ARG in "$@";
-    do
-        ls --color=auto -d "$ARG"/*/;
-    done ) | ${SED-sed} 's,^\./,,; s,/$,,'
+ls-dirs() {
+ ([ $# -le 0 ] && set -- .
+  for ARG; do
+    ls --color=auto -d -- "$ARG"/{,.[!.]}*/
+  done) | ${SED-sed} "s|^\\./|| ;; s|/\$||"
 }
