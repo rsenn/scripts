@@ -4324,8 +4324,8 @@ ls-files()
   while :; do 
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS
-}$1"; shift ;
-      *) break ;
+}$1"; shift ;;
+      *) break ;;
 	esac
   done
   for ARG; do
