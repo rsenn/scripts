@@ -4311,29 +4311,26 @@ lookup-grub-devicemap()
     done ) < "${devicemap:-device.map}"
 }
 
-ls-dirs()
-{
-    ( [ -z "$@" ] && set -- .;
-    for ARG in "$@";
-    do
-        ls --color=auto -d "$ARG"/*/;
-    done ) | ${SED-sed} 's,^\./,,; s,/$,,'
+ls-dirs() {
+ ([ $# -le 0 ] && set -- .
+  for ARG; do
+    ls --color=auto -d -- "$ARG"/{,.[!.]}*/
+  done) 2>/dev/null | ${SED-sed} "s|^\\./|| ;; s|/\$||"
 }
 
 ls-files()
 {
-    ( [ -z "$@" ] && set -- .;
-		while :; do 
-			case "$1" in
-			 -*) OPTS="${OPTS:+$OPTS
-}$1"; shift ;;
-      *) break ;;
-		esac
-	done
-    for ARG in "$@";
-    do
-        ls --color=auto -d $OPTS -- "$ARG"/*;
-    done ) | filter-test -f| ${SED-sed} 's,^\./,,; s,/$,,'
+ ([ $# -le 0 ] && set -- .
+  while :; do 
+    case "$1" in
+      -*) OPTS="${OPTS:+$OPTS
+}$1"; shift ;
+      *) break ;
+	esac
+  done
+  for ARG; do
+      ls --color=auto -d $OPTS -- "$ARG"/{,.[!.]}*
+  done) 2>/dev/null | filter-test -f| ${SED-sed} "s|^\\./||; s|/\$||"
 }
 
 lsof-win()
