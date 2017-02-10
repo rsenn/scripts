@@ -30,8 +30,8 @@ while :; do
 
 [ "$SOURCE" = true ] || { [ "$DUMP" != true ] && { DUMP=true; WIDTH=16384; }; }
 
-if [ "$DUMP" != true -a "$SOURCE" != true ]; then
-	CMD="$CMD | grep ://"
+if [ "$SOURCE" != true ]; then
+	CMD="$CMD | grep '^[^ ]*://'"
 fi
 
 [ "$DUMP" = true ] && push OPTS -dump -nonumbers || push OPTS -listonly
