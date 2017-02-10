@@ -427,4 +427,8 @@ if type ${CC-gcc} 2>/dev/null >/dev/null; then
     *clang*) builddir=${builddir%-gnu}-clang ;; 
   esac
 fi
+
+#has_cmd picpgm && 
+alias picpgm="picpgm -if JDM -port COM1"
+
 }; _dot_bash_profile=1

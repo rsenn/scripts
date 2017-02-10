@@ -1,14 +1,6 @@
 #!/bin/bash
 
 MYNAME=`basename "${0%.sh}"`
-NL="
-"
-CR=$'\r'
-BS="\\"
-push() {
-  eval 'shift;'$1'="${'$1':+$'$1'
-}$*"'
-}
 
 create_match_function() {
   FN="$1() { case \"\$1\" in"
@@ -54,8 +46,16 @@ dbg() {
           [ "$DEBUG" = true ] && echo "$@" 1>&2
 }
 
+dump_eagle_script() {
+  NL="
+  "
+  CR=$'\r'
+  BS="\\"
+  push() {
+	eval 'shift;'$1'="${'$1':+$'$1'
+  }$*"'
+  }
 
-main() {
   while :; do
     case "$1" in
       -x | --debug) DEBUG=true; shift ;;
@@ -158,4 +158,5 @@ main() {
     push BODY "$LINE"  
   done 
 }
-main "$@"
+
+dump_eagle_script "$@"
