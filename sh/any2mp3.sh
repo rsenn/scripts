@@ -86,7 +86,7 @@ case "${ARG##*/}" in
 	  SONG="${ARG##*/}"
 	;;
 	*)
-	DECODE='${FFMPEG:-ffmpeg} -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 - ' #"$WAV" ||
+	DECODE='${FFMPEG:-ffmpeg} -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV"' # ||
 	#mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"  2>/dev/null
 	;;
 esac
@@ -99,15 +99,15 @@ fi
 set -e #; set -x
 
 if type shineenc >/dev/null 2>/dev/null; then
-  ENCODE="shineenc  -b \"\$ABR\" - \"\$OUTPUT\" "
+  ENCODE="shineenc  -b \"\$ABR\" \"\$WAV\" \"\$OUTPUT\" "
 else
   ENCODE="lame --alt-preset \"\$ABR\" --resample 44100 -m j -h - \"\$OUTPUT\" "
 fi
-if [ "$NOPIPE" = true ]; then
+#if [ "$NOPIPE" = true ]; then
   CMD=${DECODE/" - "/" \"\$WAV\""}"; "${ENCODE/" - "/" \"\$WAV\" "}
-  else
-CMD="$DECODE | $ENCODE"
-fi
+#  else
+#CMD="$DECODE | $ENCODE"
+#fi
 #echo "CMD: $CMD" 1>&2
 eval "(set -x; $CMD)"
 R=$?
