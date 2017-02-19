@@ -86,8 +86,8 @@ case "${ARG##*/}" in
 	  SONG="${ARG##*/}"
 	;;
 	*)
-	DECODE='${FFMPEG:-ffmpeg} -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV"' # ||
-	#mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"  2>/dev/null
+	DECODE='mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"  2>/dev/null || ${FFMPEG:-ffmpeg} -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV"' # ||
+
 	;;
 esac
 
@@ -104,7 +104,7 @@ else
   ENCODE="lame --alt-preset \"\$ABR\" --resample 44100 -m j -h - \"\$OUTPUT\" "
 fi
 #if [ "$NOPIPE" = true ]; then
-  CMD=${DECODE/" - "/" \"\$WAV\""}"; "${ENCODE/" - "/" \"\$WAV\" "}
+  CMD=${DECODE/" - "/" \"\$WAV\""}" && "${ENCODE/" - "/" \"\$WAV\" "}
 #  else
 #CMD="$DECODE | $ENCODE"
 #fi
