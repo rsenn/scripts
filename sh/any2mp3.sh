@@ -15,6 +15,7 @@ REMOVE=false
 
 while :; do
     case "$1" in
+   -x|--debug) DEBUG=true; shift ;;
    -P) NOPIPE=true; shift ;;
    -r) REMOVE=true; shift ;;
    -b) ABR="$2"; shift 2 ;;
@@ -62,8 +63,8 @@ for ARG; do
 #    WAV="${ARG%.*}.wav"
     DIR=`dirname "$ARG"`
     WAV="${MYNAME}-$$.wav"
-trap 'rm -f "$WAV"' EXIT
-trap 'exit 3' INT TERM
+  trap 'rm -f "$WAV"' EXIT
+  trap 'exit 3' INT TERM
 
     OUTPUT="${ARG%.*}.mp3"
     OUTPUT=${OUTPUT//[![:print:]]/""}
@@ -72,50 +73,66 @@ trap 'exit 3' INT TERM
     fi
 
     (#set -x; 
-trap 'R=$?; rm -vf "$WAV"; exit $R' EXIT QUIT INT TERM
+  trap 'R=$?; rm -vf "$WAV"; exit $R' EXIT QUIT INT TERM
 
-#(cd "$DIR"; mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV##*/}" -vc null -vo null "${ARG##*/}"  2>/dev/null) &&
-#(mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV}" -vc null -vo null "${ARG}"  2>/dev/null) &&
-DECODE=
+  #(cd "$DIR"; mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV##*/}" -vc null -vo null "${ARG##*/}"  2>/dev/null) &&
+  #(mplayer -quiet -noconsolecontrols -benchmark -ao pcm:fast:file="${WAV}" -vc null -vo null "${ARG}"  2>/dev/null) &&
+  DECODE=
 
-case "${ARG##*/}" in
-	*.wav) WAV="$ARG" ;;
-	*.669 | *.amf | *.amf | *.dsm | *.far | *.gdm | *.gt2 | *.it | *.imf | *.mod | *.med | *.mtm | *.okt | *.s3m | *.stm | *.stx | *.ult | *.umx | *.apun | *.xm | *.mod) 
-	  #mikmod -q -d 5  -p 1 -o 16s -i -hq -reverb 1 -fadeout  -norc -x "${ARG}" ; 	  WAV="music.wav"
-	  DECODE='xmp "$ARG" -d wav -o -'
-	  SONG="${ARG##*/}"
-	;;
-	*)
-	DECODE='mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"  2>/dev/null || ${FFMPEG:-ffmpeg} -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV"' # ||
+  case "${ARG##*/}" in
+	  *.wav) WAV="$ARG" ;;
+	  *.669 | *.amf | *.amf | *.dsm | *.far | *.gdm | *.gt2 | *.it | *.imf | *.mod | *.med | *.mtm | *.okt | *.s3m | *.stm | *.stx | *.ult | *.umx | *.apun | *.xm | *.mod) 
+		#mikmod -q -d 5  -p 1 -o 16s -i -hq -reverb 1 -fadeout  -norc -x "${ARG}" ; 	  WAV="music.wav"
+		DECODE='xmp "$ARG" -d wav -o -'
+		SONG="${ARG##*/}"
+	  ;;
+	  *)
+	  DECODE='
+	  
+	  case "${ARG}" in
+	    *.ogg) oggdec -o "$WAV" "$ARG" ;;
+	    *.mp3) madplay --output="$WAV":wave -S -R 44100 "$ARG" || mpg123 -w "$WAV" "$ARG" ;;
+	    *)   ffmpeg -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV" || mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"
+	    
+	    esac  2>/dev/null ' # ||
 
-	;;
-esac
+	  ;;
+  esac
 
- (
-if [ "$ARG" = "$OUTPUT" -a "$REMOVE" = true ]; then
-  REMOVE=false
-fi
+   (
+  if [ "$ARG" = "$OUTPUT" -a "$REMOVE" = true ]; then
+	REMOVE=false
+  fi
 
-set -e #; set -x
+  set -e #; set -x
 
-if type shineenc >/dev/null 2>/dev/null; then
-  ENCODE="shineenc  -b \"\$ABR\" \"\$WAV\" \"\$OUTPUT\" "
-else
-  ENCODE="lame --alt-preset \"\$ABR\" --resample 44100 -m j -h - \"\$OUTPUT\" "
-fi
-#if [ "$NOPIPE" = true ]; then
-  CMD=${DECODE/" - "/" \"\$WAV\""}" && "${ENCODE/" - "/" \"\$WAV\" "}
-#  else
-#CMD="$DECODE | $ENCODE"
-#fi
-#echo "CMD: $CMD" 1>&2
-eval "(set -x; $CMD)"
-R=$?
-[ -n "$SONG" ] && id3v2 --song "$SONG" "$OUTPUT"
-exit $R
-) &&
+  if type shineenc >/dev/null 2>/dev/null; then
+	ENCODE="shineenc  -b \"\$ABR\" \"\$WAV\" \"\$OUTPUT\" "
+  else
+	ENCODE="lame --alt-preset \"\$ABR\" --resample 44100 -m j -h - \"\$OUTPUT\" "
+  fi
+  #if [ "$NOPIPE" = true ]; then
+	CMD="${DECODE/ - / \"\$WAV\"} && ${ENCODE/ - / \"\$WAV\" }"
+  #  else
+  #CMD="$DECODE | $ENCODE"
+  #fi
 
-if $REMOVE; then rm -vf "$ARG"; fi) ||break
-) || { R=$?; if [ "$R" = 3 ]; then exit $R; fi; }
+  [ "$DEBUG" = true ] && {
+   O=
+  set -- $CMD; for A; do 
+	case "$A" in
+	  *" "*|*\$*) eval O="\"$O '${A//'/\\'}'\"" ;;
+	  *) eval O="\"$O $A\"" ;;
+	esac
+   done; echo "$O"
+   }
+  eval "(set -x; $CMD)"
+  R=$?
+  [ -n "$SONG" ] && id3v2 --song "$SONG" "$OUTPUT"
+  exit $R
+  ) &&
+
+  if $REMOVE; then rm -vf "$ARG"; fi) ||break
+  ) || { R=$?; if [ "$R" = 3 ]; then exit $R; fi; }
 done
 
