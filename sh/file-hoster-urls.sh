@@ -189,6 +189,8 @@ pattern "https://depositfiles.com/$FILENAME"
 pattern "https://soundcloud.com/$ALNUM"
 pattern "https://soundcloud.com/$FILENAME"
 pattern "https://www.mediafire.com/$FILENAME/$ALNUM"
+pattern "https://mega.nz/#!$ALNUM!$ALNUM"
+pattern "https://mega.co.nz/#!$ALNUM!$ALNUM"
 
 exec ${GREP-grep
 -a
