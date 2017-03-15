@@ -22,6 +22,17 @@ esac
 
 : ${OS=`uname -o 2>/dev/null || uname -s 2>/dev/null`}
 
+case "$OS" in
+  Msys*|msys*|MSYS*) msys_pwd() {
+    P=$(cygpath -a "$PWD")
+    case "$P" in
+      /?/*) D=${P#/}; D=${D%%/*}; P=${P#/?/}; echo "$D:/$P"     ;;
+      *) echo "$P" ;;
+    esac
+  }
+  ;;
+esac
+
 pmods='$MEDIAPATH/pmagic*/pmodules'
 drives_upper=$'A\nB\nC\nD\nE\nF\nG\nH\nI\nJ\nK\nL\nM\nN\nO\nP\nQ\nR\nS\nT\nU\nV\nW\nX\nY\nZ'
 drives_lower=$'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\nu\nv\nw\nx\ny\nz'
@@ -178,7 +189,7 @@ case "${OS}" in
         PATHTOOL=msyspath
         MSYSROOT=`msyspath -m / 2>/dev/null`
 
-        set_prompt '\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]\w\[\e[0m\]\n\$ '
+        set_prompt '\[\e]0;$MSYSTEM\w\a\]\n\[\e[32m\]\u@\h \[\e[33m\]`msys_pwd "$PWD"`\[\e[0m\]\n\$ '
 
         #    set_prompt '\e[32m\]\u@\h \[\e[33m\]$(CWD="${PWD}";[ "$CWD" != "${CWD#$HOME}" ] && CWD="~${CWD#$HOME}" || { [ "$PATHTOOL" ] && CWD=$($PATHTOOL -m "$CWD"); }; [ "$CWD" != "${CWD#$SYSROOT}" ] && CWD=${CWD#$SYSROOT}; echo "$CWD")\[\e[0m\]\n\$ '
         ;;
