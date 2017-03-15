@@ -26,9 +26,10 @@ case "$OS" in
   Msys*|msys*|MSYS*) msys_pwd() {
     P=$(cygpath -a "$PWD")
     case "$P" in
-      /?/*) D=${P#/}; D=${D%%/*}; P=${P#/?/}; echo "$D:/$P"     ;;
-      *) echo "$P" ;;
+      /?/*) D=${P#/}; D=${D%%/*}; P=${P#/?/}; P="$D:/$P"     ;;
+      $HOME*) P=~${P#"$HOME"} ;;
     esac
+    echo "$P"
   }
   ;;
 esac
