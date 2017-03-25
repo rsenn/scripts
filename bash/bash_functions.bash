@@ -3527,7 +3527,8 @@ link-mpd-music-dirs()
 }
 
 list-7z() {
- (CR=$'\r'
+ (: ${_7Z=7z}
+ CR=$'\r'
   while :; do
     case "$1" in
       -*) OPTS="${OPTS:+$OPTS${IFS:0:1}}$1"; shift ;;
@@ -3608,16 +3609,17 @@ list-7z() {
         T=${1%.t?z}
         T=${T%.tbz2}
         T=$T.tar
-        INPUT="${INPUT:+$INPUT | }7z x${INPUT:+ -si\"${1}\"} -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T}\"";  CMD="7z l -slt $OPTS"
+        INPUT="${INPUT:+$INPUT | }${_7Z} x${INPUT:+ -si\"${1}\"} -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T}\"";  CMD="${_7Z} l -slt $OPTS"
         ;;
-      *.tar.*) INPUT="${INPUT:+$INPUT | }7z x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${B%.*}\"";  CMD="7z l -slt $OPTS" ;;
-      *) CMD="7z l -slt $OPTS ${ARCHIVE+\"$ARCHIVE\"}" ;;
+      *.tar.*) INPUT="${INPUT:+$INPUT | }${_7Z} x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${B%.*}\"";  CMD="${_7Z} l -slt $OPTS" ;;
+      *) CMD="${_7Z} l -slt $OPTS ${ARCHIVE+\"$ARCHIVE\"}" ;;
     esac
     if [ -n "$INPUT" ]; then
       CMD="${INPUT+$INPUT | }$CMD"
       OPTS="$OPTS${IFS:0:1}-si\"${1##*/}\""
     fi
-    ( #echo "CMD: $CMD" 1>&2
+    ([ "$DEBUG" = true -o "$DEBUG" = : ] && echo "CMD: $CMD" 1>&2
+    #[ "$DEBUG" = true -o "$DEBUG" = : ] && CMD="set -x; $CMD"
      eval "($CMD; echo) 2>/dev/null" ) |
     { IFS=" $CR"; unset PREV; while read -r NAME EQ VALUE; do      
         case "$NAME" in
