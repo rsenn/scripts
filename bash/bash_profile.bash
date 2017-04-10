@@ -5,7 +5,8 @@ test "$_dot_bash_profile" = 1 || {
 echo "loading ${BASH_SOURCE:-$_}" 1>&2
 
 set -o vi
-
+NL="
+"
 IFS="
 "
 case "$PATH" in
@@ -29,6 +30,7 @@ case "$OS" in
       /?/*) D=${P#/}; D=${D%%/*}; P=${P#/?/}; P="$D:/$P"     ;;
       $HOME*) P=~${P#"$HOME"} ;;
     esac
+	P=${P##*$NL}
     echo "$P"
   }
   ;;
