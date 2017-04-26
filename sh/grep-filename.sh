@@ -3,6 +3,8 @@
 : ${MYNAME=`basename "$0" .sh`}
 
 grep_filename() {
+BS="\\"
+FS="/"
   archives_EXTS="rar zip 7z cab tar tar.Z tar.gz tar.xz tar.bz2 tar.lzma tgz txz tbz2 tlzma cpio"
   audio_EXTS="mp3 mp2 m4a m4b wma rm ogg flac mpc wav aif aiff raw"
   books_EXTS="pdf epub mobi azw3 djv djvu"
@@ -75,14 +77,16 @@ grep_filename() {
 
 CMD=
 for E in $EXTS; do
-  CMD="${CMD:+$CMD|}\\.$E${PARTIAL_EXPR}${END}"
+  X="\\.$E${PARTIAL_EXPR}${END}"
+  
+  CMD=${CMD:+"$CMD|"}$X
   done
   for X in $EXPRS; do
       CMD="${CMD:+$CMD|}$X"
    done
 
   
-  CMD='grep $GREP_ARGS -i -E "('$CMD')"  "$@"'
+  CMD="grep \$GREP_ARGS -i -E '($CMD)'  \"\$@\""
  
 
   if [ $# -gt 1 ]; then
@@ -93,7 +97,7 @@ for E in $EXTS; do
   fi
 
   [ -n "$FILTER" ] && CMD="$CMD | $FILTER" || CMD="exec $CMD"
-  [ "$DEBUG" = true ] && eval echo "+ $CMD" 1>&2
+  [ "$DEBUG" = true ] && eval "echo \"+ \$CMD\" 1>&2"
 
   eval "$CMD"
 }
