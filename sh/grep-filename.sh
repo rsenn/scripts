@@ -19,6 +19,11 @@ grep_filename() {
   vmdisk_EXTS="vdi vmdk vhd qed qcow qcow2 vhdx hdd"
   project_EXTS="avrgccproj bdsproj cbproj coproj cproj cproject csproj dproj fsproj groupproj jsproj jucer lproj lsxproj metaproj packproj pbxproj pkgproj pmproj pnproj pro proj project pssproj shfbproj sln tmproj unityproj uvproj vbproj vcproj vcxproj vdproj vfproj webproj winproj wixproj zdsproj zfpproj"
   spice_EXTS="sp cir spc spi"
+  pushv ()
+  {
+	  eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
+  }
+
 
   addexts() {
   eval "EXTS=\"\${EXTS:+\$EXTS }\${${1}_EXTS}\""
@@ -52,6 +57,9 @@ grep_filename() {
 		  -E | --ext*) addext "$2"; shift  2 ;;
 	  -E*) addext "${1#-?}"; shift   ;;
   #    -c | --complete) PARTIAL_EXPR="" ; shift ;;
+      -A | --addexpr) pushv EXPRS "$2"; shift 2 ;;
+      -A*) pushv EXPRS "${1#-?}"; shift 1 ;;
+      -A=* | --addexpr=*) pushv EXPRS "${1#*=}"; shift 1 ;;
 	  -C | --incomplete) END="" ; shift ;;
 	  -b | -F | -G | -n | -o | -P | -q | -R | -s | -T | -U | -v | -w | -x | -z) GREP_ARGS="${GREP_ARGS:+$GREP_ARGS
   }$1"; shift ;;
@@ -62,7 +70,20 @@ grep_filename() {
   cr=""
   GREP_ARGS="${GREP_ARGS:+$GREP_ARGS }--binary-files=text"
 
-  CMD='grep $GREP_ARGS -i -E "\\.($(IFS="| "; set -- $EXTS;  echo "$*"))${PARTIAL_EXPR}${END}"  "$@"'
+#  CMD='grep $GREP_ARGS -i -E "\\.($(IFS="| "; set -- $EXTS;  echo "$*"))${PARTIAL_EXPR}${END}"  "$@"'
+ #CMD='grep $GREP_ARGS -i -E "('
+
+CMD=
+for E in $EXTS; do
+  CMD="${CMD:+$CMD|}\\.$E${PARTIAL_EXPR}${END}"
+  done
+  for X in $EXPRS; do
+      CMD="${CMD:+$CMD|}$X"
+   done
+
+  
+  CMD='grep $GREP_ARGS -i -E "('$CMD')"  "$@"'
+ 
 
   if [ $# -gt 1 ]; then
 	GREP_ARGS="-H"
