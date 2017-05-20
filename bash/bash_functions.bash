@@ -938,38 +938,18 @@ cut-trailver() {
 }
 
 cut-ver()
-{
- (while :; do
-   case "$1" in
-      -a | --all) ALL=true; shift ;;
-      *) break ;;
-    esac
-  done
-  cat "$@" |
-  if [ "$ALL" = true ]; then
-        ${SED-sed} 's,-\([0-9]\+\).*,,'
-  else
-   cut-trailver |
-  ${SED-sed} 's,[-.]rc[[:alnum:]~][^-.]*,,g ;; s,[-.]b[[:alnum:]~][^-.]*,,g ;; s,[-.]git[_[:alnum:]~][^-.]*,,g ;; s,[-.]svn[_[:alnum:]~][^-.]*,,g ;; s,[-.]linux[^-.]*,,g ;; s,[-.]v[[:alnum:]~][^-.]*,,g ;; s,[-.]beta[_[:alnum:]~][^-.]*,,g ;; s,[-.]alpha[_[:alnum:]~][^-.]*,,g ;; s,[-.]a[_[:alnum:]~][^-.]*,,g ;; s,[-.]trunk[^-.]*,,g ;; s,[-.]release[_[:alnum:]~][^-.]*,,g ;; s,[-.]GIT[^-.]*,,g ;; s,[-.]SVN[^-.]*,,g ;; s,[-.]r[_[:alnum:]~][^-.]*,,g ;; s,[-.]dnh[_[:alnum:]~][^-.]*,,g' |
-  ${SED-sed} 's,[^-.]*git[_0-9][^.].,,g ;; s,[^-.]*svn[_0-9][^.].,,g ;; s,[^-.]*GIT[^.].,,g ;; s,[^-.]*SVN[^.].,,g' |
-  ${SED-sed} 's,\.\(P\)\?[[:digit:]][_+[:digit:]]*\.,.,g' |
-  ${SED-sed} 's,-\([0-9]\+\):\([0-9]\+\),-\1.\2,' |
-  ${SED-sed} 's,[.-][[:digit:]][_+[:alnum:]~]*$,,g ;; s,[.-][[:digit:]][_+[:alnum:]~]*\([-.]\),\1,g'|
-  ${SED-sed} 's,[-_.][[:digit:]]*\(svn\)\?\(git\)\?\(P\)\?\(rc\)\?[[:digit:]][_+[:digit:]]*\(-.\),\5,g' |
-  ${SED-sed} 's,-[[:digit:]][._+[:digit:]]*$,, ;;  s,-[[:digit:]][._+[:digit:]]*$,,'  |
-  ${SED-sed} 's,[.-][[:digit:]][_+[:alnum:]~]*$,,g ;; s,[.-][[:digit:]]*\(rc[[:digit:]]\)\?\(b[[:digit:]]\)\?\(git[_0-9]\)\?\(svn[_0-9]\)\?\(linux\)\?\(v[[:digit:]]\)\?\(beta[_0-9]\)\?\(alpha[_0-9]\)\?\(a[_0-9]\)\?\(trunk\)\?\(release[_0-9]\)\?\(GIT\)\?\(SVN\)\?\(r[_0-9]\)\?\(dnh[_0-9]\)\?[[:digit:]][_+[:alnum:]~]*\.,.,g' |
-  ${SED-sed} 's,\.[[:digit:]][^.]*\.,.,g'
-  fi)
-}
-
-d()
-{
-    ( case "$1" in
-        ?:*)
-            set -- /cygdrive/${1%%:*}${1#?:}
-        ;;
-    esac;
-    echo "$1" )
+{ 
+    cat "$@" |
+	cut-trailver |
+	sed 's,[-.]rc[[:alnum:]~][^-.]*,,g ;; s,[-.]b[[:alnum:]~][^-.]*,,g ;; s,[-.]git[_[:alnum:]~][^-.]*,,g ;; s,[-.]svn[_[:alnum:]~][^-.]*,,g ;; s,[-.]linux[^-.]*,,g ;; s,[-.]v[[:alnum:]~][^-.]*,,g ;; s,[-.]beta[_[:alnum:]~][^-.]*,,g ;; s,[-.]alpha[_[:alnum:]~][^-.]*,,g ;; s,[-.]a[_[:alnum:]~][^-.]*,,g ;; s,[-.]trunk[^-.]*,,g ;; s,[-.]release[_[:alnum:]~][^-.]*,,g ;; s,[-.]GIT[^-.]*,,g ;; s,[-.]SVN[^-.]*,,g ;; s,[-.]r[_[:alnum:]~][^-.]*,,g ;; s,[-.]dnh[_[:alnum:]~][^-.]*,,g' |
+	sed 's,[^-.]*git[_0-9][^.].,,g ;; s,[^-.]*svn[_0-9][^.].,,g ;; s,[^-.]*GIT[^.].,,g ;; s,[^-.]*SVN[^.].,,g' |
+	sed 's,\.\(P\)\?[[:digit:]][_+[:digit:]]*\.,.,g' |
+	sed 's,-\([0-9]\+\):\([0-9]\+\),-\1.\2,' |
+	sed 's,[.-][[:digit:]][_+[:alnum:]~]*$,,g ;; s,[.-][[:digit:]][_+[:alnum:]~]*\([-.]\),\1,g' |
+	sed 's,[-_.][[:digit:]]*\(svn\)\?\(git\)\?\(P\)\?\(rc\)\?[[:digit:]][_+[:digit:]]*\(-.\),\5,g' |
+	sed 's,-[[:digit:]][._+[:digit:]]*$,, ;;  s,-[[:digit:]][._+[:digit:]]*$,,' |
+	sed 's,[.-][[:digit:]][_+[:alnum:]~]*$,,g ;; s,[.-][[:digit:]]*\(rc[[:digit:]]\)\?\(b[[:digit:]]\)\?\(git[_0-9]\)\?\(svn[_0-9]\)\?\(linux\)\?\(v[[:digit:]]\)\?\(beta[_0-9]\)\?\(alpha[_0-9]\)\?\(a[_0-9]\)\?\(trunk\)\?\(release[_0-9]\)\?\(GIT\)\?\(SVN\)\?\(r[_0-9]\)\?\(dnh[_0-9]\)\?[[:digit:]][_+[:alnum:]~]*\.,.,g' |
+	sed 's,\.[[:digit:]][^.]*\.,.,g'
 }
 
 datasheet-url() {
@@ -2204,7 +2184,7 @@ get-frags() {
 }
 
 get-installed()
-{
+{ 
     ( ( set /etc/setup/*.lst*;
     set -- "${@##*/}";
     set -- "${@%.lst*}";
@@ -2310,7 +2290,7 @@ get-mingw-properties() {
 
 get-prefix()
 { 
-    ${CC:-gcc} -print-search-dirs |sed -n 's,.*:\s\+=\?,,; s,/bin.*,,p ; s,/lib.*,,p' |head -n1
+    ${CC:-gcc} -print-search-dirs |sed -n 's,.*:\s\+=\?,,; s,/\+,/,g; s,/bin.*,,p ; s,/lib.*,,p ' |head -n1
 }
 
 get-property()
@@ -2339,24 +2319,6 @@ get-shortcut()
      done
      echo "$O")
      done)
-}
-
-get-tempdir() {
- (TEMPDIR=
-  if type reg 2>/dev/null >/dev/null; then
-    TEMPDIR=`reg query 'HKCU\Environment' '/v' TEMP | ${SED-sed} -n 's|.*REG_SZ\s\+\(.*\)|\1|p'`
-    [ -d "$TEMPDIR" ] || TEMPDIR=
-  fi
-  if [ -z "$TEMPDIR" ]; then
-    if [ -n "$TMP" -a -d "$TMP" ]; then
-      TEMPDIR="$TMP"
-    elif [ -n "$TEMP" -a -d "$TEMP" ]; then
-      TEMPDIR="$TEMP"
-    elif [ -d "/tmp" ]; then
-      TEMPDIR="/tmp"
-    fi
-  fi
-  echo "${TEMPDIR//"\\"/"/"}")
 }
 
 get-volume-list() {
@@ -3119,40 +3081,46 @@ incv()
     eval "$1=\`expr \"\${$1}\" + \"${2-1}\"\`"
 }
 
-index-dir() { 
-  [ -z "$*" ] && set -- .
-  while :; do
-    case "$1" in
-      -x | --debug) DEBUG=true; shift ;;
-      *) break ;;
-    esac
-  done
-  ( exec 9>&2
-  [ "$(uname -m)" = "x86_64" ] && : ${R64="64"}
-  for ARG in "$@"; do
-   (cd "$ARG"
-    if ! test -w "$PWD"; then
-        echo "Cannot write to $PWD ..." 1>&2
-        exit
-    fi
-    echo "Indexing directory $PWD ..." 1>&2
-    TEMP="$PWD/${RANDOM:-$$}.list"
-    trap 'rm -f "$TEMP"; unset TEMP' EXIT
-    ( if type list-r${R64} 2>/dev/null >/dev/null; then  
-        CMD=list-r${R64} 
-      elif type list-r 2>/dev/null >/dev/null; then  
-        CMD=list-r
-      else 
-        CMD=list-recursive
-      fi
-[ "$DEBUG" = true ] && echo "$ARG:+ $CMD" 1>&9
-      eval "$CMD"
-    ) 2>/dev/null >"$TEMP"
-    ( install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/files.list"
-    wc -l "$PWD/files.list" 1>&2 )
-  done 
-  #exec 9>&-
-  )
+index-dir()
+{ 
+    [ -z "$*" ] && set -- .;
+    while :; do
+        case "$1" in 
+            -x | --debug)
+                DEBUG=true;
+                shift
+            ;;
+            *)
+                break
+            ;;
+        esac;
+    done;
+    ( exec 9>&2;
+    [ "$(uname -m)" = "x86_64" ] && : ${R64="64"};
+    for ARG in "$@";
+    do
+        ( cd "$ARG";
+        if ! test -w "$PWD"; then
+            echo "Cannot write to $PWD ..." 1>&2;
+            exit;
+        fi;
+        echo "Indexing directory $PWD ..." 1>&2;
+        TEMP="$PWD/${RANDOM:-$$}.list";
+        trap 'rm -f "$TEMP"; unset TEMP' EXIT;
+        ( if type ${LIST_R:-list-r${R64}} 2> /dev/null > /dev/null; then
+            CMD=${LIST_R:-list-r${R64}};
+        else
+            if type list-r 2> /dev/null > /dev/null; then
+                CMD=${LIST_R:-list-r}
+            else
+                CMD=list-recursive;
+            fi;
+        fi;
+        [ "$DEBUG" = true ] && echo "$ARG:+ $CMD" 1>&9;
+        eval "$CMD" ) 2> /dev/null > "$TEMP";
+        ( install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/files.list";
+        wc -l "$PWD/files.list" 1>&2 );
+    done )
 }
 
 index-of()
@@ -4813,42 +4781,6 @@ EOF
   done)
 }
 
-mktempdata()
-{
-    local path prefix="${tmppfx-${myname-${0##*/}}}" file;
-    if [ "$#" -gt 1 ]; then
-        path=$1;
-        shift;
-    else
-        unset path;
-    fi;
-    if [ "$#" -gt 1 ]; then
-        local prefix=$1;
-        shift;
-    fi;
-    file=`command ${path:-"-t"} "${path:+$path/}${prefix#-}${path:-.XXXXXX}"`;
-    if [ -n "$*" ]; then
-        echo "$*" > $file;
-    fi;
-    echo "$file"
-}
-
-mktempdir()
-{
-    local prefix=${2:-${tmppfx:-${myname:-${0##*/}}}};
-    local path=${1:-${tmpdir:-"/tmp"}};
-    command mktemp -d ${path:-"-t" }"${path:+/}${prefix#-}.XXXXXX"
-}
-
-mktempfile() {
-   (prefix=${2-${tmppfx-${MYNAME-${0##*/}}}};
-    path=${1-${TEMP-"/tmp"}};
-    tempfile=${path}/${prefix#-}.${RANDOM}
-    rm -f "$tempfile"
-    echo -n >"$tempfile"
-    echo "$tempfile")
-}
-
 mkuuid() {
    printf '%04x%04x-%04x-%04x-%04x-%04x%04x%04x\n' "$RANDOM" "$RANDOM" "$RANDOM" "$RANDOM" "$RANDOM" "$RANDOM" "$RANDOM" "$RANDOM"
 }
@@ -6492,17 +6424,6 @@ tcp-check() {
       done)
 }
 
-tempnam()
-{
-    local IFS=" $newline";
-    local pfx=${0##*/};
-    local prefix=${2-${tmppfx-${pfx%:*}}};
-    local path=${1-${tmpdir-"/tmp"}};
-    local name=`command mktemp -u ${path:-"-t" }"${path:+/}${prefix#-}.XXXXXX"`;
-    rm -rf "$name";
-    echo "$name"
-}
-
 terminfo-file()
 {
     ( for ARG in "$@";
@@ -6876,31 +6797,19 @@ vlcpid()
 --color=auto} -i vlc.exe | awkp )
 }
 
-volname() {
+volname() { 
  ([ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
-  if [ -d /dev/disk/by-label ]; then
-    for ARG; do
-      for link in /dev/disk/by-label/*; do
-        NAME=${link##*/}
-        dev=$(realpath "$link")
-        if [ "$dev" = "$ARG" ]; then
-          eval "$ECHO"
-        fi
-       done
-    done
-  else
-    for ARG in "$@"; do
-        drive="$ARG"
-        case "$drive" in
-          ?) drive="$drive:" ;;
-          ?:*) drive=${drive%%:*}: ;;
-          *) drive=$(${PATHTOOL:-echo} ${PATHTOOL:+-m} "$drive") ; drive=${drive%%:*}: ;;
-        esac  
-        #drive=$(${PATHTOOL:-echo} "$drive")
-        NAME=$(cmd /c "vol ${drive%%[\\/]*}" | ${SED-sed} -n '/Volume in drive/ s,.* is ,,p')
-        eval "$ECHO"
-    done
-  fi)
+  for ARG in "$@"; do
+      drive="$ARG"
+      case "$drive" in
+        ?) drive="$drive:/" ;;
+        ?:) drive="$drive/" ;;
+        *) drive=$(cygpath -m "$drive") ;;
+      esac  
+      drive=$(cygpath -m "$drive")
+      NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
+      eval "$ECHO"
+  done)
 }
 
 vs2vc() {
