@@ -1,5 +1,5 @@
-get-installed()
-{
+get-installed () 
+{ 
     ( ( set /etc/setup/*.lst*;
     set -- "${@##*/}";
     set -- "${@%.lst*}";
