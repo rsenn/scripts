@@ -297,6 +297,11 @@ bpm() {
   }"
 }
 
+ browser-shortcuts() { (cd "$(cygpath -am "$USERPROFILE/AppData/Roaming/Microsoft/Internet Explorer/Quick Launch")";
+ 
+  for T in $(list-mediapath 'PortableApps/*'{Firefox,Chrome}'*/*'{irefox,hrome}'*.exe'); do D=$(dirname "$T"); DN=$(basename "$D"); mkshortcut -i "/cygdrive/d/Icons/ico/$DN.ico" -n "$DN" "$T"; done) 
+  }
+
 build-arm-linux()
 { 
     ( for ARG in "$@";
@@ -732,6 +737,57 @@ compare-dirs()
          -e "/^diff/ { N; /---/ { N; /+++/ { s,.*,, ; s,^diff\s\+,, ; s,^-[^ ]* ,,g ; p } } }"
 }
 
+conf_mingw()
+{ 
+    unset prefix;
+    if [ $# -lt 1 ]; then
+      set -- $(ls -d -- /usr/bin/*mingw*gcc.exe /mingw*/bin/gcc.exe 2>/dev/null)
+    fi
+    if [ $# -gt 1 ]; then
+      eval "set -- \${$#}"
+    fi
+    
+    for CCPATH; do
+    test -d "$CCPATH" && CCPATH=$CCPATH/bin/gcc
+        target=$("$CCPATH" -dumpmachine);
+        target=${target%''};
+        case "$target" in 
+            *-mingw*)
+                prefix=$( $CC -print-search-dirs|grep libr|removeprefix '*: '|sed 's,=,, ; s,:,\n,g'|xargs realpath 2>/dev/null|sort -f -u |grep 'sys.\?root' |removesuffix /lib)
+                : ${prefix:="${CCPATH%%/bin*}"};
+		MSYSTEM=MINGW
+                break
+            ;;
+    *-msys*)
+		MSYSTEM=MSYS
+	    ;;
+        esac;
+    done;
+    if [ -n "$prefix" -a -d "$prefix" ]; then
+        [ -n "$host" ] && build="$host";
+        host="$target";
+        
+        sys=$(cygpath -am /|sed 's,.*/,, ; s,-,,g')
+        case "$sys" in
+          gitsdk*|msys*) builddir="build/$sys" ;;
+          *)    builddir="build/$host" ;;
+        esac
+        pathmunge -f "$prefix/bin";
+        CC="${CCPATH##*/}"
+        CC=${CC%.exe}
+        CXX=${CC/gcc/g++}
+        export CC CXX
+        unset PKG_CONFIG_PATH;
+        init_pkgconfig_path;
+    fi
+    if [ -e "/usr/bin/pkgconf.exe" ]; then
+	    export PKG_CONFIG="/usr/bin/pkgconf"
+    fi
+    if [ -d "$prefix/lib/pkgconfig" ]; then
+	    export PKG_CONFIG_PATH="$prefix/lib/pkgconfig"
+    fi
+}
+
 convert-boot-entries()
 {
   ([ -z "$FORMAT" ] && FORMAT="$1"
@@ -828,6 +884,11 @@ create-shortcut()
 "$TARGET")
   )
 }
+
+ create-shortcuts() { (cd "$(cygpath -am "$USERPROFILE/AppData/Roaming/Microsoft/Internet Explorer/Quick Launch")";
+ 
+  for T in $(list-mediapath 'PortableApps/*'{Firefox,Chrome}'*/*'{irefox,hrome}'*.exe'); do D=$(dirname "$T"); DN=$(basename "$D"); mkshortcut -i "/cygdrive/d/Icons/ico/$DN.ico" -n "$DN" "$T"; done) 
+  }
 
 ctime()
 {
@@ -2127,6 +2188,11 @@ get-bpm() {
   done
 }
 
+get-chrome()
+{ 
+    cygpath -a "$(ps -aW|sed 's,\\,/,g'|grep -i 'chrome[^/]*exe$' |sed 's|.* \(.\):\(.*\)|\1:\2|' | head -n1)"
+}
+
 get-dotfiles()
 {
     ( UA="curl/7.25.0 (x86_64-suse-linux-gnu) libcurl/7.25.0 OpenSSL/1.0.1c zlib/1.2.7 libidn/1.25 libssh2/1.4.0";
@@ -2138,6 +2204,11 @@ get-dotfiles()
         ( set -x;
         wget -U "$UA" -O "${NAME#.}-$USER" "$URL" );
     done )
+}
+
+get-eagle-file()
+{ 
+    tasklist /fi "IMAGENAME eq eagle*" /v /fo list 2>&1 | sed -n 's,\\,/,g; s,\r*$,,; /Window Title:/ s,.* - \(.*\) - EAGLE.*,\1,p'
 }
 
 get-exports() {
@@ -2157,6 +2228,11 @@ get-ext()
 --color=auto} EXT.*= {find,locate,grep}-$1.sh -h 2>/dev/null |${SED-sed} "s,EXTS=[\"']\?\(.*\)[\"']\?,\1," ); IFS="$nl"; echo "$*")|${SED-sed} 's,[^[:alnum:]]\+,\n,g; s,^\s*,, ; s,\s*$,,';) |sort -fu);
     ( IFS=" ";
     echo "$*" )
+}
+
+get-firefox()
+{ 
+    cygpath -a "$(ps -aW|sed 's,\\,/,g'|grep -i '/firefox[^/]*exe$' |sed 's|.* \(.\):\(.*\)|\1:\2|' | head -n1)"
 }
 
 get-frags() {
@@ -2190,6 +2266,27 @@ get-installed()
     set -- "${@%.lst*}";
     echo "$*";
     awkp < /etc/setup/installed.db ) | sort -u )
+}
+
+get-lotto() {
+    dl-lotto() {
+		eval "set -- http://www.mylottoy.net/de/lotto-schweiz/lottozahlen/6aus45/lottozahlen-{`Y=$(date +%Y); seq -s, $((Y)) -1 $((Y-5))`}.asp"
+		
+			for_each -f -x 'lynx -source "$1"' "$@"
+		}
+    CMD='dl-lotto'
+    if [ -n "$1" -a -e "$1" ]; then
+      CMD='cat "$@"'
+    fi
+    eval "$CMD" | sed "s|<div class='span-30'>|\n&|gp" | grep --color=auto --line-buffered --text span-30 | \
+    sed -n '/ den / { s,<[^>]*>,;,g ; s,([^)]*),,g ; s,\&nbsp;, ,g; s,;\s\+,;,g; s,\s\+:\s\+,:,g; s,;\+,;,g; s,:;,: ,g ; s,^;,, ; s,;$,, ;  s|\([[:upper:]][[:lower:]]\)[a-z]* den |\1, | ; p }'  |
+    sed 's,\([0-9]\):\([0-9]\),\1 \2,g ; s,\([0-9]\):\([0-9]\),\1 \2,g ; s|;\([0-9]\) |; \1 | ;
+    s,\([0-9]\) \([0-9]\) ,\1  \2 ,g ; s,\([0-9]\) \([0-9]\) ,\1  \2 ,g' |
+    sed 's,: \([0-9]\)\([; ]\),:  \1\2,g' |
+    sed 's,Replay:\s\+\([0-9]\)$,Replay:  \1,' |
+    sed 's,\([A-Za-z]\+:\s\+[0-9]\+\);\([A-Za-z]\+:\s\+[0-9]\+\),\1 \2,g ; s,\([A-Za-z]\+:\s\+[0-9]\+\);\([A-Za-z]\+:\s\+[0-9]\+\),\1 \2,g' |
+    sed 's|;|\t|g' |
+    sed 's|\(..............\)\s\(.................\)\s\(......\)\s\(........\)|\1\t\2\t\3\t\4|'
 }
 
 get-mingw-properties() {
@@ -3285,6 +3382,11 @@ is-binary()
     esac
 }
 
+is-checking()
+{ 
+    ps -aW | grep --color=auto --line-buffered --text -q chkdsk
+}
+
 is-interactive()
 {
     test -n "$PS1"
@@ -3337,6 +3439,11 @@ is-true()
         ;;
     esac;
     return 1
+}
+
+is-updating()
+{ 
+    [ "$(handle -p $(ps -aW|grep locate32|awkp)|wc -l)" -ge 20 ]
 }
 
 is-upx-packed()
@@ -4368,6 +4475,34 @@ make-arith()
     echo '$(('"$@"'))'
 }
 
+list-mediapath ()  {  ( unset CMD ; while :; do case "$1" in 
+
+-b | -c | -d | -e | -f | -g | -h | -k | -L | -N | -O | -p | -r | -s) FILTER="${FILTER:+$FILTER | }filter-test $1" ; shift ;;
+ 
+-x | -debug | --debug) DEBUG=true ; shift ;;
+ -m | --mixed | -M | --mode | -u | --unix | -w | --windows | -a | --absolute | -l | --long-name) PATHTOOL_OPTS="${PATHTOOL_OPTS:+PATHTOOL_OPTS }$1" ; shift ;;
+ -*) OPTS="${OPTS:+$OPTS }$1" ; shift ;;
+ --) shift ; break ;;
+ *) break ;;
+ esac ; done ; for ARG in "$@" ; do ARG=${ARG//" "/"\\ "} ; ARG=${ARG//"("/"\\("} ; ARG=${ARG//")"/"\\)"} ; CMD="${CMD:+$CMD; }set -- $MEDIAPATH/${ARG#/} ; IFS=\$'\\n'; ls -1 -d $OPTS -- \$* 2>/dev/null | grep -v '\\*'" ; done ; [ -n "$PATHTOOL_OPTS" ] && CMD="${PATHTOOL:+$PATHTOOL ${PATHTOOL_OPTS:--m}} \$($CMD)" ; [ -n "$FILTER" ] && CMD="($CMD) | $FILTER" ; [ "$DEBUG" = true ] && echo "CMD: $CMD" 1>&2 ; eval "$CMD" ) ; }
+make-browser-shortcuts () 
+{ 
+  . bash_profile.bash
+   QUICKLAUNCH="$USERPROFILE/AppData/Roaming/Microsoft/Internet Explorer/Quick Launch"
+   echo "cd \"$QUICKLAUNCH\""
+    l=$(list-mediapath -m 'P*/*'{Firefox,Chrome,Opera,SeaMonkey,QupZilla,Chromium,SpeedyFox,Waterfox,PaleMoon,Palemoon,Safari,K*Meleon}'*Portable*/'|removesuffix /);
+    for x in $l;
+    do
+        y=$(basename "$x")
+        z=$(ls -d -- "$x"/*Portable*.exe |head -n1)
+        [ -n "$z" ] &&       z=$(cygpath -a "$z")
+ [ -n "$z" -a -f "$z" ] && 
+        echo "mkshortcut -n \"${y##*/}\" \"$z\"";
+    done
+}
+
+[ "$(basename "$0")" = "make-browser-shortcuts.sh" ] && make-browser-shortcuts 2>/dev/null
+
 make-cfg-sh() { 
  (for ARG in "${@:-./configure}"; do
     HELP=$("$ARG" --help=recursive ); ( echo "$HELP" | ${GREP-grep
@@ -4488,6 +4623,77 @@ $O
 "'  "$@"'
       } <<< "$HELP"; done )
 }
+
+make-playlists()
+{ 
+ 
+ VIDEOS=
+ DATABASE=$(ls -d --  "$(cygpath -am "$USERPROFILE")"/AppData/*/Locate32/*.dbs | filter-filesize -gt 1k )
+ 
+ msg "Acquiring videos using locate..."
+ pushv VIDEOS "$( locate32.sh -c video )"
+ 
+ msg "Acquiring videos using find-media.sh..."
+ pushv VIDEOS "$( find-media.sh -c video )"
+ 
+ wc -l <<<"$VIDEOS" 1>&2
+ msg "Acquiring videos using find \$(list-mediapath ...)"
+ pushv VIDEOS "$( for_each -f 'find "$1" -type f -not -name "*.part"' $(list-mediapath -m {,Downloads/}{Videos/,Porn/} ) | grep-videos.sh )"
+ wc -l <<<"$VIDEOS" 1>&2
+ 
+ msg "Merging videos..."
+ VIDEOS=$(ls -td -- $(realpath $(sed 's,\r*$,, ; s,\\\+,/,g' <<<"$VIDEOS" |filter-test -e ))   2>/dev/null | sed 's,^/cygdrive,, ; s,^/\(.\)/\(.*\),\1:/\2,' | sort -f -u | filter-filesize -ge 15M)
+ 
+ set -- $VIDEOS
+ msg "Acquired $# videos."
+ 
+ split_results() {
+   L="videos-by-$NAME.list"; grep -vi porn/ <<<"$R" >"$L";   N=$(wc -l <"$L")
+  msg "Wrote $N entries to $L."
+  L="porn-by-$NAME.list"; grep -i porn/ <<<"$R" >"$L";   N=$(wc -l <"$L")
+  msg "Wrote $N entries to $L."
+ }
+ write_playlist() {
+    for LL in videos porn; do
+      LN=$LL-by-$NAME
+      msg "Writing $LN.m3u"
+    eval 'make-m3u.sh $(<'$LN'.list) |sed "s|/|\\\\|g ; s|\\r*\$|\\r|" >'$LN'.m3u'
+   done
+    
+    
+ }
+ for CMD in "ls -"{t,S}"d --"; do
+   case "$CMD" in
+   *-S*) NAME=size ;;
+   *-t*) NAME=time ;;
+   esac
+   eval 'R=$('$CMD' "$@" 2>/dev/null)'
+   
+   split_results
+   
+   write_playlist
+   
+ done
+ 
+for CMD in \
+  "duration -m" \
+  "duration" \
+  "bitrate" \
+  "resolution"; do
+  NAME=${CMD//" "/""}
+  OUT=$NAME.tmp
+  EVAL="$CMD \"\$@\" >$OUT"
+  msg "Executing: $EVAL"
+  eval "$EVAL"
+  
+  R=$(sort -r -nk3 -t: "$OUT" | grep -v ":[0-4]\$" | cut -d: -f 1,2)
+  
+split_results
+  write_playlist
+done
+
+}
+ 
 
 make-sizes-tmp()
 {
@@ -4641,6 +4847,59 @@ minfo()
     [ $# -gt 1 ] && CMD="$CMD | addprefix \"\$ARG:\""
     CMD="for ARG; do $CMD; done"
     eval "$CMD")  | ${SED-sed} '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
+}
+
+#!/bin/bash
+ 
+#MYNAME=`basename "$0" .sh`
+mk-list-index() {
+ 
+: ${TEMP="c:/Temp"}
+
+volname() { 
+ ([ $# -gt 1 ] && ECHO='echo "$drive $NAME"' || ECHO='echo "$NAME"'
+  for ARG in "$@"; do
+      drive="$ARG"
+      case "$drive" in
+        ?) drive="$drive:/" ;;
+        ?:) drive="$drive/" ;;
+        *) drive=$(cygpath -m "$drive") ;;
+      esac  
+      drive=$(cygpath -m "$drive")
+      NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
+      eval "$ECHO"
+  done)
+}
+
+[ -n "$LIST_R64" ] && LIST_R64=$(cygpath -w "$LIST_R64")
+
+{ 
+  echo "@echo off
+"
+  if [ $# -le 0 ]; then
+    if [ "$(uname -o)" = Cygwin ]; then
+      set -- /cygdrive/?
+    fi
+    set -- $(volname  $(df -l "$@" | sed 1d |sort -nk3 |awk '{ print $6 }' ) |grep -viE '(ubuntu|fedora|UDF Volume|opensuse|VS201[0-9]|ext[234]|arch)'|sed 's,/.*,,')
+  fi
+  for D; do 
+    P=$(cygpath "$D\\")
+
+    N=$(volname "$P")
+    W=${D//"/"/"\\"}
+    W=${W##\\}
+    echo "echo Indexing $D ($N)
+${D%%/*}
+cd \\${W#?:}
+${LIST_R64:-list-r64} >files.tmp
+del /f files.list
+move files.tmp files.list
+"
+  done 
+} |
+unix2dos |
+ (set -x; tee "E:/Temp/list-index.cmd" >/dev/null)
+
 }
 
 mkbuilddir() {
@@ -5510,6 +5769,14 @@ pathtool() {
 
   [ "$DEBUG" = true ] && echo "+ ${SED-sed} '$EXPR'"
   ${SED-sed} "$EXPR")
+}
+
+pdfpages()
+{ 
+    while [ $# -gt 0 ]; do
+        pdfinfo "$1" | info_get Pages | addprefix "$1: ";
+        shift;
+    done
 }
 
 pdfpextr()
@@ -6771,6 +7038,11 @@ video-width()
         [ $# -gt 1 ] && PFX="$ARG: " || unset PFX;
         mminfo "$ARG" | ${SED-sed} -n "s|^Width=|$PFX|p";
     done )
+}
+
+vlc-current-file()
+{ 
+    handle $(pid-args vlc.exe) | cut-ls-l 3 | filter-test -s | grep-videos.sh | sed 's,\\,/,g; 1p' -n
 }
 
 vlcfile()
