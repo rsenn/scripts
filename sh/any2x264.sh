@@ -5,44 +5,51 @@
 require info
 require util
 
-
-
-
-var_dump()
-{
-  (
- SQ="'"
- BS="\\"
-  CMD='echo';for N; do
-    CMD="${CMD:+$CMD }\"$N='\${$N//\$SQ/\$BS\$SQ}'\""
-   done
-   eval   "$CMD")
+vbr() {
+  (VBR=$(mediainfo "$1" |sed '/^Video/ { :lp; N; /:[^\n]*$/ { b lp; }; s|.*\nBit.rate\s*:\s*\([^\n]*\)\n.*|\1| ; s, ,,; s,Kb/s,Kbps,i; s,bps$,, ; p }' -n)
+  case "$VBR" in
+    *[Kk]) VBR=$(echo "${VBR%[Kk]*} * 1000" | bc -l) ;;  *[Mm]) VBR=$(echo "${VBR%[Kk]*} * 10000000" | bc -l) ;;
+  esac; echo "${VBR%%.*}")
 }
 
-quote() {
- (unset O
-  for A; do
-    case "$A" in
-      *\ *) O="${O+$O }'$A'" ;;
-      *)  O="${O+$O }$A" ;;
-    esac
-  done
-  echo "$O")
+abr() {
+  (ABR=$(mediainfo "$1" | sed '/^Audio/ {  :lp; N; /:[^\n]*$/ { b lp; }; s|.*\nBit.rate\s*:\s*\([^\n]*\)\n.*|\1| ; s, ,,; s,Kb/s,Kbps,i; s,bps$,, ; p }' -n)
+  case "$ABR" in
+    *[Kk]) ABR=$(echo "${ABR%[Kk]*} * 1000" | bc -l) ;; *[Mm]) ABR=$(echo "${ABR%[Kk]*} * 10000000" | bc -l) ;;
+  esac; echo "${ABR%%.*}")
+}
+
+resolution() {
+ (mediainfo "$1" |sed '/^Video/ { :lp; N; /:[^\n]*$/ { b lp; }; s|.*\nWidth\s*:\s*\([^\n]*\)\n|\1| ; s|Height\s*:\s*\([^\n]*\)\n.*|\1| ; s, ,,;  s,pixels,x, ; s, pixels,,g; p }' -n)
+}
+
+format_num() {
+ (N="$1"; if [ "$N" -ge 1000 ]; then N=$(bci "$N / 1000")k
+  fi; echo "$N")
+}
+    
+
+var_dump() {
+  (SQ="'" BS="\\"; CMD='echo'; for N; do
+    CMD="${CMD:+$CMD }\"$N='\${$N//\$SQ/\$BS\$SQ}'\""
+   done; eval "$CMD")
+}
+
+quote() {  (unset O
+  for A; do case "$A" in
+      *\ *) O="${O+$O }'$A'" ;; *)  O="${O+$O }$A" ;;
+    esac; done; echo "$O")
   }
 
-minfo()
-{
+minfo() {
     mediainfo "$@" 2>&1 |${SED-sed}  -u 's,\s*:,:, ; s, pixels$,, ; s,: *\([0-9]\+\) \([0-9]\+\),: \1\2,g' 
 }
 
-bce()
-{
+bce() {
     (IFS=" "; echo "$*" | (bc  -l || echo "ERROR: Expression '$*'" 1>&2)) | ${SED-sed}  -u '/\./ s,\.\?0*$,,'
 }
 
-bci()
-{
-    (IFS=" "; : echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | ${SED-sed}   -u 's,\.[0-9]\+$,,'
+bci() { (IFS=" "; echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | ${SED-sed}   -u 's,\.[0-9]\+$,,'
 }
 
 duration()
@@ -83,8 +90,9 @@ any2x264() {
       -b) VBR="$2"; shift 2 ;;
       -d) DIR="$2"; shift 2 ;;
       -r) REMOVE=true; shift ;;
-      -R) RESOLUTION="$2"; shift 2 ;;
-      -s) FILESIZE="$2"; shift 2 ;;
+      -R|--resolution) RESOLUTION="$2"; shift 2 ;;
+#      -s|-size|--size) SIZE="$2"; shift 2 ;; -s=*|-size=*|--size=*) SIZE=${1#*=}; shift ;;
+      -S|--filesize) FILESIZE="$2"; shift 2 ;; -S=*|--filesize=*) FILESIZE=${1#*=}; shift ;; 
       -x) DEBUG=true; shift ;;
       -P) PRINTCMD=true; shift ;;
       -a) A="$2"; shift 2 ;;
@@ -104,6 +112,8 @@ any2x264() {
 
   IFS="
    "
+   
+   
   case "$VBR" in
     *[Kk]) VBR=$((${VBR%[Kk]} * 1024)) ;;
   esac
@@ -111,9 +121,9 @@ any2x264() {
   var_dump VBR
   #ASPECT="4:3"
   #SIZE="320x240"
-  : ${VBR:=$((800 * 1024))}
+#  : ${VBR:=$((800 * 1024))}
 
-  : ${ABR:=128000}
+#  : ${ABR:=128000}
   : ${AR:=44100}
 
 
@@ -156,6 +166,13 @@ any2x264() {
   #pushv RESOLUTIONS 352x288
 
   for ARG; do
+   ( 
+     : ${VBR:=$(vbr "$ARG")}
+     : ${ABR:=$(abr "$ARG")}
+     : ${RESOLUTION:=$(resolution "$ARG")}
+
+echo  VBR=$(format_num $VBR) ABR=$(format_num $ABR) RESOLUTION="$RESOLUTION" 1>&2
+
 
       OUTPUT="${ARG%.*}.mp4"
       if [ "$DIR" ]; then
@@ -202,9 +219,9 @@ any2x264() {
 
            if [ "$VBR" ]; then
                       if  ${FFMPEG-ffmpeg}  -help 2>&1 |grep  -q '\-b:v'; then
-                                  BITRATE_ARG="-b:v $VBR -b:a $ABR"
+                                  BITRATE_ARG="-b:v $(format_num $VBR) -b:a $(format_num $ABR)"
                        else
-                                  BITRATE_ARG="-b $((VBR + ABR))"
+                                  BITRATE_ARG="-b $(format_num $((VBR + ABR)))"
                       fi
               fi
 
@@ -227,7 +244,7 @@ any2x264() {
         ${SIZE+-s "$SIZE"}  \
         $BITRATE_ARG \
         -acodec libvo_aacenc \
-        -ab "$ABR" \
+        -ab $(format_num "$ABR") \
         -ar "$AR" \
         -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || exec "$@") && 
           { mv -vf "${OUTPUT%.mp4}.out.mp4" "${OUTPUT}.mp4"; [ "$REMOVE" = true ] && 
@@ -236,7 +253,7 @@ any2x264() {
                 break
           
      unset SIZE
-  done
+  ); done
 }
 
 any2x264 "$@"
