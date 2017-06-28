@@ -913,13 +913,12 @@ echo "REGEDIT4"
        *:) workdir="$workdir/" ;;
      esac
      workdir=${workdir//"/"/"\\\\"}
-     if [ -n "$kbdcode" -a "$kbdcode" -gt 0 ]; then
-       [ "$kbdcode" -eq 57 ] && kbdcode= key=0
-       kbdcode=$((kbdcode+1))
+     if [ -n "$kbdcode" -a "${kbdcode:-0}" -gt 0 ] 2>/dev/null; then
+       [ "$kbdcode" -eq 57 ] && kbdcode= key=0 ||   kbdcode=$((kbdcode+1))
        [ "$kbdcode" -gt 90 ] && kbdcode=49
      fi
      
-     if [ -n "$kbdcode" -a "$kbdcode" -gt 0 ]; then
+     if [ -n "$kbdcode" -a "${kbdcode:-0}" -gt 0 ] 2>/dev/null; then
        winkbd=$(list SHIFT ALT $(asc2chr "$kbdcode"))
      else
        winkbd=
@@ -928,7 +927,7 @@ echo "REGEDIT4"
 
      [ -n "$winkbd" ] && key="$(create-win-kbd-shortcut $winkbd)" || key=0
      
-     [ "$DEBUG" = true ] && echo "file='$file' name='$name' arg='$arg' winpath='$winpath' arg='$arg' workdir='$workdir' winkbd='${winkbd//$NL/$SPACE}' key='$key'" 1>&2
+     [ "$DEBUG" = true ] && echo "file='$file' name='$name' arg='$arg' kbdcode='$kbdcode' winkbd='${winkbd//$NL/$SPACE}' key='$key'" 1>&2
      
      echo -n -e "${winpath//$BS/$BS$BS}\x00${arg//$BS/$BS$BS}\x00${workdir//$BS/$BS$BS}\x00${key}\x00\x00\x00" >"$tmpfile"
      [ "$DEBUG" = true ] && sed "s,\\\\,\\\\\\\\,g; s,\\x00,|,g ; s|.*|regstr='&'\n|" "$tmpfile" 1>&2

@@ -40,12 +40,12 @@ echo "REGEDIT4"
        *:) workdir="$workdir/" ;;
      esac
      workdir=${workdir//"/"/"\\\\"}
-     if [ -n "$kbdcode" -a "$kbdcode" -gt 0 ]; then
+     if [ -n "$kbdcode" -a "${kbdcode:-0}" -gt 0 ] 2>/dev/null; then
        [ "$kbdcode" -eq 57 ] && kbdcode= key=0 ||   kbdcode=$((kbdcode+1))
        [ "$kbdcode" -gt 90 ] && kbdcode=49
      fi
      
-     if [ -n "$kbdcode" -a "${kbdcode:-0}" -gt 0 ]; then
+     if [ -n "$kbdcode" -a "${kbdcode:-0}" -gt 0 ] 2>/dev/null; then
        winkbd=$(list SHIFT ALT $(asc2chr "$kbdcode"))
      else
        winkbd=
