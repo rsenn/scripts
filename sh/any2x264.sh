@@ -49,7 +49,7 @@ bce() {
     (IFS=" "; echo "$*" | (bc  -l || echo "ERROR: Expression '$*'" 1>&2)) | ${SED-sed}  -u '/\./ s,\.\?0*$,,'
 }
 
-bci() { (IFS=" "; echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | ${SED-sed}   -u 's,\.[0-9]\+$,,'
+bci() { (IFS=" "; [ "$DEBUG" = true ] && echo "EXPR: bci '$*'" 1>&2; bce "($*) + 0.5") | ${SED-sed}   -u 's,\.[0-9]\+$,,'
 }
 
 duration()
