@@ -247,7 +247,7 @@ echo  VBR=$(format_num $VBR) ABR=$(format_num $ABR) RESOLUTION="$RESOLUTION" 1>&
         -ab $(format_num "$ABR") \
         -ar "$AR" \
         -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || exec "$@") && 
-          { mv -vf "${OUTPUT%.mp4}.out.mp4" "${OUTPUT}.mp4"; [ "$REMOVE" = true ] && 
+          { mv -vf "${OUTPUT%.???}.out.mp4" "${OUTPUT%.???}.mp4"; [ "$REMOVE" = true ] && 
             rm  -vf "$ARG" \
         ; } ||
                 break
