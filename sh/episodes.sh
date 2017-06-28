@@ -74,8 +74,8 @@ do
 
   [ $((S)) -eq $((SEASON)) -a $((E)) -eq $((EPISODE)) ] || {
     [ $((EPISODE)) -gt $((E)) ] &&
-      echo "Season $((SEASON-1)) Episode $EPISODE is missing!" 1>&2 ||
-    echo "Season $SEASON Episode $EPISODE is missing!" 1>&2
+      printf "S%02d E%02d is missing!\n" $((SEASON-1))  $EPISODE 1>&2 ||
+          printf "S%02d E%02d is missing!\n" $((SEASON))  $EPISODE 1>&2
   }
   EPISODE=$((E+1))
 done
