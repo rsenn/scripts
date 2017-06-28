@@ -913,15 +913,20 @@ echo "REGEDIT4"
        *:) workdir="$workdir/" ;;
      esac
      workdir=${workdir//"/"/"\\\\"}
-     winkbd=$(list SHIFT ALT $(asc2chr "$kbdcode"))
-     if [ -n "$kbdcode" ]; then
-       [ "$kbdcode" -eq 57 ] && kbdcode=
+     if [ -n "$kbdcode" -a "$kbdcode" -gt 0 ]; then
+       [ "$kbdcode" -eq 57 ] && kbdcode= key=0
        kbdcode=$((kbdcode+1))
        [ "$kbdcode" -gt 90 ] && kbdcode=49
-       key="$(create-win-kbd-shortcut $winkbd)"
-     else
-       key="0"
      fi
+     
+     if [ -n "$kbdcode" -a "$kbdcode" -gt 0 ]; then
+       winkbd=$(list SHIFT ALT $(asc2chr "$kbdcode"))
+     else
+       winkbd=
+     fi
+     
+
+     [ -n "$winkbd" ] && key="$(create-win-kbd-shortcut $winkbd)" || key=0
      
      [ "$DEBUG" = true ] && echo "file='$file' name='$name' arg='$arg' winpath='$winpath' arg='$arg' workdir='$workdir' winkbd='${winkbd//$NL/$SPACE}' key='$key'" 1>&2
      
