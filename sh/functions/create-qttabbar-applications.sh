@@ -41,8 +41,15 @@ echo "REGEDIT4"
      esac
      workdir=${workdir//"/"/"\\\\"}
      winkbd=$(list SHIFT ALT $(asc2chr "$kbdcode"))
-     kbdcode=$((kbdcode+1))
-     key="$(create-win-kbd-shortcut $winkbd)"
+     if [ -n "$kbdcode" ]; then
+       [ "$kbdcode" -eq 57 ] && kbdcode=
+       kbdcode=$((kbdcode+1))
+       [ "$kbdcode" -gt 90 ] && kbdcode=49
+       key="$(create-win-kbd-shortcut $winkbd)"
+     else
+       key="0"
+     fi
+     
      [ "$DEBUG" = true ] && echo "file='$file' name='$name' arg='$arg' winpath='$winpath' arg='$arg' workdir='$workdir' winkbd='${winkbd//$NL/$SPACE}' key='$key'" 1>&2
      
      echo -n -e "${winpath//$BS/$BS$BS}\x00${arg//$BS/$BS$BS}\x00${workdir//$BS/$BS$BS}\x00${key}\x00\x00\x00" >"$tmpfile"
