@@ -1,4 +1,3 @@
-dec-to-hex()
-{
-    printf "%08x\n" "$1"
+dec-to-hex() { 
+  (for N; do printf "${D2XPFX}%08x\n" "$N"; done)
 }

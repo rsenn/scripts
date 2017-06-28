@@ -871,6 +871,26 @@ cpan-search()
     done )
 }
 
+create-qttabbar-applications() { 
+ (echo "REGEDIT4"
+  echo
+  echo '[HKEY_CURRENT_USER\Software\Quizo\QTTabBar\AppLauncher]'
+  for x; do
+    fn=${x##*/}
+    case "$x" in
+      *.lnk)  y=$(cygpath -aw "$(readshortcut "$x")");name=$(basename "$x" .lnk) ;;
+      *) y=$(cygpath -aw "$x"); name=$(basename "${x%.*}"); name=${name##*Start} ;;
+    esac 
+    case "$x" in
+      Start?*.exe) arg="%C%" ;;
+      *) arg="" ;;
+    esac
+   (set -- $(echo -n -e "${y}\x00${arg}\x00${y}\x00\x30\x00\x00\x00" |hexdump -C |
+      sed 's,|.*,, ; s,^\s\+,, ; s,\s\+, ,g; :lp; N; $! { b lp }; s,[[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]\+\s*,,g; s,|[^\n]*\n,,g; s,\s\+,\n,g; p' -n)
+    echo "\"$name\"=hex(7):$(implode , <<<"$*")" )
+  done) | unix2dos
+}
+
 create-shortcut()
 {
  (declare "$@"
@@ -2171,6 +2191,16 @@ EOF
 
 }
 
+gen-move-ebooks()
+{ 
+    for F in "$@";
+    do
+        BASEDIR=$(echo "$F"|sed "s|\(.*Books[^/]*\)/.*|\1|i ; s|\(.*Calibre[^/]*\)/.*|\1|i");
+        RELPATH=${F#$BASEDIR/};
+        echo "mkdir -p 'G:/Books/${RELPATH%/*}'; mv -vf '$F' 'G:/Books/${RELPATH%/*}'";
+    done
+}
+
 get-bpm() {
   while :; do
     case "$1" in
@@ -2209,6 +2239,12 @@ get-dotfiles()
 get-eagle-file()
 { 
     tasklist /fi "IMAGENAME eq eagle*" /v /fo list 2>&1 | sed -n 's,\\,/,g; s,\r*$,,; /Window Title:/ s,.* - \(.*\) - EAGLE.*,\1,p'
+}
+
+get-ebooks()
+{ 
+    export DATABASE=$(cygpath -am "$USERPROFILE/AppData/Roaming/Locate32/files.dbs");
+    ls $LS_ARGS -td -- $( (locate32.sh  -E{pdf,epub,mobi,azw3,djv,djvu}|grep -i -E '(books|calibre)'; find-media.sh  -E{pdf,epub,mobi,azw3,djv,djvu} calibre books) |sort -f -u )
 }
 
 get-exports() {
