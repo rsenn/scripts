@@ -274,7 +274,7 @@ echo "ABR=$ABR" 1>&2
 
   RATE=29.97
   #METAOPTS="-map_metadata   -1"
-      (IFS="$IFS "; #[ "$DEBUG" = true ] && 
+     { IFS="$IFS "; #[ "$DEBUG" = true ] && 
       set  -x; set -- \
       "$FFMPEG" 2>&1  $FFMPEGOPTS $METAOPTS \
         -strict -2 \
@@ -292,12 +292,13 @@ echo "ABR=$ABR" 1>&2
         -acodec libvo_aacenc \
         -ab $(format_num "$ABR") \
         -ar "$AR" \
-        -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || exec "$@") && 
+        -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || {  "$@" || exit $?; }; } && 
           { mv -vf "${OUTPUT%.???}.out.mp4" "${OUTPUT%.???}.mp4"; [ "$REMOVE" = true ] && 
             rm  -vf "$ARG" \
-        ; } || exit $?
+        ; } #|| exit $?
           
      unset SIZE
+     exit 0
   ) || return $?; done
 }
 
