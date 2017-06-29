@@ -16,6 +16,9 @@ software_EXTS="$software_EXTS 7z app bin daa deb dmg exe iso msi msu cab vbox-ex
 sources_EXTS="c cc cpp cxx h hh hpp hxx mm java"
 videos_EXTS="3gp avi f4v flv m4v m2v mkv mov mp4 mpeg mpg ogm vob webm wmv"
 vmdisk_EXTS="vdi vmdk vhd qed qcow qcow2 vhdx hdd"
+project_EXTS="avrgccproj bdsproj cbproj coproj cproj cproject csproj dproj fsproj groupproj jsproj jucer lproj lsxproj metaproj packproj pbxproj pkgproj pmproj pnproj pro proj project pssproj shfbproj sln tmproj unityproj uvproj vbproj vcproj vcxproj vdproj vfproj webproj winproj wixproj zdsproj zfpproj"
+spice_EXTS="sp cir spc spi"
+eda_EXTS="sch brd lbr"
 
 
 addexts() {
