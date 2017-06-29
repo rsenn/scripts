@@ -12,7 +12,7 @@ create_match_function() {
   push FN "*) return 1 ;;
 esac
 }"
-  msg "FN: $FN"
+#  msg "FN: $FN"
   eval "$FN"
 }
 
@@ -73,7 +73,7 @@ CR=''
 
   push() {
   eval 'shift;'$1'="${'$1':+$'$1'
-  }$*"'
+}$*"'
   }
   while :; do
     case "$1" in
@@ -114,6 +114,8 @@ CR=''
     return $R
   }
   while getline LINE; do
+  LINE=${LINE%$'\r'}
+#  msg "LINE: $LINE"
     while [ "$LINE" != "${LINE%"$BS"}" ]; do
       getline NEXTLINE 
       LINE="${LINE%"$BS"} ${NEXTLINE}"
@@ -121,9 +123,9 @@ CR=''
     case "$LINE" in
       "")
       
-      if match_name "$NAME"; then
+#      if match_name "$NAME"; then
       output_item
-      fi
+#      fi
       
        clear_state ;;
       "Edit '"*)
