@@ -23,8 +23,18 @@ resolution() {
  (mediainfo "$1" |sed '/^Video/ { :lp; N; /:[^\n]*$/ { b lp; }; s|.*\nWidth\s*:\s*\([^\n]*\)\n|\1| ; s|Height\s*:\s*\([^\n]*\)\n.*|\1| ; s, ,,;  s,pixels,x, ; s, pixels,,g; p }' -n)
 }
 
+parse_num() {
+ (N=$1
+  case "$N" in
+    *G) N=$(( ${N%G} * 1048576 * 1024 )) ;; 
+    *M) N=$(( ${N%M} * 1048576 )) ;; 
+    *[Kk]) N=$(( ${N%[Kk]} * 1024 )) ;;
+  esac
+  echo "$N")
+}
+
 format_num() {
- (N="$1"; if [ "$N" -ge 1000 ]; then N=$(bci "$N / 1000")k
+ (N="$1"; if [ "$N" -ge 1024 ]; then N=$(bci "$N / 1024")k
   fi; echo "$N")
 }
     
@@ -54,10 +64,33 @@ bci() { (IFS=" "; [ "$DEBUG" = true ] && echo "EXPR: bci '$*'" 1>&2; bce "($*) +
 
 duration()
 {
-    (for ARG; do minfo "$ARG" | info_get Duration| head  -n1 ; done | ${SED-sed} 's,\([0-9]\+\)h,(\1 * 3600\)+, ; s,\([0-9]\+\)mn,(\1 * 60)+, ; s,\([0-9]\+\)s,\1+, ; s,+$,,' | 
+echo "duration $(quote "$@")" 1>&2
+    (for ARG; do minfo "$ARG" | info_get Duration| head  -n1 ; done | ${SED-sed} 's,\([0-9]\+\)\s*h,(\1 * 3600\)+, ; s,\([0-9]\+\)\s*mi\?n,(\1 * 60)+, ; s,\([0-9]\+\)\s*s,\1+, ; s,+$,,' |  
     bc  -l)
-
 }
+
+# calc_vbr_filesize <SIZE> <DURATION> <ABR>
+calc_vbr_filesize() {
+   S=$(parse_num "$1")
+   D="$2"
+   CPS=$(( $S / $D ))
+   BPS=$(($CPS * 8))
+   
+   if [ -n "$3" -a "${3:-0}" -gt 0 ]; then
+      AB=$(parse_num "$3")
+   else 
+      KBPS=$(( $BPS / 1024 ))
+      AB=$(( (($KBPS / 6) + 15 ) / 16 ))
+      AB=$(( $AB * 16 * 1024 ))
+   fi
+   
+   echo "S=$S D=$D BPS=$BPS AB=$AB V=$V" 1>&2
+   V=$(($BPS - $AB))
+   VBR=$V
+   ABR=$AB
+   echo "VBR=$VBR ABR=$ABBR" 1>&2
+}
+
 
 is16to9()
 {
@@ -84,15 +117,16 @@ any2x264() {
 
   while :; do
       case "$1" in
-      -abr=*|--abr=*) ABR="${1#*=}"; shift ;;  -abr|--abr) ABR="$2"; shift 2 ;;
-      -ar=*|--ar=*) AR="${1#*=}"; shift ;;  -ar|--ar) AR="$2"; shift 2 ;;
+      -abr=*|--abr=*) ABR=$(parse_num "${1#*=}"); shift ;;  -abr|--abr) ABR=$(parse_num "$2"); shift 2 ;;
+      -ar=*|--ar=*) AR=$(parse_num "${1#*=}"); shift ;;  -ar|--ar) AR=$(parse_num "$2"); shift 2 ;;
       -p) PRESET="$2"; shift 2 ;;
-      -b) VBR="$2"; shift 2 ;;
+      -b) VBR=$(parse_num "$2"); shift 2 ;;
+      -a:b) ABR=$(parse_num "$2"); shift 2 ;;
       -d) DIR="$2"; shift 2 ;;
       -r) REMOVE=true; shift ;;
       -R|--resolution) RESOLUTION="$2"; shift 2 ;;
 #      -s|-size|--size) SIZE="$2"; shift 2 ;; -s=*|-size=*|--size=*) SIZE=${1#*=}; shift ;;
-      -S|--filesize) FILESIZE="$2"; shift 2 ;; -S=*|--filesize=*) FILESIZE=${1#*=}; shift ;; 
+      -S|--filesize) FILESIZE=$(parse_num "$2"); shift 2 ;; -S=*|--filesize=*) FILESIZE=$(parse_num ${1#*=}); shift ;; 
       -x) DEBUG=true; shift ;;
       -P) PRINTCMD=true; shift ;;
       -a) A="$2"; shift 2 ;;
@@ -102,11 +136,11 @@ any2x264() {
       esac
   done
 
-  case $FILESIZE in
-      *[Mm]) FILESIZE=$(( ${FILESIZE%[Mm]} * 1048576)) ;;
-      *[Kk]) FILESIZE=$(( ${FILESIZE%[Kk]} * 1024)) ;;
-  esac
-
+#  case $FILESIZE in
+#      *[Mm]) FILESIZE=$(( ${FILESIZE%[Mm]} * 1048576)) ;;
+#      *[Kk]) FILESIZE=$(( ${FILESIZE%[Kk]} * 1024)) ;;
+#  esac
+#
   type avconv 2>/dev/null >/dev/null && FFMPEG=avconv
   : ${FFMPEG=ffmpeg}
 
@@ -165,13 +199,25 @@ any2x264() {
   #pushv RESOLUTIONS 512x288
   #pushv RESOLUTIONS 352x288
 
+echo "ABR=$ABR" 1>&2
+
   for ARG; do
    ( 
+   
+   DURATION=$(duration "$ARG")
+   
+   echo "duration='$DURATION'" 1>&2
      : ${VBR:=$(vbr "$ARG")}
      : ${ABR:=$(abr "$ARG")}
+     
      : ${RESOLUTION:=$(resolution "$ARG")}
 
-echo  VBR=$(format_num $VBR) ABR=$(format_num $ABR) RESOLUTION="$RESOLUTION" 1>&2
+
+    if [ -n "$FILESIZE" ]; then 
+    calc_vbr_filesize "$FILESIZE" "$DURATION" $ABR
+  fi
+  
+    echo  VBR=$(format_num $VBR) ABR=$(format_num $ABR) RESOLUTION="$RESOLUTION" 1>&2
 
 
       OUTPUT="${ARG%.*}.mp4"
@@ -228,7 +274,7 @@ echo  VBR=$(format_num $VBR) ABR=$(format_num $ABR) RESOLUTION="$RESOLUTION" 1>&
 
   RATE=29.97
   #METAOPTS="-map_metadata   -1"
-      (IFS="$IFS "; [ "$DEBUG" = true ] && 
+      (IFS="$IFS "; #[ "$DEBUG" = true ] && 
       set  -x; set -- \
       "$FFMPEG" 2>&1  $FFMPEGOPTS $METAOPTS \
         -strict -2 \
@@ -249,11 +295,10 @@ echo  VBR=$(format_num $VBR) ABR=$(format_num $ABR) RESOLUTION="$RESOLUTION" 1>&
         -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || exec "$@") && 
           { mv -vf "${OUTPUT%.???}.out.mp4" "${OUTPUT%.???}.mp4"; [ "$REMOVE" = true ] && 
             rm  -vf "$ARG" \
-        ; } ||
-                break
+        ; } || exit $?
           
      unset SIZE
-  ); done
+  ) || return $?; done
 }
 
 any2x264 "$@"
