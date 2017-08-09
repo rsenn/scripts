@@ -1,8 +1,7 @@
 list-mediapath ()  {  ( unset CMD ; while :; do case "$1" in 
 
 -b | -c | -d | -e | -f | -g | -h | -k | -L | -N | -O | -p | -r | -s) FILTER="${FILTER:+$FILTER | }filter-test $1" ; shift ;;
- 
--x | -debug | --debug) DEBUG=true ; shift ;;
+ -x | -debug | --debug) DEBUG=true ; shift ;;
  -m | --mixed | -M | --mode | -u | --unix | -w | --windows | -a | --absolute | -l | --long-name) PATHTOOL_OPTS="${PATHTOOL_OPTS:+PATHTOOL_OPTS }$1" ; shift ;;
  -*) OPTS="${OPTS:+$OPTS }$1" ; shift ;;
  --) shift ; break ;;
@@ -24,4 +23,4 @@ make-browser-shortcuts ()
     done
 }
 
-[ "$(basename "$0")" = "make-browser-shortcuts.sh" ] && make-browser-shortcuts 2>/dev/null
+[ "$(basename "${0#-}")" = "make-browser-shortcuts.sh" ] && make-browser-shortcuts 2>/dev/null

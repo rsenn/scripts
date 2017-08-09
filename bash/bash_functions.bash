@@ -4240,7 +4240,7 @@ list-rpm() {
       [ "$NARG" -gt 1 ] && echo "$ARG: $*" || echo "$*"
     fi
   }
-  LOG="$PWD/$(basename "$0" .sh).log"
+  LOG="$PWD/$(basename "${0#-}" .sh).log"
   exec_cmd() {
    (
     echo "CMD: $@" 1>&2
