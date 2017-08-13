@@ -24,6 +24,7 @@ echo "Usage: ${0%.sh} [OPTIONS] <QUERIES...>
   -x, --debug             Show debug messages
   -v, --verbose           Show debug messages
   -p, --dlprog=PROG       Set download program
+  -P, --print             Print URL only
   -n=NUM, --results=NUM   Set number of results
   
 Environment variables:
@@ -47,6 +48,7 @@ while :; do
     -c=*|--class=*) CLASS=${1%#*=}; shift ;; -c|--class) CLASS=$2; shift 2 ;;
     -n=*|--results=*) RESULTS=${1##*=}; shift ;; -n|--results) RESULTS=$2; shift 2 ;;
     -p=*|--dl*prog*=*) DLPROG=${1##*=}; shift ;; -p|--dlprog) DLPROG=$2; shift 2 ;;
+    -P|--print) PRINT=true; shift ;;
     -*) echo "Invalid argument '$1'." 1>&2; exit 1 ;;
     *) break ;;
   esac
@@ -65,7 +67,7 @@ if [ -z "$COOKIE" ]; then
 fi
 
 if [ -n "$COOKIE" -a -r "$COOKIE" -a -s "$COOKIE" ]; then
-echo "Found cookie: $COOKIE" 1>&2
+  [ "$DEBUG" = true ] && echo "Found cookie: $COOKIE" 1>&2
 fi
 
 
@@ -77,16 +79,24 @@ if [ -n "$SOCKS_PROXY" ]; then
 fi
 
 
-case "$DLPROG" in
-  curl) DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks4a \"${SOCKS_PROXY#*://}\"} -A '$USER_AGENT'" ;;
-  wget) DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }wget -q ${COOKIE:+--load-cookies='$COOKIE' }-O - -U '$USER_AGENT'" ;;
-	lynx) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent='$USER_AGENT' ${COOKIE:+-cookie_file='$COOKIE'} 2>/dev/null" ;;
-  links) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }links -source" ;;
-  w3m) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null" ;;
-  *) DLCMD="$DLPROG" ;;
-    
-    #echo "No such download command: $DLPROG" 1>&2; exit 1 ;;
-esac
+FILTER="${SED-sed} 's%<%\n&%g' | ${SED-sed} -n 's%^<a href=\"\\([^\"/:]\\+://[^\"]\\+\\)\"[^>]\\+.*%\\1%p'${FILTER:+ | $FILTER}"
+FILTER="$FILTER | ${SED-sed} 's%\\&amp;%\\&%g'"
+
+if [ "$PRINT" = true ]; then
+  DLCMD="echo"
+  FILTER=""
+else
+	case "$DLPROG" in
+	  curl) DLCMD="curl ${SILENT} ${COOKIE:+--cookie '$COOKIE'} --insecure --location ${HTTP_PROXY:+--proxy \"http://${HTTP_PROXY#*://}\"} ${SOCKS_PROXY:+--socks4a \"${SOCKS_PROXY#*://}\"} -A '$USER_AGENT'" ;;
+	  wget) DLCMD="${HTTP_PROXY:+http_proxy=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }wget -q ${COOKIE:+--load-cookies='$COOKIE' }-O - -U '$USER_AGENT'" ;;
+		lynx) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" https_proxy=\"http://${HTTP_PROXY#*://}\" }lynx -source -useragent='$USER_AGENT' ${COOKIE:+-cookie_file='$COOKIE'} 2>/dev/null" ;;
+	  links) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }links -source" ;;
+	  w3m) DLCMD="${HTTP_PROXY:+HTTP_PROXY=\"http://${HTTP_PROXY#*://}\" }w3m -dump_source 2>/dev/null" ;;
+	  *) DLCMD="$DLPROG" ;;
+		
+		#echo "No such download command: $DLPROG" 1>&2; exit 1 ;;
+	esac
+fi
 
 [ "$DEBUG" = true ] && echo "DLCMD=$DLCMD" 1>&2
 ARGS="$*"
@@ -134,6 +144,4 @@ fi
 
 [ "$DEBUG" = true ] && CMD="set -x; $CMD"
 
-FILTER="${SED-sed} 's%<%\n&%g' | ${SED-sed} -n 's%^<a href=\"\\([^\"/:]\\+://[^\"]\\+\\)\"[^>]\\+.*%\\1%p'${FILTER:+ | $FILTER}"
-FILTER="$FILTER | ${SED-sed} 's%\\&amp;%\\&%g'"
 eval "($CMD) ${FILTER:+ | ${FILTER#\ \|\ }}" 
