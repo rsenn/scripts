@@ -1,6 +1,6 @@
 #!/bin/bash
 
-: ${MNTDIR:="$HOME/mnt"}
+: ${DEST:="$HOME/mnt"}
 
 while :; do
   case "$1" in
@@ -15,16 +15,16 @@ done
 for ARG; do
   FILE=${ARG##*/}
   NAME=${FILE%.iso}
-  DEST="$MNTDIR/$NAME"
+  MNT="$DEST/$NAME"
 
-  umount "$DEST" 2>/dev/null
+  umount "$MNT" 2>/dev/null
   
-  mkdir -p "$DEST"
+  mkdir -p "$MNT"
 
   if [ ! -b "$ARG" -a ! -c "$ARG" ]; then
 
-      mount ${TYPE:+-t "$TYPE"} -o loop${OPTS:+",$OPTS"} "$ARG" "$DEST" || exit $?
+      mount ${TYPE:+-t "$TYPE"} -o loop${OPTS:+",$OPTS"} "$ARG" "$MNT" || exit $?
   else
-      mount "$ARG" "$DEST" || exit $?
+      mount "$ARG" "$MNT" || exit $?
   fi
 done
