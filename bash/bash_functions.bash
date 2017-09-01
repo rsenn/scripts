@@ -3149,7 +3149,7 @@ icacls-r() {
    ARG=$(${PATHTOOL:-cygpath}${PATHTOOL:+
 -w} "${ARG%[/\\]}")
     ARG=${ARG%[\\/]}
-    [ -d "$ARG" ] && D="-R -D Y "
+    [ -d "$ARG" ] && D="-R "
     ARG="\"$ARG\""
     
     EXEC="${ICACLS:-icacls} $ARG ${ICACLS_ARGS}"
