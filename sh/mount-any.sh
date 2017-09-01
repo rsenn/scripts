@@ -4,8 +4,9 @@
 
 while :; do
   case "$1" in
-      -t) TYPE="$2" ; shift 2 ;;
-      -t*) TYPE="${1#-t}" ; shift  ;;
+      -d) DEST="$2" ; shift 2 ;; -d*) DEST="${1#-d}" ; shift  ;;
+      -o) OPTS="$2" ; shift 2 ;; -o*) OPTS="${1#-o}" ; shift  ;;
+      -t) TYPE="$2" ; shift 2 ;; -t*) TYPE="${1#-t}" ; shift  ;;
     *) break ;;
   esac
 done
@@ -14,16 +15,16 @@ done
 for ARG; do
   FILE=${ARG##*/}
   NAME=${FILE%.iso}
-  MNT="$MNTDIR/$NAME"
+  DEST="$MNTDIR/$NAME"
 
-  umount "$MNT" 2>/dev/null
+  umount "$DEST" 2>/dev/null
   
-  mkdir -p "$MNT"
+  mkdir -p "$DEST"
 
   if [ ! -b "$ARG" -a ! -c "$ARG" ]; then
 
-      mount ${TYPE:+-t "$TYPE"} -o loop "$ARG" "$MNT" || exit $?
+      mount ${TYPE:+-t "$TYPE"} -o loop${OPTS:+",$OPTS"} "$ARG" "$DEST" || exit $?
   else
-      mount "$ARG" "$MNT" || exit $?
+      mount "$ARG" "$DEST" || exit $?
   fi
 done
