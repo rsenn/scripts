@@ -3,7 +3,7 @@
 : ${TEMP=/tmp/}
 
 SET1='+"mega.co.nz/"|"gboxes.com/"|"nitroflare.com/"|"turbobit.net/"|"zippyshare.com/"|"uploadable.ch/"|"depositfiles.com/"|"oron.com/"|"oboom.net/"'
-SET2='+"mediafire.com/"|"uploaded.net/"|"netload.in/"|"filefactory.com/"|"sendspace.com/"|"badongo.com/"|"uploadbox.com/"|"letitbit.net/'
+SET2='+"mediafire.com/"|"uploaded.net/"|"netload.in/"|"filefactory.com/"|"sendspace.com/"|"badongo.com/"|"uploadbox.com/"|"letitbit.net/"'
 SET3='+"sharingmatrix.com/"|"box.net/"|"bitshare.com/"|"mega.co.nz/"|"4shared.com/"|"ziddu.com/"|"zshare.net/"'
 
 #IFS=" $IFS"
