@@ -220,7 +220,7 @@ MEDIAPATH="${MEDIAPATH%/}{,/{Users,home}/*}"
 #   *cygwin* |Cygwin* | CYGWIN* | msys* | Msys* |MSys* | MSYS*)
 #     for PROG_A in notepad notepad2 notepadpp:notepad++; do
 #       ALIAS=${PROG_A%%:*}; PROG=${PROG_A#*:}; FN=$ALIAS'() { (IFS="
-#"; command '$PROG' `xargs "${PATHTOOL:-cygpath}" -m <<<"$*"`)
+#"; command '$PROG' `xargs "${PATHTOOL:-echo}" -m <<<"$*"`)
 #    }'
 #    : echo "FN=$FN" 1>&2; eval "$FN"; done
 #  ;;
