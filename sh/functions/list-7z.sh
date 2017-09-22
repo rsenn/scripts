@@ -73,7 +73,7 @@ list-7z() {
   while [ $# -gt 0 ]; do
    (B=${1##*/}
     case "$1" in
-      *://*) INPUT="wget -q -O - \"\$1\""; ARCHVIE=$1 ;;
+      *://*) INPUT="wget -q -O - \"\$1\""; ARCHIVE=$1 ;;
       *) ARCHIVE=$1  ;;
     esac
     case "$1" in
