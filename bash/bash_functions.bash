@@ -3778,7 +3778,14 @@ list-7z() {
         T=${1%.t?z}
         T=${T%.tbz2}
         T=$T.tar
-        INPUT="${INPUT:+$INPUT | }${_7Z} x${INPUT:+ -si\"${1##*/}\"} -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T}\"";  CMD="${_7Z} l -slt $OPTS"
+				[ -n "$INPUT" ] && {
+								INEXT=${1##*.t}
+								INNAME=${1##*/}
+								INNAME=${1%.*}.${INEXT}
+								NOA=""
+        }
+				
+        INPUT="${INPUT:+$INPUT | }${_7Z} x${INPUT:+ -si\"${INNAME}\"} -so${NOA- \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T##*/}\"";  CMD="${_7Z} l -slt $OPTS"
         ;;
       *.tar.*) INPUT="${INPUT:+$INPUT | }${_7Z} x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${B%.*}\"";  CMD="${_7Z} l -slt $OPTS" ;;
       *) CMD="${_7Z} l -slt $OPTS ${ARCHIVE+\"$ARCHIVE\"}" ;;
