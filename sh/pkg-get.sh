@@ -21,7 +21,7 @@ get_package_lists() {
     slacky) 
       dlynx.sh http://slackware.org.uk/slacky/|grep /slacky/.*/|addsuffix PACKAGES.TXT ;;
     ubuntu) 
-   dlynx.sh http://ch.archive.ubuntu.com/ubuntu/dists/trusty{,-backports,-proposed,-security,-updates}/{main,universe,multiverse,restricted}/binary-amd64 ;;
+   list http://ch.archive.ubuntu.com/ubuntu/dists/trusty{,-backports,-proposed,-security,-updates}/{main,universe,multiverse,restricted}/binary-amd64/Packages.bz2 ;;
 
   esac
 }
@@ -35,7 +35,15 @@ read_package_lists() {
         ;;
     esac
 
-		curl -s "$ARG" | while read -r LINE; do 
+
+		DLCMD='curl -s "$ARG"'
+case "$ARG" in 
+   *.bz2) DLCMD="$DLCMD | bzcat" ;;
+   *.gz) DLCMD="$DLCMD | zcat" ;;
+   *.xz) DLCMD="$DLCMD | xzcat" ;;
+esac
+
+   eval "$DLCMD" | while read -r LINE; do 
 		   P=${LINE%%": "*}
 			 V=${LINE##*": "}
 			 V=${V#" "}
@@ -69,6 +77,10 @@ pkg_get() {
 	echo "Package lists:" "$@" 1>&2
 	 
 	read_package_lists "$@"
+}
+list() {
+   (IFS="
+"; echo "$*")
 }
 
 pkg_get "$@"
