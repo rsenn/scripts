@@ -20,6 +20,9 @@ get_package_lists() {
   case "$1" in
     slacky) 
       dlynx.sh http://slackware.org.uk/slacky/|grep /slacky/.*/|addsuffix PACKAGES.TXT ;;
+    ubuntu) 
+   dlynx.sh http://ch.archive.ubuntu.com/ubuntu/dists/trusty{,-backports,-proposed,-security,-updates}/{main,universe,multiverse,restricted}/binary-amd64 ;;
+
   esac
 }
 
