@@ -3819,7 +3819,7 @@ list-7z() {
   while [ $# -gt 0 ]; do
    (B=${1##*/}
     case "$1" in
-      *://*) INPUT="wget -q -O - \"\$1\""; ARCHVIE=$1 ;;
+      *://*) INPUT="wget -q -O - \"\$1\""; ARCHIVE=$1 ;;
       *) ARCHIVE=$1  ;;
     esac
     case "$1" in
@@ -3827,7 +3827,14 @@ list-7z() {
         T=${1%.t?z}
         T=${T%.tbz2}
         T=$T.tar
-        INPUT="${INPUT:+$INPUT | }${_7Z} x${INPUT:+ -si\"${1}\"} -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T}\"";  CMD="${_7Z} l -slt $OPTS"
+				[ -n "$INPUT" ] && {
+								INEXT=${1##*.t}
+								INNAME=${1##*/}
+								INNAME=${1%.*}.${INEXT}
+								NOA=""
+        }
+				
+        INPUT="${INPUT:+$INPUT | }${_7Z} x${INPUT:+ -si\"${INNAME}\"} -so${NOA- \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T##*/}\"";  CMD="${_7Z} l -slt $OPTS"
         ;;
       *.tar.*) INPUT="${INPUT:+$INPUT | }${_7Z} x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${B%.*}\"";  CMD="${_7Z} l -slt $OPTS" ;;
       *) CMD="${_7Z} l -slt $OPTS ${ARCHIVE+\"$ARCHIVE\"}" ;;
@@ -4862,7 +4869,7 @@ IFS=";, $IFS"
    set -- $EXCLUDE '*~' '*.bak' '*.rej' '*du.txt' '*.list' '*.log' 'files.*' '*.000' '*.tmp'
    IFS="
 "
-  EXCLUDELIST="{$(set -- $(for-each str_quote "$@"); IFS=','; echo "$*")}"
+  EXCLUDELIST="{$(set -- $(for_each 'str_quote "$1"' "$@"); IFS=','; echo "$*")}"
     for ARG in $ARGS;
     do
         test -d "$ARG";
@@ -4975,10 +4982,10 @@ mime()
 minfo()
 {
     #timeout ${TIMEOUT:-10} \
-   (CMD='mediainfo "$ARG" 2>&1'
+   (IFS="$IFS"$'\r' ; CMD='mediainfo "$ARG" 2>&1'
     [ $# -gt 1 ] && CMD="$CMD | addprefix \"\$ARG:\""
     CMD="for ARG; do $CMD; done"
-    eval "$CMD")  | ${SED-sed} '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
+    eval "$CMD")  | ${SED-sed} '#s|\s\+:\s\+|: | ; s|\r||g; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
 }
 
 min()
@@ -6284,10 +6291,11 @@ removesuffix()
 resolution() {
  (EXPR='/Width/N
 /pixels/ {
-  s|:Width=\([0-9]\+\)\s*pixels|: \1|g
-  s|:Height=\([0-9]\+\)\s*pixels|: \1|g
+  s|Width=\([0-9]\+\)\s*pixels| \1|g
+  s|Height=\([0-9]\+\)\s*pixels| \1|g
   s|[^\n]*:\s\+\([^\n:]*\)$|\1|
-  s|\n|x|p
+  s|\r\n|\n|g
+  s| *\n *|x|p
 }'; while [ $# -gt 0 ] ; do case "$1" in
     -m | --mult*) CMD="echo \$(($1 * $2))"; shift ;; 
     *) break ;;
