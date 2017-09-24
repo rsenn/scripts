@@ -30,7 +30,7 @@ while :; do
 
 [ "$SOURCE" = true ] || { [ "$DUMP" != true ] && { DUMP=true; WIDTH=16384; }; }
 
-if [ "$SOURCE" != true ]; then
+if [ "$SOURCE" != true -a "$DUMP" != true ]; then
 	CMD="$CMD | grep '^[^ ]*://'"
 fi
 

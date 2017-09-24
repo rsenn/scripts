@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 for CMD in davfs wdfs; do
   if type "$CMD" >&/dev/null; then
