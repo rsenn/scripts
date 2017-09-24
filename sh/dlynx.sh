@@ -10,6 +10,11 @@ usage() {
  " 1>&2
  }
 
+if [ -s ~/cookies.txt ]; then
+				echo "Found ~/cookies.txt" 1>&2
+				COOKIES=~/cookies.txt
+fi
+
 while :; do
   case "$1" in
     -np | -no*parent | --no*parent)  NO_PARENT=true; shift ;; 
@@ -31,10 +36,10 @@ while :; do
 [ "$SOURCE" = true ] || { [ "$DUMP" != true ] && { DUMP=true; WIDTH=16384; }; }
 
 if [ "$SOURCE" != true -a "$DUMP" != true ]; then
-	CMD="$CMD | grep '^[^ ]*://'"
+	CMD="$CMD | grep '^[^ \\t]*://'"
 fi
 
-[ "$DUMP" = true ] && push OPTS -dump -nonumbers || push OPTS -listonly
+[ "$DUMP" = true ] && { WIDTH=16384; push OPTS -dump -nonumbers; } || push OPTS -listonly
 [ -n "$WIDTH" ] && push OPTS -width="$WIDTH"
 [ "$SOURCE" = true ] && { push OPTS -source; DUMP="false" ; }
 
