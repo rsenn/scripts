@@ -4933,7 +4933,14 @@ min()
     echo "$i" )
 }
 
-
+minfo()
+{
+    #timeout ${TIMEOUT:-10} \
+   (IFS="$IFS"$'\r' ; CMD='mediainfo "$ARG" 2>&1'
+    [ $# -gt 1 ] && CMD="$CMD | addprefix \"\$ARG:\""
+    CMD="for ARG; do $CMD; done"
+    eval "$CMD")  | ${SED-sed} '#s|\s\+:\s\+|: | ; s|\r||g; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
+}
 
 #!/bin/bash
  
@@ -6191,10 +6198,11 @@ removesuffix()
 resolution() {
  (EXPR='/Width/N
 /pixels/ {
-  s|:Width=\([0-9]\+\)\s*pixels|: \1|g
-  s|:Height=\([0-9]\+\)\s*pixels|: \1|g
+  s|Width=\([0-9]\+\)\s*pixels| \1|g
+  s|Height=\([0-9]\+\)\s*pixels| \1|g
   s|[^\n]*:\s\+\([^\n:]*\)$|\1|
-  s|\n|x|p
+  s|\r\n|\n|g
+  s| *\n *|x|p
 }'; while [ $# -gt 0 ] ; do case "$1" in
     -m | --mult*) CMD="echo \$(($1 * $2))"; shift ;; 
     *) break ;;

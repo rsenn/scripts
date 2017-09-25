@@ -30,36 +30,29 @@ main()
   done
 }
 
-
-resolution() {  
-  minfo "$1"
-  
-  RESOLUTION=$(echo "$LASTOUT" | ${SED-sed} -n "/Width\s*: / { N; /Height\s*:/ { s,Width\s*:,, ; s,[^:\n0-9]\+: \+\([^:]*\)\$,\1,g; s|^\s*||; s|\([0-9]\)\s\+\([0-9]\)|\1\2|g; s|\s*pixels||g;  s|\n|x|g; p } }")
-}
-
-
-minfo() {
-#[ "$DEBUG" = true ] && echo "+ minfo $(format_args "$@")" 1>&2
-  minfo_filter() { ${SED-sed} '#s|\s\+:\s\+|: | ; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g'; }
-  
- # echo "LASTFILE: $LASTFILE ($1)" 1>&2
-  if [ -n "$LASTFILE" -a "$LASTFILE" = "$1" ]; then
-    return 0
-  fi
-  
-  ARG="$1"
-  if [ -n "$ARG" -a -f "$ARG" ]; then
-    LASTFILE="$ARG"
-    LASTOUT=$(CMD='mediainfo "$ARG" 2>&1'
-    E=${CMD//"'"/"\\'"}
-    E=${E//"\""/"'"}
-  #  [ "$DEBUG" = true ] && CMD='echo "+ '${E}'" 1>&2; '$CMD
-  
+resolution() {
+ (EXPR='/Width/N
+/pixels/ {
+  s|Width=\([0-9]\+\)\s*pixels| \1|g
+  s|Height=\([0-9]\+\)\s*pixels| \1|g
+  s|[^\n]*:\s\+\([^\n:]*\)$|\1|
+  s|\r\n|\n|g
+  s| *\n *|x|p
+}'; while [ $# -gt 0 ] ; do case "$1" in
+    -m | --mult*) CMD="echo \$(($1 * $2))"; shift ;; 
+    *) break ;;
+  esac
+  done
+  mminfo "$@"|${SED-sed} -n "$EXPR")
+}                                                                                                                                                                                                                                                                                    
+minfo()
+{
+    #timeout ${TIMEOUT:-10} \
+   (IFS="$IFS"$'\r' ; CMD='mediainfo "$ARG" 2>&1'
     [ $# -gt 1 ] && CMD="$CMD | addprefix \"\$ARG:\""
-    CMD="for ARG; do $CMD; done | minfo_filter"
-    
-    eval "$CMD")  
-  fi
+    CMD="for ARG; do $CMD; done"
+    eval "$CMD")  | ${SED-sed} '#s|\s\+:\s\+|: | 
+						s|\r||g; s|\s\+:\([^:]*\)$|:\1| ; s| pixels$|| ; s|: *\([0-9]\+\) \([0-9]\+\)|: \1\2|g '
 }
 
 duration()
