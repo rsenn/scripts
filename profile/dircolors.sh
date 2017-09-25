@@ -10,3 +10,5 @@ set_ls_colors() {
 }
 
 set_ls_colors
+
+alias ls='ls --color=auto'
