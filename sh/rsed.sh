@@ -22,7 +22,7 @@ rsed()
   
   while [ "$#" -gt 0 ]; do
     case "$1" in
-						-x | --debug) DEBUG=true; shift ;;
+						-x | --debug) DEBUG=true; ;;
       -e) 
         pushv EXPRESSIONS "$2"
         shift
