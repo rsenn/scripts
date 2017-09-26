@@ -22,6 +22,7 @@ rsed()
   
   while [ "$#" -gt 0 ]; do
     case "$1" in
+						-x | --debug) DEBUG=true; shift ;;
       -e) 
         pushv EXPRESSIONS "$2"
         shift
@@ -47,6 +48,7 @@ rsed()
   if some 'test -d "$1"' "$@"; then
     set -- `map 'fs_recurse -f "$1"' "$@"`
   fi
+	[ "$DEBUG" = true ] && set -x
 
   ${SED-sed} $OPTIONS `addprefix "-e$IFS" $EXPRESSIONS` "$@"
   )
