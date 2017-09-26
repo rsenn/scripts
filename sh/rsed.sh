@@ -5,41 +5,10 @@
 # $Id: rsed.sh 575 2008-08-26 12:07:20Z enki $
 # ---------------------------------------------------------------------------
 
-addprefix() {
- (PREFIX=$1; shift
-  CMD='echo "$PREFIX$LINE"'
-  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
-  eval "$CMD")
-}
-debug()
-{
-    [ "$DEBUG" = true ] && echo "DEBUG: $@" 1>&2
-}
-map()
-{
-    from=$1 to=$2;
-    shift;
-    while shift && [ "$#" -gt 0 ]; do
-        if var_isset "$from$1"; then
-            var_set "$to$1" "`var_get "$from$1"`";
-        fi;
-    done;
-    unset -v from to
-}
-pushv()
-{
-    eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
-}
-some()
-{
-    eval "while shift
-  do
-  case \"\`str_tolower \"\$1\"\`\" in
-    $(str_tolower "$1") ) return 0 ;;
-  esac
-  done
-  return 1"
-}
+. require.sh
+require util
+require str
+require algorithm
 
 # rsed [options] [files...]
 #
@@ -85,6 +54,14 @@ rsed()
 
   "$@"
   )
+}
+
+
+addprefix() {
+ (PREFIX=$1; shift
+  CMD='echo "$PREFIX$LINE"'
+  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD")
 }
 
 
