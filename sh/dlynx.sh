@@ -41,8 +41,12 @@ while :; do
 [ "$DEBUG" = true ] && echo "DUMP=${DUMP:-false}" 1>&2
 
 if [ "$SOURCE" != true -a "$DUMP" != true ]; then
-	CMD="$CMD | grep \"^[^\s]*://\""
+	CMD="$CMD | grep \"^[^ ]*://\""
 fi
+
+if [ "$DUMP" = true ]; then
+	CMD="$CMD | grep -v \"^[^ ]*://[^ ]*\\\$\""
+fi 
 
 [ "$DUMP" = true ] && { WIDTH=16384; push OPTS -dump -nonumbers; } || push OPTS -listonly
 [ -n "$WIDTH" ] && push OPTS -width="$WIDTH"
