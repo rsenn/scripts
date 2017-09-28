@@ -1,6 +1,2 @@
-* text=auto
-
-*.rb text
-*.py text
-
-*.sh text eol=lf
+*.cmd eol=crlf
+*.bat eol=crlf
