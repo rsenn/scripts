@@ -5,10 +5,10 @@
 # $Id: rsed.sh 575 2008-08-26 12:07:20Z enki $
 # ---------------------------------------------------------------------------
 
-pushv () 
-{ 
-    eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
-}
+. require.sh
+require util
+require str
+require algorithm
 
 # rsed [options] [files...]
 #
@@ -22,6 +22,7 @@ rsed()
   
   while [ "$#" -gt 0 ]; do
     case "$1" in
+            -x | --debug) DEBUG=true  ;;
       -e) 
         pushv EXPRESSIONS "$2"
         shift
@@ -48,7 +49,22 @@ rsed()
     set -- `map 'fs_recurse -f "$1"' "$@"`
   fi
 
-  ${SED-sed} $OPTIONS `addprefix "-e$IFS" $EXPRESSIONS` "$@"
+  set -- ${SED-sed} $OPTIONS `addprefix "-e$IFS" $EXPRESSIONS` "$@"
+  [ "$DEBUG" = true ] && set -x
+
+  "$@"
   )
 }
 
+
+addprefix() {
+ (PREFIX=$1; shift
+  CMD='echo "$PREFIX$LINE"'
+  [ $# -gt 0 ] && CMD="for LINE; do $CMD; done" || CMD="while read -r LINE; do $CMD; done"
+  eval "$CMD")
+}
+
+
+if [ "${0##*/}" = rsed.sh ]; then
+				rsed "$@" 
+fi

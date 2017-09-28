@@ -1,5 +1,13 @@
 disk-label() {
- (LABEL=`volname "$1"`
+
+ (if type blkid >/dev/null; then
+
+    O=$(blkid "$1" )
+    eval "${O#*:}"
+    echo "$LABEL"
+  else
+
+  LABEL=`volname "$1"`
   if [ -n "$1" -a -e "$1" -a -n "$LABEL" ]; then
     echo "$LABEL"
     exit 0
@@ -39,5 +47,6 @@ disk-label() {
       exit 0
     fi
   done
-  exit 1)
+  exit 1
+  fi)
 }
