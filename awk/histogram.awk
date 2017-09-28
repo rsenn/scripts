@@ -1,4 +1,4 @@
-#!/usr/bin/awk -f 
+#!/usr/bin/env awk -f 
 { 
 	counts[$0] = counts[$0] + 1
 } END { 
