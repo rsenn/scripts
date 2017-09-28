@@ -34,7 +34,13 @@ process_lines() {
         LINENO=$((LINENO+1))
 
        case "$LINE" in
-           "Package: "* | PACKAGE\ NAME*) NAME=${LINE#Package: } ;;
+           "PACKAGE NAME:"*) 
+                FILENAME=${LINE#PACKAGE NAME:  }
+                #echo "FILENAME=$FILENAME" 1>&2
+                #NAME=${FILENAME%%-[0-9]*}
+            ;;
+           "Package: "* | PACKAGE\ NAME*) NAME=${LINE#Package: }
+           ;;
            "Filename: "*) 
                FILENAME=${LINE#Filename: }
                FILENAME=${FILENAME#./}
@@ -43,7 +49,8 @@ process_lines() {
            ;;
 
        "PACKAGE LOCATION"*)
-               LOCATION=${ARG%/*}/${LINE#PACKAGE LOCATION}
+           LOCATION=${LINE#PACKAGE LOCATION:}
+            LOCATION=${ARG%/*}/${LOCATION#*./}
            ;;
 
            "") [ "$NAME" ] && {
@@ -51,7 +58,14 @@ process_lines() {
                echo "$LOCATION/$FILENAME"
            } #|| echo "Line $LINENO: $LINE"
            ;;
+
+       *": "*)
+            NAME=${LINE%%:*}
+        ;;
        esac
+       L=${LINE%%:*}
+
+            #var_dump L NAME FILENAME LOCATION
        
        #echo "NAME=$NAME LINE=$LINE" 1>&2
 
@@ -63,6 +77,7 @@ read_package_lists() {
   output_num() { echo -n -e "\r     \r$1" 1>&2;  }  
   GET='curl -s "$ARG"'
 
+   . require.sh; require var; var_s=' '
 
   for ARG; do
    (case "$ARG" in
