@@ -28,39 +28,32 @@ get_package_lists() {
 }
 
 process_lines() {
-    N=0
-    while read -r LINE; do 
-        if [ "$DUMP" = true ]; then
-            echo "$LINE" 1>&2
-            continue
-        fi
-#echo "$LINE"
-       P=${LINE%%": "*}
-       V=${LINE##*": "}
-       V=${V#" "}
-       V=${V#" "}
-       V=${V#" "}
-      . require.sh; require var 
-       case "$P" in
-           "Package" | "PACKAGE NAME") NAME="$V" ;;
-           "Filename") 
-               FILENAME="${V#./}"
-               LOCATION="${ARG%%/ubuntu/*}/ubuntu/${FILENAME%/*}"
-               NAME=${FILENAME##*/}
-               : var_dump LOCATION FILENAME  NAME
+    LINENO=0
+    while read -r LINE ; do 
+       
+        LINENO=$((LINENO+1))
+
+       case "$LINE" in
+           "Package: "* | PACKAGE\ NAME*) NAME=${LINE#Package: } ;;
+           "Filename: "*) 
+               FILENAME=${LINE#Filename: }
+               FILENAME=${FILENAME#./}
+               LOCATION=${ARG%%/ubuntu/*}/ubuntu/${FILENAME%/*}
+               FILENAME=${FILENAME##*/}
            ;;
 
-           "PACKAGE LOCATION") 
-               LOCATION="${ARG%/*}/${V#./}"
+       "PACKAGE LOCATION"*)
+               LOCATION=${ARG%/*}/${LINE#PACKAGE LOCATION}
            ;;
 
            "") [ "$NAME" ] && {
             #: $((N++)); output_num "$N"
-               echo "$LOCATION/$NAME"
-           } || echo "$P"
+               echo "$LOCATION/$FILENAME"
+           } #|| echo "Line $LINENO: $LINE"
            ;;
-
        esac
+       
+       #echo "NAME=$NAME LINE=$LINE" 1>&2
 
     done
 }
@@ -68,11 +61,11 @@ process_lines() {
 read_package_lists() {
  
   output_num() { echo -n -e "\r     \r$1" 1>&2;  }  
+  GET='curl -s "$ARG"'
 
 
   for ARG; do
-    (GET='curl -s "$ARG"'
-    case "$ARG" in
+   (case "$ARG" in
         */slacky/*)    ;;
         *.bz2) GET="$GET | bzcat" ;;
         *.gz) GET="$GET | zcat " ;;
@@ -80,9 +73,9 @@ read_package_lists() {
    
     [ "$DUMP" = true ] || GET="$GET | process_lines"
 
-    ( [ "$DEBUG" = true ] && eval "echo \"GET='${GET//\"/\\\"}'\" 1>&2"; eval "$GET")
+    ( [ "$DEBUG" = true ] && eval "echo \"GET='${GET//\"/\\\"}'\" 1>&2"; eval "$GET") || exit $?
 
-  ); done
+  ) || return $?; done
 }
 
 pkg_get() {
