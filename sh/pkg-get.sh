@@ -27,24 +27,13 @@ get_package_lists() {
   echo "$*"
 }
 
-read_package_lists() {
-
-  for ARG; do
-    (GET='curl -s "$ARG"'
-    case "$ARG" in
-      */slacky/*) 
-
-    ;;
-    *.bz2) GET="$GET | bzcat" ;;
-    *.gz) GET="$GET | zcat " ;;
-    esac
-
-    output_num() {
-       echo -n -e "\r     \r$1" 1>&2
-    }   
-    ( [ "$DEBUG" = true ] && eval "echo \"GET='${GET//\"/\\\"}'\" 1>&2"; eval "$GET")| {
+process_lines() {
     N=0
     while read -r LINE; do 
+        if [ "$DUMP" = true ]; then
+            echo "$LINE" 1>&2
+            continue
+        fi
 #echo "$LINE"
        P=${LINE%%": "*}
        V=${LINE##*": "}
@@ -58,7 +47,6 @@ read_package_lists() {
                FILENAME="${V#./}"
                LOCATION="${ARG%%/ubuntu/*}/ubuntu/${FILENAME%/*}"
                NAME=${FILENAME##*/}
-               
                : var_dump LOCATION FILENAME  NAME
            ;;
 
@@ -75,22 +63,36 @@ read_package_lists() {
        esac
 
     done
-  }
+}
 
-  )
-  done
+read_package_lists() {
+ 
+  output_num() { echo -n -e "\r     \r$1" 1>&2;  }  
 
+
+  for ARG; do
+    (GET='curl -s "$ARG"'
+    case "$ARG" in
+        */slacky/*)    ;;
+        *.bz2) GET="$GET | bzcat" ;;
+        *.gz) GET="$GET | zcat " ;;
+    esac
+   
+    [ "$DUMP" = true ] || GET="$GET | process_lines"
+
+    ( [ "$DEBUG" = true ] && eval "echo \"GET='${GET//\"/\\\"}'\" 1>&2"; eval "$GET")
+
+  ); done
 }
 
 pkg_get() {
-
-
   IFS="
 "
   while :; do
     case "$1" in
       -h | -\? | --help) usage; exit 0 ;;
       -x | --debug) DEBUG=true; ;; 
+      -d | --dump) DUMP=true; ;; 
       *) break ;;
     esac
     shift
