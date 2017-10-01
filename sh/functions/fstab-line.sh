@@ -16,7 +16,7 @@ fstab-line()
     do
         ( unset DEVNAME LABEL MNTDIR #FSTYPE;
         DEVNAME=${DEV##*/};
-        LABEL=$(disk-label -E "$DEV");
+        LABEL=$(disk-label "$DEV");
         [ -z "$MNTDIR" ] && MNTDIR="$MNT/${LABEL:-$DEVNAME}";
         : ${FSTYPE=$(filesystem-for-device "$DEV")}
         UUID=$(getuuid "$DEV");
