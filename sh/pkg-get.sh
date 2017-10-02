@@ -21,7 +21,7 @@ get_package_lists() {
     slacky) 
         set -- $(dlynx.sh http://slackware.org.uk/slacky/|grep /slacky/.*/|addsuffix PACKAGES.TXT ) ;;
     ubuntu) 
-   set -- http://ch.archive.ubuntu.com/ubuntu/dists/trusty{,-updates,-security,-backports,-proposed}/{main,universe,multiverse,restricted}/binary-amd64/Packages.bz2 ;;
+   set -- http://ch.archive.ubuntu.com/ubuntu/dists/${RELEASE-trusty}{,-updates,-security,-backports,-proposed}/{main,universe,multiverse,restricted}/binary-${ARCH-amd64}/Packages.bz2 ;;
 
   esac
   echo "$*"
@@ -101,6 +101,8 @@ pkg_get() {
       -h | -\? | --help) usage; exit 0 ;;
       -x | --debug) DEBUG=true; ;; 
       -d | --dump) DUMP=true; ;; 
+      -r=* | --release=*) RELEASE=${1#*=} ;; -r | --release) RELEASE=$2; shift ;; 
+      -a=* | --arch=*) ARCH=${1#*=} ;; -a | --arch) ARCH=$2; shift ;; 
       *) break ;;
     esac
     shift
