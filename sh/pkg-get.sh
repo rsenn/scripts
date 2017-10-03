@@ -29,8 +29,10 @@ get_package_lists() {
 read_package_lists() {
 
   for ARG; do
-    case "$ARG" in
-      */slacky/*) 
+    (case "$ARG" in
+      */slacky/*)  ;;
+      */ubuntu/*) 
+         BASE=${ARG%%/ubuntu/*}/ubuntu
 
         ;;
     esac
@@ -51,12 +53,13 @@ esac
 			 V=${V#" "}
 			 
 		   case "$P" in
+               "Filename") NAME="${V##*/}" LOCATION="${V%/*}" ;; 
 							 "PACKAGE NAME") NAME="$V" ;;
 							 "PACKAGE LOCATION") LOCATION="${V#./}" ;;
-							 "") [ "$NAME" ] && echo "${ARG%/*}/$LOCATION/$NAME" ;;
+							 "") [ "$NAME" ] && echo "${BASE:-${ARG%/*}}/$LOCATION/$NAME" ;;
 			 esac
 
-    done
+    done)
 	done
 
 }
