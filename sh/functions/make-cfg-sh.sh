@@ -1,9 +1,6 @@
 make-cfg-sh() { 
  (for ARG in "${@:-./configure}"; do
-    HELP=$("$ARG" --help=recursive ); ( echo "$HELP" | ${GREP-grep
--a
---line-buffered
---color=auto} -q '^\s*--.*dir' ) || HELP=$( ("$ARG" --help ; echo "$HELP") |sort -t- -k2 -n -u ); ( echo "$HELP" | ${GREP-grep
+    HELP=$("$ARG" --help=recursive ); ( echo "$HELP" | ${GREP-grep} -q '^\s*--.*dir' ) || HELP=$( ("$ARG" --help ; echo "$HELP") |sort -t- -k2 -n -u ); ( echo "$HELP" | ${GREP-grep
 -a
 --line-buffered
 --color=auto} -q '^\s*--' ) || HELP=$("$ARG" --help ); { 

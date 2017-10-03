@@ -1,5 +1,6 @@
 pid-of() {
- (: ${GREP=grep -a --line-buffered --color=auto}
+ (: ${GREP=grep
+-a}
   if handle -h 2>&1 |grep -q '\-a'; then
      PGREP_CMD="handle -a | $GREP -i \"\$ARG.*pid:\" | awkp 3"
   elif ps --help 2>&1 | $GREP -q '\-W'; then

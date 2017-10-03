@@ -8,7 +8,7 @@ volname() {
         *) drive=$(cygpath -m "$drive") ;;
       esac  
       drive=$(cygpath -m "$drive")
-      NAME=$(cmd /c "vol ${drive%%/*}" | sed -n '/Volume in drive/ s,.* is ,,p')
+			NAME=$("${COMSPEC//"\\"/"/"}" /c "vol ${drive%%/*}" | sed -n ' s,\x84,, ;  s,\r$,, ; s,.*\sist\?\s,,p')
       eval "$ECHO"
   done)
 }

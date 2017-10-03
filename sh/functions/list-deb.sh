@@ -25,10 +25,7 @@ list-deb() {
       *) DEB=$(realpath "$ARG") ;;
     esac
     cd "$TEMP"
-    set -- $( ("${AR-ar}" t "$DEB" || list-7z "$DEB") 2>/dev/null |uniq |${GREP-grep
--a
---line-buffered
---color=auto} "data\.tar\.")
+    set -- $( ("${AR-ar}" t "$DEB" || list-7z "$DEB") 2>/dev/null |uniq |${GREP-grep} "data\.tar\.")
     if [ $# -le 0 ]; then
       exit 1
     fi

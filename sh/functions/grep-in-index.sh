@@ -1,8 +1,5 @@
  grep-in-index() {
-  (CMD='index-dir -u $DIRS | xargs ${GREP-grep
--a
---line-buffered
---color=auto} "[^/]\$" -H | ${SED-sed} "s|^$PWD/files.list:|| ; s|/files.list:|/|" -u | xargs ${GREP-grep
+  (CMD='index-dir -u $DIRS | xargs ${GREP-grep} "[^/]\$" -H | ${SED-sed} "s|^$PWD/files.list:|| ; s|/files.list:|/|" -u | xargs ${GREP-grep
 -a
 --line-buffered
 --color=auto} $OPTS -H -E "($EXPRS)" '
