@@ -1,5 +1,10 @@
 #!/bin/bash
 
+. require.sh
+
+require xml
+
+: ${CURL_ARGS="-s"}
 
 addsuffix()
 {
@@ -18,6 +23,8 @@ get_package_lists() {
   case "$1" in
     slacky) dlynx.sh http://slackware.org.uk/slacky/|grep /slacky/.*/|addsuffix PACKAGES.TXT ;;
     ubuntu) list http://ch.archive.ubuntu.com/ubuntu/dists/${RELEASE-trusty}{,-backports,-proposed,-security,-updates}/{main,universe,multiverse,restricted}/binary-${ARCH-amd64}/Packages.bz2 ;;
+    msys)  curl -s ftp://netix.dl.sourceforge.net/sourceforge/m/mi/mingw/Installer/mingw-get/catalogue/msys-package-list.xml.lzma |lzcat |xml_get package-list catalogue | sed 's|.*|ftp://netix.dl.sourceforge.net/sourceforge/m/mi/mingw/Installer/mingw-get/catalogue/&.xml.lzma|'  ;;
+
   esac
 }
 
@@ -29,11 +36,12 @@ read_package_lists() {
       */ubuntu/*) BASE=${ARG%%/ubuntu/*}/ubuntu ;;
     esac
 
-    DLCMD='curl -s "$ARG"'
+    DLCMD='curl $CURL_ARGS "$ARG"'
     case "$ARG" in 
        *.bz2) DLCMD="$DLCMD | bzcat" ;;
        *.gz) DLCMD="$DLCMD | zcat" ;;
        *.xz) DLCMD="$DLCMD | xzcat" ;;
+       *.lzma) DLCMD="$DLCMD | lzcat" ;;
     esac
 
     eval "$DLCMD" | while read -r LINE; do 
@@ -45,9 +53,12 @@ read_package_lists() {
       
       case "$P" in
           "Filename")         NAME="${V##*/}" LOCATION="${V%/*}" ;; 
+          *tarname=*%*)     ;;
+          *tarname=*)         NAME=${LINE##*tarname=\"}; NAME=${NAME%%\"*} ;;
           "PACKAGE NAME")     NAME="$V" ;;
           "PACKAGE LOCATION") LOCATION="${V#./}" ;;
           "")                 [ "$NAME" ] && echo "${BASE:-${ARG%/*}}/$LOCATION/$NAME" ;;
+          *"</"*)         [ "$NAME" ] && echo "$BASE/$NAME" ; NAME= ;;
       esac
     done)
   done
