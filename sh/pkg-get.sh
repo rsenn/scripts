@@ -13,16 +13,11 @@ addsuffix()
   eval "$CMD")
 }
 
-
-
 get_package_lists() {
 
   case "$1" in
-    slacky) 
-      dlynx.sh http://slackware.org.uk/slacky/|grep /slacky/.*/|addsuffix PACKAGES.TXT ;;
-    ubuntu) 
-   list http://ch.archive.ubuntu.com/ubuntu/dists/trusty{,-backports,-proposed,-security,-updates}/{main,universe,multiverse,restricted}/binary-amd64/Packages.bz2 ;;
-
+    slacky) dlynx.sh http://slackware.org.uk/slacky/|grep /slacky/.*/|addsuffix PACKAGES.TXT ;;
+    ubuntu) list http://ch.archive.ubuntu.com/ubuntu/dists/${RELEASE-trusty}{,-backports,-proposed,-security,-updates}/{main,universe,multiverse,restricted}/binary-${ARCH-amd64}/Packages.bz2 ;;
   esac
 }
 
@@ -31,36 +26,31 @@ read_package_lists() {
   for ARG; do
     (case "$ARG" in
       */slacky/*)  ;;
-      */ubuntu/*) 
-         BASE=${ARG%%/ubuntu/*}/ubuntu
-
-        ;;
+      */ubuntu/*) BASE=${ARG%%/ubuntu/*}/ubuntu ;;
     esac
 
+    DLCMD='curl -s "$ARG"'
+    case "$ARG" in 
+       *.bz2) DLCMD="$DLCMD | bzcat" ;;
+       *.gz) DLCMD="$DLCMD | zcat" ;;
+       *.xz) DLCMD="$DLCMD | xzcat" ;;
+    esac
 
-		DLCMD='curl -s "$ARG"'
-case "$ARG" in 
-   *.bz2) DLCMD="$DLCMD | bzcat" ;;
-   *.gz) DLCMD="$DLCMD | zcat" ;;
-   *.xz) DLCMD="$DLCMD | xzcat" ;;
-esac
-
-   eval "$DLCMD" | while read -r LINE; do 
-		   P=${LINE%%": "*}
-			 V=${LINE##*": "}
-			 V=${V#" "}
-			 V=${V#" "}
-			 V=${V#" "}
-			 
-		   case "$P" in
-               "Filename") NAME="${V##*/}" LOCATION="${V%/*}" ;; 
-							 "PACKAGE NAME") NAME="$V" ;;
-							 "PACKAGE LOCATION") LOCATION="${V#./}" ;;
-							 "") [ "$NAME" ] && echo "${BASE:-${ARG%/*}}/$LOCATION/$NAME" ;;
-			 esac
-
+    eval "$DLCMD" | while read -r LINE; do 
+      P=${LINE%%": "*}
+      V=${LINE##*": "}
+      V=${V#" "}
+      V=${V#" "}
+      V=${V#" "}
+      
+      case "$P" in
+          "Filename")         NAME="${V##*/}" LOCATION="${V%/*}" ;; 
+          "PACKAGE NAME")     NAME="$V" ;;
+          "PACKAGE LOCATION") LOCATION="${V#./}" ;;
+          "")                 [ "$NAME" ] && echo "${BASE:-${ARG%/*}}/$LOCATION/$NAME" ;;
+      esac
     done)
-	done
+  done
 
 }
 
@@ -73,13 +63,13 @@ pkg_get() {
     esac
   done
 
-	DIST="$1"
+  DIST="$1"
   [ -z "$DIST" ] && DIST="slacky"
-	
+  
   set -- $(get_package_lists "$DIST")
-	echo "Package lists:" "$@" 1>&2
-	 
-	read_package_lists "$@"
+  echo "Package lists:" "$@" 1>&2
+   
+  read_package_lists "$@"
 }
 list() {
    (IFS="
