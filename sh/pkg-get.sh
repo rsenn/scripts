@@ -22,7 +22,7 @@ get_package_lists() {
 
   case "$1" in
     slacky) dlynx.sh http://slackware.org.uk/slacky/|grep /slacky/.*/|addsuffix PACKAGES.TXT ;;
-    ubuntu) list http://ch.archive.ubuntu.com/ubuntu/dists/${RELEASE-trusty}{,-backports,-proposed,-security,-updates}/{main,universe,multiverse,restricted}/binary-${ARCH-amd64}/Packages.bz2 ;;
+    ubuntu) list http://ch.archive.ubuntu.com/ubuntu/dists/${RELEASE-trusty}{,-backports,-proposed,-security,-updates}/{main,universe,multiverse,restricted}/binary-${ARCH-amd64}/Packages.gz ;;
     msys)  curl -s ftp://netix.dl.sourceforge.net/sourceforge/m/mi/mingw/Installer/mingw-get/catalogue/msys-package-list.xml.lzma |lzcat |xml_get package-list catalogue | sed 's|.*|ftp://netix.dl.sourceforge.net/sourceforge/m/mi/mingw/Installer/mingw-get/catalogue/&.xml.lzma|'  ;;
 
   esac
@@ -76,7 +76,9 @@ pkg_get() {
 
   DIST="$1"
   [ -z "$DIST" ] && DIST="slacky"
-  
+  [ -n "$2" ] && RELEASE="$2"
+  [ -n "$3" ] && ARCH="$3"
+
   set -- $(get_package_lists "$DIST")
   echo "Package lists:" "$@" 1>&2
    
