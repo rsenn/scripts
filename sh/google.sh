@@ -80,7 +80,7 @@ fi
 
 
 FILTER="${SED-sed} 's%<%\n&%g' | ${SED-sed} -n 's%^<a href=\"\\([^\"/:]\\+://[^\"]\\+\\)\"[^>]\\+.*%\\1%p'${FILTER:+ | $FILTER}"
-FILTER="$FILTER | ${SED-sed} 's%\\&amp;%\\&%g'"
+FILTER="$FILTER | ${SED-sed} 's%\\&amp;%\\&%g ;; \\|://[^/]*google|d'"
 
 if [ "$PRINT" = true ]; then
   DLCMD="echo"
@@ -142,6 +142,7 @@ if [ -n "$SAVE_TMP" ]; then
   CMD="$CMD | { tee -a \"\$SAVE_TMP\"; echo \"Temporary data saved as \$SAVE_TMP\" 1>&2; }"
 fi
 
+[ "$DEBUG" = true -a -n "$FILTER"  ] && echo "Filter is: $FILTER" 1>&2
 [ "$DEBUG" = true ] && CMD="set -x; $CMD"
 
 eval "($CMD) ${FILTER:+ | ${FILTER#\ \|\ }}" 
