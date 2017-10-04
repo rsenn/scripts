@@ -90,6 +90,7 @@ list-7z() {
 				
         INPUT="${INPUT:+$INPUT | }${_7Z} x${INPUT:+ -si\"${INNAME}\"} -so${NOA- \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T##*/}\"";  CMD="${_7Z} l -slt $OPTS"
         ;;
+      *.deb) CMD="HANDLER='7z x -si\"\$N\" -so | 7z l -slt -si\"x.tar\"' decode-ar" ;;
       *.tar.*) INPUT="${INPUT:+$INPUT | }${_7Z} x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${B%.*}\"";  CMD="${_7Z} l -slt $OPTS" ;;
       *) CMD="${_7Z} l -slt $OPTS ${ARCHIVE+\"$ARCHIVE\"}" ;;
     esac
