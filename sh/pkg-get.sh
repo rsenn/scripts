@@ -22,7 +22,11 @@ get_package_lists() {
 
   case "$1" in
     slacky) dlynx.sh http://slackware.org.uk/slacky/|grep /slacky/.*/|addsuffix PACKAGES.TXT ;;
-    ubuntu) list http://ch.archive.ubuntu.com/ubuntu/dists/${RELEASE-trusty}{,-backports,-proposed,-security,-updates}/{main,universe,multiverse,restricted}/binary-${ARCH-amd64}/Packages.gz ;;
+    ubuntu) list \
+      http://ch.archive.ubuntu.com/ubuntu/dists/${RELEASE-trusty}{,-backports,-proposed,-security,-updates}/{main,universe,multiverse,restricted}/binary-${ARCH-amd64}/Packages.gz \
+      http://archive.canonical.com/ubuntu/dists/${RELEASE-trusty}{,-proposed}/partner/binary-${ARCH-amd64}/Packages.gz \
+      http://extras.ubuntu.com/ubuntu/dists/${RELEASE-trusty}/main/binary-amd64/Packages.gz
+    ;;
     msys)  curl -s ftp://netix.dl.sourceforge.net/sourceforge/m/mi/mingw/Installer/mingw-get/catalogue/msys-package-list.xml.lzma |lzcat |xml_get package-list catalogue | sed 's|.*|ftp://netix.dl.sourceforge.net/sourceforge/m/mi/mingw/Installer/mingw-get/catalogue/&.xml.lzma|'  ;;
 
   esac
