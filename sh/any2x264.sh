@@ -65,7 +65,7 @@ bci() { (IFS=" "; [ "$DEBUG" = true ] && echo "EXPR: bci '$*'" 1>&2; bce "($*) +
 duration()
 {
 echo "duration $(quote "$@")" 1>&2
-    (for ARG; do minfo "$ARG" | info_get Duration| head  -n1 ; done | ${SED-sed} 's,\([0-9]\+\)\s*h,(\1 * 3600\)+, ; s,\([0-9]\+\)\s*mi\?n,(\1 * 60)+, ; s,\([0-9]\+\)\s*s,\1+, ; s,+$,,' |  
+    (for ARG; do minfo "$ARG" | sed -n 's,^Duration\s*:\s*,,p; s,^Source.duration\s*:\s*,,p' | tail  -n1 ; done | ${SED-sed} 's,\([0-9]\+\)\s*h,(\1 * 3600\)+, ; s,\([0-9]\+\)\s*mi\?n,(\1 * 60)+, ; s,\([0-9]\+\)\s*s,\1+, ; s,+$,,' |  
     bc  -l)
 }
 
@@ -289,7 +289,7 @@ echo "ABR=$ABR" 1>&2
         ${ASPECT+-aspect "$ASPECT"} \
         ${SIZE+-s "$SIZE"}  \
         $BITRATE_ARG \
-        -acodec aac \
+        -acodec libvo_aacenc \
         -ab $(format_num "$ABR") \
         -ar "$AR" \
         -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || {  "$@" || exit $?; }; } && 
