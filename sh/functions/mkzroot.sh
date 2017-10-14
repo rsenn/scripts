@@ -6,7 +6,7 @@ mkzroot()
     trap 'rm -vf "$TEMPTAR" "$TEMPTXZ"' EXIT INT QUIT;
     EXCLUDE="*~ *.tmp *mnt/* *.log *cache/*";
     CMD='tar --one-file-system --exclude={$(IFS=", $IFS"; set -f ; set -- $EXCLUDE;  echo "$*")} -C /root -cf "$TEMPTAR" .';
-    CMD=$CMD'; xz -3 -vfc "$TEMPTAR" >"$TEMPTXZ"'
+    CMD=$CMD'; xz -3 -vfcn "$TEMPTAR" >"$TEMPTXZ"'
     eval "echo \"+ $CMD\" 1>&2";
     eval "$CMD";
     DEST=$(ls -d ` mountpoints /pmagic/pmodules ` 2>/dev/null);

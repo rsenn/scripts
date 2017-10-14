@@ -16,8 +16,7 @@ set -- ${@//[!.*[:alnum:]]/}
  [ $# -gt 0 ] && CMD="$CMD \"\${@//[!.*[:alnum:]]/}\"" 
  CMD="$CMD | yaourt-search-output"
  if is-a-tty; then
-     [ $# -gt 0 ] && CMD="$CMD | ${GREP-grep
--a} -E \"($(IFS="|"; echo "$*"))\""
+     [ $# -gt 0 ] && CMD="$CMD | ${GREP-grep -a} -E \"($(IFS="|"; echo "$*"))\""
 	else
 		 NPAD= VPAD=
  fi
@@ -30,8 +29,7 @@ yaourt-search-cmd() {
       (IFS="| $IFS"; Q=${Q//"\\\\"/"\\"}; Q=${Q//"\\."/"."}; Q=${@//"\\*"/"*"}; set -- $Q
 	 ([ "$DEBUG" = true ] && set -x
 ${YAOURT:-${YAOURT:-command yaourt}} -Ss $@) | yaourt-joinlines -s "|" $OPTS | 
-   command ${GREP-grep
--a}  -i -E "($*)")
+   command ${GREP-grep -a}  -i -E "($*)")
  done
 }
 
