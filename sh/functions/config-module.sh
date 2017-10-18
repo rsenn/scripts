@@ -1,4 +1,4 @@
-config-enable() {
+config-module() {
  (CFG="$1"
   shift
   trap 'rm -f "$TMP"' EXIT
