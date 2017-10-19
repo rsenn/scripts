@@ -45,7 +45,7 @@ echo "ABSDIR=$ABSDIR" 1>&2
 				#dev/pts) mount -o bind /$MNT $MNT ;;
  #       dev/pts) mount -t devpts devpts  dev/pts -o rw,relatime,mode=600,ptmxmode=000 ;;
       mnt/*/mnt/*) continue ;; 
-			mnt/*) continue  ;;
+			#mnt/*) continue  ;;
 			*)
        T=$(echo "$MNT"|${SED-sed} 's,.*mnt.*mnt.*,,g')
 
@@ -53,10 +53,15 @@ echo "ABSDIR=$ABSDIR" 1>&2
 
         (set -x;  mount -o bind /$MNT "$ABSDIR/$MNT")
 
-    ;;
-esac
+		;;
+	esac
   done
- )
+ 
+  ROOTDEV=$(sed 's,\s\+,\n,g' /proc/cmdline | sed -n 's,root=,,p')
+  ROOTLBL=$(e2label "$ROOTDEV")
+  MNT=mnt/"$ROOTLBL"
+  mkdir -p "$ABSDIR/$MNT"
+  set -x; mount -o bind / "$ABSDIR/$MNT")
 }
 
 
@@ -77,10 +82,12 @@ cat >.bash_prompt <<EOF
 $PS1
 EOF
 
-#SHELL_ARGS="--login"
+SHELL_ARGS="--norc
+--noprofile"
 
 #PS1="\033[0m${ABSDIR##*/}@\\h < \w > \\\$ "
-env - PATH="$PATH:/usr/local/bin" HOME=/ TERM="$TERM" DISPLAY="$DISPLAY" PS1="$PS1" \
+PS1='\[\033[01;38;5;56m\]\u\[\033[0m\]@\[\033[01;38;5;154m\]$HOSTNAME\[\033[0m\]:(\[\033[01;38;5;161m\]\w\[\033[0m\]) \$ '
+env - PATH="$PATH:/usr/local/bin" HOME=/root TERM="$TERM" DISPLAY="$DISPLAY" PS1="$PS1" \
  HOSTNAME="${PWD##*/}" chroot . ${@:-/bin/bash
 $SHELL_ARGS}
 
