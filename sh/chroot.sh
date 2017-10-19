@@ -94,7 +94,8 @@ C2=${CC%%"$NL"*}; CC=${CC#"$C2$NL"}
 C3=${CC%%"$NL"*}; CC=${CC#"$C3$NL"}
 C4=${CC%%"$NL"*}; CC=${CC#"$C4$NL"}
 
-MSB=$(( (C1 ^ C2 ) & 0xC0))
+MSB=$(( (C1 ^ C2  ^ 0xC0) & 0xC0))
+
 C4=$(( (C4 & 0x3F)  | MSB))
 
 
