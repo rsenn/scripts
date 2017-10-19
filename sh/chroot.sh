@@ -7,6 +7,8 @@ cd "$MYDIR"
 ABSDIR=`pwd`
 IFS="
 "
+NL="
+"
 
 bind-mounts()
 {
@@ -20,10 +22,7 @@ bind-mounts()
 
   DIRS="dev dev/pts sys proc tmp"
 echo "ABSDIR=$ABSDIR" 1>&2
-  set -- $DIRS $(df -a 2>/dev/null | ${SED-sed} 1d | ${SED-sed} -n 's|.* /m|m|p' | ${GREP-grep
--a
---line-buffered
---color=auto} -v "^${ABSDIR#/}")
+  set -- $DIRS $(df -a 2>/dev/null | ${SED-sed} 1d | ${SED-sed} -n 's|.* /m|m|p' | ${GREP-grep -a --line-buffered} -v "^${ABSDIR#/}")
 
   for MNT; do
    (umount "$ABSDIR/$MNT" 2>/dev/null ||
@@ -86,7 +85,23 @@ SHELL_ARGS="--norc
 --noprofile"
 
 #PS1="\033[0m${ABSDIR##*/}@\\h < \w > \\\$ "
-PS1='\[\033[01;38;5;56m\]\u\[\033[0m\]@\[\033[01;38;5;154m\]$HOSTNAME\[\033[0m\]:(\[\033[01;38;5;161m\]\w\[\033[0m\]) \$ '
+
+CHROOT_NAME=${PWD##*/}
+
+eval "CC=\"$(sha1sum <<<"$CHROOT_NAME" | sed 's,\s\+-.*,,; s,\([[:xdigit:]][[:xdigit:]][[:xdigit:]][[:xdigit:]]\),$((0x\1 % 216))\n,g' )\""
+C1=${CC%%"$NL"*}; CC=${CC#"$C1$NL"}
+C2=${CC%%"$NL"*}; CC=${CC#"$C2$NL"}
+C3=${CC%%"$NL"*}; CC=${CC#"$C3$NL"}
+C4=${CC%%"$NL"*}; CC=${CC#"$C4$NL"}
+
+MSB=$(( (C1 ^ C2 ) & 0xC0))
+C4=$(( (C4 & 0x3F)  | MSB))
+
+
+echo "$CC"
+
+
+PS1='\[\033[01;38;5;'$((C1+16))'m\]\u\[\033[0m\]@\[\033[01;38;5;'$((C2+16))'m\]$HOSTNAME\[\033[0m\]:(\[\033[01;38;5;'$((C4+16))'m\]\w\[\033[0m\]) \$ '
 env - PATH="$PATH:/usr/local/bin" HOME=/root TERM="$TERM" DISPLAY="$DISPLAY" PS1="$PS1" \
  HOSTNAME="${PWD##*/}" chroot . ${@:-/bin/bash
 $SHELL_ARGS}
