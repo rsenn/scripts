@@ -25,7 +25,7 @@ main()
     TITLE=$(echo "$TITLE" | ${SED-sed} 's|[^[:alnum:]][0-9]\+p[^[:alnum:]]| |g ;; s|\[| |g ;;  s|\]| |g ;; s|[ _]\+| |g ;')
     resolution "$ARG"
     bitrate "$ARG"
-    echo "RESOLUTION=$RESOLUTION" 1>&2
+    echo "BITRATE='$BITRATE'" 1>&2
     echo "#EXTINF:$DURATION,${TITLE}${RESOLUTION:+ [$RESOLUTION]}${BITRATE:+ ${BITRATE}kbps}"
     echo "$ARG"
   done
@@ -86,7 +86,7 @@ s|\([0-9]\) \([0-9]\)|\1\2|g
 
 bitrate()
 {
-  N=$#
+  N=1
   A="$1"  
   
   #EXPR="\\s[^:]*\\s\\+\\([0-9]\\+\\)\\s*kb[p/]s.*"
@@ -100,8 +100,10 @@ bitrate()
     test -n "$KBPS" && echo "$KBPS" || {
     R=0
     set -- $(mminfo "$A"  |${SED-sed} -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*[kK]b[p/]s\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$A:|; p }")
-    [ "$DEBUG" = true ] && echo "BR: $*" 1>&2
-   R=${*##*:}
+
+    R=$*
+   R=${R##*:}
+    [ "$DEBUG" = true ] && echo "BR: $R" 1>&2
    case "$R" in
        *Mb[/p]s | *Mb?s) R=${R%%Mb?s*}; R=${R%" "}; R=$(echo "$R * 2^10"  | bc -l ); : ${R:=$(( ${R%%.*} * 1024  )) } ;; 
        *Gb[/p]s | *Gb?s) R=${R%%Gb?s*}; R=${R%" "}; R=$(echo "$R * 2^20"  | bc -l ); : ${R:=$(( ${R%%.*} * 1024 * 1024 )) } ;; 
@@ -109,7 +111,7 @@ bitrate()
        *Pb[/p]s | *Pb?s) R=${R%%Pb?s*}; R=${R%" "}; R=$(echo "$R * 2^40"  | bc -l ); : ${R:=$(( ${R%%.*} * 1024 * 1024 * 1024 * 1024 )) } ;;
    esac
    R=${R%.*}
-   [ "$N" -gt 1 ] && R="$A:$R"
+  # [ "$N" -gt 1 ] && R="$A:$R"
       BITRATE="$R"
  }
 }
