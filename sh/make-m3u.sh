@@ -25,25 +25,31 @@ main()
     TITLE=$(echo "$TITLE" | ${SED-sed} 's|[^[:alnum:]][0-9]\+p[^[:alnum:]]| |g ;; s|\[| |g ;;  s|\]| |g ;; s|[ _]\+| |g ;')
     resolution "$ARG"
     bitrate "$ARG"
+    echo "RESOLUTION=$RESOLUTION" 1>&2
     echo "#EXTINF:$DURATION,${TITLE}${RESOLUTION:+ [$RESOLUTION]}${BITRATE:+ ${BITRATE}kbps}"
     echo "$ARG"
   done
 }
 
 resolution() {
- (EXPR='/Width/N
-/pixels/ {
-  s|Width=\([0-9]\+\)\s*pixels| \1|g
-  s|Height=\([0-9]\+\)\s*pixels| \1|g
+ EXPR='/Width/ { N
+  s|Width=\([0-9]\+\)| \1|g
+  s|Height=\([0-9]\+\)| \1|g
   s|[^\n]*:\s\+\([^\n:]*\)$|\1|
   s|\r\n|\n|g
-  s| *\n *|x|p
-}'; while [ $# -gt 0 ] ; do case "$1" in
+  s| *\n *|x|
+  s|^\s*||
+}
+    p
+}'
+
+
+; while [ $# -gt 0 ] ; do case "$1" in
     -m | --mult*) CMD="echo \$(($1 * $2))"; shift ;; 
     *) break ;;
   esac
   done
-  mminfo "$@"|${SED-sed} -n "$EXPR")
+  RESOLUTION=$(mminfo "$@"|${SED-sed} -n "$EXPR")
 }                                                                                                                                                                                                                                                                                    
 minfo()
 {
