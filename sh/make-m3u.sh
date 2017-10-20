@@ -81,20 +81,20 @@ s|\([0-9]\) \([0-9]\)|\1\2|g
 
 bitrate()
 {
-  ( N=$#
-  for ARG in "$@";
-  do
-    #EXPR="\\s[^:]*\\s\\+\\([0-9]\\+\\)\\s*kb[p/]s.*"
+  N=$#
+  A="$1"  
+  
+  #EXPR="\\s[^:]*\\s\\+\\([0-9]\\+\\)\\s*kb[p/]s.*"
     EXPR=":\\s.*\s\\([0-9]\\+\\)\\s*kb[/p]s.*,"
     test $N -le 1 && EXPR=".*$EXPR" || EXPR="$EXPR:"
     EXPR="s,$EXPR\\1,p"
 
-    KBPS=$(file "$ARG" |${SED-sed} -n "$EXPR")
+    KBPS=$(file "$A" |${SED-sed} -n "$EXPR")
     #echo "EXPR='$EXPR'" 1>&2
 
-    test -n "$KBPS" && echo "$KBPS" || (
+    test -n "$KBPS" && echo "$KBPS" || {
     R=0
-    set -- $(mminfo "$ARG"  |${SED-sed} -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*[kK]b[p/]s\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$ARG:|; p }")
+    set -- $(mminfo "$A"  |${SED-sed} -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*[kK]b[p/]s\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$A:|; p }")
     [ "$DEBUG" = true ] && echo "BR: $*" 1>&2
    R=${*##*:}
    case "$R" in
@@ -104,16 +104,15 @@ bitrate()
        *Pb[/p]s | *Pb?s) R=${R%%Pb?s*}; R=${R%" "}; R=$(echo "$R * 2^40"  | bc -l ); : ${R:=$(( ${R%%.*} * 1024 * 1024 * 1024 * 1024 )) } ;;
    esac
    R=${R%.*}
-   [ "$N" -gt 1 ] && R="$ARG:$R"
-      echo "$R"
-      )
-  done )
+   [ "$N" -gt 1 ] && R="$A:$R"
+      BITRATE="$R"
+ }
 }
 
 duration()
 {
-    ( IFS=" $IFS";
-      CMD='echo "${ARG:+$ARG:}$S"'
+    IFS=" $IFS";
+      CMD='DURATION="${ARG:+$ARG:}$S"'
     while :; do
        case "$1" in
          -m | --minute*) CMD='echo "${ARG:+$ARG:}$((S / 60))"' ; shift ;;
@@ -121,9 +120,8 @@ duration()
      esac
    done
     N="$#";
-    for ARG in "$@"
-    do
-        D=$(mminfo "$ARG" |${SED-sed} -n 's,Duration=,,p' | head -n1);
+    A="$1"
+        D=$(mminfo "$A" |${SED-sed} -n 's,Duration=,,p' | head -n1);
         set -- $D;
         S=0;
         for PART in "$@";
@@ -145,7 +143,6 @@ duration()
             esac;
         done;
         [ "$N" -gt 1 ] && eval "$CMD" || ARG= eval "$CMD"
-    done )
 }
 
 main "$@"
