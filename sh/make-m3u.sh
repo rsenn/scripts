@@ -39,12 +39,11 @@ resolution() {
   s|\r\n|\n|g
   s| *\n *|x|
   s|^\s*||
-}
     p
 }'
 
 
-; while [ $# -gt 0 ] ; do case "$1" in
+ while [ $# -gt 0 ] ; do case "$1" in
     -m | --mult*) CMD="echo \$(($1 * $2))"; shift ;; 
     *) break ;;
   esac
