@@ -22,9 +22,13 @@ CMD="$CMD | ${SED-sed} \"s|^|\$COMPILER: |\""
 
 while [ $# -gt 0 ]; do
  (set -e
- COMPILER=${1:-cc}
+ COMPILER=${*:-cc}
  set -- $COMPILER
+ IFS=" $IFS"
  COMPILER="$*"
+ IFS=${IFS#" "}
+ #COMPILER=${COMPILER//"${IFS:0:1}"/" "}
+ #COMPILER_X=${COMPILER//"${IFS:0:1}"/"\\n"}
 
    eval "$CMD"
  ) || exit $?
