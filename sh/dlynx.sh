@@ -41,11 +41,11 @@ while :; do
 [ "$DEBUG" = true ] && echo "DUMP=${DUMP:-false}" 1>&2
 
 if [ "$SOURCE" != true -a "$DUMP" != true ]; then
-	CMD="$CMD | grep \"^[^ ]*://\""
+	CMD="$CMD | grep -a \"^[^ ]*://\""
 fi
 
 if [ "$DUMP" = true ]; then
-	CMD="$CMD | grep -v \"^[^ ]*://[^ ]*\\\$\""
+	CMD="$CMD | grep -a -v \"^[^ ]*://[^ ]*\\\$\""
 fi 
 
 [ "$DUMP" = true ] && { WIDTH=16384; push OPTS -dump -nonumbers; } || push OPTS -listonly
@@ -66,7 +66,7 @@ case "$OPTS" in
   *) ;;
 esac
 
-[ "$NO_PARENT" = true ] && CMD="$CMD | grep \"\${URL%/}/[^?]\""
+[ "$NO_PARENT" = true ] && CMD="$CMD | grep -a \"\${URL%/}/[^?]\""
 [ "$DEBUG" = true ] && echo "CMD='$CMD'" 1>&2
 
 Q='"'
