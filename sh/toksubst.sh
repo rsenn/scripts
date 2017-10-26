@@ -1,115 +1,142 @@
 #!/bin/bash
-# 
+#
 # substitute name token
-# 
-# $Id: $
+#
+# $ID: $
 
-charset=$extrachars'0-9A-Za-z_' count=0
+pushv() { eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""; }
 
-unset pattern replace script prev
 
-check_chars() 
-{
-  eval inval='${'$1"%%*[!${2-$charset}]*}"
-  
-  if [ -z "$inval" ]; then
-    echo "${0##*/}: ${3+$3 }must contain characters from [${2-$charset}] only. ($inval)" 1>&2
+check_chars() {
+  eval INVAL='${'$1"%%*[!${2-$CHARSET}]*}"
+
+  if [ -z "$INVAL" ]; then
+    echo "${0##*/}: ${3+$3 }must contain characters from [${2-$CHARSET}] only. ($INVAL)" 1>&2
     exit 1
   fi
 }
 
-subst_chars()
-{
+subst_chars() {
   eval $1='${'$1"//$2/'$3'}"
 }
 
-num_refs()
-{
-  local IFS="\\" ref=0 split
+num_refs() {
+  IFS="\\" REF=0 SPLIT=
 
-  set -- $pattern
+  set -- $PATTERN
 
-  for split; do
-    case $split in
-      '('*) ref=`expr $ref + 1` ;;
-      ')'*) ref=`expr $ref - 1` ;;
+  for SPLIT; do
+    case $SPLIT in
+      '('*) REF=`expr $REF + 1` ;;
+      ')'*) REF=`expr $REF - 1` ;;
     esac
   done
 
-  if [ "$ref" != 0 ]; then
-    echo "${0##*/}: improperly balanced parenthesis in pattern" 1>&2
+  if [ "$REF" != 0 ]; then
+    echo "${0##*/}: improperly balanced parenthesis in PATTERN" 1>&2
     exit 1
   fi
 
   return $(( ($# - 1) / 2 ))
 }
 
-shift_refs()
-{
-  local IFS="\\" x=$1 out=$2
-  set -- $replace
-  eval $out='$1'
+shift_refs() {
+  IFS="\\" X=$1 OUT=$2
+  set -- $REPLACE
+  eval $OUT='$1'
   shift
-  for split; do
-    local strip=${split#[0-9]}
-    local n=${split%"$strip"}
-    if test -z "$n" || [ "$n" -gt "$nref" ]; then
-      echo "${0##*/}: invalid reference near \\$split" 1>&2
+  for SPLIT; do
+    STRIP=${SPLIT#[0-9]}
+    N=${SPLIT%"$STRIP"}
+    if [ -z "$N" -o "$N" -gt "$NREF" ]; then
+      echo "${0##*/}: invalid reference near \\$SPLIT" 1>&2
       exit 1
     fi
-    echo $out='"$'$out"\\"$((n+x))"$strip\""
-    eval $out='"$'$out"\\"$((n+x))'$strip"'
+    echo $OUT='"$'$OUT"\\"$((N+X))"$STRIP\""
+    eval $OUT='"$'$OUT"\\"$((N+X))'$STRIP"'
   done
 }
 
-for arg; do
-  if [ "$count" = 0 ]; then
-    set --
-  fi
+toksubst() {
 
-  count=`expr $count + 1`
+ (debug() {
+    ${DEBUG:-false} && echo "DEBUG: $@" 1>&2
+  }
+  CHARSET=$EXTRACHARS'0-9A-Za-z_' COUNT=0
 
-  if test -n "${prev+set}"; then
-    set -- "$@" "$prev" "$arg"
-    unset prev
-    continue
-  fi
+  unset OPTS PATTERN REPLACE SCRIPT PREV
 
-  case $arg in
-    -e|-f|-l) 
-      prev=$arg
+  #DEBUG=true debug "echo $0 $@"
+
+  while :; do
+    case "$1" in
+        --debug | -x) DEBUG=:; shift ;;
+        --print | -p) PRINT=:; shift ;;
+       -*) OPTS="${OPTS:+$OPTS
+}$1"; shift ;;
+      *) break ;;
+    esac
+  done
+
+  ARGS=
+  for ARG; do
+    if [ "$COUNT" = 0 ]; then
+      set --
+    fi
+
+    COUNT=`expr $COUNT + 1`
+
+    if [ -N "${PREV+set}" ]; then
+      set -- "$@" "$PREV" "$ARG"
+      unset PREV
       continue
-    ;;
-    
-    -*) 
-      set -- "$@" "$arg" 
-    ;;
-    
-    *)
-      if test -z "${pattern+set}"; then
-        pattern=$arg
-#        check_chars pattern "$charset.?*+()" pattern
-        subst_chars pattern '.' "[$charset]"
-        subst_chars pattern '(' "\\("
-        subst_chars pattern ')' "\\)"
-        num_refs; nref=$?
-      elif test -z "${replace+set}"; then
-        replace=$arg
-        check_chars replace "$charset\\\\0-9"
-        shift_refs 1 shifted
-        script="/$pattern/ {
-          s,\([^$charset]\)$pattern\([^$charset]\),\\1$shifted\\$((nref+2)),g
-          s,\([^$charset]\)$pattern\$,\\1$shifted,g
-          s,^$pattern\([^$charset]\),$replace\\$((nref+1)),g
-          s,^$pattern\$,$replace,g
-        }"
-        set -- "$@" -e "$script"
-      else
-        set -- "$@" "$arg"
-      fi
-    ;;
-  esac
-  
-done
-#set -x
-exec ${SED-sed} "$@"
+    fi
+
+    case $ARG in
+      -e|-f|-l)
+        PREV=$ARG
+        continue
+      ;;
+
+      -*)
+        set -- "$@" "$ARG"
+      ;;
+
+      *)
+        if [ -z "${PATTERN+set}" ]; then
+          PATTERN=$ARG
+  #        check_chars PATTERN "$CHARSET.?*+()" PATTERN
+          subst_chars PATTERN '.' "[$CHARSET]"
+          subst_chars PATTERN '(' "\\("
+          subst_chars PATTERN ')' "\\)"
+          num_refs; NREF=$?
+        elif [ -z "${REPLACE+set}" ]; then
+          REPLACE=$ARG
+          check_chars REPLACE "$CHARSET\\\\0-9"
+          shift_refs 1 shifted
+          SCRIPT="/$PATTERN/ { \
+s,\([^$CHARSET]\)$PATTERN\([^$CHARSET]\),\\1$shifted\\$((NREF+2)),g; \
+s,\([^$CHARSET]\)$PATTERN\$,\\1$shifted,g; \
+s,^$PATTERN\([^$CHARSET]\),$REPLACE\\$((NREF+1)),g; \
+s,^$PATTERN\$,$REPLACE,g; \
+}"
+          CMD='sed -e "$SCRIPT" $ARGS'
+        else
+          pushv ARGS "$ARG"
+        fi
+      ;;
+    esac
+
+  done
+  ${PRINT-false} && CMD='echo "$SCRIPT"'
+  #set -X
+  debug "CMD: $CMD"
+eval "$CMD \"\$@\"")
+#  exec ${SED-sed} "$@"
+}
+
+case "${0##*/}" in
+  -* | sh | bash) ;;
+  *) toksubst "$@" || exit $? ;;
+esac
+
