@@ -58,7 +58,7 @@ inst-slackpkg: slackpkg
   done
 
 bash/bash_functions.bash: $(wildcard sh/functions/*.sh) sh/functions-assemble.sh
-	sh/functions-assemble.sh $@ && chmod 644 "$@"
+	(bash sh/functions-assemble.sh $@ || $(SHELL) sh/functions-assemble.sh $@) && chmod 644 "$@"
 
 #PROFILE = $(wildcard profile/*.sh profile/*.zsh profile/*.bash)
 PROFILE = \
