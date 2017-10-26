@@ -24,13 +24,13 @@ mount_loop() {
     MNT="$DEST/$NAME"
 
     echo "MAGIC: $MAGIC" 1>&2
-
     case "$MAGIC" in
-      *"Zip archive data"*)                MOUNTCMD='fuse-zip "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;; 
-      *"ISO 9660 CD-ROM filesystem data"*) MOUNTCMD='fuseiso "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;;
-      *"FAT ("*" bit)"*)                   MOUNTCMD='fusefat "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;;
-      *"ext"[234]" filesystem data"*)      MOUNTCMD='fuseext2 "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;;
-      *)                                   MOUNTCMD='mount ${TYPE:+-t "$TYPE"} "$ARG" "$MNT" -o loop${OPTS:+",$OPTS"}' ;;
+      *Zip*archive*)            MOUNTCMD='fuse-zip "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;; 
+      *ISO\ 9660*)              MOUNTCMD='fuseiso "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;;
+      *FAT\ *)                  MOUNTCMD='fusefat "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;;
+      *ext[234]\ filesystem\ *) MOUNTCMD='fuseext2 "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;;
+      *archive\ *)              MOUNTCMD='archivemount "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;;
+      *)                        MOUNTCMD='mount ${TYPE:+-t "$TYPE"} "$ARG" "$MNT" -o loop${OPTS:+",$OPTS"}' ;;
 
     esac
 
