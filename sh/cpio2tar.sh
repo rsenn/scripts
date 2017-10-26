@@ -16,7 +16,8 @@ FLAGS_HELP="usage: `basename "$0"` [options] [input] [[-o] output]
 FLAGS "$@" || exit 1; shift ${FLAGS_ARGC}
 
 # ---------------------------------------------------------------------------
-TEMP=`mktemp -d -p . .${0##*/}.XXXXXXXXXX`
+ME=`basename "$0" .sh`
+TEMP=`mktemp -d "/tmp/${ME}.XXXXXXXXXX"`
 INFILE=$1
 OUTFILE=${FLAGS_output:-$2}
 
@@ -44,4 +45,5 @@ cd "$TEMP"
 cpio -d -i 1>/dev/null &&
 tar -c ${COMPRESS:+--use-compress-program="$COMPRESS"} .
 
+rm -rf "$TEMP"
 trap - HUP INT QUIT TERM
