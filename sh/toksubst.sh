@@ -72,8 +72,7 @@ toksubst() {
     case "$1" in
         --debug | -x) DEBUG=:; shift ;;
         --print | -p) PRINT=:; shift ;;
-       -*) OPTS="${OPTS:+$OPTS
-}$1"; shift ;;
+       -*) OPTS="${OPTS:+$OPTS }$1"; shift ;;
       *) break ;;
     esac
   done
@@ -99,7 +98,8 @@ toksubst() {
       ;;
 
       -*)
-        set -- "$@" "$ARG"
+        OPTS="${OPTS:+$OPTS
+}$ARG"
       ;;
 
       *)
@@ -120,9 +120,10 @@ s,\([^$CHARSET]\)$PATTERN\$,\\1$shifted,g; \
 s,^$PATTERN\([^$CHARSET]\),$REPLACE\\$((NREF+1)),g; \
 s,^$PATTERN\$,$REPLACE,g; \
 }"
-          CMD='sed -e "$SCRIPT" $ARGS'
+          CMD='sed -e "$SCRIPT" '$OPTS' $ARGS'
         else
-          pushv ARGS "$ARG"
+          ARGS="${ARGS:+$ARGS
+}$ARG"
         fi
       ;;
     esac
@@ -131,6 +132,8 @@ s,^$PATTERN\$,$REPLACE,g; \
   ${PRINT-false} && CMD='echo "$SCRIPT"'
   #set -X
   debug "CMD: $CMD"
+  IFS="
+"
 eval "$CMD \"\$@\"")
 #  exec ${SED-sed} "$@"
 }
