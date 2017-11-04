@@ -1,9 +1,11 @@
 list-devices-by () 
 { 
- (TMP=`mktemp` IFS=" "
+ (TMP=`mktemp` TMP2=`mktemp` IFS=" "
   trap 'rm -f "$TMP"' EXIT
 
-    ls -ldn --time-style=+%s -- /dev/disk/by-{label,uuid}/* |sort -t'>' -k2 >"$TMP"
+    ls -ldn --time-style=+%s -- /dev/disk/by-{label,uuid}/* >"$TMP2" ; RET=$?; 
+    [ "$RET" != 0 ] && exit $RET
+    sort -t'>' -k2 <"$TMP2" >"$TMP"
 
     while read MODE N U G S T F __ L ; do
       while :; do
