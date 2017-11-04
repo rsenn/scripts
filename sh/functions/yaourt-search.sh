@@ -1,5 +1,5 @@
 yaourt-search() { 
-(NPAD=32; VPAD=24; : ${COLS=$(tput cols)}; while :; do
+(: ${NPAD=32} ${VPAD=24} ${COLS=$(tput cols)}; while :; do
    case "$1" in
 		 -D | --no*desc*) EVARS='$N $V'; shift ;;
 		 -N | --name-only) EVARS='$N'; shift ;;
