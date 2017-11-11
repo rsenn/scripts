@@ -80,7 +80,7 @@ for ARG; do
   DECODE=
 
   case "${ARG##*/}" in
-	  *.wav) WAV="$ARG" ;;
+	  *.wav) DECODE=; WAV="$ARG" ;;
 	  *.669 | *.amf | *.amf | *.dsm | *.far | *.gdm | *.gt2 | *.it | *.imf | *.mod | *.med | *.mtm | *.okt | *.s3m | *.stm | *.stx | *.ult | *.umx | *.apun | *.xm | *.mod) 
 		#mikmod -q -d 5  -p 1 -o 16s -i -hq -reverb 1 -fadeout  -norc -x "${ARG}" ; 	  WAV="music.wav"
 		DECODE='xmp "$ARG" -d wav -o -'
@@ -94,7 +94,8 @@ for ARG; do
 	    *.mp3) madplay --output="$WAV":wave -S -R 44100 "$ARG" || mpg123 -w "$WAV" "$ARG" ;;
 	    *)   ffmpeg -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV" || mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"
 	    
-	    esac  2>/dev/null ' # ||
+	    esac  ' # ||
+
 
 	  ;;
   esac
@@ -129,6 +130,7 @@ for ARG; do
 	esac
    done; echo "$O"
    }
+   echo "CMD='$CMD'" 1>&2
   eval "(set -x; $CMD)"
   R=$?
   [ -n "$SONG" ] && id3v2 --song "$SONG" "$OUTPUT"
