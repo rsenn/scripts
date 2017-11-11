@@ -63,7 +63,7 @@ for ARG; do
 #    WAV="${ARG%.*}.wav"
     DIR=`dirname "$ARG"`
     WAV="${MYNAME}-$$.wav"
-  trap 'rm -f "$WAV"' EXIT
+  trap '[ "$WAV" != "$ARG" ] && rm -f "$WAV"' EXIT
   trap 'exit 3' INT TERM
 
     OUTPUT="${ARG%.*}.mp3"
@@ -103,6 +103,9 @@ for ARG; do
   if [ "$ARG" = "$OUTPUT" -a "$REMOVE" = true ]; then
 	REMOVE=false
   fi
+  if [ "$ARG" = "$WAV" ]; then
+	REMOVE=false
+  fi
 
   set -e #; set -x
 
@@ -112,7 +115,7 @@ for ARG; do
 	ENCODE="lame --alt-preset \"\$ABR\" --resample 44100 -m j -h - \"\$OUTPUT\" "
   fi
   #if [ "$NOPIPE" = true ]; then
-	CMD="${DECODE/ - / \"\$WAV\"} && ${ENCODE/ - / \"\$WAV\" }"
+	CMD="${DECODE:+${DECODE/ - / \"\$WAV\"} && }${ENCODE/ - / \"\$WAV\" }"
   #  else
   #CMD="$DECODE | $ENCODE"
   #fi
