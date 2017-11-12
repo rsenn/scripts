@@ -15,6 +15,11 @@ if [ -s ~/cookies.txt ]; then
 				COOKIES=~/cookies.txt
 fi
 
+case  "${0##*/}" in
+  *ddlynx*|*dump*) DUMP=true ;;
+  *sdlynx*|*source*) SOURCE=true ;;
+esac
+
 [ "$DEBUG" = true ] && echo "DUMP=${DUMP:-false}" 1>&2
 while :; do
   case "$1" in
