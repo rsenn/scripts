@@ -27,6 +27,10 @@ get_package_lists() {
       http://archive.canonical.com/ubuntu/dists/${RELEASE-trusty}{,-proposed}/partner/binary-${ARCH-amd64}/Packages.gz \
       http://extras.ubuntu.com/ubuntu/dists/${RELEASE-trusty}/main/binary-amd64/Packages.gz
     ;;
+  linuxmint) list \
+    http://packages.linuxmint.com/dists/${RELEASE-sonya}/{main,universe,multiverse,backport,import,romeo,upstream}/binary-${ARCH-amd64}/Packages.gz
+  ;;
+
     msys)  curl -s ftp://netix.dl.sourceforge.net/sourceforge/m/mi/mingw/Installer/mingw-get/catalogue/msys-package-list.xml.lzma |lzcat |xml_get package-list catalogue | sed 's|.*|ftp://netix.dl.sourceforge.net/sourceforge/m/mi/mingw/Installer/mingw-get/catalogue/&.xml.lzma|'  ;;
 
   esac
