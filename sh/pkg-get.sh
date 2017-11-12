@@ -28,7 +28,7 @@ get_package_lists() {
       http://extras.ubuntu.com/ubuntu/dists/${RELEASE-trusty}/main/binary-amd64/Packages.gz
     ;;
   linuxmint) list \
-    http://packages.linuxmint.com/dists/${RELEASE-sonya}/{main,universe,multiverse,backport,import,romeo,upstream}/binary-${ARCH-amd64}/Packages.gz
+    http://packages.linuxmint.com/dists/${RELEASE-sonya}/{main,universe,multiverse,backport,import,romeo,upstream}/binary-${ARCH-amd64}/Packages
   ;;
 
     msys)  curl -s ftp://netix.dl.sourceforge.net/sourceforge/m/mi/mingw/Installer/mingw-get/catalogue/msys-package-list.xml.lzma |lzcat |xml_get package-list catalogue | sed 's|.*|ftp://netix.dl.sourceforge.net/sourceforge/m/mi/mingw/Installer/mingw-get/catalogue/&.xml.lzma|'  ;;
@@ -42,6 +42,7 @@ read_package_lists() {
     (case "$ARG" in
       */slacky/*)  ;;
       */ubuntu/*) BASE=${ARG%%/ubuntu/*}/ubuntu ;;
+      *linuxmint*) BASE=${ARG%%/dists/*} ;;
     esac
 
     DLCMD='curl $CURL_ARGS "$ARG"'
@@ -71,6 +72,13 @@ read_package_lists() {
     done)
   done
 
+}
+usage() {
+
+  echo "Usage: $(basename "$0" .sh) [OPTIONS] <ARGS...>
+
+  " 1>&2
+  exit 0
 }
 
 pkg_get() {
