@@ -21,11 +21,11 @@ addsuffix()
 search_package() {
   Q="$1"
   case "$DIST" in
-    slackware) ;;
+    slackware) urlfmt="https://packages.slackware.com/?search=%s&release=slackware-current&mode=package&extra=on&patches=on&slackware=on" ;;
     debian) urlfmt="https://packages.debian.org/search?searchon=contents\&keywords=%s\&mode=path\&suite=${SUITE=stable}\&arch=any" ;;
     ubuntu) urlfmt="https://packages.ubuntu.com/search?keywords=%s\&searchon=names\&suite=${SUITES="{trusty,trusty-updates,trusty-backports}"}\&section=all" ;;
     fedora) urlfmt="https://apps.fedoraproject.org/packages/s/%s" ;;
-    opensuse) urlfmt="https://packages.slackware.com/?search=%s&release=slackware-current&mode=package&extra=on&patches=on&slackware=on" ;;
+    opensuse) urlfmt="https://software.opensuse.org/search?utf8=%E2%9C%93&q=%s&search_devel=false&search_unsupported=false&baseproject=openSUSE%3ALeap%3A42.2" ;;
     archlinux) urlfmt="https://www.archlinux.org/packages/?sort=&q=%s&maintainer=&flagged=" ;;
   esac
   #echo "set -- $urlfmt" 1>&2
