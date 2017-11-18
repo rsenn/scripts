@@ -27,6 +27,7 @@ search_package() {
     fedora) urlfmt="https://apps.fedoraproject.org/packages/s/%s" ;;
     opensuse) urlfmt="https://software.opensuse.org/search?utf8=%E2%9C%93&q=%s&search_devel=false&search_unsupported=false&baseproject=openSUSE%3ALeap%3A42.2" ;;
     archlinux) urlfmt="https://www.archlinux.org/packages/?sort=&q=%s&maintainer=&flagged=" ;;
+    pbone) urlfmt="http://rpm.pbone.net/index.php3?stat=3&search=%s&Search.x=0&Search.y=0&simple=1&srodzaj=4" ;;
   esac
   #echo "set -- $urlfmt" 1>&2
   eval "set -- $urlfmt"
