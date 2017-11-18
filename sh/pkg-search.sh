@@ -19,21 +19,25 @@ addsuffix()
 }
 
 search_package() {
-  Q="$1"
+  _IFS="$IFS"; IFS="+";  Q="$*"; IFS=$_IFS
   case "$DIST" in
     slackware) urlfmt="https://packages.slackware.com/?search=%s&release=slackware-current&mode=package&extra=on&patches=on&slackware=on" ;;
     debian) urlfmt="https://packages.debian.org/search?searchon=contents\&keywords=%s\&mode=path\&suite=${SUITE=stable}\&arch=any" ;;
     ubuntu) urlfmt="https://packages.ubuntu.com/search?keywords=%s\&searchon=names\&suite=${SUITES="{trusty,trusty-updates,trusty-backports}"}\&section=all" ;;
     fedora) urlfmt="https://apps.fedoraproject.org/packages/s/%s" ;;
-    opensuse) urlfmt="https://software.opensuse.org/search?utf8=%E2%9C%93&q=%s&search_devel=false&search_unsupported=false&baseproject=openSUSE%3ALeap%3A42.2" ;;
-    archlinux) urlfmt="https://www.archlinux.org/packages/?sort=&q=%s&maintainer=&flagged=" ;;
-    pbone) urlfmt="http://rpm.pbone.net/index.php3?stat=3&search=%s&Search.x=0&Search.y=0&simple=1&srodzaj=4" ;;
+    opensuse) urlfmt="https://software.opensuse.org/search?utf8=%E2%9C%93\&q=%s\&search_devel=false\&search_unsupported=false\&baseproject=openSUSE%3ALeap%3A42.2" ;;
+    archlinux) urlfmt="https://www.archlinux.org/packages/?sort=\&q=%s\&maintainer=\&flagged=" ;;
+    aur) urlfmt="https://aur.archlinux.org/packages/?O=0\&SeB=nd\&K=%s\&outdated=\&SB=n\&SO=a\&PP=250\&do_Search=Go"; fields="name version votes popularity description" ;;
+    pbone) urlfmt="http://rpm.pbone.net/index.php3?stat=3\&search=%s\&Search.x=0\&Search.y=0\&simple=1\&srodzaj=4" ;;
+    *) echo "No such distribution: $DIST" 1>&2 ; exit 1 ;;
   esac
+  [ -z "$fields" ] && fields="name version description" 
+
   #echo "set -- $urlfmt" 1>&2
   eval "set -- $urlfmt"
   echo "ARGS: ${NL}$*" 1>&2
   for FMT; do 
-  printf "$FMT\\n" "$Q" 
+    pushv SEARCHES "$(printf "$FMT\\n" "$Q" )"
 done
 }
 
@@ -62,12 +66,44 @@ NL="
   #[ -n "$2" ] && RELEASE="$2"
   #[ -n "$3" ] && ARCH="$3"
 
-  set -- $(search_package "$@")
+  search_package "$@"
 
+  set -- $SEARCHES
 
   echo "Package searches:" "$*" 1>&2
 
-    dlynx.sh "$@"
+ (HTML=`mktemp $(basename "${0#-}" .sh)-XXXXXX.html`
+  trap 'rm -f "$HTML"' EXIT
+
+    curl "$@" >"$HTML"
+
+    COLS=$(tput cols)
+
+    [ "$COLS" -gt 0 ] && MAXLEN=$((COLS-25-33)) || unset COLS
+
+    lynx -dump -nolist -nonumbers -width=$(tput cols) "$HTML" | {
+      IFS=" "
+      N=0
+      while read -r $fields; do
+
+        case $name:$version:$description in
+          [[:lower:]]*:*[0-9]*:?*)
+             printf "%-32s %-24s %s\n" "$name" "$version" "${description:0:${MAXLEN-65536}}"
+             : $((N++))
+             ;;
+          *)
+            #echo "Malformed output: $name:$version:$description" 1>&2
+            ;;
+        esac
+      done
+      if [ $((N)) -gt 0 ]; then
+        echo "Got $N results." 1>62
+      else
+        echo "No results (Request or parse error)?" 1>&2
+        exit 1
+      fi
+    }
+  ) || return $?
    
 }
 list() {
