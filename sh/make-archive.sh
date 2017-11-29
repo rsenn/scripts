@@ -16,49 +16,6 @@ build/*
 config.status
 CMakeCache.txt"}
 
-MAX-length() { 
- (MAX=$1;
-  shift;
-  A=$*;
-  L=${#A};
-  [ $((L)) -gt $((MAX)) ] && A="${A:1:$((MAX - 3))}...";
-  echo "$A")
-}
-cmdexec()  { 
-   (IFS=" ""
-    " R= C= E='eval "$C"' EE=': ${R:=$?}; [ "$R" = "0" ] && unset R'
-    [ "$DEBUG" = true ] && E='eval "echo \"XX: \$C\"" 1>&2;'$E
-    o() {  X_RM_O="${X_RM_O:+$X_RM_O$IFS}$1"; E="exec >>'$1'; $E"; }
-    while [ $# -gt 0 ]; do case "$1" in 
-                -o) o "$2"; shift 2 ;; -o*) o "${1#-o}"; shift ;;
-            -w) E="(cd '$2' && $E)"; shift 2 ;;     -w*) E="(cd '${1#-w}' && $E)"; shift ;;
-            -m) E="$E 2>&1"; shift ;;
-        *) break ;;
-        esac;  done;  C="$*"; #EC=`MAX-length $max_length "$C"`; [ "$DEBUG" = true ] && eval MAX-length $max_length "EVAL: $E" 1>&2 
-#    (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
-    eval "echo -n \"@@ $C\" 1>&2";  eval "($E); $EE";  exit ${R:-0}) ; return $?
-}
-debug()
-{
-    [ "$DEBUG" = true ] && echo "DEBUG: $@" 1>&2
-}
-verbose() {
-   (M="$*" A=`eval "echo \"\${$#}\""` IFS="
-";
-    if [ "$#" = 1 ]; then
-        A=1;
-    fi;
-    if ! [ "$A" -ge 0 ]; then
-        A=0;
-    fi 2> /dev/null > /dev/null;
-    if [ $(( ${VERBOSE:-0} )) -ge "$A" ]; then
-        M "${M%?$A}";
-    fi)
-}
-pushv()
-{
-    eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
-}
 
 make_archive() {
   ARGS="$*"
@@ -88,12 +45,12 @@ make_archive() {
       *) break ;;
     esac
   done
-        case "$TYPE" in
-            #*xz*) LEVEL=$((LEVEL * 6 / 9)) ;;
+   case "$TYPE" in
+          #*xz*) LEVEL=$((LEVEL * 6 / 9)) ;;
             *) ;;
         esac
-  TYPE gtar 2>/dev/null >/dev/null && TAR=gtar ||
-  { TYPE gtar 2>/dev/null >/dev/null && TAR=gtar; }
+  type gtar 2>/dev/null >/dev/null && TAR=gtar ||
+  { type gtar 2>/dev/null >/dev/null && TAR=gtar; }
   : ${TAR=tar}
   [ "$DESTDIR" ] &&
   ABSDESTDIR=`cd "$DESTDIR" && pwd`
@@ -101,7 +58,7 @@ make_archive() {
     DIRS="${DIRS:+$DIRS
 }$1"; shift
   done
-  debug "+ DIRS="$@ 
+  debug "+ DIRS="$DIRS
   while [ $# -gt 0 ]; do
     if [ "$1" ]; then
       case "$1" in
@@ -110,6 +67,16 @@ make_archive() {
     fi
   done
   DIR1=$(set -- ${DIR//$SPC/$BS$SPC}s; echo "${1##*/}")
+
+  if [ -z "$ARCHIVE" -a $(count $DIRS) -ge 1 ]; then
+     FORCMD='for DIR in $DIRS; do (exec_cmd cd "$DIR"; mkarchive); done'
+  elif [ -n "$ARCHIVE" ]; then
+    FORCMD='mkarchive'
+  fi
+ eval "$FORCMD" 
+}
+
+mkarchive() {
   WD=${PWD}
   if [ -n "$DIR1" -a "${DIR1#$WD}" != "${DIR1}" ]; then
     DNAME=${DIR1#$WD}
@@ -156,7 +123,7 @@ make_archive() {
   CMD='rm -vf -- "$ARCHIVE"; '$CMD
   [ "$QUIET" = true ] && CMD="($CMD) 2>/dev/null" || CMD="($CMD) 2>&1"
     [ "$REMOVE" = true ] && CMD="$CMD && rm -rf \"\$DIR\""
-        verbose "CMD='$(MAX-length $max_length "$CMD")'" 2
+        verbose "CMD='$(max_length $max_length "$CMD")'" 2
 
         IFS="$IFS "
   cmdexec $CMD  && {
@@ -164,6 +131,49 @@ make_archive() {
   }
 }
 
+max_length() { 
+ (MAX=$1;
+  shift;
+  A=$*;
+  L=${#A};
+  [ $((L)) -gt $((MAX)) ] && A="${A:1:$((MAX - 3))}...";
+  echo "$A")
+}
+cmdexec()  { 
+   (IFS=" ""
+    " R= C= E='eval "$C"' EE=': ${R:=$?}; [ "$R" = "0" ] && unset R'
+    [ "$DEBUG" = true ] && E='eval "echo \"XX: \$C\"" 1>&2;'$E
+    o() {  X_RM_O="${X_RM_O:+$X_RM_O$IFS}$1"; E="exec >>'$1'; $E"; }
+    while [ $# -gt 0 ]; do case "$1" in 
+                -o) o "$2"; shift 2 ;; -o*) o "${1#-o}"; shift ;;
+            -w) E="(cd '$2' && $E)"; shift 2 ;;     -w*) E="(cd '${1#-w}' && $E)"; shift ;;
+            -m) E="$E 2>&1"; shift ;;
+        *) break ;;
+        esac;  done;  C="$*"; #EC=`max_length $max_length "$C"`; [ "$DEBUG" = true ] && eval max_length $max_length "EVAL: $E" 1>&2 
+#    (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
+    eval "echo -n \"@@ $C\" 1>&2";  eval "($E); $EE";  exit ${R:-0}) ; return $?
+}
+debug()
+{
+    [ "$DEBUG" = true ] && echo "DEBUG: $@" 1>&2
+}
+verbose() {
+   (M="$*" A=`eval "echo \"\${$#}\""` IFS="
+";
+    if [ "$#" = 1 ]; then
+        A=1;
+    fi;
+    if ! [ "$A" -ge 0 ]; then
+        A=0;
+    fi 2> /dev/null > /dev/null;
+    if [ $(( ${VERBOSE:-0} )) -ge "$A" ]; then
+        M "${M%?$A}";
+    fi)
+}
+pushv()
+{
+    eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
+}
 bce() {
  (IFS=" "; echo "$*" | (bc -L || echo "ERROR: Expression '$*'" 1>&2)) | ${SED-sed} -u '/\./ s,\.\?0*$,,'
 }
@@ -237,4 +247,12 @@ verbose  "dir_contents \"$(implode "$SEP" "$@")\"" 3
   #IFS=" "; echo "$*"
   )
 }
+count() {
+    echo $#
+}
+exec_cmd() {
+    debug "$@";
+    "$@"
+}
+
 make_archive "$@"
