@@ -21,9 +21,14 @@ for ARG; do
   
   mkdir -p "$MNT"
 
-  if [ ! -b "$ARG" -a ! -c "$ARG" ]; then
+  if [ ! -b "$ARG" -a ! -c "$ARG" -a -e "$ARG" ]; then
 
-      mount ${TYPE:+-t "$TYPE"} -o loop${OPTS:+",$OPTS"} "$ARG" "$MNT" || exit $?
+     MAGIC=`file "$ARG" | sed "s|$ARG:\s*||"`
+     case "$MAGIC" in
+       *archive* | *compressed*) archivemount "$ARG" "$MNT" ;;
+       *) mount ${TYPE:+-t "$TYPE"} -o loop${OPTS:+",$OPTS"} "$ARG" "$MNT" ;;
+     esac || 
+    exit $?
   else
       mount "$ARG" "$MNT" || exit $?
   fi
