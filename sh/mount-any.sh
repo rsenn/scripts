@@ -25,6 +25,8 @@ for ARG; do
 
      MAGIC=`file "$ARG" | sed "s|$ARG:\s*||"`
      case "$MAGIC" in
+       *ISO\ 9660*) fuseiso "$ARG" "$MNT" ${OPTS:+-o "$OPTS"} ;; 
+       *Zip\ archive*) fuse-zip "$ARG" "$MNT" ${OPTS:+-o "$OPTS"} ;; 
        *archive* | *compressed*) archivemount "$ARG" "$MNT" ;;
        *) mount ${TYPE:+-t "$TYPE"} -o loop${OPTS:+",$OPTS"} "$ARG" "$MNT" ;;
      esac || 
