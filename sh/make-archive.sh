@@ -1,9 +1,9 @@
 #!/bin/bash
 IFS="
 "
-spc=" "
-bs="\\"
-: ${level:=3}
+SPC=" "
+BS="\\"
+: ${LEVEL:=3}
 : ${EXCLUDE="*.git*
 *~
 *.stackdump
@@ -16,14 +16,14 @@ build/*
 config.status
 CMakeCache.txt"}
 
-max-length () 
+MAX-length () 
 { 
-    ( max=$1;
+    ( MAX=$1;
     shift;
-    a=$*;
-    l=${#a};
-    [ $((l)) -gt $((max)) ] && a="${a:1:$((max - 3))}...";
-    echo "$a" )
+    A=$*;
+    L=${#A};
+    [ $((L)) -gt $((MAX)) ] && A="${A:1:$((MAX - 3))}...";
+    echo "$A" )
 }
 cmdexec()  { 
    (IFS=" ""
@@ -35,7 +35,7 @@ cmdexec()  {
             -w) E="(cd '$2' && $E)"; shift 2 ;;     -w*) E="(cd '${1#-w}' && $E)"; shift ;;
             -m) E="$E 2>&1"; shift ;;
         *) break ;;
-        esac;  done;  C="$*"; #EC=`max-length $max_length "$C"`; [ "$DEBUG" = true ] && eval max-length $max_length "EVAL: $E" 1>&2 
+        esac;  done;  C="$*"; #EC=`MAX-length $max_length "$C"`; [ "$DEBUG" = true ] && eval MAX-length $max_length "EVAL: $E" 1>&2 
 #    (trap "$EE;  [ \"\$R\" != 0 ] && echo \"\${R:+\$IFS!! (exitcode: \$R)}\" 1>&2 || echo 1>&2; exit \${R:-0}" EXIT
     eval "echo -n \"@@ $C\" 1>&2";  eval "($E); $EE";  exit ${R:-0}) ; return $?
 }
@@ -73,15 +73,15 @@ make_archive() {
 	set -- $ARGS
 	while :; do
 		case "$1" in
-			-[0-9]) level=${1#-}; shift ;;
-			-t) type=$2; shift 2 ;;
+			-[0-9]) LEVEL=${1#-}; shift ;;
+			-t) TYPE=$2; shift 2 ;;
 			-x | --debug) DEBUG=true; shift ;;
                     -v | --verbose) VERBOSE=$(( ${VERBOSE:-0} + 1 )); shift ;;
 			-q | --quiet) QUIET=true; shift ;;
 			-r | --remove*) REMOVE=true; shift ;;
-			-d=* | --dest*dir*=*) DESTDIR=${1#*=}; shift ;; 
-			-d | --dest*dir*) DESTDIR=$2; shift 2 ;;
-			-D | --no*date*) nodate=true; shift  ;;
+			-d=* | --dest*DIR*=*) DESTDIR=${1#*=}; shift ;; 
+			-d | --dest*DIR*) DESTDIR=$2; shift 2 ;;
+			-D | --no*date*) NODATE=true; shift  ;;
 			-[EX] | --exclude) pushv EXCLUDE "$2"; shift 2 ;; 
 			-[EXx]*) pushv EXCLUDE "${1#-?}"; shift ;; 
 			-[EXx]=*) pushv EXCLUDE "${1#*=}"; shift ;;
@@ -89,83 +89,83 @@ make_archive() {
 			*) break ;;
 		esac
 	done
-        case "$type" in
-            *xz*) level=$((level * 6 / 9)) ;;
+        case "$TYPE" in
+            *xz*) LEVEL=$((LEVEL * 6 / 9)) ;;
         esac
-	type gtar 2>/dev/null >/dev/null && TAR=gtar ||
-	{ type gtar 2>/dev/null >/dev/null && TAR=gtar; }
+	TYPE gtar 2>/dev/null >/dev/null && TAR=gtar ||
+	{ TYPE gtar 2>/dev/null >/dev/null && TAR=gtar; }
 	: ${TAR=tar}
 	[ "$DESTDIR" ] &&
 	ABSDESTDIR=`cd "$DESTDIR" && pwd`
 	while [ -d "$1" ]; do
-		dirs="${dirs:+$dirs
+		DIRS="${DIRS:+$DIRS
 }$1"; shift
 	done
-	debug "+ dirs="$@ 
+	debug "+ DIRS="$@ 
 	while [ $# -gt 0 ]; do
 		if [ "$1" ]; then
 			case "$1" in
-				*.tar*|*.7z|*.rar|*.zip|*.t?z|*.cpio)   archive=$1; shift ;;
+				*.tar*|*.7z|*.rar|*.zip|*.t?z|*.cpio)   ARCHIVE=$1; shift ;;
 			esac
 		fi
 	done
-	DIR1=$(set -- ${dir//$spc/$bs$spc}s; echo "${1##*/}")
+	DIR1=$(set -- ${DIR//$SPC/$BS$SPC}s; echo "${1##*/}")
 	WD=${PWD}
-	if [ -n "$DIR1" -a "${DIR1#$WD}" != "${DIR1}" ]; then
-		dname=${DIR1#$WD}
-		dname=${dname#[\\/]}
+	if [ -n "$DIR1" -A "${DIR1#$WD}" != "${DIR1}" ]; then
+		DNAME=${DIR1#$WD}
+		DNAME=${DNAME#[\\/]}
 	else
-		dname="${WD}"
+		DNAME="${WD}"
 	fi
-	#echo "dname=$dname" 1>&2 
-	dir=${2:-.}
-	if [ -z "$archive" ]; then
+	#echo "DNAME=$DNAME" 1>&2 
+	DIR=${2:-.}
+	if [ -z "$ARCHIVE" ]; then
 		if [ "$DESTDIR" ]; then
-			name=${dname#$ABSDESTDIR}
-			name=${name#/}
-			name=${name//[\\/]/-}
+			NAME=${DNAME#$ABSDESTDIR}
+			NAME=${NAME#/}
+			NAME=${NAME//[\\/]/-}
 		else
-			name=${dname##*/}
+			NAME=${DNAME##*/}
 		fi
-		name=${name#.}
-		name=${name%/}
-		#echo "name=$name" 1>&2 
-		archive=${DESTDIR:-..}/${name##*/}
-		[ "$nodate" != true ] && archive=$archive-$(isodate.sh -r ${dir:-.})   #`date ${dir:+-r "$dir"} +%Y%m%d`
-		archive=$archive.${type:-7z}
-        elif [ -n "$archive" -a -f "$archive" ]; then
+		NAME=${NAME#.}
+		NAME=${NAME%/}
+		#echo "NAME=$NAME" 1>&2 
+		ARCHIVE=${DESTDIR:-..}/${NAME##*/}
+		[ "$NODATE" != true ] && ARCHIVE=$ARCHIVE-$(isodate.sh -r ${DIR:-.})   #`date ${DIR:+-r "$DIR"} +%Y%m%d`
+		ARCHIVE=$ARCHIVE.${TYPE:-7z}
+        elif [ -n "$ARCHIVE" -A -f "$ARCHIVE" ]; then
             if [ "$FORCE" != true ]; then
-            verbose "Archive '$archive' already exists!" 0
+            verbose "Archive '$ARCHIVE' already exists!" 0
             exit 1
         fi
 	fi
 	set -f
-	case "$archive" in
-		*.iso) cmd="${genisoimage:-mkisofs} -f -l -R -J -o \"\$archive\"  $(create_list "-exclude " $EXCLUDE) \$dir" ;;
-		*.7z) cmd="${sevenzip:-7za} a -mx=$(( $level * 5 / 9 )) \"\$archive\" $(create_list "-x!" $EXCLUDE) \$dir" ;;
-                *.zip) cmd="zip -${level} $(test "$REMOVE" = true && echo -m) -r \"\$archive\" \$dir $(create_list "-x " $EXCLUDE) " ;;
-                *.rar) cmd="rar a -m$(($level * 5 / 9)) $(test "$REMOVE" = true && echo -df) -r $(create_list "-x" $EXCLUDE) \"\$archive\" \$dir" ;;
-		*.tar) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) -f \"\$archive\"" ;;
-		*.txz|*.tar.xz) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | xz -$level >\"\$archive\"" ;;
-		*.tlzma|*.tar.lzma) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | lzma -$level >\"\$archive\"" ;;
-		*.tlzip|*.tar.lzip) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | lzip -$level >\"\$archive\"" ;;
-		*.tlzo|*.tar.lzo) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | lzop -$level >\"\$archive\"" ;;
-		*.tgz|*.tar.gz) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | gzip -$level >\"\$archive\"" ;;
-		*.tbz2|*.tbz|*.tar.bz2) cmd="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${dir//$spc/$bs$spc}) | bzip2 -$level >\"\$archive\"" ;;
+	case "$ARCHIVE" in
+		*.iso) CMD="${genisoimage:-mkisofs} -f -L -R -J -o \"\$ARCHIVE\"  $(create_list "-exclude " $EXCLUDE) \$DIR" ;;
+		*.7z) CMD="${sevenzip:-7za} A -mx=$(( $LEVEL * 5 / 9 )) \"\$ARCHIVE\" $(create_list "-x!" $EXCLUDE) \$DIR" ;;
+                *.zip) CMD="zip -${LEVEL} $(test "$REMOVE" = true && echo -m) -r \"\$ARCHIVE\" \$DIR $(create_list "-x " $EXCLUDE) " ;;
+                *.rar) CMD="rar A -m$(($LEVEL * 5 / 9)) $(test "$REMOVE" = true && echo -df) -r $(create_list "-x" $EXCLUDE) \"\$ARCHIVE\" \$DIR" ;;
+		*.tar) CMD="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${DIR//$SPC/$BS$SPC}) -f \"\$ARCHIVE\"" ;;
+		*.txz|*.tar.xz) CMD="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${DIR//$SPC/$BS$SPC}) | xz -$LEVEL >\"\$ARCHIVE\"" ;;
+		*.tlzma|*.tar.lzma) CMD="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${DIR//$SPC/$BS$SPC}) | lzma -$LEVEL >\"\$ARCHIVE\"" ;;
+		*.tlzip|*.tar.lzip) CMD="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${DIR//$SPC/$BS$SPC}) | lzip -$LEVEL >\"\$ARCHIVE\"" ;;
+		*.tlzo|*.tar.lzo) CMD="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${DIR//$SPC/$BS$SPC}) | lzop -$LEVEL >\"\$ARCHIVE\"" ;;
+		*.tgz|*.tar.gz) CMD="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${DIR//$SPC/$BS$SPC}) | gzip -$LEVEL >\"\$ARCHIVE\"" ;;
+		*.tbz2|*.tbz|*.tar.bz2) CMD="$TAR -c $(test "$QUIET" != true && echo -v) $(test "$REMOVE" = true && echo --remove-files) $(create_list --exclude= $EXCLUDE) \$(dir_contents ${DIR//$SPC/$BS$SPC}) | bzip2 -$LEVEL >\"\$ARCHIVE\"" ;;
 	esac
-	cmd='rm -vf -- "$archive"; '$cmd
-	[ "$QUIET" = true ] && cmd="($cmd) 2>/dev/null" || cmd="($cmd) 2>&1"
-    [ "$REMOVE" = true ] && cmd="$cmd && rm -rf \"\$dir\""
-        verbose "cmd='$(max-length $max_length "$cmd")'" 2
+	CMD='rm -vf -- "$ARCHIVE"; '$CMD
+	[ "$QUIET" = true ] && CMD="($CMD) 2>/dev/null" || CMD="($CMD) 2>&1"
+    [ "$REMOVE" = true ] && CMD="$CMD && rm -rf \"\$DIR\""
+        verbose "CMD='$(MAX-length $max_length "$CMD")'" 2
 
         IFS="$IFS "
-	cmdexec $cmd  && {
-	  verbose "Created archive '$archive'" 1
+	cmdexec $CMD  && {
+	  verbose "Created ARCHIVE '$ARCHIVE'" 1
 	}
 }
 
 bce() {
- (IFS=" "; echo "$*" | (bc -l || echo "ERROR: Expression '$*'" 1>&2)) | ${SED-sed} -u '/\./ s,\.\?0*$,,'
+ (IFS=" "; echo "$*" | (bc -L || echo "ERROR: Expression '$*'" 1>&2)) | ${SED-sed} -u '/\./ s,\.\?0*$,,'
 }
 
 bci() {
@@ -176,16 +176,16 @@ create_list() {
  ( 
  #: ${separator=" "}
  : ${separator="','"}
-  #output=
-  output="$1{'"
+  #OUTPUT=
+  OUTPUT="$1{'"
   shift
-  list=
+  LIST=
   [ $# -gt 0 ] && {
   for arg; do 
-    list="${list:+$list$separator}$arg"
+    LIST="${LIST:+$LIST$separator}$arg"
   done
-  output="$output$list'}"
-  echo "$output"
+  OUTPUT="$OUTPUT$LIST'}"
+  echo "$OUTPUT"
   } )
 }
 
@@ -229,7 +229,7 @@ verbose  "dir_contents \"$(implode "$SEP" "$@")\"" 3
   case "$1" in 
 		. | "." | \".\" | .*) 
 			EXCLUDE="$(implode "|" $EXCLUDE)" 
-			set -- $(ls -a -1 |grep -v -E '^(\.|\.\.)$' |sort -u |match -v "${EXCLUDE:-''}")
+			set -- $(ls -A -1 |grep -v -E '^(\.|\.\.)$' |sort -u |match -v "${EXCLUDE:-''}")
 			;;
 		*)
 		  ;;
