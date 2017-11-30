@@ -136,6 +136,12 @@ any2x264() {
       esac
   done
 
+  
+  if [ -z "$FILESIZE$ABR$VBR" ]; then
+    NORATE=true
+  fi
+
+
 #  case $FILESIZE in
 #      *[Mm]) FILESIZE=$(( ${FILESIZE%[Mm]} * 1048576)) ;;
 #      *[Kk]) FILESIZE=$(( ${FILESIZE%[Kk]} * 1024)) ;;
@@ -288,9 +294,9 @@ echo "ABR=$ABR" 1>&2
         $EXTRA_ARGS \
         ${ASPECT+-aspect "$ASPECT"} \
         ${SIZE+-s "$SIZE"}  \
-        $BITRATE_ARG \
+        $([ "$NORATE" != true ] && list $BITRATE_ARG || list -qscale 0) \
         -acodec libvo_aacenc \
-        -ab $(format_num "$ABR") \
+        $(: [ "$NORATE" != true ] && list -ab $(format_num "$ABR")) \
         -ar "$AR" \
         -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || {  "$@" || exit $?; }; } && 
           { mv -vf "${OUTPUT%.???}.out.mp4" "${OUTPUT%.???}.mp4"; [ "$REMOVE" = true ] && 
@@ -300,6 +306,9 @@ echo "ABR=$ABR" 1>&2
      unset SIZE
      exit 0
   ) || return $?; done
+
 }
+
+list() { echo "$*"; }
 
 any2x264 "$@"
