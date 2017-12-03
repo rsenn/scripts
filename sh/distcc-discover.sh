@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 MY_UID=`id -u`           # determine privileges
 MY_NAME=`basename "$0"`  # script name
@@ -15,7 +15,7 @@ DEFAULT_PORT=3632
 # Set target networks
 SCAN_PORTS="-p$DEFAULT_PORT"
 #SCAN_TARGETS="212.103.64.0/24 212.103.74.0/24"
-SCAN_TARGETS="212.103.64.0/24"
+SCAN_TARGETS="192.168.3.0/24"
 
 # Set remaining settings
 
