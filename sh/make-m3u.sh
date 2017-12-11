@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 IFS="
 "
@@ -20,8 +20,9 @@ main()
     duration "$ARG"
     TITLE=${ARG##*/}
     TITLE=${TITLE%.*}
-    TITLE=${TITLE//"_"/" "}
-    TITLE=${TITLE//" - "/"-"}
+    TITLE=$(echo "$TITLE" |sed "s|_| |g ; s|\s*-\s*|-|g")
+    #TITLE=${TITLE//"_"/" "}
+    #TITLE=${TITLE//" - "/"-"}
     TITLE=$(echo "$TITLE" | ${SED-sed} 's|[^[:alnum:]][0-9]\+p[^[:alnum:]]| |g ;; s|\[| |g ;;  s|\]| |g ;; s|[ _]\+| |g ;')
     resolution "$ARG"
     bitrate "$ARG"
