@@ -25,7 +25,7 @@ main()
     TITLE=$(echo "$TITLE" | ${SED-sed} 's|[^[:alnum:]][0-9]\+p[^[:alnum:]]| |g ;; s|\[| |g ;;  s|\]| |g ;; s|[ _]\+| |g ;')
     resolution "$ARG"
     bitrate "$ARG"
-    echo "BITRATE='$BITRATE'" 1>&2
+    [ "$DEBUG" = true ] && echo "BITRATE='$BITRATE'" 1>&2
     echo "#EXTINF:$DURATION,${TITLE}${RESOLUTION:+ [$RESOLUTION]}${BITRATE:+ ${BITRATE}kbps}"
     echo "$ARG"
   done
