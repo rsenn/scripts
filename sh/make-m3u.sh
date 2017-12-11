@@ -13,7 +13,7 @@ main()
   esac
   shift
   done
-  set -f
+#  set -f
 
   echo "#EXTM3U"
   for ARG; do
