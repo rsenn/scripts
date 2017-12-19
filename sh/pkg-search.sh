@@ -29,6 +29,7 @@ search_package() {
     archlinux) urlfmt="https://www.archlinux.org/packages/?sort=\&q=%s\&maintainer=\&flagged=" ;;
     aur) urlfmt="https://aur.archlinux.org/packages/?O=0\&SeB=nd\&K=%s\&outdated=\&SB=n\&SO=a\&PP=250\&do_Search=Go"; fields="name version votes popularity description" ;;
     pbone) urlfmt="http://rpm.pbone.net/index.php3?stat=3\&search=%s\&Search.x=0\&Search.y=0\&simple=1\&srodzaj=4" ;;
+    pkgs) urlfmt="https://pkgs.org/download/%s" ;;
     *) echo "No such distribution: $DIST" 1>&2 ; exit 1 ;;
   esac
   [ -z "$fields" ] && fields="name version description" 
