@@ -3,7 +3,7 @@ list-devices-by ()
  (TMP=`mktemp` TMP2=`mktemp` IFS=" "
   trap 'rm -f "$TMP"' EXIT
 
-    ls -ldn --time-style=+%s -- /dev/disk/by-{label,uuid}/* >"$TMP2" 2>/dev/null; RET=$?; 
+    command ls -ldn --time-style=+%s -- /dev/disk/by-{label,uuid}/* >"$TMP2" 2>/dev/null; RET=$?; 
     [ "$RET" != 0 ] && exit $RET
     sort -t'>' -k2 <"$TMP2" >"$TMP"
 
@@ -51,7 +51,7 @@ list-devices-by ()
       done
 
              
-    done <"$TMP")
+    done <"$TMP") || blkid
 
     #ls -d /dev/disk/by-label/* | for_each -f 'echo "$(readlink -f "$1"): LABEL=\"${1##*/}\""';
     #ls -d /dev/disk/by-uuid/* | for_each -f 'echo "$(readlink -f "$1"): UUID=\"${1##*/}\""'
