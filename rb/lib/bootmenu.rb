@@ -32,9 +32,9 @@ class BootMenu
   class EntryType < Enum
     enum_attr :undef, 0
     enum_attr :boot_sector, 1
-    enum_attr :linux_16, 2
+    enum_attr :linux16, 2
     enum_attr :linux, 3
-    enum_attr :linux_efi, 4
+    enum_attr :linuxefi, 4
     enum_attr :config_file, 5
     enum_attr :com32, 6
   end
@@ -85,10 +85,17 @@ class BootMenu
 
     def notset(key)
       key = key.to_s.gsub(/^[:@]*/, '@')
-      not self.instance_variable_get(key)
+      v = self.instance_variable_get(key)
+      if v === nil then
+        return true
+      end
+      if v == '' then
+        return true
+      end
+      return false
     end
     def isset(key)
-      not notset(key)
+      not self.notset(key)
     end
 
     def get(key)
@@ -110,9 +117,9 @@ class BootMenu
     def is_complete
       #if not is_nonempty_string @name then return false end
       case @type.to_sym
-        when  :linux_16, :linux, :linux_efi
-
-          return is_nonempty_string(@arg,  @params)
+        when :linux16, :linux, :linuxefi
+          return is_nonempty_string @arg, @initrd
+          #return is_nonempty_string(@arg,  @params)
         when :com32, :boot_sector, :config_file
           return is_nonempty_string @arg
         when :undef
@@ -161,12 +168,26 @@ class BootMenu
     @data = ParseData.new
   end
 
+
+  def dup(type = nil)
+    if type === nil then
+      type = @type
+    end
+    obj = nil
+    case type
+      when :syslinux
+        obj = SyslinuxMenu.new @entries.dup
+      when :grub4dos
+        obj = Grub4dosMenu.new @entries.dup
+    end
+    return obj
+  end
   def read
     @lineno = 0
     @file.each do |line|
       @lineno += 1
 
-      if @data.notset :file then
+      if not @data.get :file then
         @data.set :file, @filename
         @data.set :line, lineno
       end
@@ -204,3 +225,17 @@ end
 
 require_relative 'bootmenu/syslinux.rb'
 require_relative 'bootmenu/grub4dos.rb'
+require_relative 'bootmenu/grub2.rb'
+
+def BootMenuParser(type, arg)
+  o = nil
+  case type
+  when :grub2
+    o = Grub2Menu.new(arg)
+  when :grub4dos
+    o = Grub4dosMenu.new(arg)
+  when :syslinux
+    o = SyslinuxMenu.new(arg)
+  end
+  return o
+end

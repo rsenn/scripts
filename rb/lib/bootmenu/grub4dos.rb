@@ -1,16 +1,9 @@
 class Grub4dosMenu < BootMenu
 
-
   def initialize(filename = '')
-     super(:syslinux, filename)
+     super(:grub4dos, filename)
   end
 
-  def new_cmd(file, line, name, args)
-      cmds = @data.instance_variable_get("@cmds")
-    cmds.push Grub4dosCommand.new(file, line, name, args)
-  end
-
-  
   def parse_line(line = '', lineno = -1)
     toks = line.lstrip.split(/\s+/)
     cmd = toks.shift
@@ -40,7 +33,7 @@ class Grub4dosMenu < BootMenu
     stream.puts "title #{data.name}"
 
     case  data.type
-      when :linux_16, :linux, :linux_efi, :com32
+      when :linux16, :linux, :linuxefi, :com32
         stream.puts "kernel #{data.arg} #{params}"
       when :boot_sector
         stream.puts "chainloader #{data.arg}"
@@ -50,6 +43,4 @@ class Grub4dosMenu < BootMenu
     end
     stream.puts
   end
-
-
 end

@@ -1,6 +1,5 @@
 class SyslinuxMenu < BootMenu
 
-
   class SyslinuxCommand
     attr_accessor :file, :line
     attr_accessor :name, :args
@@ -13,7 +12,7 @@ class SyslinuxMenu < BootMenu
     end
   end
 
-  def initialize(arg = '')
+  def initialize(arg)
 
      super(:syslinux, arg)
 
@@ -33,20 +32,6 @@ class SyslinuxMenu < BootMenu
      def @data.cmds
        @data.instance_variable_get("@cmds")
     end
-  end
-
-  def dup(type = nil)
-    if type === nil then
-      type = @type
-    end
-    obj = nil
-    case type
-      when :syslinux
-        obj = SyslinuxMenu.new @entries.dup
-      when :grub4dos
-        obj = Grub4dosMenu.new @entries.dup
-    end
-    return obj
   end
 
   def new_cmd(file, line, name, args)
@@ -145,7 +130,7 @@ class SyslinuxMenu < BootMenu
     stream.puts "MENU LABEL #{data.name}"
 
     case  data.type
-      when :linux_16, :linux, :linux_efi
+      when :linux16, :linux, :linuxefi
         stream.puts "KERNEL #{data.arg}"
         initrd = data.get :initrd 
         if initrd then
