@@ -102,6 +102,8 @@ class SyslinuxMenu < BootMenu
         @data.set :type, :default_entry
         @data.set :arg, args
 	  when 'INITRD'
+        #if @data.type != :undef
+        @data.set :type, :linux
         @data.set :initrd, @data.make_abspath(args)
 	  when 'LABEL'
         @data.set :name, args

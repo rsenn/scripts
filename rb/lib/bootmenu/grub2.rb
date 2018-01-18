@@ -40,13 +40,19 @@ class Grub2Menu < BootMenu
     stream.puts "menuentry '#{data.name}' {"
 
     case  data.type
-      when :linux16, :linux, :linuxefi, :com32
-        stream.puts "kernel #{data.arg} #{params}"
-      when :boot_sector
-        stream.puts "chainloader #{data.arg}"
+      when :com32
+        stream.puts "  linux #{data.arg} #{params}"
+      when :linux16, :linux, :linuxefi
+        stream.puts "  #{data.type.to_s} #{data.arg} #{params}"
 
+        if data.initrd then
+          cmd = data.type.to_s.gsub(/linux/, 'initrd')
+          stream.puts "  #{cmd} #{data.initrd}"
+        end
+      when :boot_sector
+        stream.puts "  chainloader #{data.arg}"
       when :config_file
-        stream.puts "configfile #{data.arg}"
+        stream.puts "  configfile #{data.arg}"
     end
     stream.puts "}" 
   end

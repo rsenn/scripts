@@ -250,7 +250,7 @@ require_relative 'bootmenu/grub2.rb'
 
 def BootMenuParser(type, arg)
   o = nil
-  case type
+  case type.to_sym
   when :grub2
     o = Grub2Menu.new(arg)
   when :grub4dos
