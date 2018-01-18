@@ -19,11 +19,7 @@ class SyslinuxMenu < BootMenu
      @data.instance_variable_set("@cmds",  Array.new)
 
      def @data.clear
-      @name = ''
-      @type = :undef
-      @arg = ''
-      @params = ''
-      @initrd  = ''
+       super
 
       cmds = self.instance_variable_get("@cmds")
       cmds.clear
@@ -120,7 +116,6 @@ class SyslinuxMenu < BootMenu
   def output(stream = $stdout, data = nil)
 
 #    if data === nil then return end
-    h = data.to_hash
     params = data.get(:params)
 
 

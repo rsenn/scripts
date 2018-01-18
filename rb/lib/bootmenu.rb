@@ -19,7 +19,7 @@ require_relative 'enum'
   end
 
 class BootMenu
-  attr_accessor :config_type, :file
+  attr_accessor :config_type, :file, :content
   attr_accessor :data, :lineno
   attr_accessor :entries
 
@@ -37,6 +37,26 @@ class BootMenu
     enum_attr :linuxefi, 4
     enum_attr :config_file, 5
     enum_attr :com32, 6
+  end
+  class Entry
+    attr_accessor :lines
+    attr_accessor :shortname, :name, :type, :arg, :params, :initrd
+    def initialize(data)
+	  @shortname = data.shortname
+	  @name = data.name
+	  @type = data.type
+	  @arg = data.arg
+	  @params = data.params
+	  @initrd = data.initrd
+    end
+    def line_range(from, to)
+      $stderr.puts "line_range(#{from}, #{to})"
+      @lines = Range.new(from ? from : 0, to)
+    end
+    def get(key)
+      key = key.to_s.gsub(/^[:@]*/, '@')
+      self.instance_variable_get(key)
+    end
   end
   class ParseData
     attr_accessor :file, :line
@@ -85,6 +105,9 @@ class BootMenu
 
     def notset(key)
       key = key.to_s.gsub(/^[:@]*/, '@')
+      if not self.instance_variable_defined?(key) then
+        return true
+      end
       v = self.instance_variable_get(key)
       if v === nil then
         return true
@@ -95,18 +118,23 @@ class BootMenu
       return false
     end
     def isset(key)
-      not self.notset(key)
+      return !self.notset(key)
     end
 
     def get(key)
       key = key.to_s.gsub(/^[:@]*/, '@')
+      #if not self.instance_variable_defined?(key) then
+      #  return nil
+      #end
       s = self.instance_variable_get(key)
-      if not s.is_a? String then s = '' end
+    #  if not s.is_a? String then s = '' end
       return s
     end
 
     def clear
-      @file = nil
+      @file = ''
+      @line = -1
+      #self.remove_instance_variable('@file')
       @name = ''
       @type = :undef
       @arg = ''
@@ -183,30 +211,39 @@ class BootMenu
     return obj
   end
   def read
+    @content = '' 
     @lineno = 0
+        @data.line = @lineno
+        @data.file = @filename
     @file.each do |line|
       @lineno += 1
 
-      if not @data.get :file then
-        @data.set :file, @filename
-        @data.set :line, lineno
-      end
+#      if @data.file == '' or @data.file == nil then
+#        @data.file = @filename
+#      end
+#      if @data.line == '' or @data.line == -1 then
+#        @data.line = @lineno
+#      end
 
       parse_line line, @lineno
       if @data.is_complete then
         #$stdout.puts "Data: #{@data.to_s}"
-        @entries.push  @data.dup
+        ent =  Entry.new(@data)
+        ent.line_range(@data.line, @lineno)
+        @entries.push ent
         @data.clear
+        @data.line = @lineno + 1
+        @data.file = @filename
       end
+      @content += "#{line}\n"
     end
   end
 
-  def  write(stream = $stdout)
+  def write(stream = $stdout)
     i = 0
     @entries.each do |e|
       i += 1
-      #epp = pp e
-      #$stderr.puts "Entry ##{i}: #{epp}"
+      #$stderr.puts "Entry ##{i}: #{e.lines}"
       output(stream, e)
     end
   end

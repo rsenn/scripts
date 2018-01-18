@@ -24,7 +24,7 @@ class Grub2Menu < BootMenu
           args = args.split(/'/)[1]
         end
         @data.set :name, args
-    $stderr.puts "Parsed: #{cmd} #{args}, data=#{@data}"
+#    $stderr.puts "Parsed: #{cmd} #{args}, data=#{@data}"
 	  when 'linux16', 'linux', 'linuxefi'
         @data.set :type, cmd.to_sym
         @data.set :arg, @data.make_abspath(args)
@@ -35,7 +35,6 @@ class Grub2Menu < BootMenu
 
   def output(stream = $stdout, data = nil)
 
-    h = data.to_hash
     params = data.get(:params)
 
     stream.puts "menuentry '#{data.name}' {"

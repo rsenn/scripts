@@ -27,8 +27,11 @@ class Grub4dosMenu < BootMenu
 
   def output(stream = $stdout, data = nil)
 
-    h = data.to_hash
-    params = data.get(:params)
+    if data.is_a? Object then
+      params = data.get(:params)
+    else
+      params = ''
+    end
 
     stream.puts "title #{data.name}"
 
