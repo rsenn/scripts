@@ -3,17 +3,27 @@ require_relative 'enum'
 """ BootMenu -------------------------------------------------------------- """
 """ ------------------------------------------------------------------------ """
 
-
-def is_nonempty_string(*args)
-  if args.length == 0 then return false end
-  args.each do |s|
-    if not s.is_a? String then return false end
-    if s.size == 0 then return false end
+  def is_nonempty_string(*args)
+    if args.length == 0 then return false end
+    args.each do |s|
+      if not s.is_a? String then return false end
+      if s.size == 0 then return false end
+    end
+    return true
   end
-  return true
-end
+  def canonicalize_str(s)
+    if not s.is_a? String then s = '' end
+    s = s.split(/[^-._A-Za-z0-9]+/).join('_')
+    s = s.downcase
+    s
+  end
 
 class BootMenu
+  attr_accessor :config_type, :file
+  attr_accessor :data, :lineno
+  attr_accessor :entries
+
+
   class MenuType < Enum
     enum_attr :syslinux, 1
     enum_attr :grub4dos, 2
@@ -31,11 +41,22 @@ class BootMenu
   class ParseData
     attr_accessor :file, :line
     attr_accessor :filename
-    attr_accessor  :name, :type, :arg, :params, :initrd
+    attr_accessor :shortname, :name, :type, :arg, :params, :initrd
 
+
+    def initialize
+      @type = :undef
+    end
 
     def type
       return @type
+    end
+
+    def make_abspath(filename)
+        if not filename.match(/\//) then
+          filename = File.expand_path(filename, File.dirname(self.get(:file)))
+       end
+        return filename
     end
 
     def set(key, value)
@@ -45,18 +66,28 @@ class BootMenu
            if not is_nonempty_string(@file) then @file = value end
          when 'line'
            if not is_nonempty_string(@line) then @line = value end
+         when 'shortname'
+           @shortname = value
          when 'name'
-           if not is_nonempty_string(@name) then @name = value end
+           @name = value
          when 'type'
-           if not is_nonempty_string(@type) then @type = value end
+           @type = value
          when 'arg'
-           if not is_nonempty_string(@arg) then @arg = value end
+           #if not is_nonempty_string(@arg) then @arg = value end
+           @arg = value
          when 'params'
            if not is_nonempty_string(@params) then @params = value end
          when 'initrd'
            if not is_nonempty_string(@initrd) then @initrd = value end
        end
        #$stdout.puts "Setting key=#{key}, value=#{value}"
+    end
+
+    def get(key)
+      key = key.to_s.gsub(/^[:@]*/, '@')
+      s = self.instance_variable_get(key)
+      if not s.is_a? String then s = '' end
+      return s
     end
 
     def clear
@@ -68,10 +99,11 @@ class BootMenu
     end
 
     def is_complete
-      if not is_nonempty_string @name then return false end
-      case @type
+      #if not is_nonempty_string @name then return false end
+      case @type.to_sym
         when  :linux_16, :linux, :linux_efi
-          return is_nonempty_string(@arg, @initrd, @params)
+
+          return is_nonempty_string(@arg,  @params)
         when :com32, :boot_sector, :config_file
           return is_nonempty_string @arg
         when :undef
@@ -81,7 +113,12 @@ class BootMenu
     end
 
     def to_hash
-      return self.instance_variables
+      h = Hash.new
+
+      self.instance_variables.each do |v|
+        h[v] = self.instance_variable_get(v)
+      end
+      return h
     end
 
     def to_s
@@ -97,9 +134,6 @@ class BootMenu
     end
   end
 
-  attr_accessor :config_type, :file
-  attr_accessor :data, :lineno
-
   def initialize(type = nil, filename = '')
     @config_type = type
     
@@ -110,6 +144,7 @@ class BootMenu
     end
 
     @data = ParseData.new
+    @entries = Array.new
   end
 
   def read
@@ -118,18 +153,29 @@ class BootMenu
       @lineno += 1
       parse_line line, @lineno
       if @data.is_complete then
-        $stdout.puts "Data: #{@data.to_s}"
+        #$stdout.puts "Data: #{@data.to_s}"
+        @entries.push  @data.dup
         @data.clear
       end
     end
   end
 
-  def output(stream = $stdout, data = nil)
-    raise "SYSTEM ERROR: method missing"
+  def  write(stream = $stdout)
+    i = 0
+    @entries.each do |e|
+      i += 1
+      #epp = pp e
+      #$stderr.puts "Entry ##{i}: #{epp}"
+      output(stream, e)
+    end
   end
 
   protected
   
+  def output(stream = $stdout, data = nil)
+    raise "SYSTEM ERROR: method missing"
+  end
+
   def parse_line(line = '')
     raise "SYSTEM ERROR: method missing"
   end

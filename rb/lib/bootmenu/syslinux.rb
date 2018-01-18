@@ -46,28 +46,47 @@ class SyslinuxMenu < BootMenu
     args = toks.join ' '
       
     if not cmd.is_a? String then return end
+    cmd = cmd.upcase
+
 
     c = self.new_cmd(file, lineno, cmd, args)
 
     @data.set :file, @filename
     @data.set :line, lineno
 
-    case cmd
-	  when 'MENU'
-        cmd2 = toks.shift
-        args = toks.join ' '
-        if cmd2.is_a? String then cmd2 = cmd2.upcase end
-        case cmd2
-		  when 'LABEL'
-            @data.set :name, args
-		  when 'TITLE'
-        end
+    #$stderr.puts "Parsing cmd='#{cmd}'"
 
+    if cmd != 'UI' and cmd != 'DEFAULT' and args.match(/.*\.c32.*/i) then
+      cmd = "COM32"
+    end
+
+    if cmd.match(/^MENU/) then
+      cmd += ' '
+      cmd += toks.shift
+       cmd = cmd.upcase
+    end
+
+    arga = args.split(/\s+/)
+
+    case cmd
+	  when 'LABEL'
+        @data.set :shortname, args
+	  when 'MENU LABEL'
+        if arga[0].upcase == 'LABEL' then 
+          arga.shift
+          args = arga.join ' '
+        end
+        @data.set :name, args
+	  when 'LINUX', 'KERNEL'
+        @data.set :type, :linux
+        @data.set :arg, @data.make_abspath(args)
 	  when 'APPEND'
+        @data.set :type, :linux
         append = Array.new
         args.split(/\s+/).each do |a|
           if a.match(/^initrd=/) then
-            @data.set :initrd, a.gsub(/^[^=]*/, "")
+            initrd = @data.make_abspath a.gsub(/^[^=]*=/, "")
+            @data.set :initrd, initrd
           else
             append.push a
           end
@@ -75,20 +94,22 @@ class SyslinuxMenu < BootMenu
         @data.set :params, append.join(' ')
 	  when 'BOOT'
         @data.set :type, :boot_sector
-        @data.set :arg, args
+        @data.set :arg, @data.make_abspath(args)
 	  when 'COM32'
+        if arga.length > 1 then
+          args = arga.shift
+          @data.set :params, arga.join(' ')
+        end
         @data.set :type, :com32
-        @data.set :arg, args
+        @data.set :arg, @data.make_abspath(args)
 	  when 'CONFIG'
         @data.set :type, :config_file
-        @data.set :arg, args
+        @data.set :arg, @data.make_abspath(args)
 	  when 'DEFAULT'
         @data.set :type, :default_entry
         @data.set :arg, args
 	  when 'INITRD'
-        @data.set :initrd, args
-	  when 'LINUX', 'KERNEL'
-        @data.set :arg, args
+        @data.set :initrd, @data.make_abspath(args)
 	  when 'LABEL'
         @data.set :name, args
 	  when 'LOCALBOOT'
@@ -100,16 +121,41 @@ class SyslinuxMenu < BootMenu
   end
 
   def output(stream = $stdout, data = nil)
+
+#    if data === nil then return end
     h = data.to_hash
+    params = data.get(:params)
+
+
+    shortname = canonicalize_str(data.shortname)
+
+    stream.puts "LABEL #{shortname}"
+    stream.puts "MENU LABEL #{data.name}"
 
     case  data.type
       when :linux_16, :linux, :linux_efi
         stream.puts "KERNEL #{data.arg}"
+        initrd = data.get :initrd 
+        if initrd then
+          params = "initrd=#{initrd} #{params}"
+        end
+        if params.length > 0 then
+          stream.puts "APPEND #{params}"
+        end
       when :boot_sector
         stream.puts "BOOT #{data.arg}"
+
+      when :config_file
+        stream.puts "CONFIG #{data.arg}"
+
       when :com32
-        stream.puts "COM32 #{data.arg}"
+        if params.length > 0 then
+          stream.puts "KERNEL #{data.arg} #{params}"
+        else
+          stream.puts "COM32 #{data.arg}"
+        end
     end
+    stream.puts
   end
 
 
