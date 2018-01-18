@@ -81,7 +81,8 @@ FONTFORGE_SCRIPTS := $(wildcard fontforge/*.fontforge)
 PL_SCRIPTS := $(wildcard pl/*.pl)
 PY_SCRIPTS := $(wildcard py/*.py)
 RB_SCRIPTS := $(wildcard rb/*.rb)
-RB_LIBDIR := $(shell ruby -e 'puts $$:' | sort | head -n1)
+#RB_LIBDIR := $(shell ruby -e 'puts $$:' | sort | head -n1)
+RB_LIBDIR := /usr/lib/ruby/site_ruby
 
 $(info RB_LIBDIR: $(RB_LIBDIR))
 RB_LIBFILES := $(shell cd rb/lib && find * -type f)
@@ -117,10 +118,11 @@ install: $(SCRIPTS)
 	$(INSTALL) -m 755 $(PY_SCRIPTS) $(DESTDIR)$(bindir)/
 	$(INSTALL) -m 755 $(RB_SCRIPTS) $(DESTDIR)$(bindir)/
 	for F in $(RB_LIBFILES); do \
-	  echo "$(INSTALL) -d $(DESTDIR)$(RB_LIBDIR)$${F%/*}"; \
-	  echo "$(INSTALL) -m 644 rb/lib/$$F $(DESTDIR)$(RB_LIBDIR)/$$F"; \
-	  $(INSTALL) -d $(DESTDIR)$(RB_LIBDIR)/$${F%/*}; \
-	  $(INSTALL) -m 644 rb/lib/$$F $(DESTDIR)$(RB_LIBDIR)/$$F; \
+	  D=$$(dirname "$$F"); \
+	  echo "$(INSTALL) -d $(DESTDIR)$(RB_LIBDIR)/$$D"; \
+	  echo "$(INSTALL) -m 644 rb/lib/$$F $(DESTDIR)$(RB_LIBDIR)/$$D"; \
+	  $(INSTALL) -d $(DESTDIR)$(RB_LIBDIR)/$$D; \
+	  $(INSTALL) -m 644 rb/lib/$$F $(DESTDIR)$(RB_LIBDIR)/$$D; \
 	done
 
 
