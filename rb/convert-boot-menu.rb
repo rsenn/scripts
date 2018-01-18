@@ -1,10 +1,14 @@
 #!/usr/bin/env ruby
 
 require 'pp'
-require_relative 'lib/bootmenu.rb'
-
 
 require 'optparse'
+
+begin
+  require_relative 'lib/bootmenu.rb' 
+rescue
+  require 'bootmenu'
+end
 
 options = Hash.new
 OptionParser.new do |parser|
