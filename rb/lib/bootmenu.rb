@@ -83,6 +83,14 @@ class BootMenu
        #$stdout.puts "Setting key=#{key}, value=#{value}"
     end
 
+    def notset(key)
+      key = key.to_s.gsub(/^[:@]*/, '@')
+      not self.instance_variable_get(key)
+    end
+    def isset(key)
+      not notset(key)
+    end
+
     def get(key)
       key = key.to_s.gsub(/^[:@]*/, '@')
       s = self.instance_variable_get(key)
@@ -91,6 +99,7 @@ class BootMenu
     end
 
     def clear
+      @file = nil
       @name = ''
       @type = :undef
       @arg = ''
@@ -156,6 +165,12 @@ class BootMenu
     @lineno = 0
     @file.each do |line|
       @lineno += 1
+
+      if @data.notset :file then
+        @data.set :file, @filename
+        @data.set :line, lineno
+      end
+
       parse_line line, @lineno
       if @data.is_complete then
         #$stdout.puts "Data: #{@data.to_s}"

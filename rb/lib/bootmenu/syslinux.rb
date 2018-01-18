@@ -66,9 +66,6 @@ class SyslinuxMenu < BootMenu
 
     c = self.new_cmd(file, lineno, cmd, args)
 
-    @data.set :file, @filename
-    @data.set :line, lineno
-
     #$stderr.puts "Parsing cmd='#{cmd}'"
 
     if cmd != 'UI' and cmd != 'DEFAULT' and args.match(/.*\.c32.*/i) then

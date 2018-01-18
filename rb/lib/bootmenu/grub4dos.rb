@@ -19,12 +19,6 @@ class Grub4dosMenu < BootMenu
     if not cmd.is_a? String then return end
     cmd = cmd.downcase
 
-
-    @data.set :file, @filename
-    @data.set :line, lineno
-
-    #$stderr.puts "Parsing cmd='#{cmd}'"
-
     arga = args.split(/\s+/)
 
     case cmd
