@@ -52,7 +52,7 @@ class BootMenu
 	  @initrd = data.initrd
     end
     def line_range(from, to)
-      $stderr.puts "line_range(#{from}, #{to})"
+      #$stderr.puts "line_range(#{from}, #{to})"
       @lines = Range.new(from ? from : 0, to)
     end
     def get(key)
