@@ -109,7 +109,9 @@ class BootMenu
       key = key.to_s.gsub(/^[:@]*/, '@')
       if not self.instance_variable_defined?(key) then return true  end
       v = self.instance_variable_get(key)
-      if v === nil then return true end if v == '' then return true end return false
+      if v === nil then return true end
+      if v == '' then return true end
+      return false
     end
     
     def isset(key)
