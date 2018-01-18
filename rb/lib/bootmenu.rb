@@ -3,32 +3,33 @@ require_relative 'enum'
 """ BootMenu -------------------------------------------------------------- """
 """ ------------------------------------------------------------------------ """
 
-  def is_nonempty_string(*args)
-    if args.length == 0 then return false end
-    args.each do |s|
-      if not s.is_a? String then return false end
-      if s.size == 0 then return false end
-    end
-    return true
+def is_nonempty_string(*args)
+  if args.length == 0 then return false end
+  args.each do |s|
+    if not s.is_a? String then return false end
+    if s.size == 0 then return false end
   end
-  def canonicalize_str(s)
-    if not s.is_a? String then s = '' end
-    s = s.split(/[^-._A-Za-z0-9]+/).join('_')
-    s = s.downcase
-    s
-  end
+  return true
+end
+
+def canonicalize_str(s)
+  if not s.is_a? String then s = '' end
+  s = s.split(/[^-._A-Za-z0-9]+/).join('_')
+  s = s.downcase
+  s
+end
 
 class BootMenu
   attr_accessor :config_type, :file, :content
   attr_accessor :data, :lineno
   attr_accessor :entries
 
-
   class MenuType < Enum
     enum_attr :syslinux, 1
     enum_attr :grub4dos, 2
     enum_attr :grub2, 3
   end
+ 
   class EntryType < Enum
     enum_attr :undef, 0
     enum_attr :boot_sector, 1
@@ -38,8 +39,9 @@ class BootMenu
     enum_attr :config_file, 5
     enum_attr :com32, 6
   end
+  
   class Entry
-    attr_accessor :lines
+    attr_accessor :file, :lines
     attr_accessor :shortname, :name, :type, :arg, :params, :initrd
     def initialize(data)
 	  @shortname = data.shortname
@@ -58,11 +60,11 @@ class BootMenu
       self.instance_variable_get(key)
     end
   end
+ 
   class ParseData
     attr_accessor :file, :line
     attr_accessor :filename
     attr_accessor :shortname, :name, :type, :arg, :params, :initrd
-
 
     def initialize
       @type = :undef
@@ -72,11 +74,11 @@ class BootMenu
       return @type
     end
 
-    def make_abspath(filename)
-        if not filename.match(/\//) then
-          filename = File.expand_path(filename, File.dirname(self.get(:file)))
-       end
-        return filename
+    def make_abspath(fn)
+      if not fn.match(/\//) then
+        fn = File.expand_path(fn, File.dirname(self.get(:file)))
+      end
+      return fn
     end
 
     def set(key, value)
@@ -105,30 +107,18 @@ class BootMenu
 
     def notset(key)
       key = key.to_s.gsub(/^[:@]*/, '@')
-      if not self.instance_variable_defined?(key) then
-        return true
-      end
+      if not self.instance_variable_defined?(key) then return true  end
       v = self.instance_variable_get(key)
-      if v === nil then
-        return true
-      end
-      if v == '' then
-        return true
-      end
-      return false
+      if v === nil then return true end if v == '' then return true end return false
     end
+    
     def isset(key)
       return !self.notset(key)
     end
 
     def get(key)
       key = key.to_s.gsub(/^[:@]*/, '@')
-      #if not self.instance_variable_defined?(key) then
-      #  return nil
-      #end
-      s = self.instance_variable_get(key)
-    #  if not s.is_a? String then s = '' end
-      return s
+      return self.instance_variable_get(key)
     end
 
     def clear
@@ -156,14 +146,13 @@ class BootMenu
       return false
     end
 
-    def to_hash
-      h = Hash.new
-
-      self.instance_variables.each do |v|
-        h[v] = self.instance_variable_get(v)
-      end
-      return h
-    end
+#    def to_hash
+#      h = Hash.new
+#      self.instance_variables.each do |v|
+#        h[v] = self.instance_variable_get(v)
+#      end
+#      return h
+#    end
 
     def to_s
       out = Array.new
@@ -180,22 +169,18 @@ class BootMenu
 
   def initialize(type = nil, arg = '')
     @config_type = type
-   
     if arg.is_a? Array then
       @entries = arg
     else
-
       if File.exists? arg then
         @file = File.open arg
-       
-        @arg = File.absolute_path(@file.path)
+        @filename = File.absolute_path(@file.path)
       end
       @entries = Array.new
     end
-
     @data = ParseData.new
+    @content = ''
   end
-
 
   def dup(type = nil)
     if type === nil then
@@ -207,28 +192,24 @@ class BootMenu
         obj = SyslinuxMenu.new @entries.dup
       when :grub4dos
         obj = Grub4dosMenu.new @entries.dup
+      when :grub2
+        obj = Grub2Menu.new @entries.dup
     end
     return obj
   end
+
   def read
     @content = '' 
     @lineno = 0
-        @data.line = @lineno
-        @data.file = @filename
+    @data.line = @lineno
+    @data.file = @filename
     @file.each do |line|
       @lineno += 1
-
-#      if @data.file == '' or @data.file == nil then
-#        @data.file = @filename
-#      end
-#      if @data.line == '' or @data.line == -1 then
-#        @data.line = @lineno
-#      end
-
       parse_line line, @lineno
       if @data.is_complete then
         #$stdout.puts "Data: #{@data.to_s}"
         ent =  Entry.new(@data)
+        ent.file = @filename
         ent.line_range(@data.line, @lineno)
         @entries.push ent
         @data.clear
@@ -237,6 +218,7 @@ class BootMenu
       end
       @content += "#{line}\n"
     end
+    @data.clear
   end
 
   def write(stream = $stdout)

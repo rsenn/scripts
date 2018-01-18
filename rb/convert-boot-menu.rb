@@ -21,9 +21,9 @@ else
 end
 
 m.read
+#pp m
 
 g4d = m.dup(:grub4dos)
-pp m
 
 
 g4d.write($stdout)
