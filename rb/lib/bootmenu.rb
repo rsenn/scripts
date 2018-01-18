@@ -134,17 +134,22 @@ class BootMenu
     end
   end
 
-  def initialize(type = nil, filename = '')
+  def initialize(type = nil, arg = '')
     @config_type = type
-    
-    if File.exists? filename then
-      @file = File.open filename
-     
-      @filename = File.absolute_path(@file.path)
+   
+    if arg.is_a? Array then
+      @entries = arg
+    else
+
+      if File.exists? arg then
+        @file = File.open arg
+       
+        @arg = File.absolute_path(@file.path)
+      end
+      @entries = Array.new
     end
 
     @data = ParseData.new
-    @entries = Array.new
   end
 
   def read
@@ -183,3 +188,4 @@ class BootMenu
 end
 
 require_relative 'bootmenu/syslinux.rb'
+require_relative 'bootmenu/grub4dos.rb'

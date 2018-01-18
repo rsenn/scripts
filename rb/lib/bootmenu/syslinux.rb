@@ -13,8 +13,9 @@ class SyslinuxMenu < BootMenu
     end
   end
 
-  def initialize(filename = '')
-     super(:syslinux, filename)
+  def initialize(arg = '')
+
+     super(:syslinux, arg)
 
      @data.instance_variable_set("@cmds",  Array.new)
 
@@ -34,6 +35,20 @@ class SyslinuxMenu < BootMenu
     end
   end
 
+  def dup(type = nil)
+    if type === nil then
+      type = @type
+    end
+    obj = nil
+    case type
+      when :syslinux
+        obj = SyslinuxMenu.new @entries.dup
+      when :grub4dos
+        obj = Grub4dosMenu.new @entries.dup
+    end
+    return obj
+  end
+
   def new_cmd(file, line, name, args)
       cmds = @data.instance_variable_get("@cmds")
     cmds.push SyslinuxCommand.new(file, line, name, args)
@@ -41,7 +56,7 @@ class SyslinuxMenu < BootMenu
 
   
   def parse_line(line = '', lineno = -1)
-    toks = line.split(/\s+/)
+    toks = line.lstrip.split(/\s+/)
     cmd = toks.shift
     args = toks.join ' '
       

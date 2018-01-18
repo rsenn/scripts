@@ -11,8 +11,11 @@ end
 
 m = SyslinuxMenu.new file_name
 m.read
+
+
+g4d = m.dup(:grub4dos)
 #pp m
 
 
-m.write($stdout)
+g4d.write($stdout)
 
