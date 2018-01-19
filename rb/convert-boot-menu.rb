@@ -13,7 +13,7 @@ OptionParser.new do |parser|
   parser.on("-fFROM", "--from=FROM", "From type") do |from|
      options[:from] = from
   end
-  parser.on("-fTO", "--to=TO", "To type") do |to|
+  parser.on("-tTO", "--to=TO", "To type") do |to|
      options[:to] = to
   end
 end.parse!
@@ -24,6 +24,7 @@ to_type = options[:to] ? options[:to].to_sym : nil
 ARGV.each do |arg|
   file_name = arg
   if from_type then
+	$stderr.puts "From type: #{from_type}"
 	$stderr.puts "BootMenuParser(#{from_type}, #{file_name})"
 	m = BootMenuParser(from_type, file_name)
   else
@@ -31,6 +32,7 @@ ARGV.each do |arg|
   end
   if to_type then
 	to_type = to_type.to_sym
+	$stderr.puts "To type: #{to_type}"
   else
 	to_type = :grub4dos
   end

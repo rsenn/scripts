@@ -121,19 +121,34 @@ class SyslinuxMenu < BootMenu
     params = data.get(:params)
 
 
-    shortname = canonicalize_str(data.shortname)
+
+
+    shortname = data.shortname
+    shortname = canonicalize_str(shortname)
+    if shortname == '' then
+      shortname = data.name
+    end
+    shortname = canonicalize_str(shortname)
 
     stream.puts "LABEL #{shortname}"
     stream.puts "MENU LABEL #{data.name}"
 
     case  data.type
       when :linux16, :linux, :linuxefi
-        stream.puts "KERNEL #{data.arg}"
+        a = data.arg
+        if data.params.is_a? String then
+          a += ' '
+          a += data.params
+        end
+        args = a.split(/\s+/)
+        kern = args.shift
+        stream.puts "KERNEL #{kern}"
         initrd = data.get :initrd 
         if initrd then
-          params = "initrd=#{initrd} #{params}"
+          args.push "initrd=#{initrd}"
         end
-        if params.length > 0 then
+        if args.size > 0 then
+          params = args.join(" ")
           stream.puts "APPEND #{params}"
         end
       when :boot_sector
