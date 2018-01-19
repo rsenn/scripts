@@ -24,7 +24,7 @@ to_type = options[:to] ? options[:to].to_sym : nil
 ARGV.each do |arg|
   file_name = arg
   if from_type then
-#	$stderr.puts "BootMenuParser(#{from_type}, #{file_name})"
+	$stderr.puts "BootMenuParser(#{from_type}, #{file_name})"
 	m = BootMenuParser(from_type, file_name)
   else
 	m =  SyslinuxMenu.new file_name
