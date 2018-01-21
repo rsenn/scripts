@@ -44,6 +44,6 @@ class Grub4dosMenu < BootMenu
       when :config_file
         stream.puts "configfile #{data.arg}"
     end
-    stream.puts
+    stream.puts ""
   end
 end

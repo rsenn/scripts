@@ -164,7 +164,7 @@ class SyslinuxMenu < BootMenu
           stream.puts "COM32 #{data.arg}"
         end
     end
-    stream.puts
+    stream.puts ""
   end
 
 
