@@ -34,6 +34,12 @@ attribute() {
   esac
 }
 
+dequote() {
+  T=${*//"&#039;"/"'"}
+  T=${*//"&quote;"/"\""}
+  T=${T//"&amp;"/"&"}
+  echo "$T"
+}
 
 list_genres() {
   http_get "https://bs.to/serie-genre" >"$DATA"
@@ -51,9 +57,9 @@ list_genres() {
       *"<li>"*)
         if [ -n "$GENRE" ]; then
           URL=https://bs.to/$(attribute href "$LINE")
-          TITLE=$(attribute title "$LINE" | url_decode_stream)
+          TITLE=$(attribute title "$LINE")
           [ -n "$TITLE" ] &&   
-          printf "%-15s %-80s %s\n" "$GENRE" "$URL" "$TITLE"
+            printf "%-15s %-80s %s\n" "$GENRE" "$URL" "$(dequote "$TITLE")"
         fi
       ;;
     *) : echo "$LINE" ;;
