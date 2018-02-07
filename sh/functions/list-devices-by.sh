@@ -20,7 +20,7 @@ list-devices-by ()
 						[ -n "$D" -a -d "$D" ] && continue  2
 
             MAGIC=`file -k - <"$D"`
-            echo  "MODE='$MODE' N='$N' F='$F' D='$D'"  1>&2
+            [ "$DEBUG" = true ]  && echo  "MODE='$MODE' N='$N' F='$F' D='$D'"  1>&2
 
 						case "$D" in
 										/dev/dm-*) D="$F" ;;
