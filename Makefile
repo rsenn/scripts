@@ -45,7 +45,7 @@ uninstall:
 slackpkg: 
 slackpkg: $(SCRIPTS) 
 	@set -x; distdir="_inst"; rm -rf $$distdir; mkdir -p $$distdir/$(bindir) $$distdir/root; \
-		$(INSTALL) -m 755 $(SCRIPTS) $$distdir/$(bindir)/; \
+		$(MAKE) install DESTDIR="$$distdir"; \
 		bash cp-bash-scripts.sh $$distdir/root/; \
 		tar -cJf scripts-`date +%Y%m%d`-slackware.txz -C $$distdir .; \
 		rm -rf $$distdir
@@ -74,13 +74,18 @@ PROFILE = \
   profile/ssh-agent-takeover.sh \
   profile/xterm-256color.sh
 
-SCRIPTS = $(AWK_SCRIPTS) $(BASH_SCRIPTS) $(FONTFORGE_SCRIPTS) $(PL_SCRIPTS) $(RB_SCRIPTS) $(SH_SCRIPTS)
-AWK_SCRIPTS = $(wildcard awk/*.awk)
-BASH_SCRIPTS = $(wildcard bash/*.bash)
-FONTFORGE_SCRIPTS = $(wildcard fontforge/*.fontforge)
-PL_SCRIPTS = $(wildcard pl/*.pl)
-PY_SCRIPTS = $(wildcard py/*.py)
-RB_SCRIPTS = $(wildcard rb/*.rb)
+SCRIPTS := $(AWK_SCRIPTS) $(BASH_SCRIPTS) $(FONTFORGE_SCRIPTS) $(PL_SCRIPTS) $(RB_SCRIPTS) $(SH_SCRIPTS)
+AWK_SCRIPTS := $(wildcard awk/*.awk)
+BASH_SCRIPTS := $(wildcard bash/*.bash)
+FONTFORGE_SCRIPTS := $(wildcard fontforge/*.fontforge)
+PL_SCRIPTS := $(wildcard pl/*.pl)
+PY_SCRIPTS := $(wildcard py/*.py)
+RB_SCRIPTS := $(wildcard rb/*.rb)
+#RB_LIBDIR := $(shell ruby -e 'puts $$:' | sort | head -n1)
+RB_LIBDIR := /usr/lib/ruby/site_ruby
+
+$(info RB_LIBDIR: $(RB_LIBDIR))
+RB_LIBFILES := $(shell cd rb/lib && find * -type f)
 
 #SH_SCRIPTS = $(wildcard *.sh)
 SH_SCRIPTS = $(wildcard sh/*.sh)
@@ -112,6 +117,15 @@ install: $(SCRIPTS)
 	$(INSTALL) -m 755 $(PL_SCRIPTS) $(DESTDIR)$(bindir)/
 	$(INSTALL) -m 755 $(PY_SCRIPTS) $(DESTDIR)$(bindir)/
 	$(INSTALL) -m 755 $(RB_SCRIPTS) $(DESTDIR)$(bindir)/
+	for F in $(RB_LIBFILES); do \
+	  D=$$(dirname "$$F"); \
+	  echo "$(INSTALL) -d $(DESTDIR)$(RB_LIBDIR)/$$D"; \
+	  echo "$(INSTALL) -m 644 rb/lib/$$F $(DESTDIR)$(RB_LIBDIR)/$$D"; \
+	  $(INSTALL) -d $(DESTDIR)$(RB_LIBDIR)/$$D; \
+	  $(INSTALL) -m 644 rb/lib/$$F $(DESTDIR)$(RB_LIBDIR)/$$D; \
+	done
+
+
 	@N=30; set -- $(SH_SCRIPTS); while :; do \
 	  echo "$(INSTALL) -m 755 `echo "$$*" | head -n$$N` $(DESTDIR)$(bindir)/"; \
 	  $(INSTALL) -m 755 `echo "$$*" | head -n$$N` $(DESTDIR)$(bindir)/; \

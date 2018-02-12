@@ -46,7 +46,7 @@ while :; do
 [ "$DEBUG" = true ] && echo "DUMP=${DUMP:-false}" 1>&2
 
 if [ "$SOURCE" != true -a "$DUMP" != true ]; then
-	CMD="$CMD | grep -a \"^[^ ]*://\""
+  CMD="$CMD | grep -a -E \"^([^ ]*://|magnet:)\""
 fi
 
 if [ "$DUMP" = true ]; then

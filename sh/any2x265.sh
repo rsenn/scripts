@@ -284,6 +284,7 @@ echo "ABR=$ABR" 1>&2
         ${RATE:+-r $RATE}  \
         -f mp4 \
         -vcodec hevc \
+        -c hevc_nvenc \
         ${PRESET:+-preset "$PRESET"} \
         $EXTRA_ARGS \
         ${ASPECT+-aspect "$ASPECT"} \

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 IFS="
 "
@@ -13,25 +13,26 @@ main()
   esac
   shift
   done
-  set -f
+#  set -f
 
   echo "#EXTM3U"
   for ARG; do
-    duration "$ARG"
+    duration2 "$ARG"
     TITLE=${ARG##*/}
     TITLE=${TITLE%.*}
-    TITLE=${TITLE//"_"/" "}
-    TITLE=${TITLE//" - "/"-"}
+    TITLE=$(echo "$TITLE" |sed "s|_| |g ; s|\s*-\s*|-|g")
+    #TITLE=${TITLE//"_"/" "}
+    #TITLE=${TITLE//" - "/"-"}
     TITLE=$(echo "$TITLE" | ${SED-sed} 's|[^[:alnum:]][0-9]\+p[^[:alnum:]]| |g ;; s|\[| |g ;;  s|\]| |g ;; s|[ _]\+| |g ;')
-    resolution "$ARG"
-    bitrate "$ARG"
-    echo "BITRATE='$BITRATE'" 1>&2
+    resolution2 "$ARG"
+    bitrate2 "$ARG"
+    [ "$DEBUG" = true ] && echo "BITRATE='$BITRATE'" 1>&2
     echo "#EXTINF:$DURATION,${TITLE}${RESOLUTION:+ [$RESOLUTION]}${BITRATE:+ ${BITRATE}kbps}"
     echo "$ARG"
   done
 }
 
-resolution() {
+resolution2() {
  EXPR='/Width/ { N
   s|Width=\([0-9]\+\)| \1|g
   s|Height=\([0-9]\+\)| \1|g
@@ -48,9 +49,9 @@ resolution() {
     *) break ;;
   esac
   done
-  RESOLUTION=$(mminfo "$@"|${SED-sed} -n "$EXPR")
+  RESOLUTION=$(mminfo2 "$@"|${SED-sed} -n "$EXPR")
 }                                                                                                                                                                                                                                                                                    
-minfo()
+minfo2()
 {
     #timeout ${TIMEOUT:-10} \
    (IFS="$IFS"$'\r' ; CMD='mediainfo "$ARG" 2>&1'
@@ -68,11 +69,11 @@ format_args() {
   
 mminfo_filter() { ${SED-sed} "s,\s\+=,=,  ;; s|\([0-9]\) \([0-9]\)|\1\2|g ;; /Duration/ {  s|\([0-9]\) min|\1min|g ;;  s|\([0-9]\) \([hdw]\)|\1\2|g ;; s|\([0-9]\) \(m\?s\)|\1\2|g ;; s|\([0-9]\+\) \([^ ]*b/s\)\$|\1\2| ;; }"; }
 
-mminfo()
+mminfo2()
 {
     ( for ARG in "$@";
     do
-        minfo "$ARG" | ${SED-sed} -n "s|^\([^:]*\):\s*\([^:]*\)\$|${2:+$ARG:}\1=\2|p";
+        minfo2 "$ARG" | ${SED-sed} -n "s|^\([^:]*\):\s*\([^:]*\)\$|${2:+$ARG:}\1=\2|p";
     done | ${SED-sed} \
         's|\s\+=|=|  ;;
 s|\([0-9]\) \([0-9]\)|\1\2|g
@@ -84,7 +85,7 @@ s|\([0-9]\) \([0-9]\)|\1\2|g
 }')
 }
 
-bitrate()
+bitrate2()
 {
   N=1
   A="$1"  
@@ -99,7 +100,7 @@ bitrate()
 
     test -n "$KBPS" && echo "$KBPS" || {
     R=0
-    set -- $(mminfo "$A"  |${SED-sed} -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*[kK]b[p/]s\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$A:|; p }")
+    set -- $(mminfo2 "$A"  |${SED-sed} -n "/[Oo]verall [bB]it [Rr]ate\s*=/ { s,\s*[kK]b[p/]s\$,, ;  s|\([0-9]\)\s\+\([0-9]\)|\1\2|g ; s,\.[0-9]*\$,, ; s,^[^=]*=,,; s|^|$A:|; p }")
 
     R=$*
    R=${R##*:}
@@ -116,7 +117,7 @@ bitrate()
  }
 }
 
-duration()
+duration2()
 {
     IFS=" $IFS";
       CMD='DURATION="${ARG:+$ARG:}$S"'
@@ -128,7 +129,7 @@ duration()
    done
     N="$#";
     A="$1"
-        D=$(mminfo "$A" |${SED-sed} -n 's,Duration=,,p' | head -n1);
+        D=$(mminfo2 "$A" |${SED-sed} -n 's,Duration=,,p' | head -n1);
         set -- $D;
         S=0;
         for PART in "$@";
