@@ -1,3 +1,5 @@
+require 'yaml'
+require 'json'
 require_relative 'enum'
 
 """ BootMenu -------------------------------------------------------------- """
@@ -232,6 +234,20 @@ class BootMenu
     end
   end
 
+  def serialize(format = YAML)
+    obj = self.clone
+    obj.clean
+    if format == JSON then
+      #d = obj.to_json
+#      d = format.generate obj
+      #d = format.pretty_generate obj
+      d = format.dump obj
+    else
+      d = format.dump(obj)
+    end
+    return d
+  end
+
   protected
   
   def output(stream = $stdout, data = nil)
@@ -242,6 +258,12 @@ class BootMenu
     raise "SYSTEM ERROR: method missing"
   end
 
+  def clean()
+    remove_instance_variable :@data
+    remove_instance_variable :@lineno
+    remove_instance_variable :@content
+    remove_instance_variable :@file
+  end
 end
 
 require_relative 'bootmenu/syslinux.rb'
