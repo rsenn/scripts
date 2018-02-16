@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 require 'pp'
 require 'optparse'
-require 'bootmenu.rb'
+require_relative 'lib/bootmenu.rb'
 
 options = Hash.new
 
-OptionParser.new do |parser|
+p = OptionParser.new do |parser|
   parser.banner = "Usage: convert-boot-menu.rb [options] <file(s)...>"
   parser.on("-v", "--[no-]verbose", "Run verbosely") do |v|
     options[:verbose] = v
@@ -16,10 +16,17 @@ OptionParser.new do |parser|
   parser.on("-tTO", "--to=TO", "To type") do |to|
      options[:to] = to
   end
-end.parse!
+end
+
+p.parse!
 
 from_type = options[:from] ? options[:from].to_sym : nil
 to_type = options[:to] ? options[:to].to_sym : nil
+
+
+if ARGV.length == 0 then
+ $stdout.puts p.help
+end
 
 ARGV.each do |arg|
   file_name = arg
@@ -38,7 +45,7 @@ ARGV.each do |arg|
   end
   m.read
   to = m.dup(to_type)
-  pp m.class
-  pp to.class
+  pp m.class, $stderr
+  pp to.class, $stderr
   to.write($stdout)
-end
+end 
