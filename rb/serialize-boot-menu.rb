@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+
+require 'yaml'
 require 'pp'
 require 'optparse'
 require_relative 'lib/bootmenu.rb'
@@ -6,7 +8,7 @@ require_relative 'lib/bootmenu.rb'
 options = Hash.new
 
 p = OptionParser.new do |parser|
-  parser.banner = "Usage: convert-boot-menu.rb [options] <file(s)...>"
+  parser.banner = "Usage: serialize-boot-menu.rb [options] <file(s)...>"
   parser.on("-v", "--[no-]verbose", "Run verbosely") do |v|
     options[:verbose] = v
   end
@@ -44,8 +46,9 @@ ARGV.each do |arg|
 	to_type = :grub4dos
   end
   m.read
-  to = m.dup(to_type)
-  pp m.class, $stderr
-  pp to.class, $stderr
-  to.write($stdout)
+  $stdout.puts m.serialize(YAML)
+#  to = m.dup(to_type)
+#  pp m.class, $stderr
+#  pp to.class, $stderr
+#  to.write($stdout)
 end 

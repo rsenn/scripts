@@ -98,7 +98,7 @@ FN_LINKS = \
 CMD_LINKS = git-pull.sh git-push.sh git-commit.sh git-fetch.sh
 #SH_SCRIPTS = $(shell ls -t -- *.sh)
 
-install: $(SCRIPTS)
+install: all $(SCRIPTS)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(RM) $(DESTDIR)$(bindir)/bash_profile.sh
 	$(RM) $(DESTDIR)$(bindir)/bash_functions.sh
