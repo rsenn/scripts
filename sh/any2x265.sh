@@ -284,13 +284,13 @@ echo "ABR=$ABR" 1>&2
         ${RATE:+-r $RATE}  \
         -f mp4 \
         -vcodec hevc \
-        -c hevc_nvenc \
+        -c libx265 \
         ${PRESET:+-preset "$PRESET"} \
         $EXTRA_ARGS \
         ${ASPECT+-aspect "$ASPECT"} \
         ${SIZE+-s "$SIZE"}  \
         $BITRATE_ARG \
-        -acodec aac \
+        -acodec ${ACODEC:-aac} \
         -ab $(format_num "$ABR") \
         -ar "$AR" \
         -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || {  "$@" || exit $?; }; } && 
