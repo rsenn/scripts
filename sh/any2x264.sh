@@ -289,13 +289,13 @@ echo "ABR=$ABR" 1>&2
         $A \
         ${RATE:+-r $RATE}  \
         -f mp4 \
-        -vcodec libx264 \
+        -vcodec ${VCODEC:-libx264} \
         ${PRESET:+-preset "$PRESET"} \
         $EXTRA_ARGS \
         ${ASPECT+-aspect "$ASPECT"} \
         ${SIZE+-s "$SIZE"}  \
         $([ "$NORATE" != true ] && list $BITRATE_ARG || list -qscale 0) \
-        -acodec aac \
+        -acodec ${ACODEC:-aac} \
         $(: [ "$NORATE" != true ] && list -ab $(format_num "$ABR")) \
         -ar "$AR" \
         -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || {  "$@" || exit $?; }; } && 
