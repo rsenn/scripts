@@ -1,8 +1,17 @@
-SYSTEM=`cygpath -am /`; SYSTEM=${SYSTEM##*/}
+#SYSTEM=`cygpath -am /`; SYSTEM=${SYSTEM##*/}
+
+case `uname -o` in
+  *Linux*) ;;
+*MSYS*|*Msys*|*MSys*|*msys*) PATHTOOL="cygpath
+-am" ;;
+  *) ;;
+esac
+: ${PATHTOOL=realpath}
+
 homepath() {
   case "$PWD" in
     $HOME*) echo "~${PWD#$HOME}" ;;
-    *) cygpath -am "$PWD" ;;
+    *) $PATHTOOL "$PWD" ;;
   esac
 }
 chr2dec() { 
