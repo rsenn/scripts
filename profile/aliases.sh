@@ -17,3 +17,5 @@ alias lynx='lynx -accept_all_cookies -cookies'
 
 alias tar='tar -m --keep-directory-symlink'
 alias cols='column -c $(tput cols)'
+
+alias aria2='aria2c --file-allocation=none'
