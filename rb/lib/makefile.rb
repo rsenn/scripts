@@ -63,8 +63,8 @@ class MakeFile < BuildFile
       srcs = r.sources[t]
       objs = srcs.map { |src| 
         src = src.gsub(/(.*)\.[^.]*$/, "$(OBJDIR)/\\1.o") 
-      $stderr.puts "src = #{src}"
       }
+      $stderr.puts "objs = #{objs}"
       #pp objs
       ccvar = srcs.any? { |s| s.match /\.c[xp][xp]$/ } ? "CXX" : "CC"
       r.targets[target.escape] = MakeFileTarget.new("$(#{ccvar}) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBS)", objs)
