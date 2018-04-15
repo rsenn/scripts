@@ -1,8 +1,12 @@
 index-dir () 
 { 
     [ -z "$*" ] && set -- .;
+    unset OPTS
+    NAME=files
     while :; do
         case "$1" in 
+            -l) pushv OPTS "-l"; NAME="$NAME-l"; shift ;;
+            -n|--name) NAME="$2"; shift 2 ;;
             -x | --debug)
                 DEBUG=true;
                 shift
@@ -34,8 +38,8 @@ index-dir ()
             fi;
         fi;
         [ "$DEBUG" = true ] && echo "$ARG:+ $CMD" 1>&9;
-        eval "$CMD" ) 2> /dev/null > "$TEMP";
-        ( install -m 644 "$TEMP" "$PWD/files.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/files.list";
-        wc -l "$PWD/files.list" 1>&2 );
+        eval "$CMD $OPTS" ) 2> /dev/null > "$TEMP";
+        ( install -m 644 "$TEMP" "$PWD/$NAME.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/$NAME.list";
+        wc -l "$PWD/$NAME.list" 1>&2 );
     done )
 }
