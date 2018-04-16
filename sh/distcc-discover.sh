@@ -29,50 +29,42 @@ SCAN_PING='-P0'      # no ping-check
 #SCAN_RESOLVE='-n'        # don't do any reverse lookupts
 #SCAN_LOG='--log-errors'  # log error messages
 
+exec 9>&2
+exec 2>&1
+
 # Do the scan
-time { 
+{ 
 #  PS4="$MY_NAME: executing "; set -x
   
  set --  nmap $SCAN_TYPE $SCAN_PING $SCAN_RESOLVE $SCAN_OUTFMT $SCAN_LOG --open \
        $SCAN_PORTS $SCAN_TARGETS 
 
- echo + "$@" 1>&2
- "$@"
-} | {
-  DISTCC_HOSTS=
-  ${SED-sed} -u \
-      -e 's,\s*Host:\s\+\([.0-9]\+\)\s\+(\([^)]*\))\s*,\1\t\2\t,' \
-      -e 's,\s*Status:\s\+\([^\s]\+\)\s*,\\t,' \
-      -e 's,\s*Ports:\s\+\(.*\)$,\t\1\t,' | 
-  while IFS=',	,
-'; read ip hostname ports
-  do
-    case $ip in
-      \#*) 
-        echo $ip $hostname $ports 1>&2 
-        continue 
-      ;;
-    esac
+  [ -n "$DEBUG" ] && echo + "$@" 1>&9
+ "$@" 
+} >nmap-output.log 
 
-    set -- `echo "$ports" | ${SED-sed} 's|,\s*|\n|g' | ${SED-sed} 's|/*$||'`
-    
-    while test "$#" -gt 0; do
-      if test -n "$hostname"; then
-        HOST="${hostname%.$MY_DOMAIN}"
-      else
-        HOST="$ip"
-      fi
 
-      if test "$1" = "$DEFAULT_PORT"; then
-        PORT=
-      else
-        PORT="$1"
-      fi
-
-      DISTCC_HOSTS="${DISTCC_HOSTS:+$DISTCC_HOSTS }$HOST${PORT:+":$PORT"}"
-    done
-  done
-
-  echo "DISTCC_HOSTS=\"$DISTCC_HOSTS\"" | tee distcc.hosts
+pushv () 
+{ 
+    eval "shift;$1=\"\${$1:+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
 }
 
+{
+  DISTCC_HOSTS=
+  IFS=$' \t\r\n'
+
+  while read -r LINE; do
+     case "$LINE" in
+       *"for "*) ip=${LINE##*"for "} ;;
+       *[0-9]/*open*) port=${LINE%%/*} 
+         ip=${ip#[!0-9.]}
+         ip=${ip#[!0-9.]}
+
+     pushv DISTCC_HOSTS $ip:$port
+         ;;
+     esac
+   done <nmap-output.log
+
+
+  echo "DISTCC_HOSTS=\"$DISTCC_HOSTS\"" | tee distcc.hosts
+} 
