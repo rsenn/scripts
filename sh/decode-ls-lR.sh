@@ -34,9 +34,18 @@ usage() {
     set -- $LINE
     case "$LINE" in
             "") continue ;;
+      "Directory listing of "*)
+        DIR="${LINE##"Directory listing of "}"
+        DIR=${DIR%/}
+        echo "$DIR/" 
+        #echo "New directory $DIR" 1>&2
+        continue
+        ;;
       *:)
         DIR="${LINE%:}"
+        DIR=${DIR%/}
         #echo "New directory $DIR" 1>&2
+        echo "$DIR/" 
         continue
         ;;
       "file "* | "dir "* | "link "*)
@@ -55,6 +64,12 @@ usage() {
          shift 8
          FILE="$*"
         ;;
+      *[0-9][0-9]"]  "*)
+         MODE="$1" LINKS="$2" USER="$3" GROUP="$4" SIZE="$5" TIME="$6"
+         shift 6
+         FILE="${*##*\] }"
+        ;;
+
       *\ *\ *\ *\ *\ [0-9]*\ *)
          MODE="$1" LINKS="$2" USER="$3" GROUP="$4" SIZE="$5" TIME="$6"
          shift 6
@@ -73,6 +88,10 @@ usage() {
         esac
    ;;
     esac
+    case "$FILE" in
+      "[ "*[0-9][0-9]"] "*) FILE=${FILE#*"[ "*"] "} ;;
+   esac
+   [ "$FILE" = . -o "$FILE" = .. ] && continue
     P="${PREFIX:+$PREFIX/}${DIR:+$DIR/}$FILE"
 	  if [ "$LIST" = true ]; then
 	  printf "%-11s %-2s %-7s %-10s %6s ${DATE:+%6s }%6s %s\n" "$MODE" "$LINKS" "$USER" "$GROUP" "$SIZE" ${DATE:+"$DATE"} "$TIME"  "$P"
