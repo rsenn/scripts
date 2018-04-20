@@ -87,11 +87,11 @@ list-7z() {
 								INNAME=${1%.*}.${INEXT}
 								NOA=""
         }
-				
-        INPUT="${INPUT:+$INPUT | }${_7Z} x${INPUT:+ -si\"${INNAME}\"} -so${NOA- \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T##*/}\"";  CMD="${_7Z} l -slt $OPTS"
+			
+        INPUT="${INPUT:+$INPUT | }${_7Z} x${INPUT:+ -si\"$INNAME\"} -so${NOA:- -si\"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${T##*/}\"";  CMD="${_7Z} l -slt $OPTS"
         ;;
       *.deb) CMD="HANDLER='7z x -si\"\$N\" -so | 7z l -slt -si\"x.tar\"' decode-ar" ;;
-      *.tar.*) INPUT="${INPUT:+$INPUT | }${_7Z} x -so${ARCHIVE+ \"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${B%.*}\"";  CMD="${_7Z} l -slt $OPTS" ;;
+      *.tar.*) INPUT="${INPUT:+$INPUT | }${_7Z} x -so${ARCHIVE+ ${INPUT:+ -si}\"$ARCHIVE\"}"; OPTS="${OPTS:+$OPTS }-si\"${B%.*}\"";  CMD="${_7Z} l -slt $OPTS" ;;
       *) CMD="${_7Z} l -slt $OPTS ${ARCHIVE+\"$ARCHIVE\"}" ;;
     esac
     if [ -n "$INPUT" ]; then
