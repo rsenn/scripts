@@ -19,3 +19,6 @@ alias tar='tar -m --keep-directory-symlink'
 alias cols='column -c $(tput cols)'
 
 alias aria2='aria2c --file-allocation=none'
+
+alias grpe=grep
+alias gpre=grep
