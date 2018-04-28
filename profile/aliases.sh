@@ -22,3 +22,10 @@ alias aria2='aria2c --file-allocation=none'
 
 alias grpe=grep
 alias gpre=grep
+alias grep='grep --line-buffered --color=auto'
+alias ls='ls --color=auto'
+alias sed='sed -u'
+alias aria2c='aria2c --file-allocation=none'
+alias rsync='rsync --times --noatime'
+alias rsync='rsync --times --noatime'
+alias xclip='xclip -selection clipboard'
