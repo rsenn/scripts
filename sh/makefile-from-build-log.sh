@@ -3,6 +3,10 @@
 TS='	'
 NL='
 '
+vget() {
+  (IFS=" $NL"; set -- $(var_get "$1" )
+  echo "$*")
+}
 
 makefile_from_build_log() {                                                                                           
                                                                                                                       
@@ -51,6 +55,10 @@ $OUT"
  echo "$OUT"                                                                                                          
 }                                                                         
 
+addline() 
+{ 
+    eval "shift;$1=\"\${$1+\"\$$1\${NL}\"}\$*\""
+}
 pushv() 
 { 
     eval "shift;$1=\"\${$1+\"\$$1\${IFS%\"\${IFS#?}\"}\"}\$*\""
