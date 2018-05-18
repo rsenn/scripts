@@ -4,7 +4,7 @@ IFS="
 "
 ws=" "
 cr=""
-ts="	"
+ts="  "
 nl="
 "
 vs="$nl"
@@ -23,8 +23,8 @@ pushv() {
 }
 
 addpath() {
-	cmd="${1}v"; N="$2"; shift 2; A=$*; A=${A//"\\"/"/"}
-	$cmd "$N" "$A"
+  cmd="${1}v"; N="$2"; shift 2; A=$*; A=${A//"\\"/"/"}
+  $cmd "$N" "$A"
 }
 
 unshiftv() {
@@ -49,17 +49,17 @@ explode() {
 toupper() { 
  (C='tr "[[:lower:]]" "[[:upper:]]"'
   [ $# -gt 0 ] && C="$C <<<\"\$*\""
-	eval "$C")
+  eval "$C")
 }
 
 str_quote() { 
   case "$1" in 
-		*["$cr$nl$ts"]*) echo "\$'`str_escape "$1"`'" 
+    *["$cr$nl$ts"]*) echo "\$'`str_escape "$1"`'" 
                 ;; 
-	         	*"$sq"*) echo "\"`str_escape "$1"`\""  ;;
+             *"$sq"*) echo "\"`str_escape "$1"`\""  ;;
                   
-						      *) echo "'$1'" ;;
-	esac
+                  *) echo "'$1'" ;;
+  esac
 }
 
 str_escape() { 
@@ -69,7 +69,7 @@ str_escape() {
     *$sq*) S=${S//"$bs"/"$bs$BS"}; S=${S//"$dq"/"$bs$dq"}; S=${S//"\$"/"$bs\$"}; S=${S//"$bq"/"$bs$bq"}  ;;
                   
   esac
-	echo "$S")
+  echo "$S")
 }
 
 var_dump() { 
@@ -86,13 +86,13 @@ fi
 
 out_var() {
  (O= cn=
-  [ $# -gt 1 ] && cn='$(toupper "$vn") = '
-  for vn; do V=$(getv "$vn" " | ")
-		C="O=\"\${O+\$O\$ovs}${cn}\${V}\""
-		eval "$C"
-	done
-	echo "$O"
-	var_dump O 1>&2 )
+  [ $# -gt 1 ] && cn='$(toupper "$vn")=\"'
+  for vn; do V=$(getv "$vn" ";")
+    C="O=\"\${O+\$O\$ovs}${cn}\${V}\\\"\""
+    eval "$C"
+  done
+  echo "$O"
+  var_s=" " var_dump O 1>&2 )
 }
 
 
@@ -109,68 +109,67 @@ while read -r line; do
   esac || exit $?
 
   if [ $# -le 1 ]; then
-		continue
-	fi
+    continue
+  fi
 
   CMD="$1"
   shift
   unset $myvars
 
-	mode="preproc${nl}compile${nl}assemble${nl}link"
+  mode="preproc${nl}compile${nl}assemble${nl}link"
   pos=0
 
   while [ $# -gt 0 ]; do
-		pos=`expr $pos + 1`
-		S=1
+    pos=`expr $pos + 1`
+    S=1
     case "$1" in
                  -I  | /I ) addpath unshift includes    "$2"         ; S=2 ;;
-								 -I* | /I*) addpath unshift includes    "${1#?I}"          ;;
+                 -I* | /I*) addpath unshift includes    "${1#?I}"          ;;
                 -idirafter) addpath push    includes    "$2"         ; S=2 ;;
                   -isystem) addpath unshift sysincludes "$2"         ; S=2 ;;
 
                  -D  | /D ) addpath unshift defines     "$2"         ; S=2 ;;
-								 -D* | /D*) addpath unshift defines     "${1#?D}"          ;;
+                 -D* | /D*) addpath unshift defines     "${1#?D}"          ;;
 
             *.[Ll][Ii][Bb]) addpath push    libs        "$1"               ;;
                        -l*) pushv           libs        "$1"               ;;
 
-			                 -mf) setv            depfile     "$2"         ; S=2 ;;
-			                -mf*) setv            depfile     "${1#?mf}"         ;;
-                       -mt) setv            deptarget   "$2"         ; S=2 ;;
-                      -mt*) setv            deptarget   "${1#?mt}"         ;;
+                       -MF) setv            depfile     "$2"         ; S=2 ;;
+                      -MF*) setv            depfile     "${1#?MF}"         ;;
+                       -MT) setv            deptarget   "$2"         ; S=2 ;;
+                      -MT*) setv            deptarget   "${1#?MT}"         ;;
 
                    -o | /o) setv            outfile     "$2"         ; S=2 ;;
                  -o* | /o*) setv            outfile     "${1#?o]}"         ;;
                    
-								   -E | /E) mode="preproc"                                 ;;
-								   -c | /c) mode="preproc${nl}compile${nl}assemble"        ;;
+                   -E | /E) mode="preproc"                                 ;;
+                   -c | /c) mode="preproc${nl}compile${nl}assemble"        ;;
                    -S | /S) mode="preproc${nl}compile"                     ;;
                    
-									 -* | /*) pushv opts_pos "$pos"
+                   -* | /*) pushv opts_pos "$pos"
                             case "$1" in
                               *[\\/]*) addpath push opts "$1" ;;
                               *) pushv opts "$1" ;;
                             esac ;;
                             
-									       *) pushv args_pos "$pos"
+                         *) pushv args_pos "$pos"
                             case "$1" in
                               *[\\/]*) addpath push args "$1" ;;
                               *) pushv args "$1" ;;
                             esac ;;
                   esac
-		[ $((S)) -eq 1 ] && unset S
+    [ $((S)) -eq 1 ] && unset S
     shift $S
   done
   
   unset output 
-#	output="cmd = $cmd"
+#  output="cmd = $cmd"
  
 # if ! (test -n "$CMD" && type "$CMD" >/dev/null 2>/dev/null); then
 #    exit 1
 # fi
 # 
-	 pushv output "
-        CMD = $CMD$(ovs="${nl}${ts}" out_var $myvars)"
+   pushv output "CMD=\"$CMD\"$(ovs=" " out_var $myvars)"
 
 #    for arg in $args; do test -f "$arg" || exit 1; done   
 
