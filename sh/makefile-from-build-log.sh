@@ -32,6 +32,7 @@ makefile_from_build_log() {
     addline OUT                                                                                                       
                                                                                                                       
    for V in $VARS; do                                                                                                 
+     [ "$V" = "CMD" ] && continue
      eval "test \"\$PREV_$V\" = \"\$$V\" && _$V=\"\$$V\""                                                             
      pushv GLOBALS _$V                                                                                                
    done                                                                                                               
