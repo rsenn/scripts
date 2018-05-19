@@ -25,14 +25,25 @@ makefile_from_build_log() {
       eval "$VAR='$(vget "$VAR")'"                                                                                    
       pushv VARS "${VAR%%=*}"                                                                                         
     done                                                                                                              
+
+    if [ -n "$DEFINES" ]; then
+      DEFS=$(addprefix -D $DEFINES)
+      pushv VARS DEFS
+  fi
+    if [ -n "$SYSINCLUDES" -o -n "$INCLUDES" ]; then
+      CPPFLAGS=$(addprefix "-isystem " $SYSINCLUDES)
+      CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }$(addprefix -I $INCLUDES)"
+      pushv VARS CPPFLAGS
+    fi
+                                                                                                                      
                                                                                                                       
     #echo $VARS 1>&2                                                                                                  
     addline OUT "$OUTFILE": $ARGS                                                                                     
-    addline OUT "${TS}${CMD}" $(addprefix -D $DEFINES) $(addprefix "-isystem " $SYSINCLUDES) $(addprefix -I $INCLUDES) $OPTS ${OUTFILE:+-o \$@} \$^                                                                                         
+    addline OUT "${TS}${CMD}" $DEFS  $CPPFLAGS $OPTS ${OUTFILE:+-o \$@} \$^                                                                                         
     addline OUT                                                                                                       
                                                                                                                       
    for V in $VARS; do                                                                                                 
-     [ "$V" = "CMD" ] && continue
+     [ "$V" = "CMD" -o "$V" = OPTS ] && continue
      eval "test \"\$PREV_$V\" = \"\$$V\" && _$V=\"\$$V\""                                                             
      pushv GLOBALS _$V                                                                                                
    done                                                                                                               
@@ -45,7 +56,7 @@ makefile_from_build_log() {
  for G in $GLOBALS; do                                                                                                
    VALUE=$(var_get "$G")                                                                                              
    VALUE=${VALUE//"$NL"/" "}                                                                                          
-   OUT=${OUT//"$VALUE"/"\$${G#_}"}                                                                                    
+   OUT=${OUT//"$VALUE"/"\$(${G#_})"}                                                                                    
                                                                                                                       
    OUT="${G#_} = $VALUE                                                                                               
 $OUT"                                                                                                                 

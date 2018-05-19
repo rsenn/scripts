@@ -88,6 +88,7 @@ out_var() {
  (O= cn=
   [ $# -gt 1 ] && cn='$(toupper "$vn")=\"'
   for vn; do V=$(getv "$vn" ";")
+    test -n "$V" || continue
     C="O=\"\${O+\$O\$ovs}${cn}\${V}\\\"\""
     eval "$C"
   done
