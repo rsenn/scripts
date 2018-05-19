@@ -4,7 +4,7 @@ TS='	'
 NL='
 '
 vget() {
-  (IFS=" $NL"; set -- $(var_get "$1" )
+  (IFS=" ;$NL"; set -- $(var_get "$1" )
   echo "$*")
 }
 
@@ -28,8 +28,7 @@ makefile_from_build_log() {
                                                                                                                       
     #echo $VARS 1>&2                                                                                                  
     addline OUT "$OUTFILE": $ARGS                                                                                     
-    addline OUT "${TS}${CMD}" $(addprefix -D $DEFINES) $(addprefix "-isystem " $SYSINCLUDES) $(addprefix -I $INCLUDES)
- $OPTS ${OUTFILE:+-o \$@} \$^                                                                                         
+    addline OUT "${TS}${CMD}" $(addprefix -D $DEFINES) $(addprefix "-isystem " $SYSINCLUDES) $(addprefix -I $INCLUDES) $OPTS ${OUTFILE:+-o \$@} \$^                                                                                         
     addline OUT                                                                                                       
                                                                                                                       
    for V in $VARS; do                                                                                                 
