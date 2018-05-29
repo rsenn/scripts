@@ -10,8 +10,8 @@ require 'pp'
 
 require_relative 'lib/hash_array.rb'
 require_relative 'lib/enum.rb'
-require_relative 'lib/makefile.rb'
-require_relative 'lib/jucerfile.rb'
+require_relative 'lib/buildfile/makefile.rb'
+require_relative 'lib/buildfile/jucerfile.rb'
 
 class Array
   def push_unique(*args)
