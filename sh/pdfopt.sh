@@ -59,7 +59,7 @@ pdfopt() {
 
   CMD='([ "$DEBUG" = true ] && set -x; '$CMD')'
 
-  CMD="$CMD; $SHOW_RATIO"
+  CMD="$CMD && show_ratio"
   IN="$1"
   NAME=
   if [ -n "$2" ]; then
@@ -67,7 +67,7 @@ pdfopt() {
   else
     if [ "$INPLACE" = true ]; then
       OUT=`mktemp`
-      CMD="(set -e; $CMD)"' && mv -f -- "$OUT" "$IN"'
+      CMD=$CMD' && mv -f -- "$OUT" "$IN"'
       NAME="$IN"
     else
       OUT="${IN%.*}.out.${IN##*.}"
@@ -81,4 +81,7 @@ pdfopt() {
   eval "$CMD"
 }
 
-pdfopt "$@"
+case "$0" in
+  -*) break ;;
+  *) pdfopt "$@" ;;
+esac
