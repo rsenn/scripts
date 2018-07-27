@@ -97,14 +97,15 @@ pdfopt() {
   fi
 
   CMD=
+  TEMP=
   method_cmd "$METHOD"
   : ${CMD:='"$GS_EXECUTABLE" -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$OUT" "$IN"'}
 
   CMD='([ "$DEBUG" = true ] && set -x; exec '$CMD')'
 
   [ "$SHOW_RATIO" = true ] && 
-    CMD="$CMD; R=\$?; show_ratio; echo \"\${NAME:+\$NAME: }\$RATIO\"; return \$R" ||
-    CMD="$CMD; R=\$?; show_ratio; return \$R"
+    CMD="$CMD; R=\$?; show_ratio; echo \"\${NAME:+\$NAME: }\$RATIO\"" ||
+    CMD="$CMD; R=\$?; show_ratio"
   IN="$1" 
 
   NAME=
@@ -112,8 +113,9 @@ pdfopt() {
     OUT="$2"
   else
     if [ "$INPLACE" = true ]; then
-      OUT=`mktemp XXXXXX.pdf`
-      CMD=${CMD%"; return"*}'; [ $R = 0 ] && [ ${RATIO%%.*} -lt 100 ] && mv -f -- "$OUT" "$IN"; return $R'
+      TEMP=`mktemp XXXXXX.pdf`
+      OUT=$TEMP
+      CMD=${CMD%"; return"*}'; [ $R = 0 ] && [ ${RATIO%%.*} -lt 100 ] && mv -f -- "$OUT" "$IN"'
       NAME="$IN"
     else
       OUT="${IN%.*}.out.${IN##*.}"
@@ -132,6 +134,8 @@ pdfopt() {
 
 
   eval "$CMD"
+  [ -n "$TEMP" -a -e "$TEMP" ] && rm -f "$TEMP"
+  return $R
 }
 
 case "$0" in
