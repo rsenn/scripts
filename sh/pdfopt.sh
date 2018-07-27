@@ -31,6 +31,8 @@ pdfopt() {
       pdftk) CMD='pdftk "$IN" output "$OUT" compress' ;;
       ps2pdf) CMD='ps2pdf -dPDFSETTINGS=/ebook "$IN" "$OUT"' ;;
       *magick*) CMD='convert -density 200x200 -quality 60 -compress jpeg "$IN" "$OUT"' ;;
+      qpdf) CMD='qpdf --stream-data=compress "$IN" "$OUT"' ;;
+      k2pdfopt) CMD='k2pdfopt "$IN" -o "$OUT" -ocr -ocrlang eng -dev kpw -bp -f2p -1' ;;
     esac
   }
 
