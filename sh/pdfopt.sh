@@ -79,7 +79,11 @@ pdfopt() {
   [ "$N_METHODS" -gt 0 ] || METHODS=gs
 
   if [ $# -lt 1 ]; then
-    echo "Usage: `basename $0` [OPTIONS] input.pdf [output.pdf]" 1>&2
+    echo "Usage: `basename $0` [OPTIONS] input.pdf [output.pdf]
+ -M, --methods METHODS    Choose methods [$(implode , $ALL_METHODS)]   
+ -r, --show-ratio         Show compression ratio
+     
+" 1>&2
     exit 1
   fi
 
@@ -90,7 +94,7 @@ pdfopt() {
     [ "$SHOW_RATIO" = true ] && LOOP_CMD=$LOOP_CMD'; echo "${NAME:+$NAME: }$RATIO"'
     LOOP_CMD='R=127; '$LOOP_CMD'; [ $R = 0 ] || break'
     LOOP_CMD='for ARG; do '$LOOP_CMD'; done'
-    echo "LOOP_CMD='$LOOP_CMD'" 1>&2
+    [ "$DEBUG" = true ] && echo "LOOP_CMD='$LOOP_CMD'" 1>&2
       eval "$LOOP_CMD"
     
       exit $?
