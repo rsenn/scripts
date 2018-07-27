@@ -32,17 +32,17 @@ pdfopt() {
   GS_EXECUTABLE=gs
 
   OPTIONS="-dSAFER -dDELAYSAFER"
-  while true
-  do
+  while [ $# -gt 0 ]; do
     case "$1" in
-      -?*) OPTIONS="$OPTIONS $1" ;;
+      -x | -d | --debug) DEBUG=true ;;
       -i) INPLACE=true ;;
+      -?*) OPTIONS="$OPTIONS $1" ;;
       *)  break ;;
     esac
     shift
   done
 
-  if [ $# -ne 2 ]; then
+  if [ $# -lt 1 ]; then
     echo "Usage: `basename $0` [OPTIONS] input.pdf [output.pdf]" 1>&2
     exit 1
   fi
@@ -57,21 +57,27 @@ pdfopt() {
 
   CMD='"$GS_EXECUTABLE" -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$IN" "$OUT"'
 
+  CMD='([ "$DEBUG" = true ] && set -x; '$CMD')'
+
   CMD="$CMD; $SHOW_RATIO"
   IN="$1"
+  NAME=
   if [ -n "$2" ]; then
     OUT="$2"
   else
     if [ "$INPLACE" = true ]; then
       OUT=`mktemp`
       CMD="(set -e; $CMD)"' && mv -f -- "$OUT" "$IN"'
+      NAME="$IN"
     else
       OUT="${IN%.*}.out.${IN##*.}"
     fi
   fi
-  a
+  : ${NAME:="$OUT"}
 
   #exec "$GS_EXECUTABLE" -q -dNODISPLAY $OPTIONS -- "$1" "$2"
+
+
   eval "$CMD"
 }
 
