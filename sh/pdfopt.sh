@@ -86,7 +86,7 @@ pdfopt() {
   if [ -z "$LOOP_CMD" ]; then
       LOOP_CMD='pdfopt "$ARG"; E=$?; R=$((R & E))'
     [ "$SHOW_RATIO" = true ] && LOOP_CMD='SHOW_RATIO= '$LOOP_CMD
-    [ $N_METHODS -gt 1 ] && LOOP_CMD='for METHOD in $METHODS; do METHOD=$METHOD '$LOOP_CMD'; done; show_ratio'
+    [ $N_METHODS -ge 1 ] && LOOP_CMD='for METHOD in $METHODS; do METHOD=$METHOD '$LOOP_CMD'; done; show_ratio'
     [ "$SHOW_RATIO" = true ] && LOOP_CMD=$LOOP_CMD'; echo "${NAME:+$NAME: }$RATIO"'
     LOOP_CMD='R=127; '$LOOP_CMD'; [ $R = 0 ] || break'
     LOOP_CMD='for ARG; do '$LOOP_CMD'; done'
