@@ -18,7 +18,7 @@ pdfopt() {
   show_ratio() {
     IN_SIZE=`filesize "$IN"`
     OUT_SIZE=`filesize "$OUT"`
-    RATIO=`echo "$OUT_SIZE * 100 / $IN_SIZE" | bc -l`
+    RATIO=`echo "$OUT_SIZE * 100 / $IN_SIZE" | tee /dev/stderr| bc -l`
     echo "${NAME:+$NAME: }$RATIO%"
   }
 
