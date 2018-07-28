@@ -38,7 +38,7 @@ pdfopt() {
       gs) CMD='"$GS_EXECUTABLE" -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite -dCompatibilityLevel=1.3 -dPDFSETTINGS=/screen -dEmbedAllFonts=true -dSubsetFonts=true -dColorImageDownsampleType=/Bicubic -dColorImageResolution=72 -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=72 -dMonoImageDownsampleType=/Bicubic -dMonoImageResolution=72 -sOutputFile="$OUT" "$IN"' ;;
       pdftk) CMD='pdftk "$IN" output "$OUT" compress' ;;
       ps2pdf) CMD='ps2pdf -dPDFSETTINGS=/ebook "$IN" "$OUT"' ;;
-      *magick) CMD='convert -density 300x300 -quality 95 -compress jpeg "$IN" "$OUT"' ;;
+      graphicsmagick) CMD='gm convert -density 300x300 -quality 95 -compress jpeg "$IN" "$OUT"' ;;
       qpdf) CMD='qpdf --stream-data=compress "$IN" "$OUT"' ;;
       #k2pdfopt) CMD='k2pdfopt "$IN" -o "$OUT" -ocr -ocrlang eng -dev kpw -bp -x' ;;
       pdftocairo) CMD='pdftocairo "$IN" -pdf "$OUT"' ;;
