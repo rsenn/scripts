@@ -9,6 +9,17 @@ str_toupper ()
     echo "$@" | tr "[[:lower:]]" "[[:upper:]]"
 }
 
+type cygpath >/dev/null 2>/dev/null || cygpath() {
+
+  while :; do 
+    case "$1" in
+      -*) shift ;;
+      *) break ;;
+    esac
+  done
+  for ARG; do echo "$ARG"; done
+}
+
 
 find_program() {
   V=$1
@@ -56,6 +67,7 @@ exec_cmd() {
  (echo -n "$VAR "
   for X in  "$@"; do echo -n "'$X' "; done) 1>&2
   eval "env - PATH=\"\$PATH\" \"\${$VAR}\" \"\$@\" 2>&1"
+  eval "\"\${$VAR}\" \"\$@\" 2>&1"
   R=$?
   echo " (R=$R)" 1>&2)  1>&10
 }
@@ -64,6 +76,8 @@ eagle_print_to_pdf() {
 
   INPUT=$1
   OUTPUT=${2:-${1%.*}.pdf}
+
+  [ -n "$OUTDIR" -a -d "$OUTDIR" ] && OUTPUT=$OUTDIR/$(basename "$OUTPUT")
   rm -f -- "$OUTPUT"
   OPTIONS=$3
   : ${SCALE:=1.0}
@@ -75,7 +89,10 @@ eagle_print_to_pdf() {
  echo 1>&2
 
   case $INPUT in
-     *.brd)   EAGLE_CMD="DISPLAY -bKeepout -tKeepout -bRestrict -tRestrict -bTest -tTest -bOrigins -tOrigins -bStop -tStop -bCream -tCream -Drills -Holes -Document -Reference bValues tValues; $EAGLE_CMD" ;;
+     *.brd)   
+       EAGLE_CMD="DISPLAY -bKeepout -tKeepout -bRestrict -tRestrict -bTest -tTest -bOrigins -tOrigins -bStop -tStop -bCream -tCream -Drills -Holes -Document -Reference bValues tValues; $EAGLE_CMD" 
+       #EAGLE_CMD="RATSNEST;  $EAGLE_CMD" 
+       ;;
    esac
   EAGLE_CMDS=${EAGLE_CMDS:+"$EAGLE_CMDS; "}$EAGLE_CMD
 
@@ -120,14 +137,23 @@ eagle_print() {
   find_program GHOSTSCRIPT "gs" || error "ghostscript not found"
   find_program PDFTOPS "pdftops" || error "pdftops not found"
 
+  while :; do 
+    case "$1" in
+      -d=*|--destdir=*) OUTDIR="${1#*=}"; shift ;;
+      -d|--destdir) OUTDIR="$2"; shift 2 ;;
+      *) break ;;
+    esac
+  done
+  [ -n "$OUTDIR" -a -d "$OUTDIR" ] && echo "OUTDIR is '$OUTDIR'" 1>&2
+
   for ARG; do
 
-   (SCH=${ARG%.*}.sch
-    if [ ! -e "${SCH}.sch" ]; then
+   (SCH=${ARG%.*}
+    if [ ! -e "${SCH}" ]; then
       SCH=${SCH%-[[:lower:]]*}.sch
     fi
     BRD=${ARG%.*}.brd
-    OUT=doc/pdf/$(basename "${BRD%.*}").pdf
+    OUT=${OUTDIR:-doc/pdf}/$(basename "${BRD%.*}").pdf
      trap '${RMTEMP} -f "${BRD%.*}"-{schematic,board,board-mirrored}.{pdf,eps}' EXIT
 
   #  ORIENTATION="portrait" PAPER="a4" SCALE=1.0 eagle_print_to_pdf "$SCH" "${SCH%.*}-schematic.pdf"

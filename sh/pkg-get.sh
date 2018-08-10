@@ -32,6 +32,7 @@ get_package_lists() {
   linuxmint) list \
     http://packages.linuxmint.com/dists/${RELEASE-sonya}/{main,universe,multiverse,backport,import,romeo,upstream}/binary-${ARCH-amd64}/Packages
   ;;
+   debian) list http://cdn-fastly.deb.debian.org/$DIST/dists/$RELEASE{,-proposed-updates,-updates}/{main,non-free,contrib}/binary-${ARCH}/Packages.gz  ;;
 
     msys)  curl -s ftp://netix.dl.sourceforge.net/sourceforge/m/mi/mingw/Installer/mingw-get/catalogue/msys-package-list.xml.lzma |lzcat |xml_get package-list catalogue | sed 's|.*|ftp://netix.dl.sourceforge.net/sourceforge/m/mi/mingw/Installer/mingw-get/catalogue/&.xml.lzma|'  ;;
 
@@ -87,12 +88,25 @@ pkg_get() {
 
   while :; do
     case "$1" in
+      -d | --dist) DIST="$2"; shift 2 ;;
+      -d=* | --dist=*) DIST="${1#*=}"; shift ;;
+      -d*) DIST="${1#-d}"; shift ;;
+
+      -r | --release) RELEASE="$2"; shift 2 ;;
+      -r=* | --release=*) RELEASE="${1#*=}"; shift ;;
+      -r*) RELEASE="${1#-r}"; shift ;;
+
+      -a | --arch) ARCH="$2"; shift 2 ;;
+      -a=* | --arch=*) ARCH="${1#*=}"; shift ;;
+      -a*) ARCH="${1#-a}"; shift ;;
+
+      -x | --debug) DEBUG=true; shift  ;;
       -h | -? | --help) usage; exit 0 ;;
       *) break ;;
     esac
   done
 
-  DIST="$1"
+  : ${DIST="$1"}
   [ -z "$DIST" ] && DIST="slacky"
   [ -n "$2" ] && RELEASE="$2"
   [ -n "$3" ] && ARCH="$3"
