@@ -45,6 +45,7 @@ read_package_lists() {
     (case "$ARG" in
       */slacky/*)  ;;
       */ubuntu/*) BASE=${ARG%%/ubuntu/*}/ubuntu ;;
+      */debian/*) BASE=${ARG%%/debian/*}/debian ;;
       *linuxmint*) BASE=${ARG%%/dists/*} ;;
     esac
 
