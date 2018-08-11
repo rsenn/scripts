@@ -11,7 +11,7 @@ git-restore-deleted() {
         *) MODE= FILE= ;;
     esac
     if [ -n "$FILE" ]; then
-        echo git checkout "$COMMIT"~1 -- "$FILE"
+        echo "git checkout $COMMIT~1 -- $(quote "$FILE")"
     fi
   done
 }
