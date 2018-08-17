@@ -1,8 +1,17 @@
 get-shares() {
+ (if [ -n "$PASSWORD" ] ; then
+   trap 'rm -f "$TMPF"' EXIT
+   TMPF=$(mktemp)
+   echo "$PASSWORD"> "$TMPF"
+   exec 0<"$TMPF"
+    unset PASS_ARG
+  else
+    PASS_ARG="--no-pass"
+  fi
   smbclient \
     -L "$CIFSHOST" \
     --user "$USERNAME" \
-    --no-pass \
+    $PASS_ARG \
     2>/dev/null | 
   sed \
  '1 {
@@ -19,7 +28,7 @@ get-shares() {
   s|^\s*\([^ ]\+\)\s.*|\1|
   /^Anonymous$/d
   /\$$/d
-'
+  ')
 }
 mount-cifs () 
 {
