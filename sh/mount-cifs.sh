@@ -1,6 +1,25 @@
 get-shares() {
-  smbclient  -L "$CIFSHOST" --user "$USERNAME" --no-pass 2>/dev/null | 
-  sed '1 { :lp1; /Sharename/! { N; b lp1 }; N; d }; /^\s*Server\s*Comment/ { :lp2; N; $! { b lp2 }; d  }; s,^\s*\([^ ]\+\)\s.*,\1,; /^Anonymous$/d; /\$$/d '
+  smbclient \
+    -L "$CIFSHOST" \
+    --user "$USERNAME" \
+    --no-pass \
+    2>/dev/null | 
+  sed \
+ '1 {
+    :lp1
+    /Sharename/! { N; b lp1 }
+    N; d
+  }
+  /^\s*Server\s*Comment/ { 
+    :lp2
+    N
+    $! { b lp2 }
+    d
+  }
+  s|^\s*\([^ ]\+\)\s.*|\1|
+  /^Anonymous$/d
+  /\$$/d
+'
 }
 mount-cifs () 
 {
