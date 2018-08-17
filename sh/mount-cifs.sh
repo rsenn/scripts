@@ -1,8 +1,18 @@
 mount_cifs() {
- (: ${USERNAME="roman"} 
+ (while :; do
+    case "$1" in
+      --username|--user|-u) USERNAME="$2"; shift 2 ;; --username=*|--user=*|-u=*) USERNAME="${1#*=}"; shift ;;
+      --password|--pass|-p) PASSWORD="$2"; shift 2 ;; --password=*|--pass=*|-p=*) PASSWORD="${1#*=}"; shift ;;
+      *) break ;;
+    esac
+  done
+
+  [ $# -gt 0 ] && CIFSHOST="$1"
+ 
+  : ${USERNAME="roman"} 
   : ${PASSWORD="r4eHuJ"} 
-  : ${CIFSHOST=192.168.3.195}
-  : ${SUDO=sudo}
+  : ${CIFSHOST="192.168.3.195"}
+  : ${SUDO="sudo"}
 
   USER_ID=`id -u` GROUP_ID=`id -g`
 
