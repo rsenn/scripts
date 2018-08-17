@@ -25,7 +25,7 @@ mount_cifs() {
     DEST="$MNTBASE/${MNTPFX:+$MNTPFX-}$SHARE"
     mkdir -p "$DEST"
     (set -x; $SUDO mount -t cifs "//$CIFSHOST/$SHARE" "$DEST" \
-      -o "uid=$USER_ID,gid=$GROUP_ID${USERNAME:+,username=$USERNAME${PASSWORD+,password=$PASSWORD}}" || rmdir "$DEST")
+      -o "vers=1.0,uid=$USER_ID,gid=$GROUP_ID${USERNAME:+,username=$USERNAME${PASSWORD+,password=$PASSWORD}}" || rmdir "$DEST")
   done)
 }
 
