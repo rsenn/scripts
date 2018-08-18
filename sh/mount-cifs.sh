@@ -59,6 +59,6 @@ get_shares() {
 }
 
 case "$0" in
-  -*) break ;;
+  -*|bash|sh) ;;
   *) mount_cifs "$@" ;;
 esac
