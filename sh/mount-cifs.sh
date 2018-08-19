@@ -19,7 +19,7 @@ mount_cifs() {
   [ "$USER_ID" = 0 ] && : ${MNTBASE=/mnt} || : ${MNTBASE=$HOME/mnt}
    echo "MNTBASE=$MNTBASE" 1>&2
 
-  [ "$#" -le 0 ] && set --  $(get_shares)
+  [ "$#" -le 0 ] && set --  $(PASSWORD= get_shares) $USERNAME
 
   for SHARE ; do
     DEST="$MNTBASE/${MNTPFX:+$MNTPFX-}$SHARE"
