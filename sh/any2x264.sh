@@ -6,7 +6,7 @@ require info
 require util
 
 vbr() {
-  (VBR=$(mediainfo "$1" |sed '/^Video/ { :lp; N; /:[^\n]*$/ { b lp; }; s|.*\nBit.rate\s*:\s*\([^\n]*\)\n.*|\1| ; s, ,,; s,Kb/s,Kbps,i; s,bps$,, ; p }' -n)
+	(VBR=$(mediainfo "$1" |sed '/bit.rate/ { s,.*:\s,,; s,\([0-9]\)\s\+\([0-9]\),\1\2,g; s,b/s$,,; s, ,,g; p }' -n)
   case "$VBR" in
     *[Kk]) VBR=$(echo "${VBR%[Kk]*} * 1000" | bc -l) ;;  *[Mm]) VBR=$(echo "${VBR%[Kk]*} * 10000000" | bc -l) ;;
   esac; echo "${VBR%%.*}")
@@ -14,6 +14,12 @@ vbr() {
 
 abr() {
   (ABR=$(mediainfo "$1" | sed '/^Audio/ {  :lp; N; /:[^\n]*$/ { b lp; }; s|.*\nBit.rate\s*:\s*\([^\n]*\)\n.*|\1| ; s, ,,; s,Kb/s,Kbps,i; s,bps$,, ; p }' -n)
+  [ "$ABR" -gt 0 ] 2>/dev/null || unset ABR
+  case "$ABR" in
+	  [0-9]*) ;;
+	  *) unset ABR ;;
+  esac
+  : ${ABR:=128k}
   case "$ABR" in
     *[Kk]) ABR=$(echo "${ABR%[Kk]*} * 1000" | bc -l) ;; *[Mm]) ABR=$(echo "${ABR%[Kk]*} * 10000000" | bc -l) ;;
   esac; echo "${ABR%%.*}")
@@ -223,7 +229,8 @@ echo "ABR=$ABR" 1>&2
     calc_vbr_filesize "$FILESIZE" "$DURATION" $ABR
   fi
   
-    echo  VBR=$(format_num $VBR) ABR=$(format_num $ABR) RESOLUTION="$RESOLUTION" 1>&2
+  RESOLUTION=${RESOLUTION//" "/""}  
+  echo  VBR=$(format_num $VBR) ABR=$(format_num $ABR) RESOLUTION="$RESOLUTION" 1>&2
 
 
       OUTPUT="${ARG%.*}.mp4"
@@ -293,7 +300,7 @@ echo "ABR=$ABR" 1>&2
         ${PRESET:+-preset "$PRESET"} \
         $EXTRA_ARGS \
         ${ASPECT+-aspect "$ASPECT"} \
-        ${SIZE+-s "$SIZE"}  \
+        ${SIZE+-s "${SIZE// /}"}  \
         $([ "$NORATE" != true ] && list $BITRATE_ARG || list -qscale 0) \
         -acodec ${ACODEC:-aac} \
         $(: [ "$NORATE" != true ] && list -ab $(format_num "$ABR")) \
