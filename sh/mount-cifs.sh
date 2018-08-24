@@ -7,7 +7,7 @@ mount_cifs() {
     esac
   done
 
-  [ $# -gt 0 ] && CIFSHOST="$1"
+  [ $# -gt 0 ] && { export CIFSHOST="$1"; shift; }
  
   : ${USERNAME="roman"} 
   : ${PASSWORD="r4eHuJ"} 
@@ -59,6 +59,6 @@ get_shares() {
 }
 
 case "$0" in
-  -*) break ;;
+  -*)  ;;
   *) mount_cifs "$@" ;;
 esac

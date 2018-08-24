@@ -80,7 +80,9 @@ read_package_lists() {
 usage() {
 
   echo "Usage: $(basename "$0" .sh) [OPTIONS] <ARGS...>
-
+  -d, --dist    DIST      Distribution name (debian, ubuntu, archlinux, slackware, ...)
+  -r, --release RELEASE   Release name 
+  -a, --arch    ARCH      Architecture
   " 1>&2
   exit 0
 }
