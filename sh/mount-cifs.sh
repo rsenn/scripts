@@ -19,13 +19,13 @@ mount_cifs() {
   [ "$USER_ID" = 0 ] && : ${MNTBASE=/mnt} || : ${MNTBASE=$HOME/mnt}
    echo "MNTBASE=$MNTBASE" 1>&2
 
-  [ "$#" -le 0 ] && set --  $(get_shares)
+  [ "$#" -le 0 ] && set --  $(PASSWORD= get_shares) $USERNAME
 
   for SHARE ; do
     DEST="$MNTBASE/${MNTPFX:+$MNTPFX-}$SHARE"
     mkdir -p "$DEST"
     (set -x; $SUDO mount -t cifs "//$CIFSHOST/$SHARE" "$DEST" \
-      -o "uid=$USER_ID,gid=$GROUP_ID${USERNAME:+,username=$USERNAME${PASSWORD+,password=$PASSWORD}}" || rmdir "$DEST")
+      -o "vers=1.0,uid=$USER_ID,gid=$GROUP_ID${USERNAME:+,username=$USERNAME${PASSWORD+,password=$PASSWORD}}" || rmdir "$DEST")
   done)
 }
 
@@ -59,6 +59,6 @@ get_shares() {
 }
 
 case "$0" in
-  -*)  ;;
+  -*|bash|sh) ;;
   *) mount_cifs "$@" ;;
 esac
