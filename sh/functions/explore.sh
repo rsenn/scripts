@@ -11,6 +11,7 @@ explore() {
   fs="/"
   p=`${PATHTOOL-cygpath} -w "$r"`
   set -x
-  "$(${PATHTOOL:-cygpath} -a "${SYSTEMROOT-$SystemRoot}")/explorer.exe" "${p//$bs/$fs}")
+  : ${SYSTEMROOT=$SystemRoot}
+  "$(${PATHTOOL:-cygpath} -a "$COMSPEC")" "/c" "$SYSTEMROOT\\explorer.exe /n,/e,${p//$fs/$bs}")
   done
 }

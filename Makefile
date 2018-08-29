@@ -1,4 +1,5 @@
 OS := $(shell uname -o 2>/dev/null || uname)
+ECHO ?= $(shell which echo || echo echo)
 
 ifeq ($(OS),Darwin)
 prefix = /usr/local
@@ -19,11 +20,11 @@ endif
 
 ifneq ($(LN_S),false)
 define symlink_script
-	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; $(LN_S) -v $1 $$L; : echo "Link '$2' -> '$1'" 1>&2
+	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; $(LN_S) -v $1 $$L; : $(ECHO) "Link '$2' -> '$1'" 1>&2
 endef
 else
 define symlink_script
-	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; echo -e '#!/bin/sh\n$(if $3,$3,exec -a '$${L##*/}') env MYNAME="'`basename "$$L" .sh`'" "$$(dirname "$$0")/'$1'" "$$@"' >$$L; chmod a+x $$L; echo "Link '$2' -> '$1'" 1>&2
+	L=$2; $(RM) $$L; $(INSTALL) -d $${L%/*}; $(ECHO) -e '#!/bin/sh\n$(if $3,$3,exec -a '$${L##*/}') env MYNAME="'`basename "$$L" .sh`'" "$$(dirname "$$0")/'$1'" "$$@"' >$$L; chmod a+x $$L; $(ECHO) "Link '$2' -> '$1'" 1>&2
 endef
 endif
 
@@ -37,7 +38,7 @@ install-profile: $(PROFILE)
 
 uninstall:
 	@for SCRIPT in $(SCRIPTS); do \
-	  FILE="$(DESTDIR)$(bindir)/$$SCRIPT"; test ! -e "$$FILE" || { echo "$(RM) $$FILE" 1>&2; eval "$(RM) $$FILE"; }; \
+	  FILE="$(DESTDIR)$(bindir)/$$SCRIPT"; test ! -e "$$FILE" || { $(ECHO) "$(RM) $$FILE" 1>&2; eval "$(RM) $$FILE"; }; \
 	done
 
 
@@ -119,16 +120,16 @@ install: all $(SCRIPTS)
 	$(INSTALL) -m 755 $(RB_SCRIPTS) $(DESTDIR)$(bindir)/
 	for F in $(RB_LIBFILES); do \
 	  D=$$(dirname "$$F"); \
-	  echo "$(INSTALL) -d $(DESTDIR)$(RB_LIBDIR)/$$D"; \
-	  echo "$(INSTALL) -m 644 rb/lib/$$F $(DESTDIR)$(RB_LIBDIR)/$$D"; \
+	  $(ECHO) "$(INSTALL) -d $(DESTDIR)$(RB_LIBDIR)/$$D"; \
+	  $(ECHO) "$(INSTALL) -m 644 rb/lib/$$F $(DESTDIR)$(RB_LIBDIR)/$$D"; \
 	  $(INSTALL) -d $(DESTDIR)$(RB_LIBDIR)/$$D; \
 	  $(INSTALL) -m 644 rb/lib/$$F $(DESTDIR)$(RB_LIBDIR)/$$D; \
 	done
 
 
 	@N=30; set -- $(SH_SCRIPTS); while :; do \
-	  echo "$(INSTALL) -m 755 `echo "$$*" | head -n$$N` $(DESTDIR)$(bindir)/"; \
-	  $(INSTALL) -m 755 `echo "$$*" | head -n$$N` $(DESTDIR)$(bindir)/; \
+	  $(ECHO) "$(INSTALL) -m 755 `$(ECHO) "$$*" | head -n$$N` $(DESTDIR)$(bindir)/"; \
+	  $(INSTALL) -m 755 `$(ECHO) "$$*" | head -n$$N` $(DESTDIR)$(bindir)/; \
 	  [ $$# -lt $$N ] && break; \
 	  shift $$N; \
 	done
