@@ -1,5 +1,6 @@
 explore() {
- (r=`realpath "$1" 2>/dev/null`; [ "$r" ] || r=$1
+ for ARG; do 
+ (r=`realpath "$ARG" 2>/dev/null`; [ "$r" ] || r=$1
   case "$r" in
     */*) ;;
     *) r=$PWD/$r ;;
@@ -8,7 +9,8 @@ explore() {
   r=${r#./}
   bs="\\"
   fs="/"
-  p=`$PATHTOOL -w "$r"`
+  p=`${PATHTOOL-cygpath} -w "$r"`
   set -x
-  "${SystemRoot:+$SystemRoot\\}cmd.exe" /c "explorer.exe /e,/root,${p//$bs/$fs}")
+  "$(${PATHTOOL:-cygpath} -a "${SYSTEMROOT-$SystemRoot}")/explorer.exe" "${p//$bs/$fs}")
+  done
 }
