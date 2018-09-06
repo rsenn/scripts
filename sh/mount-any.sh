@@ -26,26 +26,28 @@ addopt() {
 for ARG; do
  (FILE=${ARG##*/}
   NAME=${FILE%.*}; NAME=${NAME%.tar*}
-
+ USER_ID=${UID:-`id -u`}
   MNT="${DEST-$MNT/$NAME}"
 
   umount "$MNT" 2>/dev/null
   
   mkdir -p "$MNT"
+    [ $USER_ID -gt 0 ] && { SUDO=sudo; addopt uid=$USER_ID; }
 
   if [ ! -b "$ARG" -a ! -c "$ARG" -a -e "$ARG" ]; then
 
      MAGIC=`file "$ARG" | sed "s|$ARG:\s*||"`
      case "$MAGIC" in
+       *UDF*) addopt loop; CMD='$SUDO mount ${TYPE:+-t "$TYPE"} ${OPTS:+-o "$OPTS"} "$ARG" "$MNT"' ;;
        *ISO\ 9660*) addopt "$FUSEOPT"; CMD='fuseiso "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;; 
        *Zip\ archive*) addopt "$FUSEOPT"; CMD='fuse-zip "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;; 
        *archive* | *compressed*) addopt "$FUSEOPT"; CMD='archivemount "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;;
-       *) addopt loop; CMD='mount ${TYPE:+-t "$TYPE"} ${OPTS:+-o "$OPTS"} "$ARG" "$MNT"' ;;
+       *) addopt loop; CMD='$SUDO mount ${TYPE:+-t "$TYPE"} ${OPTS:+-o "$OPTS"} "$ARG" "$MNT"' ;;
      esac
     CMD="$CMD || exit \$?"
     [ "$DEBUG" = true ] && eval "echo + $CMD" 1>&2
     eval "$CMD"
   else
-      mount "$ARG" "$MNT" || exit $?
+      $SUDO       mount ${OPTS:-o "$OPTS"} "$ARG" "$MNT" || exit $?
     fi)
 done
