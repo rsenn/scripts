@@ -5,7 +5,7 @@
 archives_EXTS="rar zip 7z cab tar tar.Z tar.gz tar.xz tar.bz2 tar.lzma tgz txz tbz2 tlzma"
 audio_EXTS="aif aiff flac m4a m4b mp2 mp3 mpc ogg raw rm wav wma"
 books_EXTS="pdf epub mobi azw3 djv djvu"
-fonts_EXTS="mp3 ogg flac mpc m4a m4b wma rm"
+fonts_EXTS="CompositeFont pcf ttc otf afm pfb fon ttf"
 images_EXTS="bmp cin cod dcx djvu emf fig gif ico im1 im24 im8 jin jpeg jpg lss miff opc pbm pcx pgm pgx png pnm ppm psd rle rmp sgi shx svg tga tif tiff wim xcf xpm xwd mng"
 incomplete_EXTS="*.part *.!?? INCOMPL*"
 music_EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669 mp4"

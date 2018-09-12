@@ -55,3 +55,5 @@ alias tar='tar -m --no-recursion'
 alias wget='wget --content-disposition --no-check-certificate --no-use-server-timestamps'
 alias xargs='xargs -d "\\n"'
 alias xclip='xclip -selection clipboard'
+
+alias vncviewer='vncviewer -depth 16 -compresslevel 8 -quality 6   -x11cursor'
