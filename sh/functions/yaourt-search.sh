@@ -56,3 +56,5 @@ yaourt-search-output() {
 	done
 }
 pacman-search() { YAOURT="pacman" yaourt-search "$@"; }
+yay-search() { YAOURT="yay" yaourt-search "$@"; }
+pacaur-search() { YAOURT="pacaur" yaourt-search "$@"; }
