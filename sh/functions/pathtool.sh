@@ -1,4 +1,4 @@
-pathtool() {
+type pathtool >/dev/null 2>/dev/null || pathtool() {
  (EXPR= F=
   while :; do
     case "$1" in
