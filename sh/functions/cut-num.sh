@@ -1,5 +1,6 @@
 cut-num() {
- (while :; do
+ (unset N
+ while :; do
     case "$1" in
       -n | --num) N="$2"; shift 2 ;;
       -n=* | --num=*) N="${1##*=}"; shift ;;
