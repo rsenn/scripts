@@ -30,7 +30,7 @@
 : ${PLAYER="mplayer"}
 
 if [ -z "$1" ] ; then
-  grep '^#  ' "$0" | sed "s|[ #]\+|\n|g"  |grep . |sort -fu|cols
+  grep '^#  ' "$0" | sed "s|[ #]\+|\n|g" | grep . | sort -fu | column -c $(tput cols)
   exit 1
 fi
 
