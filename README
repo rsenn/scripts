@@ -1,8 +1,5 @@
-Install repos: Scripts sw-utils dirlist bsed
+A collection of example scripts that use netcat as a backend, each
+documented by its own internal comments.
 
-curl -skL https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | sh
-wget --no-check-certificate -q -O - https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | sh
-lynx -source https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | sh
-links -source https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | zcat | sh
-elinks -source https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | sh
-w3m -dump_source https://github.com/rsenn/scripts/raw/master/clone-rsenn-git-repos.sh | zcat | sh
+I'll be the first to admit that some of these are seriously *sick*,
+but they do work and are quite useful to me on a daily basis.

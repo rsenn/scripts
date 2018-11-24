@@ -1,9 +1,8 @@
-unescape-newlines()
-{
-    ${SED-sed} -e ':start
-  /\$/ {
+unescape-newlines() {
+  ${SED-sed} -e '\|\\$| {
+  :lp
   N
-  s|\\\n[ \t]*||
-  b start
+  \|\\$| b lp
+  s,\\\n\s*,,g
   }' "$@"
 }
