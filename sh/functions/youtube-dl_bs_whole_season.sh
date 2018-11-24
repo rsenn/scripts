@@ -1,3 +1,6 @@
+#
+# https://gist.github.com/nk23x/011fff7fa8db4840aed9#file-youtube-dl_bs_whole_season
+#
 youtube-dl_bs_whole_season() {
   youtube-dl-launcher.sh $(for f in \
   $(wget -q -O - "$@" | grep -i streamcloud-1 | perl -pe 's/.*href=\"/http:\/\/bs.to\//g;s/-1\"(.*)/-1/g;'); do \
