@@ -2,9 +2,9 @@ OS := $(shell uname -o 2>/dev/null || uname)
 ECHO ?= $(shell which echo || echo echo)
 
 ifeq ($(OS),Darwin)
-prefix = /usr/local
+prefix ?= /usr/local
 else
-prefix = /usr
+prefix ?= /usr
 endif
 bindir = ${prefix}/bin
 sbindir = ${prefix}/sbin
@@ -83,7 +83,7 @@ PL_SCRIPTS := $(wildcard pl/*.pl)
 PY_SCRIPTS := $(wildcard py/*.py)
 RB_SCRIPTS := $(wildcard rb/*.rb)
 #RB_LIBDIR := $(shell ruby -e 'puts $$:' | sort | head -n1)
-RB_LIBDIR := /usr/lib/ruby/site_ruby
+RB_LIBDIR := ${prefix}/lib/ruby/site_ruby
 
 $(info RB_LIBDIR: $(RB_LIBDIR))
 RB_LIBFILES := $(shell cd rb/lib && find * -type f)
