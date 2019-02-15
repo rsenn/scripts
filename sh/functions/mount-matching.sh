@@ -12,8 +12,7 @@ mount-matching()
             if ! is-mounted "$DEV" && ! is-mounted "$MNT"; then
                 $SUDO mkdir -p "$MNT";
                 echo "Mounting $DEV to $MNT ..." 1>&2;
-                $SUDO mount "$DEV" "$MNT" ${MNTOPTS:+-o
-"$MNTOPTS"}
+                $SUDO mount "$DEV" "$MNT" ${MNTOPTS:+-o "$MNTOPTS"}
             fi;
         done
     } )
