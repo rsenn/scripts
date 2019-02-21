@@ -122,6 +122,8 @@ any2x265() {
       -p) PRESET="$2"; shift 2 ;;
       -b) VBR=$(parse_num "$2"); shift 2 ;;
       -a:b) ABR=$(parse_num "$2"); shift 2 ;;
+      -vcodec) VCODEC=$2; shift 2 ;;
+      -acodec) ACODEC=$2; shift 2 ;;
       -d) DIR="$2"; shift 2 ;;
       -r) REMOVE=true; shift ;;
       -R|--resolution) RESOLUTION="$2"; shift 2 ;;
@@ -200,6 +202,10 @@ any2x265() {
   #pushv RESOLUTIONS 352x288
 
 echo "ABR=$ABR" 1>&2
+
+if ffmpeg -codecs 2>/dev/null |grep -q 'hevc.*nvenc'; then
+  : ${ENCODER=hevc_nvenc}
+fi
 
   for ARG; do
    ( 

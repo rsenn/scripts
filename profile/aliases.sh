@@ -29,3 +29,4 @@ else
   alias schR='chown -R `id -u`:`id -g`'
   alias schr='chown `id -u`:`id -g`'
 fi
+alias qemu-system-x86_64='qemu-system-x86_64 -enable-kvm -machine q35,accel=kvm -device intel-iommu -cpu host -netdev user,id=network0 -device rtl8139'

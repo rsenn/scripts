@@ -6,7 +6,7 @@ require info
 require util
 
 vbr() {
-	(VBR=$(mediainfo "$1" |sed '/bit.rate/ { s,.*:\s,,; s,\([0-9]\)\s\+\([0-9]\),\1\2,g; s,b/s$,,; s, ,,g; p }' -n)
+  (VBR=$(mediainfo "$1" |sed '/bit.rate/ { s,.*:\s,,; s,\([0-9]\)\s\+\([0-9]\),\1\2,g; s,b/s$,,; s, ,,g; p }' -n)
   case "$VBR" in
     *[Kk]) VBR=$(echo "${VBR%[Kk]*} * 1000" | bc -l) ;;  *[Mm]) VBR=$(echo "${VBR%[Kk]*} * 10000000" | bc -l) ;;
   esac; echo "${VBR%%.*}")
@@ -16,8 +16,8 @@ abr() {
   (ABR=$(mediainfo "$1" | sed '/^Audio/ {  :lp; N; /:[^\n]*$/ { b lp; }; s|.*\nBit.rate\s*:\s*\([^\n]*\)\n.*|\1| ; s, ,,; s,Kb/s,Kbps,i; s,bps$,, ; p }' -n)
   [ "$ABR" -gt 0 ] 2>/dev/null || unset ABR
   case "$ABR" in
-	  [0-9]*) ;;
-	  *) unset ABR ;;
+    [0-9]*) ;;
+    *) unset ABR ;;
   esac
   : ${ABR:=128k}
   case "$ABR" in
@@ -127,6 +127,8 @@ any2x264() {
       -ar=*|--ar=*) AR=$(parse_num "${1#*=}"); shift ;;  -ar|--ar) AR=$(parse_num "$2"); shift 2 ;;
       -p) PRESET="$2"; shift 2 ;;
       -b) VBR=$(parse_num "$2"); shift 2 ;;
+      -vcodec) VCODEC=$2; shift 2 ;;
+      -acodec) ACODEC=$2; shift 2 ;;
       -a:b) ABR=$(parse_num "$2"); shift 2 ;;
       -d) DIR="$2"; shift 2 ;;
       -r) REMOVE=true; shift ;;
@@ -213,6 +215,11 @@ any2x264() {
 
 echo "ABR=$ABR" 1>&2
 
+if ffmpeg -codecs 2>/dev/null |grep -q '[hx]264.*nvenc'; then
+    : ${ENCODER=h264_nvenc}
+fi
+
+
   for ARG; do
    ( 
    
@@ -284,7 +291,6 @@ echo "ABR=$ABR" 1>&2
                       fi
               fi
 
-
   RATE=29.97
   #METAOPTS="-map_metadata   -1"
      { IFS="$IFS "; #[ "$DEBUG" = true ] && 
@@ -296,7 +302,8 @@ echo "ABR=$ABR" 1>&2
         $A \
         ${RATE:+-r $RATE}  \
         -f mp4 \
-        -vcodec ${VCODEC:-libx264} \
+        -vcodec ${VCODEC:-h264} \
+        -c ${ENCODER:-libx264} \
         ${PRESET:+-preset "$PRESET"} \
         $EXTRA_ARGS \
         ${ASPECT+-aspect "$ASPECT"} \
