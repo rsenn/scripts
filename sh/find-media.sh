@@ -228,6 +228,7 @@ case "$CLASS" in
   bin*|exe*|prog*)  EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(exe|msi|dll)\$" ;;
   playlist*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(m3u|m3u8|pls|asx|xspf|asxini|cue|wpl)\$" ;;
   archive*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(7z|rar|tar\.bz2|tar\.gz|tar\.xz|tar|tar\.lzma|tbz2|tgz|txz|zip)\$" ;;
+  *doc*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(cdr|doc|docx|odf|odg|odp|ods|odt|pdf|ppt|pptx|rtf|svg|vsd|xls|xlsx)\$" ;;
   *audio*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(aif|aiff|flac|raw|wav)\$" ;;
   fonts*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(bdf|flac|fon|m4a|m4b|mp3|mpc|ogg|otf|pcf|rm|ttf|wma)\$" ;;
   image*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(bmp|cin|cod|dcx|djvu|emf|fig|gif|ico|im1|im24|im8|jin|jpeg|jpg|lss|miff|opc|pbm|pcx|pgm|pgx|png|pnm|ppm|psd|rle|rmp|sgi|shx|svg|tga|tif|tiff|wim|xcf|xpm|xwd)\$" ;;
