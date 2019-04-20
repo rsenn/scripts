@@ -8,7 +8,26 @@ vget() {
   echo "$*")
 }
 
+cmd_for() {
+ (MODE=$1
+  set -- '$(CFLAGS)' '$(DEFS)' '$(CPPFLAGS)' 
+  case "$MODE" in
+    PREPROC) set -- "$@" -E ;;
+    COMPILE) set -- "$@" -c ;;
+    ASSEMBLER) set -- "$@" -S ;;
+    LINK) set -- '$(LDFLAGS)' "$@" ;;
+  esac
+  set -- '$(CC)' "$@" '$(CFLAGS)' ${OUTPUT:+-o "$OUTPUT"} $ARGS
+
+  (IFS=" "; echo "$*"))
+}
+
+
 makefile_from_build_log() {
+
+ (trap 'rm -f "$TEMP1" "$TEMP2"' EXIT
+  TEMP1=`mktemp`
+  TEMP2=`mktemp`
 
   while :; do
     case "$1" in
@@ -17,73 +36,60 @@ makefile_from_build_log() {
   done
 
   while read -r LINE; do
-    eval "$LINE"
-    set -- $LINE
-    unset VARS
-    for VAR; do
-      VAR="${VAR%%=*}"
-      eval "$VAR='$(vget "$VAR")'"
-      pushv VARS "${VAR%%=*}"
+    eval "IFS=' '; set -- \$LINE; IFS='$NL'"
+    MODE=LINK
+    OUTPUT=
+    ARGS=
+    CMD="$1"
+    shift
+    while [ $# -gt 0 ]; do
+      case "$1" in
+#        *=\"*)
+#          NAME=${ARG%%=*}; VALUE=${ARG#*=}; VALUE=${VALUE#\"}; VALUE=${VALUE%\"}
+#		  matchany "$NAME=*" $VARS || pushv VARS "$NAME=$VALUE"; shift
+#         ;;
+        -D) pushv_unique DEFINES "$2"; shift 2 ;; -D*) pushv_unique DEFINES "${1#-D}"; shift ;;
+        -I) pushv_unique INCLUDES "$2"; shift 2 ;; -I*) pushv_unique INCLUDES "${1#-I}"; shift ;;
+        -L) pushv_unique LIBPATH "$2"; shift 2 ;; -L*) pushv_unique LIBPATH "${1#-L}"; shift ;;
+        -l) pushv_unique LIBS "$2"; shift 2 ;; -l*) pushv_unique LIBS "${1#-l}"; shift ;;
+        -o) OUTPUT=$2; shift 2 ;; -o*) OUTPUT=${1#-o}; shift ;;
+        -c) MODE=COMPILE; shift ;;
+        -E) MODE=PREPROC; shift ;;
+        -S) MODE=ASSEMBLER; shift ;;
+        *.tmp|*.d) shift ;;
+        *.o) shift ;;
+        -*) pushv_unique CFLAGS "$1"; shift ;;
+        *) pushv_unique ARGS "$1"; shift ;;
+      esac
     done
-
-    if [ -n "$DEFINES" ]; then
-      DEFS=$(addprefix -D $DEFINES)
-      pushv VARS DEFS
-  fi
-    if [ -n "$SYSINCLUDES" -o -n "$INCLUDES" ]; then
-      CPPFLAGS=$(addprefix "-isystem " $SYSINCLUDES)
-      CPPFLAGS="${CPPFLAGS:+$CPPFLAGS }$(addprefix -I $INCLUDES)"
-      pushv VARS CPPFLAGS
+    if [ "$COMPILE" != true -a "$PREPROC" != true -a  "$ASSEMBLE" != true ]; then
+      LINK=true
     fi
+    echo "VARS=$VARS" 1>&2
+    echo "ARGS=$ARGS" 1>&2
 
-  case "$CMD" in
-     *++)
-       _CXX="$CMD"
-       pushv_unique GLOBALS _CXX
-     ;;
-     *rcc)
-       _RCC="$CMD"
-       pushv_unique GLOBALS _RCC
-     ;;
-     *cc)
-       _CC="$CMD"
-       pushv_unique GLOBALS _CC
-     ;;  *moc)
-       _MOC="$CMD"
-       pushv_unique GLOBALS _MOC
-     ;;
-   esac
+    set -- "\$($MODE)" ${OUTPUT:+-o "$OUTPUT"} $ARGS
+    #[ -n "$OUTPUT" ] || 
+    (IFS=" $IFS"; echo "$OUTPUT": $ARGS; echo "$TS$*")
+     
+  done >"$TEMP1"
 
-    #echo $VARS 1>&2
-    addline OUT "$OUTFILE": $ARGS
-    addline OUT "${TS}${CMD}" $DEFS  $CPPFLAGS $OPTS ${OUTFILE:+-o \$@} \$^
-    addline OUT
+  : ${CC:=gcc}
+  DEFS=`addprefix -D $DEFINES`
+  CPPFLAGS=`addprefix -I $INCLUDES`
+  LDFLAGS=`addprefix -L $LIBPATH`
+  LIBS=`addprefix -l $LIBS`
 
-   for V in $VARS; do
-     [ "$V" = "CMD" -o "$V" = OPTS ] && continue
-     eval "test \"\$PREV_$V\" = \"\$$V\" && _$V=\"\$$V\""
-     pushv_unique GLOBALS _$V
-   done
+ (for VAR in CC DEFS CPPFLAGS LDFLAGS LIBS CFLAGS; do
+   eval "echo $VAR = \${$VAR}"
+  done 
+  cat "$TEMP1") >"$TEMP2"
 
 
-   for V in $VARS; do
-     eval "PREV_$V=\$$V"
-   done
- done
- PRE=
- echo  $GLOBALS 1>&2
- for G in $GLOBALS; do
-   VALUE=$(var_get "$G")
-   VALUE=${VALUE//"$NL"/" "}
-   OUT=${OUT//"$VALUE"/"\$(${G#_})"}
-
-   [ -n "$VALUE" ] && PRE="${G#_} = $VALUE
-$PRE"
-   done
+  mv -vf "$TEMP2" Makefile.out
 
 
- echo "$PRE
-$OUT"
+  )
 }
 
 addline()
@@ -107,18 +113,12 @@ var_get()
     eval "echo \"\$$1\""
 }
 
-pushv_unique ()
-{
+pushv_unique() {
     local v=$1 s IFS=${IFS%${IFS#?}};
-    shift;
-    for s in "$@";
-    do
-        if eval "! isin \$s \${$v}"; then
-            pushv "$v" "$s";
-        else
-            return 1;
-        fi;
-    done
+    shift
+    eval "for s in \${$v}; do
+     [ \"\$s\" = \"\$1\" ] && return 1 
+   done; $v=\"\${$v}${NL}\$1\""
 }
 isin ()
 {
@@ -129,6 +129,19 @@ isin ()
     done;
     exit 1 )
 }
+matchany() {   
+ (STR="$1"
+  shift
+  set -o noglob
+  for EXPR in "$@"; do  
+	case "$STR" in
+	  *$EXPR*) exit 0 ;;
+	  *) ;;
+	esac
+  done
+  exit 1)
+}
+
 
 
 makefile_from_build_log "$@"
