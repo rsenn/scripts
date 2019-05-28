@@ -25,6 +25,6 @@ for ARG; do
   (set -x; mplayer  -really-quiet -noconsolecontrols -vo null -vc null ${SAMPLERATE+-af resample=$SAMPLERATE} -ao pcm:waveheader:file="$WAV" "$ARG") &&
 					(set -x; #sox -S  "$WAV" -t awb "$OUTPUT" ||
                     sox -S "$WAV" -t amr-wb -c 1 -r 16000 -C 4 "$OUTPUT" ||
-                    ${FFMPEG-ffmpeg} -y -i "$WAV"  -acodec libopencore_amrwb  ${SRATE:+-ar "$SRATE"}  ${CHANNELS:+-ac "$CHANNELS"} "$OUTPUT")
+                    ${FFMPEG-ffmpeg} -y -i "$WAV"  -acodec amr_wb  ${SRATE:+-ar "$SRATE"}  ${CHANNELS:+-ac "$CHANNELS"} "$OUTPUT")
   )
 done
