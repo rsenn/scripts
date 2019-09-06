@@ -3,8 +3,8 @@ set -x
 IMG="$1"
 shift
 exec qemu-system-aarch64 \
-  -kernel ~/vmlinuz \
-  -initrd ~/initrd.img \
+  -kernel debian_bootpart/vmlinuz-4.14.0-3-arm64 \
+  -initrd debian_bootpart/initrd.img-4.14.0-3-arm64 \
   -m 1024 -M virt \
   -cpu cortex-a53 \
   -serial stdio \
