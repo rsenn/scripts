@@ -1,0 +1,5 @@
+VISUAL=vim
+PAGER=less
+EDITOR=vim
+
+export VISUAL PAGER EDITOR
