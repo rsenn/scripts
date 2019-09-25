@@ -31,5 +31,5 @@ else
 fi
 alias qemu-system-x86_64='qemu-system-x86_64 -enable-kvm -machine q35,accel=kvm -device intel-iommu -cpu host -netdev user,id=network0 -device rtl8139'
 
-alias prettier='prettier --trailing-comma none --write  --print-width 200 --semi --bracket-spacing'
-alias prettier-eslint='prettier-eslint --trailing-comma none --write  --print-width 200 --semi --bracket-spacing'
+alias prettier='prettier --trailing-comma none --write  --print-width 200 --semi --bracket-spacing --no-insert-pragma'
+alias prettier-eslint='prettier-eslint --trailing-comma none --write  --print-width 200 --semi --bracket-spacing --no-insert-pragma'
