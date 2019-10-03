@@ -2791,6 +2791,11 @@ git-get-remote() {
 
 }
 
+git-remove-from-history()
+{ 
+    git filter-branch --index-filter "git rm -rf --cached --ignore-unmatch '$1'"
+}
+
 git-restore-deleted() {
   git log --diff-filter=D --summary |
   while read -r LINE; do
