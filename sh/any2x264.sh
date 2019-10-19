@@ -125,16 +125,17 @@ any2x264() {
       case "$1" in
       -abr=*|--abr=*) ABR=$(parse_num "${1#*=}"); shift ;;  -abr|--abr) ABR=$(parse_num "$2"); shift 2 ;;
       -ar=*|--ar=*) AR=$(parse_num "${1#*=}"); shift ;;  -ar|--ar) AR=$(parse_num "$2"); shift 2 ;;
-      -p) PRESET="$2"; shift 2 ;;
-      -b) VBR=$(parse_num "$2"); shift 2 ;;
+      -p|-preset) PRESET="$2"; shift 2 ;;
+      -b|-bitrate) VBR=$(parse_num "$2"); shift 2 ;;
       -vcodec) VCODEC=$2; shift 2 ;;
       -acodec) ACODEC=$2; shift 2 ;;
       -a:b) ABR=$(parse_num "$2"); shift 2 ;;
-      -d) DIR="$2"; shift 2 ;;
-      -r) REMOVE=true; shift ;;
+      -d|-dir) DIR="$2"; shift 2 ;;
+      -r|-remove) REMOVE=true; shift ;;
       -R|--resolution) RESOLUTION="$2"; shift 2 ;;
 #      -s|-size|--size) SIZE="$2"; shift 2 ;; -s=*|-size=*|--size=*) SIZE=${1#*=}; shift ;;
       -S|--filesize) FILESIZE=$(parse_num "$2"); shift 2 ;; -S=*|--filesize=*) FILESIZE=$(parse_num ${1#*=}); shift ;; 
+      -t|-tune|--tune) TUNE="$2"; shift 2 ;;
       -x) DEBUG=true; shift ;;
       -P) PRINTCMD=true; shift ;;
       -a) A="$2"; shift 2 ;;
@@ -307,6 +308,7 @@ fi
         ${PRESET:+-preset "$PRESET"} \
         $EXTRA_ARGS \
         ${ASPECT+-aspect "$ASPECT"} \
+        ${TUNE+-tune "$TUNE"} \
         ${SIZE+-s "${SIZE// /}"}  \
         $([ "$NORATE" != true ] && list $BITRATE_ARG || list -qscale 0) \
         -acodec ${ACODEC:-aac} \

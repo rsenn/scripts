@@ -63,7 +63,7 @@ for ARG; do
 #    WAV="${ARG%.*}.wav"
     DIR=`dirname "$ARG"`
     WAV="${MYNAME}-$$.wav"
-  trap '[ "$WAV" != "$ARG" ] && rm -f "$WAV"' EXIT
+  trap '[ "$WAV" != "$ARG" -a "$REMOVE" != false ] && rm -f "$WAV"' EXIT
   trap 'exit 3' INT TERM
 
     OUTPUT="${ARG%.*}.mp3"
@@ -101,7 +101,7 @@ for ARG; do
   esac
 
    (
-  if [ "$ARG" = "$OUTPUT" -a "$REMOVE" = true ]; then
+  if [ "$ARG" = "$OUTPUT" ]; then
 	REMOVE=false
   fi
   if [ "$ARG" = "$WAV" ]; then
@@ -133,11 +133,14 @@ for ARG; do
    echo "CMD='$CMD'" 1>&2
   eval "(set -x; $CMD)"
   R=$?
+  if [ "$R" = 0 -a "$ARG" != "$WAV" ]; then
+	REMOVE=true
+  fi
   [ -n "$SONG" ] && id3v2 --song "$SONG" "$OUTPUT"
   exit $R
   ) &&
 
-  if $REMOVE; then rm -vf "$ARG"; fi) ||break
+  if [ "$REMOVE" = true ]; then rm -vf "$ARG"; fi) ||break
   ) || { R=$?; if [ "$R" = 3 ]; then exit $R; fi; }
-done
-
+don" = true ]e
+" = true ]
