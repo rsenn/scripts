@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 . require.sh
 
@@ -90,7 +90,7 @@ search_modules() {
       #  fi
       #;;
     *page=*) 
-      PAGES=$(echo "$LINE" | xml_get a href |sed -n '/page=/ { s|&amp;|\&|g; s|^|https://www.npmjs.com|; p }' | sort -t= -k3 -n)
+      PAGES=`echo "$LINE" | xml_get a href |sed -n '/page=/ { s|&amp;|\&|g; s|^|https://www.npmjs.com|; p }' | sort -t= -k3 -n`
       LAST_PAGE=$(set -- $PAGES; eval echo "\${$#}")
       LAST_PAGE=${LAST_PAGE#*page=}
       LAST_PAGE=${LAST_PAGE%%"&"*}
