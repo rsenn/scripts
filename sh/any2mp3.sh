@@ -142,5 +142,4 @@ for ARG; do
 
   if [ "$REMOVE" = true ]; then rm -vf "$ARG"; fi) ||break
   ) || { R=$?; if [ "$R" = 3 ]; then exit $R; fi; }
-don" = true ]e
-" = true ]
+done
