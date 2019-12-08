@@ -54,7 +54,7 @@ locate_filenames()
  [ $# -le 0 ] && set -- ".*"
  for ARG; do ([ "$DEBUG" = true ] && set -x; locate -i -r "$ARG"); done |(
      
-     set -- grep -iE "($(IFS='| '; echo "$*"))$ANY\.($(IFS='| '; set -- $EXTS; echo "$*"))\$"; 
+     set -- grep -a -iE "($(IFS='| '; echo "$*"))$ANY\.($(IFS='| '; set -- $EXTS; echo "$*"))\$"; 
      [ "$DEBUG" = true ] && set -x
      "$@"
      
