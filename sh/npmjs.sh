@@ -70,9 +70,15 @@ search_modules() {
         HREF=https://www.npmjs.com$(echo "$LINE" | xml_get a href | head -n1 )
         TEXT=$(echo "$LINE" | sed 's|<[^a][^>]*>| |g ; s|\s\+| |g')
         DESC=$(echo "$TEXT" | sed 's|.*Description\s\([^<]*\)<.*|\1|')
+        DESC=${DESC%Keywords }
+        DESC=${DESC%Keywords}
+        DESC=${DESC%Publisher }
+        DESC=${DESC%Publisher}
         #DESC=$(echo "$DESC" | html_text )
-        I=$((I+1))
-        printf "%-40s %s\n" "${HREF##*/}" "${DESC:0:$((COLS - 41))}"
+        if [ "$HREF" -a "$DESC" ]; then
+          I=$((I+1))
+          printf "%-40s %s\n" "${HREF##*/}" "${DESC:0:$((COLS - 41))}"
+        fi
          #var_dump  HREF DESC 1>&2
         ;;
       #*"<span><strong>"*) 
@@ -91,9 +97,12 @@ search_modules() {
       #;;
     *page=*) 
       PAGES=`echo "$LINE" | xml_get a href |sed -n '/page=/ { s|&amp;|\&|g; s|^|https://www.npmjs.com|; p }' | sort -t= -k3 -n`
-      LAST_PAGE=$(set -- $PAGES; eval echo "\${$#}")
-      LAST_PAGE=${LAST_PAGE#*page=}
-      LAST_PAGE=${LAST_PAGE%%"&"*}
+      if [ -z "$LAST_PAGE" ]; then
+        LAST_PAGE=$(set -- $PAGES; eval echo "\${$#}")
+        LAST_PAGE=${LAST_PAGE#*page=}
+        LAST_PAGE=${LAST_PAGE%%"&"*}
+        echo "Last page:" $PAGES
+      fi
       #var_dump PAGES LAST_PAGE 1>&2
       ;;
     *) : echo "$LINE" ;;
@@ -129,7 +138,7 @@ npmjs() {
   #: ${N:=30}
   URL="https://www.npmjs.com/search?$(url_encode_args q="$Q")"  
   
-  while [ "${THIS_PAGE:-0}" != "$LAST_PAGE" ${N:+-a
+  while [ -n  "$URL" -a "${THIS_PAGE:-0}" != "$LAST_PAGE" ${N:+-a
 $I
 -lt
 $N}  ]; do
