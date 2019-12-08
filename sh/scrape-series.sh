@@ -19,9 +19,11 @@ while read -r URL; do
 
   SEASONS=`(set -x; dlynx.sh "$URL") | sed -n "\\,$URL/[0-9], { s|^$URL/||; s|/.*||;  p }" | sort -u -n`
 
-  echo "SEASONS: $SEASONS"
-  EXPAND="dlynx.sh $URL/{$(set -- $SEASONS; IFS=","; echo "$*")} | grep \"\$URL/[0-9]\\+/\""
+  echo "SEASONS:" $SEASONS 1>&2
+  EXPAND="dlynx.sh $URL/$(set -- $SEASONS; IFS=","; test $# -gt 1 && echo "{$*}" || echo "$*") | grep \"\$URL/[0-9]\\+/\""
  
+
+echo "$EXPAND" 1>&2
   eval "$EXPAND" | grep -vE '/(en$|en/|de$)' | sort -fuV | tee "$SHORTNAME-urls.tmp"
 
   cat >"$SHORTNAME-rename.sh" <<__EOF__
