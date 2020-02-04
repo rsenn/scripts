@@ -311,7 +311,7 @@ echo "ABR=$ABR" 1>&2
         ${ASPECT+-aspect "$ASPECT"} \
         ${TUNE+-tune "$TUNE"} \
         ${SIZE+-s "${SIZE// /}"}  \
-        ${TUNE:+$BITRATE_ARG} \
+        $BITRATE_ARG \
         -acodec ${ACODEC:-aac} \
         $(: [ "$NORATE" != true ] && list -ab $(format_num "$ABR")) \
         -ar "$AR" \
