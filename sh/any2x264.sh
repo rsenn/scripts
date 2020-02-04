@@ -141,6 +141,8 @@ any2x264() {
       -P) PRINTCMD=true; shift ;;
       -a) A="$2"; shift 2 ;;
       -c) A="${A:+-vf crop=$2}" shift 2 ;;
+      -ss=*) SS=${1#*=}; shift ;;
+      -ss) SS=$2; shift 2 ;;
        *) break ;;
 
       esac
@@ -304,6 +306,7 @@ echo "ABR=$ABR" 1>&2
         $A \
         ${RATE:+-r $RATE}  \
         -f mp4 \
+        ${SS:+-ss $SS} \
         -vcodec ${VCODEC:-h264} \
         ${ENCODER:+-c $ENCODER} \
         ${PRESET:+-preset "$PRESET"} \
