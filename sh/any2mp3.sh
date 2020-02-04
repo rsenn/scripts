@@ -145,7 +145,7 @@ for ARG; do
 	esac
    done; echo "$O"
    }
-   echo "CMD='$CMD'" 1>&2
+   [ "$DEBUG" = true ] && echo "CMD='$CMD'" 1>&2
   eval "(: set -x; $CMD)"
   R=$?
   if [ "$R" = 0 -a "$ARG" != "$WAV" ]; then
