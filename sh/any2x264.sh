@@ -141,6 +141,8 @@ any2x264() {
       -P) PRINTCMD=true; shift ;;
       -a) A="$2"; shift 2 ;;
       -c) A="${A:+-vf crop=$2}" shift 2 ;;
+      -ss=*) SS=${1#*=}; shift ;;
+      -ss) SS=$2; shift 2 ;;
        *) break ;;
 
       esac
@@ -216,10 +218,10 @@ any2x264() {
   #pushv RESOLUTIONS 352x288
 
 echo "ABR=$ABR" 1>&2
-
-if ffmpeg -codecs 2>/dev/null |grep -q '[hx]264.*nvenc'; then
-    : ${ENCODER=h264_nvenc}
-fi
+#
+#if ffmpeg -codecs 2>/dev/null |grep -q '[hx]264.*nvenc'; then
+#    : ${ENCODER=h264_nvenc}
+#fi
 
 
   for ARG; do
@@ -304,6 +306,7 @@ fi
         $A \
         ${RATE:+-r $RATE}  \
         -f mp4 \
+        ${SS:+-ss $SS} \
         -vcodec ${VCODEC:-h264} \
         ${ENCODER:+-c $ENCODER} \
         ${PRESET:+-preset "$PRESET"} \
@@ -311,8 +314,7 @@ fi
         ${ASPECT+-aspect "$ASPECT"} \
         ${TUNE+-tune "$TUNE"} \
         ${SIZE+-s "${SIZE// /}"}  \
-        $([ "$NORATE" != true ] && list $BITRATE_ARG || list -qscale 0) \
-        ${TUNE:+$BITRATE_ARG} \
+        $BITRATE_ARG \
         -acodec ${ACODEC:-aac} \
         $(: [ "$NORATE" != true ] && list -ab $(format_num "$ABR")) \
         -ar "$AR" \
@@ -320,6 +322,8 @@ fi
           { mv -vf "${OUTPUT%.???}.out.mp4" "${OUTPUT%.???}.mp4"; [ "$REMOVE" = true ] && 
             rm  -vf "$ARG" \
         ; } #|| exit $?
+       
+     
           
      unset SIZE
      exit 0
