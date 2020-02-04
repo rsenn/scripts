@@ -146,7 +146,7 @@ for ARG; do
    done; echo "$O"
    }
    echo "CMD='$CMD'" 1>&2
-  eval "(set -x; $CMD)"
+  eval "(: set -x; $CMD)"
   R=$?
   if [ "$R" = 0 -a "$ARG" != "$WAV" ]; then
 	REMOVE=true
