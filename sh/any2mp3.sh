@@ -88,13 +88,28 @@ for ARG; do
 	  ;;
 	  *)
 	  DECODE='
-	  
-	  case "${ARG}" in
-	    *.ogg) oggdec -o "$WAV" "$ARG" ;;
-	    *.mp3) madplay --output="$WAV":wave -S -R 44100 "$ARG" || mpg123 -w "$WAV" "$ARG" ;;
-	    *)   ffmpeg -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV" || mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG"
-	    
-	    esac  ' # ||
+    (case "${ARG}" in
+        *.ogg) 
+            oggdec -o "$WAV" "$ARG"
+            ;;
+        *.mp3) 
+            madplay --output="wave:$WAV" -S -R 44100 "$ARG" || 
+            mpg123 -w "$WAV" "$ARG" ||
+            false 
+          ;;
+        *) false
+          ;;
+      esac || 
+      case "${ARG}" in
+        *.ogg | *.mp3 | *.m4a | *.flac) 
+         sox -t wav "$ARG" "$WAV" 
+         ;;
+       *) 
+         false 
+         ;;
+      esac ||
+      ffmpeg -v 0 -y -i "${ARG}" -acodec pcm_s16le -f wav -ac 2 -ar 44100 "$WAV" || 
+      mplayer -really-quiet -noconsolecontrols -ao pcm:waveheader:file="$WAV" -vo null "$ARG") ' 
 
 
 	  ;;
@@ -130,7 +145,7 @@ for ARG; do
 	esac
    done; echo "$O"
    }
-   echo "CMD='$CMD'" 1>&2
+   [ "$DEBUG" = true ] && echo "CMD='$CMD'" 1>&2
   eval "(set -x; $CMD)"
   R=$?
   if [ "$R" = 0 -a "$ARG" != "$WAV" ]; then

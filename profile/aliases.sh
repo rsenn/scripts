@@ -34,3 +34,4 @@ alias qemu-system-x86_64='qemu-system-x86_64 -enable-kvm -machine q35,accel=kvm 
 alias prettier='prettier --trailing-comma none --write  --print-width 200 --semi --bracket-spacing --no-insert-pragma'
 alias prettier-eslint='prettier-eslint --trailing-comma none --write  --print-width 200 --semi --bracket-spacing --no-insert-pragma'
 alias jtags='ctags -R --exclude=node_modules --exclude=.next && sed -i -E "/^(if|switch|function|module\.exports|it|describe).+language:js$/d; /\.lua/d" tags'
+alias touch='touch --time=mtime'
