@@ -77,7 +77,7 @@ search_modules() {
         #DESC=$(echo "$DESC" | html_text )
         if [ "$HREF" -a "$DESC" ]; then
           I=$((I+1))
-          printf "%-40s %s\n" "${HREF##*/}" "${DESC:0:$((COLS - 41))}"
+          printf "%-40s %s\n" "${HREF#*/package/}" "${DESC:0:$((COLS - 41))}"
         fi
          #var_dump  HREF DESC 1>&2
         ;;
