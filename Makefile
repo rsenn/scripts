@@ -90,7 +90,7 @@ RB_LIBFILES := $(shell cd rb/lib && find * -type f)
 
 #SH_SCRIPTS = $(wildcard *.sh)
 SH_SCRIPTS = $(wildcard sh/*.sh)
-TYPE_CLASSES =  archives audio books documents eda fonts images incomplete music packages project scripts software sources spice videos vmdisk
+TYPE_CLASSES =  archives audio books documents eda fonts images incomplete music packages project scripts software sources spice videos vmdisk bin proteus
 FN_LINKS = \
 					 $(patsubst %,find-%.sh,$(TYPE_CLASSES)) \
 					 $(patsubst %,grep-%.sh,$(TYPE_CLASSES)) \

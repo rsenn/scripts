@@ -21,6 +21,8 @@ vmdisk_EXTS="vdi vmdk vhd qed qcow qcow2 vhdx hdd"
 project_EXTS="avrgccproj bdsproj cbproj coproj cproj cproject csproj dproj fsproj groupproj jsproj jucer lproj lsxproj metaproj packproj pbxproj pkgproj pmproj pnproj pro proj project pssproj shfbproj sln tmproj unityproj uvproj vbproj vcproj vcxproj vdproj vfproj webproj winproj wixproj zdsproj zfpproj"
 spice_EXTS="sp cir spc spi"
 eda_EXTS="sch brd lbr"
+bin_EXTS="hex cof"
+proteus_EXTS="dsn pdsproj"
 
 addexts() {
 eval "EXTS=\"\${EXTS:+\$EXTS }\${${1}_EXTS}\""
