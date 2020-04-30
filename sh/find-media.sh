@@ -240,6 +240,7 @@ case "$CLASS" in
   script*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(bat|cmd|py|rb|sh)\$" ;;
   software*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(\*\.msi|\*install\*\.exe|\*setup\*\.exe|\.msi|7z|deb|exe|install\*\.exe|msi|rar|rpm|setup\*\.exe|tar\.bz2|tar\.gz|tar\.xz|tbz2|tgz|txz|zip)\$" ;;
   source*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(c|cpp|cxx|h|hpp|hxx)\$" ;;
+  js*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(js|jsx|es5|es6)\$" ;;
   video*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(3gp|avi|f4v|flv|m2v|mkv|mov|mp4|mpeg|mpg|ogm|vob|wmv)\$" ;;
   vmware*|vbox*|virt*|v*disk*|vdi*|qed*|qcow*|qemu*|vmdk*|vdisk*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(vdi|vmdk|vhd|qed|qcow|qcow2|raw|vhdx|hdd)\$" ;;
   pdf|doc*) EXPR="${EXPR//\$)/)}${MATCH_ALL}\.(pdf|epub|mobi|azw3|djv|djvu)\$" ;;

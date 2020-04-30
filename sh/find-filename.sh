@@ -23,6 +23,7 @@ spice_EXTS="sp cir spc spi"
 eda_EXTS="sch brd lbr"
 bin_EXTS="hex cof"
 proteus_EXTS="dsn pdsproj"
+js_EXTS="js jsx es5 es6"
 
 addexts() {
 eval "EXTS=\"\${EXTS:+\$EXTS }\${${1}_EXTS}\""
