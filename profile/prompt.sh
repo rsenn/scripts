@@ -27,4 +27,4 @@ case "$SYSTEM" in
     colors_from_hostname
     ;;
 esac
-PS1='\[\e[${C1}m\]'${SYSTEM:-$USER}'\[\e[0m\]@\[\e[${C2}m\]'${HOSTNAME%.*}'\[\e[0m\]:(\[\e[${C3}m\]$(homepath -a "$PWD")\[\e[0m\]) \$ '
+PS1='\[\e[${C1}m\]'${USER}'\[\e[0m\]@\[\e[${C2}m\]'${HOSTNAME%.*}'\[\e[0m\]:(\[\e[${C3}m\]$(homepath -a "$PWD")\[\e[0m\]) \$ '
