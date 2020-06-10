@@ -38,7 +38,7 @@ index-dir ()
             fi;
         fi;
         [ "$DEBUG" = true ] && echo "$ARG:+ $CMD" 1>&9;
-        eval "$CMD $OPTS" ) 2> /dev/null > "$TEMP";
+        eval "$CMD $OPTS $EXTRA_OPTS" ) 2> /dev/null > "$TEMP";
         ( install -m 644 "$TEMP" "$PWD/$NAME.list" && rm -f "$TEMP" ) || mv -f "$TEMP" "$PWD/$NAME.list";
         wc -l "$PWD/$NAME.list" 1>&2 );
     done )
