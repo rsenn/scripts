@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ################################################################################
 #                                                                              #
@@ -144,6 +144,9 @@ fi
 # don't have a trailing newline.
 while IFS= read -r patchline || test -n "$patchline"
 do
+  patchline=${patchline//$'\n'/"\\n"}
+
+  #echo "patchline='$patchline'" 1>&2
 	if [ "`echo "$patchline" | cut -c -$delim_length`" = "$delim_string" ]; then
 		# Extract $patchtarget for nicer output.
 		# Really only useful in patch files.
@@ -161,7 +164,7 @@ do
 			patchtarget="$patchline"
 		fi
 		filecount=`expr $filecount + 1`
-		outfile=`printf "%03d.%s.patch" $filecount "$patchtarget"`
+    outfile=`printf "%03d.%s.patch" $filecount "$(basename "$patchtarget")"`
 		# See if outfile already exists and handle it according to the command
 		# options if it does.
 		if [ -e "$outfile" ]; then
