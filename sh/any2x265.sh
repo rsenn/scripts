@@ -203,10 +203,6 @@ any2x265() {
 
 echo "ABR=$ABR" 1>&2
 
-if ffmpeg -codecs 2>/dev/null |grep -q 'hevc.*nvenc'; then
-  : ${ENCODER=hevc_nvenc}
-fi
-
   for ARG; do
    ( 
    
@@ -294,7 +290,7 @@ fi
         ${PRESET:+-preset "$PRESET"} \
         $EXTRA_ARGS \
         ${ASPECT+-aspect "$ASPECT"} \
-        ${SIZE+-s "$SIZE"}  \
+        ${SIZE+-s $(echo $SIZE |sed 's, ,,g')}  \
         $BITRATE_ARG \
         -acodec ${ACODEC:-aac} \
         -ab $(format_num "$ABR") \
