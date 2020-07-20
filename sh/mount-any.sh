@@ -25,6 +25,7 @@ addopt() {
 
 for ARG; do
  (FILE=${ARG##*/}
+     echo "ARG: $ARG" 1>&2
   NAME=${FILE%.*}; NAME=${NAME%.tar*}
  USER_ID=${UID:-`id -u`}
   MNT="${DEST-$MNT/$NAME}"
@@ -34,11 +35,19 @@ for ARG; do
   mkdir -p "$MNT"
     [ $USER_ID -gt 0 ] && { SUDO=sudo; addopt uid=$USER_ID; }
 
-  if [ ! -b "$ARG" -a ! -c "$ARG" -a -e "$ARG" ]; then
+  if [  -e "$ARG" ]; then
 
-     MAGIC=`file "$ARG" | sed "s|$ARG:\s*||"`
+     MAGIC=`file - <"$ARG" | sed "s|^/dev/stdin:\s*|| ; s|$ARG:\s*||"`
+
+     echo "MAGIC: $MAGIC" 1>&2
      case "$MAGIC" in
-       *UDF*) addopt loop; CMD='$SUDO mount ${TYPE:+-t "$TYPE"} ${OPTS:+-o "$OPTS"} "$ARG" "$MNT"' ;;
+       *FAT*) TYPE=vfat ;;
+       *UDF*) TYPE=udf ;;
+       *ISO\ 9660*) TYPE=iso9660 ;;
+       *ext4*) TYPE=ext4 ;;
+     esac
+     case "$MAGIC" in
+       *FAT*|*UDF*|*Linux*ext4*) addopt loop; CMD='$SUDO mount ${TYPE:+-t "$TYPE"} ${OPTS:+-o "$OPTS"} "$ARG" "$MNT"' ;;
        *ISO\ 9660*) addopt "$FUSEOPT"; CMD='fuseiso "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;; 
        *Zip\ archive*) addopt "$FUSEOPT"; CMD='fuse-zip "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;; 
        *archive* | *compressed*) addopt "$FUSEOPT"; CMD='archivemount "$ARG" "$MNT" ${OPTS:+-o "$OPTS"}' ;;
