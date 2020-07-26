@@ -51,8 +51,10 @@ search_modules() {
   #var_dump URL 1>&2
   http_get "$URL" | sed '\|<section.*package/| { s|<section|\n&|g; } ;; \|<a href="/search.*page=| { s|<a href="/search.*page=|\n&|g; }'  >"$DATA"
 
+#grep '.*' -H "$DATA"
+
   case "$URL" in
-    *page=*) 
+    *page=*)
     THIS_PAGE=${URL#*page=}
     THIS_PAGE=${THIS_PAGE%%"&"*}
     ;;
@@ -66,9 +68,16 @@ search_modules() {
   while read -r LINE; do
 
     case "$LINE" in
-      "<section"*) 
+      "<section"*)
         HREF=https://www.npmjs.com$(echo "$LINE" | xml_get a href | head -n1 )
         TEXT=$(echo "$LINE" | sed 's|<[^a][^>]*>| |g ; s|\s\+| |g')
+
+AGO=${TEXT%%" ago</"*}
+AGO=${AGO##*>}
+AGO=${AGO#*"•"}
+
+
+        #echo "$AGO" >"text.txt"; grep '.*' -H text.txt
         DESC=$(echo "$TEXT" | sed 's|.*Description\s\([^<]*\)<.*|\1|')
         DESC=${DESC%Keywords }
         DESC=${DESC%Keywords}
@@ -77,25 +86,25 @@ search_modules() {
         #DESC=$(echo "$DESC" | html_text )
         if [ "$HREF" -a "$DESC" ]; then
           I=$((I+1))
-          printf "%-40s %s\n" "${HREF#*/package/}" "${DESC:0:$((COLS - 41))}"
+          printf "%-40s %-20s %s\n" "${HREF#*/package/}"  "$AGO" "${DESC:0:$((COLS - 62))}"
         fi
          #var_dump  HREF DESC 1>&2
         ;;
-      #*"<span><strong>"*) 
+      #*"<span><strong>"*)
       #   STRONG=$LINE ;;
       #*"</ul>"*) GENRE= ;;
-      #*"<ul>"*) 
-      #  GENRE=$(value strong "$STRONG") 
+      #*"<ul>"*)
+      #  GENRE=$(value strong "$STRONG")
       #  ;;
       #*"<li>"*)
       #  if [ -n "$GENRE" ]; then
       #    URL=https://bs.to/$(attribute href "$LINE")
       #    TITLE=$(attribute title "$LINE")
-      #    [ -n "$TITLE" ] &&   
+      #    [ -n "$TITLE" ] &&
       #      printf "%-15s %-80s %s\n" "$GENRE" "$URL" "$(dequote "$TITLE")"
       #  fi
       #;;
-    *page=*) 
+    *page=*)
       PAGES=`echo "$LINE" | xml_get a href |sed -n '/page=/ { s|&amp;|\&|g; s|^|https://www.npmjs.com|; p }' | sort -t= -k3 -n`
       if [ -z "$LAST_PAGE" ]; then
         LAST_PAGE=$(set -- $PAGES; eval echo "\${$#}")
@@ -109,7 +118,7 @@ search_modules() {
     esac
     PREV=$LINE
   done <"$DATA"
-  echo 
+  echo
 
   set -- $PAGES
   while [ $# -gt 0 ]; do
@@ -119,7 +128,7 @@ search_modules() {
     shift
   done
 
-  [ -n "$DEBUG" ] && var_dump THIS_PAGE NEXT_PAGE LAST_PAGE 1>&2 
+  [ -n "$DEBUG" ] && var_dump THIS_PAGE NEXT_PAGE LAST_PAGE 1>&2
 }
 
 npmjs() {
@@ -136,14 +145,14 @@ npmjs() {
   I=0
   P=0
   #: ${N:=30}
-  URL="https://www.npmjs.com/search?$(url_encode_args q="$Q")"  
-  
+  URL="https://www.npmjs.com/search?$(url_encode_args q="$Q")"
+
   while [ -n  "$URL" -a "${THIS_PAGE:-0}" != "$LAST_PAGE" ${N:+-a
 $I
 -lt
 $N}  ]; do
 
-    search_modules 
+    search_modules
     [ -n "$DEBUG" ] && var_dump NEXT_PAGE 1>&2
 
     URL=$NEXT_PAGE
