@@ -92,7 +92,7 @@ while :; do
     -u|--unindent) UNINDENT=true; shift ;;
     -b|--remove-body) REMOVE_BODY=true; shift ;;
     -r|--regen*-body) REGENERATE_BODY=true; shift ;;
-    -s|--shell-prefix) SHELL_PREFIX=true; shift ;;
+    -s|--shell-shlibprefix) SHELL_PREFIX=true; shift ;;
       *) break ;;
   esac
 done

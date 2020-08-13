@@ -4,9 +4,9 @@
 # It provides integration of the "require" command into a bash shell
 # configuration.
 
-: ${prefix:="/usr"}
-: ${exec_prefix:="/usr"}
-: ${libdir:="${exec_prefix}/lib"}
+: ${shlibprefix:="/usr"}
+: ${exec_shlibprefix:="/usr"}
+: ${libdir:="${exec_shlibprefix}/lib"}
 : ${shlibdir:="${libdir}/sh"}
 
 # require <library1> [library2...]

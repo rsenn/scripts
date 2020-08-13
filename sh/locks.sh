@@ -31,7 +31,7 @@ NL="
 #EXPORT=dirInitLock dirTryLock dirLock dirUnlock dirDestroyLock
 #REQUIRE=
 
-prefix=/usr
+shlibprefix=/usr
 __locks_LOCKS_DIR=/var/lock/dirlocks
 __locks_DEFAULT_SLEEP_TIME=0.01
 

@@ -25,6 +25,7 @@ grep_filename() {
   project_EXTS="avrgccproj bdsproj cbproj coproj cproj cproject csproj dproj fsproj groupproj jsproj jucer lproj lsxproj metaproj packproj pbxproj pkgproj pmproj pnproj pro proj project pssproj shfbproj sln tmproj unityproj uvproj vbproj vcproj vcxproj vdproj vfproj webproj winproj wixproj zdsproj zfpproj"
   spice_EXTS="sp cir spc spi"
   eda_EXTS="sch brd lbr"
+cam_EXTS="sts sol hpgl dri gpi 274 exc std"
 
   pushv ()
   {

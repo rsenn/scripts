@@ -4,8 +4,8 @@ NL="
 
 # provide default values for the required path variables.
 # ---------------------------------------------------------------------------
-: ${prefix="/usr"}
-: ${libdir="$prefix/lib"}
+: ${shlibprefix="/usr"}
+: ${libdir="$shlibprefix/lib"}
 : ${shlibdir="$libdir/sh"}
 
 # source required scripts

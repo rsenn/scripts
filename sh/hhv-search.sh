@@ -1,7 +1,7 @@
 #!/bin/bash
 
-: ${prefix="/usr"}
-: ${libdir="$prefix/lib"}
+: ${shlibprefix="/usr"}
+: ${libdir="$shlibprefix/lib"}
 : ${shlibdir="$libdir/sh"}
 
 . $shlibdir/util.sh

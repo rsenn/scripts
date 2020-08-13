@@ -114,7 +114,7 @@ auto_configure() {
      --without-*) OPTDEF="with" OPTNAME=${OPTSW#--with*-} ;;
        --disable-*) OPTDEF="enable" OPTNAME=${OPTSW#--*able-} ;;
        --enable-*) OPTDEF="disable" OPTNAME=${OPTSW#--*able-} ;;
-       --*dir | --*prefix) OPTNAME=${OPTSW#--} ;;
+       --*dir | --*shlibprefix) OPTNAME=${OPTSW#--} ;;
        [[:upper:]_]*) ;;
        *) continue ;;
      esac

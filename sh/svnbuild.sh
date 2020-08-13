@@ -15,8 +15,8 @@
 
 # provide default values for the required path variables.
 # --------------------------------------------------------------------------- 
-: ${prefix="/usr"}
-: ${libdir="$prefix/lib"}
+: ${shlibprefix="/usr"}
+: ${libdir="$shlibprefix/lib"}
 : ${shlibdir="$libdir/sh"}
 
 # source required scripts
@@ -31,7 +31,7 @@
 DEFINE_boolean help          "$FLAGS_FALSE" "show this help" h
 DEFINE_boolean debug         "$FLAGS_FALSE" "enable debug mode" D
 DEFINE_string  inputfile     "-"         "input file" i
-DEFINE_string  prefix        ""          "install architecture-independent files in PREFIX"
+DEFINE_string  shlibprefix        ""          "install architecture-independent files in PREFIX"
 DEFINE_string  sysconfdir    ""          "read-only single-machine data [PREFIX/etc]"
 DEFINE_string  localstatedir ""          "modifiable single-machine data [PREFIX/var]"
 DEFINE_string  host          ""          "cross-compile to build programs to run on HOST [BUILD]"
@@ -124,7 +124,7 @@ svnbuild()
       if [ -x configure ]; then
         CONFIGURE="./configure"
 
-        [ "$FLAGS_prefix" ] && pushv CONFIGURE --prefix="$FLAGS_prefix"
+        [ "$FLAGS_prefix" ] && pushv CONFIGURE --shlibprefix="$FLAGS_prefix"
         [ "$FLAGS_sysconfdir" ] && pushv CONFIGURE --sysconfdir="$FLAGS_sysconfdir"
         [ "$FLAGS_localstatedir" ] && pushv CONFIGURE --localstatedir="$FLAGS_localstatedir"
       fi

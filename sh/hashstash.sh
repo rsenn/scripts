@@ -48,7 +48,7 @@
 #REQUIRE=
 #-------------------------------------------------------------------------
 
-# The prefix of the hashes variables. 
+# The shlibprefix of the hashes variables. 
 # NOTE: Do not name any of your variables _HASH_*
 PREFIX="__hash_"
 

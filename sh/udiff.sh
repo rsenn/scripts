@@ -6,8 +6,8 @@ args=$(getopt -n"$name" --options "0123456789aAbBcC:dD:eEfF:hHiI:lL:nNpPqrsS:tTu
 orig_args=$(echo "$*")
 autotools=false
 
-prefix="/usr"
-libdir="$prefix/lib"
+shlibprefix="/usr"
+libdir="$shlibprefix/lib"
 shlibdir="$libdir/sh"
 
 source $shlibdir/util.sh

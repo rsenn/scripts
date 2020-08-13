@@ -2,8 +2,8 @@
 
 # set path variable defaults
 # ---------------------------------------------------------------------------
-: ${prefix="/usr"}
-: ${libdir="$prefix/lib"}
+: ${shlibprefix="/usr"}
+: ${libdir="$shlibprefix/lib"}
 : ${shlibdir="$libdir/sh"}
 
 # include library modules

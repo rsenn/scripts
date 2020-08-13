@@ -1,8 +1,8 @@
 #!/bin/sh
 # 
-# Generates RSA private key if none available in @prefix@/etc/ircd.key
-# Dumps RSA public key if none available to @prefix@/etc/ircd.pub
-# Makes certificate request in @prefix@/etc/ircd.req
+# Generates RSA private key if none available in @shlibprefix@/etc/ircd.key
+# Dumps RSA public key if none available to @shlibprefix@/etc/ircd.pub
+# Makes certificate request in @shlibprefix@/etc/ircd.req
 #
 # The request and the public key file are passed to the CA which
 # will return a signed certificate.

@@ -15,9 +15,9 @@
 
 # provide default values for the required path variables.
 # --------------------------------------------------------------------------- 
-: ${prefix="/usr"}
-: ${bindir="$prefix/bin"}
-: ${libdir="$prefix/lib"}
+: ${shlibprefix="/usr"}
+: ${bindir="$shlibprefix/bin"}
+: ${libdir="$shlibprefix/lib"}
 : ${sysconfdir="/etc"}
 : ${localstatedir="/var"}
 : ${shlibdir="$libdir/sh"}

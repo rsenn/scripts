@@ -22,7 +22,7 @@ decode_ls_lR()
   while [ "$1" ]; do
     case "$1" in
       -n | --num-cols | --num) N="$2" ; shift 2 ;; -n=* | --num-cols=* | --num=*) N="${1#*=}"; shift ;; -n*) N="${1#-n}" ; shift ;;
-      -p | --prefix) PREFIX="$2"; shift 2 ;; -p=* | --prefix=*) PREFIX="${1#*=}" ; shift ;; -p*) PREFIX="${1#-p}"; shift ;;
+      -p | --shlibprefix) PREFIX="$2"; shift 2 ;; -p=* | --shlibprefix=*) PREFIX="${1#*=}" ; shift ;; -p*) PREFIX="${1#-p}"; shift ;;
       *) break ;;
     esac
   done

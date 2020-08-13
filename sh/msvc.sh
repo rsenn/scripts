@@ -9,8 +9,8 @@ NL="
 
 # Directories of the build system
 # -------------------------------------------------------------------------
-prefix="/usr"
-libdir="$prefix/lib"
+shlibprefix="/usr"
+libdir="$shlibprefix/lib"
 shlibdir="$libdir/sh"
 
 # Shell script libraries
@@ -40,7 +40,7 @@ find_vc() {
 	VC_includedir="$VC_dir/include"
 	
 	if ${DEBUG-false}; then
-	  var_dump VC_{target,prefix,dir,bindir,libdir,includedir} 1>&2 
+	  var_dump VC_{target,shlibprefix,dir,bindir,libdir,includedir} 1>&2 
 	fi
 }
 
@@ -52,7 +52,7 @@ find_ide() {
 	IDE_prefix=`$PATHTOOL "$IDE_dir"`
 	
 	if ${DEBUG-false}; then
-	  var_dump IDE_{dir,prefix} 1>&2 
+	  var_dump IDE_{dir,shlibprefix} 1>&2 
 	fi
 	
 	pathmunge "$("$PATHTOOL" "$IDE_dir")" after
@@ -73,7 +73,7 @@ find_psdk() {
 	PSDK_libs="advapi32.lib"
 	
 	if ${DEBUG-false}; then
-	  var_dump PSDK_{prefix,dir,bindir,libdir,includedir,libs} 1>&2 
+	  var_dump PSDK_{shlibprefix,dir,bindir,libdir,includedir,libs} 1>&2 
 	fi
 }
 
@@ -92,7 +92,7 @@ find_cygwin() {
 	CYGWIN_libs="-lcygwin"
 	
 	if ${DEBUG-false}; then
-	  var_dump CYGWIN_{prefix,dir,bindir,libdir,includedir,libs} 1>&2 
+	  var_dump CYGWIN_{shlibprefix,dir,bindir,libdir,includedir,libs} 1>&2 
 	fi
 }
 
@@ -201,7 +201,7 @@ msvc_infer()
   done
 }
 
-# msvc_serialize [prefix...]
+# msvc_serialize [shlibprefix...]
 #
 # ------------------------------------------------------------------------- #
 msvc_serialize()

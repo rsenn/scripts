@@ -1,13 +1,13 @@
 #!/bin/sh
 # 
-# Generates RSA private key if none available in @prefix@/etc/ircd.key
-# Dumps RSA public key if none available to @prefix@/etc/ircd.pub
+# Generates RSA private key if none available in @shlibprefix@/etc/ircd.key
+# Dumps RSA public key if none available to @shlibprefix@/etc/ircd.pub
 #
 # $Id: mkkeys.in,v 1.1.1.1 2006/09/27 10:08:58 roman Exp $
 
-# ircd install prefix
-prefix="@prefix@"
-exec_prefix="@exec_prefix@"
+# ircd install shlibprefix
+shlibprefix="@shlibprefix@"
+exec_shlibprefix="@exec_shlibprefix@"
 sbindir="@sbindir@"
 sysconfdir="@sysconfdir@"
 

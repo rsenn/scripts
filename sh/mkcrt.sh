@@ -1,8 +1,8 @@
 #!/bin/sh
 # 
-# Generates RSA private key if none available in @prefix@/etc/ircd.key
-# Dumps RSA public key if none available to @prefix@/etc/ircd.pub
-# Makes a self-signed certificate in @prefix@/etc/ircd.crt
+# Generates RSA private key if none available in @shlibprefix@/etc/ircd.key
+# Dumps RSA public key if none available to @shlibprefix@/etc/ircd.pub
+# Makes a self-signed certificate in @shlibprefix@/etc/ircd.crt
 #
 # $Id: mkcrt.in,v 1.1.1.1 2006/09/27 10:08:58 roman Exp $
 
