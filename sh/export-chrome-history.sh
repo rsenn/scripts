@@ -13,7 +13,8 @@ for ARG; do
       ARG="$CONFIG/$DIRNAME/Default/History"
       ;;
   esac 
-  sqlite3 "$ARG" "SELECT urls.url, visit_time, visit_duration FROM visits INNER JOIN urls on urls.id = visits.url" 
+  sqlite3 "$ARG" "SELECT urls.url, visit_time, visit_duration FROM visits INNER JOIN urls on urls.id = visits.url"  |
+    sort -t'|' -k2 -n
 
 done
 }
