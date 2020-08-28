@@ -31,12 +31,16 @@ DEFINE_boolean noexist "$FLAGS_FALSE"         "show non-existent files (ENOENT)"
 DEFINE_boolean absolute "$FLAGS_FALSE"        "show only absolute paths" a
 
 DEFINE_string type ""                "limit to type (file,dir,..." t
+DEFINE_string input -               "input file" i
 DEFINE_string output -               "output file" o
 DEFINE_string raw -                  "raw output" r
 
 FLAGS_HELP="usage: `basename "$0"` [flags] [arguments...]
 "
 FLAGS "$@" || exit 1; shift ${FLAGS_ARGC}
+
+nl="
+"
 
 # source required scripts
 # --------------------------------------------------------------------------- 
@@ -49,8 +53,8 @@ FLAGS "$@" || exit 1; shift ${FLAGS_ARGC}
 ftrace_subst()
 {
   case ${3-$OUTPUT_command} in
-    *d) pushv SED_script "\\${OUTPUT_delim}${1}${OUTPUT_delim}${3-$OUTPUT_command}" ;;
-    *) pushv SED_script "s${OUTPUT_delim}${1}${OUTPUT_delim}${2}${OUTPUT_delim}${3-$OUTPUT_command}" ;;
+    *d) IFS="$nl" pushv SED_script "\\${OUTPUT_delim}${1}${OUTPUT_delim}${3-$OUTPUT_command}" ;;
+    *) IFS="$nl" pushv SED_script "s${OUTPUT_delim}${1}${OUTPUT_delim}${2}${OUTPUT_delim}${3-$OUTPUT_command}" ;;
   esac  
 }
 
@@ -60,21 +64,31 @@ main()
 {
   IFS="
 "
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -i) INPUT_file="$2"; shift 2 ;;
+      *) break ;;
+    esac
+  done
+
+  INPUT_file=$FLAGS_input
+
   [ "$FLAGS_debug" = "$FLAGS_TRUE" ] && msg "${0##*/} invoked with command '$@'"
 
-  OUTPUT_delim="§"
+  OUTPUT_delim="|"
   OUTPUT_separator="\\t"
   OUTPUT_command=p
 
-  SED_opt=
+  SED_opt="-n"
   SED_script=
 
-  pushv SED_opt -u 
-#  pushv SED_opt -n
+IFS=" "  pushv SED_opt -u 
 
   #ftrace_subst '"' '' '!d'
   #ftrace_subst '\([_0-9a-z]\+\)("\(.*\)", \([^)]*\)).*$' "\1${OUTPUT_separator}\2${OUTPUT_separator}\3"
 
+  ftrace_subst '^[^(]*([^"]*"\(/[^"]*\)".*' '\1'
   ftrace_subst '^\[pid\s\+[0-9]\+\]\s\+' '' ''
   ftrace_subst '\-\-\- SIG' '' d
 
@@ -92,8 +106,10 @@ main()
   #ftrace_subst '\], \[' ", " g
   #ftrace_subst '"\?, "\?' "${OUTPUT_separator}" g
 
-  [ "$FLAGS_debug" = "$FLAGS_TRUE" ] && var_dump SED_script
+  [ "$FLAGS_debug" = "$FLAGS_TRUE" ] && echo "SED_SCRIPT='$SED_script'" 1>&2 
 
+
+  if [ $# -gt 0 ]; then
   STRACE_opt=
 
   pushv STRACE_opt -v -q
@@ -104,6 +120,8 @@ main()
   [ "$FLAGS_debug" = "$FLAGS_TRUE" ] && var_dump STRACE_opt
 
   pushv STRACE_opt "$@"
+fi
+
 
   exec 9>&1   # fd #9 is a clone of fd #1 (stdout)
 
@@ -115,20 +133,27 @@ main()
     *) PIPELINE_out=$FLAGS_output ;;
   esac
 
-  pushv PIPELINE_cmds "strace \$STRACE_opt 2>&1 1>&9"
+  if [ -n "$STRACE_opt" -a $# -gt 0 -a -z "$INPUT_file"  ]; then
+    pushv PIPELINE_cmds "strace \$STRACE_opt 2>&1 1>&9"
+  else
+    pushv PIPELINE_cmds "cat \$INPUT_file"
+  fi
 
   [ "$FLAGS_raw" ] && pushv PIPELINE_cmds "tee \"\$FLAGS_raw\""
 
-  pushv PIPELINE_cmds "sed \$SED_opt -e\"\$SED_script\""
+
+  pushv PIPELINE_cmds "sed $SED_opt -e\"\$SED_script\""
 
   [ "$FLAGS_nouniq" = "$FLAGS_FALSE" ] && pushv PIPELINE_cmds uniq
   [ "$FLAGS_absolute" = "$FLAGS_TRUE" ] && pushv PIPELINE_cmds "grep '^/'"
   
-  if [ -n "$FLAGS_type" ]; then
+  if false && [ -n "$FLAGS_type" ]; then
     pushv PIPELINE_cmds "while read LINE; do test -$FLAGS_type \"\$LINE\" && echo \"\$LINE\"; done"
   fi
 
+ # IFS="$nl" pushv PIPELINE_cmds "sed '\\|(\"/|! d'"
   set $PIPELINE_cmds
+  #eval set -- "$@"
   
   IFS="|$IFS"
 
