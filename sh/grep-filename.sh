@@ -26,6 +26,8 @@ grep_filename() {
   spice_EXTS="sp cir spc spi"
   eda_EXTS="sch brd lbr"
 cam_EXTS="sts sol hpgl dri gpi 274 exc std"
+js_EXTS="js jsx cjs mjs ts"
+js_FILTER='\|node_modules/|d; \|/test|d; \|\.min\.|d; \|/\.|d'
 
   pushv ()
   {
@@ -34,11 +36,11 @@ cam_EXTS="sts sol hpgl dri gpi 274 exc std"
 
   addexts() {
     case "$1" in
-      [A-Za-z]*) eval "EXTS=\"\${EXTS:+\$EXTS }\${${1}_EXTS}\"" ;;
+      [A-Za-z]*) eval "${2-EXTS}=\"\${${2-EXTS}:+\$${2-EXTS} }\${${1}_${2-EXTS}}\"" ;;
     esac
   }
   addext() {
-  eval "EXTS=\"\${EXTS:+\$EXTS }\${1}\""
+    eval "EXTS=\"\${EXTS:+\$EXTS }\${1}\""
   }
   addexts ${MYNAME#grep-}
 
@@ -59,9 +61,9 @@ cam_EXTS="sts sol hpgl dri gpi 274 exc std"
 	case "$1" in
 	-h | --help) usage ;;
 	  -x | --debug) DEBUG=true; shift ;;
-	  -c | --class) addexts "$2"; shift  2 ;;
-	  -c=* | --class=*) addexts "${1#*=}"; shift ;;
-	  -c*) addexts "${1#-?}"; shift   ;;
+	  -c | --class) addexts "$2"; addexts "$2" FILTER; shift  2 ;;
+	  -c=* | --class=*) addexts "${1#*=}"; addexts "${1#*=}" FILTER; shift ;;
+	  -c*) addexts "${1#-?}"; addexts "${1#*=}" FILTER; shift   ;;
 	  -E=* | --ext*=*) addext "${1#*=}"; shift ;;
 		  -E | --ext*) addext "$2"; shift  2 ;;
 	  -E*) addext "${1#-?}"; shift   ;;
@@ -97,11 +99,13 @@ CMD=
   if [ $# -gt 1 ]; then
     GREP_ARGS="-H"
     case "$*" in
-      *files.list*) FILTER='${SED-sed} "s|/files.list:|/|"' ;;
+      *files.list*) FILTER='${FILTER:+$FILTER; }s|/files.list:|/|' ;;
     esac
   fi
 
-  [ -n "$FILTER" ] && CMD="$CMD | $FILTER" || CMD="exec $CMD"
+
+  echo "FILTER='$FILTER'" 1>&2
+  [ -n "$FILTER" ] && CMD="$CMD | ${SED-sed} \"\$FILTER\"" || CMD="exec $CMD"
   [ "$DEBUG" = true ] && eval "echo \"+ \$CMD\" 1>&2"
 
   eval "$CMD"
