@@ -6,7 +6,7 @@ require html
 require xml
 require http
 require url
-require util
+#require util
 require var
 
 [ -z "$DEBUG" ] && trap 'rm -f "$DATA"' EXIT
