@@ -140,7 +140,7 @@ _rl_enabled()
 }
 
 # This function shell-quotes the argument
-quote()
+shell_quote()
 {
     local quoted=${1//\'/\'\\\'\'}
     printf "'%s'" "$quoted"
@@ -156,7 +156,7 @@ quote_readline()
 
 
 # This function shell-dequotes the argument
-dequote()
+shell_dequote()
 {
     eval printf %s "$1" 2> /dev/null
 }
@@ -532,7 +532,7 @@ __ltrim_colon_completions()
 # - http://lists.gnu.org/archive/html/bug-bash/2009-03/msg00155.html
 # - http://www.mail-archive.com/bash-completion-devel@lists.alioth.\
 #   debian.org/msg01944.html
-# @param $1  Argument to quote
+# @param $1  Argument to shell_quote
 # @param $2  Name of variable to return result to
 _quote_readline_by_ref()
 {
@@ -763,11 +763,11 @@ __parse_options()
 #
 _parse_help()
 {
-    eval local cmd=$( quote "$1" )
+    eval local cmd=$( shell_quote "$1" )
     local line
     { case $cmd in
         -) cat ;;
-        *) LC_ALL=C "$( dequote "$cmd" )" ${2:---help} 2>&1 ;;
+        *) LC_ALL=C "$( shell_dequote "$cmd" )" ${2:---help} 2>&1 ;;
       esac } \
     | while read -r line; do
 
@@ -788,11 +788,11 @@ _parse_help()
 #
 _parse_usage()
 {
-    eval local cmd=$( quote "$1" )
+    eval local cmd=$( shell_quote "$1" )
     local line match option i char
     { case $cmd in
         -) cat ;;
-        *) LC_ALL=C "$( dequote "$cmd" )" ${2:---usage} 2>&1 ;;
+        *) LC_ALL=C "$( shell_dequote "$cmd" )" ${2:---usage} 2>&1 ;;
       esac } \
     | while read -r line; do
 

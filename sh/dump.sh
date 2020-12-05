@@ -21,7 +21,7 @@ MYSQL_flags=""
 # ---------------------------------------------------------------------------
 exec mysqldump \
   --extended-insert=FALSE \
-  --quote-names=FALSE \
+  --shell_quote-names=FALSE \
   -h "$MYSQL_host" \
   -u "$MYSQL_user" \
   -p"$MYSQL_pass" \

@@ -45,7 +45,7 @@ var_dump() {
    done; eval "$CMD")
 }
 
-quote() {  (unset O
+shell_quote() {  (unset O
   for A; do case "$A" in
       *\ *) O="${O+$O }'$A'" ;; *)  O="${O+$O }$A" ;;
     esac; done; echo "$O")
@@ -64,7 +64,7 @@ bci() { (IFS=" "; [ "$DEBUG" = true ] && echo "EXPR: bci '$*'" 1>&2; bce "($*) +
 
 duration()
 {
-echo "duration $(quote "$@")" 1>&2
+echo "duration $(shell_quote "$@")" 1>&2
     (for ARG; do minfo "$ARG" | info_get Duration| head  -n1 ; done | ${SED-sed} 's,\([0-9]\+\)\s*h,(\1 * 3600\)+, ; s,\([0-9]\+\)\s*mi\?n,(\1 * 60)+, ; s,\([0-9]\+\)\s*s,\1+, ; s,+$,,' |  
     bc  -l)
 }
@@ -295,7 +295,7 @@ echo "ABR=$ABR" 1>&2
         -acodec ${ACODEC:-aac} \
         -ab $(format_num "$ABR") \
         -ar "$AR" \
-        -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || {  "$@" || exit $?; }; } && 
+        -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && shell_quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || {  "$@" || exit $?; }; } && 
           { mv -vf "${OUTPUT%.???}.out.mp4" "${OUTPUT%.???}.mp4"; [ "$REMOVE" = true ] && 
             rm  -vf "$ARG" \
         ; } #|| exit $?

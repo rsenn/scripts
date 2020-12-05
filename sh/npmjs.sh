@@ -40,9 +40,9 @@ echo "$VALUE"
 esac
 }
 
-dequote() {
+shell_dequote() {
   T=${*//"&#039;"/"'"}
-  T=${*//"&quote;"/"\""}
+  T=${*//"&shell_quote;"/"\""}
   T=${T//"&amp;"/"&"}
   echo "$T"
 }
@@ -106,7 +106,7 @@ fi
   #    URL=https://bs.to/$(attribute href "$LINE")
   #    TITLE=$(attribute title "$LINE")
   #    [ -n "$TITLE" ] &&
-  #      printf "%-15s %-80s %s\n" "$GENRE" "$URL" "$(dequote "$TITLE")"
+  #      printf "%-15s %-80s %s\n" "$GENRE" "$URL" "$(shell_dequote "$TITLE")"
   #  fi
   #;;
   *page=*)
