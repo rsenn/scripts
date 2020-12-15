@@ -1,3 +1,3 @@
 cols() {
-  column -c ${COLUMNS:-`tput cols`}
+  command column -c ${COLUMNS:=`tput cols`}
 }
