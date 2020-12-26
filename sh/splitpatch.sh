@@ -82,7 +82,7 @@ show_usage ()
 	text="$text overwrite it instead of aborting. This option will override"
 	text="$text -a."
 	# fmt handles line indentation better than fold.
-	echo "$text" | fmt -w 80
+	echo -e "$text" | fmt -w 80
 }
 
 give_up ()
