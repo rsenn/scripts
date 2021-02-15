@@ -38,6 +38,8 @@ make_archive() {
       -d=* | --dest*DIR*=*) DESTDIR=${1#*=}; shift ;; 
       -d | --dest*DIR*) DESTDIR=$2; shift 2 ;;
       -D | --no*date*) NODATE=true; shift  ;;
+      -n=* | --name=*) NAME=${1#*=}; shift ;;
+      -n | --name) NAME=$2; shift  2 ;;
       -[EX] | --exclude) pushv EXCLUDE "$2"; shift 2 ;; 
       -[EXx]*) pushv EXCLUDE "${1#-?}"; shift ;; 
       -[EXx]=*) pushv EXCLUDE "${1#*=}"; shift ;;
@@ -87,15 +89,17 @@ mkarchive() {
   #echo "DNAME=$DNAME" 1>&2 
   DIR=${2:-.}
   if [ -z "$ARCHIVE" ]; then
-    if [ "$DESTDIR" ]; then
-      NAME=${DNAME#$ABSDESTDIR}
-      NAME=${NAME#/}
-      NAME=${NAME//[\\/]/-}
-    else
-      NAME=${DNAME##*/}
+    if [ -z "$NAME" ]; then
+      if [ "$DESTDIR" ]; then
+        NAME=${DNAME#$ABSDESTDIR}
+        NAME=${NAME#/}
+        NAME=${NAME//[\\/]/-}
+      else
+        NAME=${DNAME##*/}
+      fi
+      NAME=${NAME#.}
+      NAME=${NAME%/}
     fi
-    NAME=${NAME#.}
-    NAME=${NAME%/}
     #echo "NAME=$NAME" 1>&2 
     ARCHIVE=${DESTDIR:-..}/${NAME##*/}
     [ "$NODATE" != true ] && ARCHIVE=$ARCHIVE-$(isodate.sh -r ${DIR:-.})   #`date ${DIR:+-r "$DIR"} +%Y%m%d`
