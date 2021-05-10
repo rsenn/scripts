@@ -63,7 +63,7 @@ for ARG; do
 #    WAV="${ARG%.*}.wav"
     DIR=`dirname "$ARG"`
     WAV="${MYNAME}-$$.wav"
-  trap '[ "$WAV" != "$ARG" -a "${REMOVE:-false}" = true ] && rm -f "$WAV"' EXIT
+  trap '[ "$WAV" != "$ARG" ] && rm -f "$WAV"' EXIT
   trap 'exit 3' INT TERM
 
     OUTPUT="${ARG%.*}.mp3"

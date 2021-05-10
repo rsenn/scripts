@@ -20,7 +20,7 @@ for ARG; do
 
   WAV="${BASE}-$$.wav"
 
-        trap 'rm -vf "$WAV"' EXIT QUIT INT TERM
+        trap '[ "$WAV" != "$ARG" ] && rm -f "$WAV"' EXIT QUIT INT TERM
 
 
   (
