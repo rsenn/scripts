@@ -46,7 +46,7 @@ format_num() {
     
 
 var_dump() {
-  (SQ="'" BS="\\"; CMD='echo'; for N; do
+  (SQ="'" BS=\\; CMD='echo'; for N; do
     CMD="${CMD:+$CMD }\"$N='\${$N//\$SQ/\$BS\$SQ}'\""
    done; eval "$CMD")
 }
@@ -319,7 +319,7 @@ echo "ABR=$ABR" 1>&2
         $(: [ "$NORATE" != true ] && list -ab $(format_num "$ABR")) \
         -ar "$AR" \
         -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && shell_quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || {  "$@" || exit $?; }; } && 
-          { mv -vf "${OUTPUT%.???}.out.mp4" "${OUTPUT%.???}.mp4"; [ "$REMOVE" = true ] && 
+          { [ "$ARG" != "${OUTPUT%.???}.mp4" ] && mv -vf "${OUTPUT%.???}.out.mp4" "${OUTPUT%.???}.mp4"; [ "$REMOVE" = true ] && 
             rm  -vf "$ARG" \
         ; } #|| exit $?
        
