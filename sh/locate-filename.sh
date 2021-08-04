@@ -2,7 +2,7 @@
 
 : ${MYNAME=`basename "$0" .sh`}
 
-archives_EXTS="rar zip 7z cab tar tar.Z tar.gz tar.xz tar.bz2 tar.lzma tgz txz tbz2 tlzma cpio"
+archives_EXTS="rar zip 7z cab cpio cpio.Z cpio.gz cpio.xz cpio.bz2 cpio.lzma tar tar.Z tar.gz tar.xz tar.bz2 tar.lzma  cpio cpio.Z cpio.gz cpio.xz cpio.bz2 cpio.lzma  cpio cpio.Z cpio.gz cpio.xz cpio.bz2 cpio.lzma tgz txz tbz2 tlzma cpio"
 audio_EXTS="mp3 mp2 m4a m4b wma rm ogg flac mpc wav aif aiff raw"
 books_EXTS="pdf epub mobi azw3 djv djvu"
 documents_EXTS="cdr doc docx odf odg odp ods odt pdf ppt pptx rtf vsd xls xlsx"

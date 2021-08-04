@@ -19,7 +19,7 @@ for ARG; do
 
   WAV="${BASE}-$$.wav"
 
-        trap 'rm -vf "$WAV"' EXIT QUIT INT TERM
+        trap '[ "$WAV" != "$ARG" ] && rm -f "$WAV"' EXIT QUIT INT TERM
 rm -f "$OUTPUT"
 
 #  if type mpg123 2>/dev/null >/dev/null; then
