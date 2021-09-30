@@ -436,6 +436,11 @@ check-link()
     test -e "$TARGET")
 }
 
+chmkdir() {
+  mkdir -p "$1"
+  cd "$1"
+}
+
 choco-joinlines() {
  (LINENO=0
   o() {
@@ -5359,6 +5364,11 @@ rem ${INSTALL_CMD}
 EOF
     fi) || exit $?
   done)
+}
+
+mkchdir() {
+  mkdir -p "$1"
+  cd "$1"
 }
 
 #!/bin/bash
