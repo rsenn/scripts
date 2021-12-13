@@ -37,3 +37,4 @@ alias jtags='ctags -R --exclude=node_modules --exclude=.next && sed -i -E "/^(if
 alias touch='touch --time=mtime'
 alias arduino-builder='arduino-builder -compile -hardware /opt/arduino-1.8.12/hardware -tools /opt/arduino-1.8.12/tools-builder -tools /opt/arduino-1.8.12/hardware/tools/avr -built-in-libraries /opt/arduino-1.8.12/libraries -libraries ~/Arduino/libraries '
 alias lsof='lsof -w'
+alias sublime_text='LANG=en_US.UTF-8 LC_CTYPE=en_US.UTF-8 sublime_text'
