@@ -1,5 +1,9 @@
 #!/bin/bash
-FONTFORGE="C:/Program Files (x86)/FontForge/bin/fontforge.exe"
+if [ "`type -t fontforge`" = file ]; then
+  FONTFORGE=fontforge
+else
+  FONTFORGE="C:/Program Files (x86)/FontForge/bin/fontforge.exe"
+fi
 
 DISPLAY=":0"
 

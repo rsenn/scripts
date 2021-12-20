@@ -35,6 +35,15 @@ addext() {
 eval "EXTS=\"\${EXTS:+\$EXTS }\${1}\""
 }
 addexts ${MYNAME#locate-}
+usage() {
+  echo "Usage: ${0##*/} [options] <pattern>"
+  echo " --class, -c CLASS    Add file extension class"
+  echo " --ext,   -e EXT      Add file extension"
+  echo " --filepart, -f       Only look in filename part"
+  echo " --debug, -x          Debug mode"
+  echo " --limit, -n          Limit to N results"
+  exit 0
+}
 
 locate_filenames()
 {
@@ -43,6 +52,9 @@ locate_filenames()
    ANY=".*"
  while :; do
       case "$1" in
+        -h | --help) usage ;;
+        -n | --limit) LIMIT=${2}; shift  2 ;;
+        -n=* | --limit=*) LIMIT=${1#*=}; shift ;; 
         -c | --class) addexts "$2"; shift  2 ;;
         -c=* | --class=*) addexts "${1#*=}"; shift ;;
         -c*) addexts "${1#-?}"; shift   ;;
@@ -56,12 +68,16 @@ locate_filenames()
             esac
             done
  [ $# -le 0 ] && set -- ".*"
- for ARG; do ([ "$DEBUG" = true ] && set -x; locate -i -r "$ARG"); done |(
+ for ARG; do ([ "$DEBUG" = true ] && set -x; locate  -i -r "$ARG"); done |(
      
      set -- grep -a -iE "($(IFS='| '; echo "$*"))$ANY\.($(IFS='| '; set -- $EXTS; echo "$*"))\$"; 
+
      [ "$DEBUG" = true ] && set -x
-     "$@"
-     
+     CMD='"$@"'
+     if [ -n "$LIMIT" ]; then
+       CMD="$CMD | head -n${LIMIT}"
+     fi
+     eval "$CMD"
      )
   )
 }
