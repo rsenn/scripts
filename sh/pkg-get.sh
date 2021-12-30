@@ -25,7 +25,7 @@ get_package_lists() {
       slacky) dlynx.sh  http://repository.slacky.eu/ | grep slacky.eu/.*${RELEASE-14.2}.*/|addsuffix PACKAGES.TXT ;; 
       slackware) dlynx.sh http://slackware.cs.utah.edu/pub/slackware|grep /slackware/.*${RELEASE-14.2}.*/ | addsuffix PACKAGES.TXT ;; 
       ubuntu) list \
-      http://${URL-ch.archive.ubuntu.com/ubuntu}/dists/${RELEASE-trusty}{,-backports,-proposed,-security,-updates}/{main,universe,multiverse,restricted}/binary-${ARCH-amd64}/Packages.gz \
+      ${URL-http://ch.archive.ubuntu.com/ubuntu}/dists/${RELEASE-trusty}{,-backports,-proposed,-security,-updates}/{main,universe,multiverse,restricted}/binary-${ARCH-amd64}/Packages.gz \
       http://archive.canonical.com/ubuntu/dists/${RELEASE-trusty}{,-proposed}/partner/binary-${ARCH-amd64}/Packages.gz \
       http://extras.ubuntu.com/ubuntu/dists/${RELEASE-trusty}/main/binary-amd64/Packages.gz
     ;;
