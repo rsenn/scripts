@@ -27,7 +27,7 @@ NL="
 . $shlibdir/data/xml.sh
 #. $shlibdir/buildsys.sh
 
-. shflags
+. shflags.sh
 
 # default configuration
 # ---------------------------------------------------------------------------
