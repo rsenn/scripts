@@ -2,7 +2,7 @@
 
 # parse command line options using shflags 
 # ---------------------------------------------------------------------------
-. shflags
+. shflags.sh
 
 DEFINE_boolean help false            "show this help" h
 DEFINE_boolean debug false           "enable debug mode" D
