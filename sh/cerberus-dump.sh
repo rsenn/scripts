@@ -33,7 +33,7 @@
 
 # Parse command line options using shflags 
 # ---------------------------------------------------------------------------
-. shflags
+. shflags.sh
 
 : ${URL="https://cerberus.adfinis.com"}
 
