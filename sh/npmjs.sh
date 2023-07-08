@@ -89,11 +89,16 @@ search_modules() {
       DESC=${DESC%Keywords}
       DESC=${DESC%Publisher }
       DESC=${DESC%Publisher}
+      NAME=${HREF#*/package/}
+      DESC=$(echo "$DESC" |  sed "s|\s*<[^>]*>\s*|| ; s,<.*,, ; s,^\s*,, ; 1!d ; s|\s*$NAME\s*||")
+      DESC=${DESC#$NAME}
+      DESC=${DESC#" "}
 
       #DESC=$(echo "$DESC" | html_text )
+
       if [ "$HREF" -a "$DESC" ]; then
         I=$((I + 1))
-        printf "%-40s %-20s %s\n" "${HREF#*/package/}" "$AGO" "${DESC:0:$((COLS - 62))}"
+        printf "%-40s %-20s %s\n" "$NAME" "$AGO" "${DESC:0:$((COLS - 62))}"
       fi
       #var_dump  HREF DESC 1>&2
       ;;
@@ -171,7 +176,7 @@ $I
 -lt
 $N} ]; do
 
-    search_modules | sed 's|\s*<[^>]*>\s*||g'
+    search_modules 
     [ -n "$DEBUG" ] && var_dump NEXT_PAGE 1>&2
 
     URL=$NEXT_PAGE
