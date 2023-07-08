@@ -89,6 +89,7 @@ search_modules() {
       DESC=${DESC%Keywords}
       DESC=${DESC%Publisher }
       DESC=${DESC%Publisher}
+
       #DESC=$(echo "$DESC" | html_text )
       if [ "$HREF" -a "$DESC" ]; then
         I=$((I + 1))
@@ -170,7 +171,7 @@ $I
 -lt
 $N} ]; do
 
-    search_modules
+    search_modules | sed 's|\s*<[^>]*>\s*||g'
     [ -n "$DEBUG" ] && var_dump NEXT_PAGE 1>&2
 
     URL=$NEXT_PAGE

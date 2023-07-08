@@ -104,8 +104,6 @@ CMD=
     esac
   fi
 
-
-  echo "FILTER='$FILTER'" 1>&2
   [ -n "$FILTER" ] && CMD="$CMD | ${SED-sed} \"\$FILTER\"" || CMD="exec $CMD"
   [ "$DEBUG" = true ] && eval "echo \"+ \$CMD\" 1>&2"
 
