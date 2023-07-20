@@ -237,6 +237,11 @@ bitrate()
   done
 }
 
+bits()
+{ 
+    qjs -e "print((${1}).toString(2).split('').reverse().map((n,i) => n=='1' ? [n, i] : null).filter(v => v!==null).map(([i,v]) => (1 << v)).join('\n'))"
+}
+
 blksize()
 {
     ( SIZE=`fdisk -s "$1"`;
@@ -849,6 +854,11 @@ convert-boot-file()
 
 
    )
+}
+
+count1()
+{ 
+    qjs -e "print('${1}'.split('').filter(i => i=='1').length)"
 }
 
 count-in-dir()
@@ -4788,6 +4798,11 @@ locate-filename()
         CMD="$CMD | (set -x ; ${GREP-grep} \$GREP_ARGS \"\${EXPR#/}\") ";
         eval "$CMD";
     done )
+}
+
+log2()
+{ 
+    qjs -e "print(Math.log2(${1}))"
 }
 
 lookup-grub-devicemap() {
