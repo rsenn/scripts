@@ -16,7 +16,7 @@ grep_filename() {
   music_EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669 mp4"
   packages_EXTS="txz tlzma tgz rpm deb"
   scripts_EXTS="sh py rb bat cmd"
-  software_EXTS="rar zip 7z tar.gz tar.xz tar.lzma tar.bz2 tgz txz tlzma tbz2 exe msi msu cab vbox-extpack apk deb rpm iso daa dmg run pkg app bin iso daa nrg dmg exe sh tar.Z tar.gz zip"
+  software_EXTS="rar zip 7z tar.gz tar.xz tar.lzma tar.bz2 tgz txz tlzma tbz2 exe msi msu cab vbox-extpack apk deb rpm iso daa dmg run pkg app bin iso daa nrg dmg exe sh tar.Z tar.gz zip AppImage"
   software_EXTS="$software_EXTS 7z app bin daa deb dmg exe iso msi msu cab vbox-extpack apk nrg pkg rar rpm run sh tar.Z tar.bz2 tar.gz tar.xz tbz2 tgz txz tlzma zip"
     sources_EXTS="c cs cc cpp cxx h hh hpp hxx ipp mm r java rb py s asm inc pde ino"
     scripts_EXTS="lua moon py rb sh js coffee scss sass css jsx tcl pl awk m4 php"
