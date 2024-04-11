@@ -42,4 +42,4 @@ cyg*) C1="0;32" C2="0;33" ;;
   colors_from_hostname
   ;;
 esac
-PS1='\[\e[${C1}m\]'${USER}'\[\e[0m\]@\[\e[${C2}m\]'${HOSTNAME%%.*}'\[\e[0m\]:(\[\e[${C3}m\]$(homepath -a "$PWD")\[\e[0m\]) \$ '
+PS1=${USER+'\[\e[${C1}m\]'${USER}'\[\e[0m\]@'}'\[\e[${C2}m\]'${HOSTNAME%%.*}'\[\e[0m\]:(\[\e[${C3}m\]$(homepath -a "$PWD")\[\e[0m\]) \$ '
