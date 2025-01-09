@@ -1,0 +1,3 @@
+cols() {
+  column -c $COLUMNS
+}
