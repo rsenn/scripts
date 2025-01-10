@@ -729,9 +729,11 @@ cmdprint() {
   echo $OPTS "$O")
 }
 
-cols() {
-  column -c $COLUMNS
-}
+if [ "`type -t cols`" != alias ]; then
+  cols() {
+    column -c $COLUMNS
+  }
+fi
 
 command-exists()
 {
