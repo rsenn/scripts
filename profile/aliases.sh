@@ -1,7 +1,7 @@
 alias aria2='aria2c --file-allocation=none'
 alias aria2c='aria2c --file-allocation=none'
 alias astyle='astyle --style=attach --indent=spaces=2 --unpad-paren --pad-oper --keep-one-line-{blocks,statements}'
-alias cols='column -c $(tput cols)'
+[ "`type -t cols`" = "" ] || alias cols='column -c $(tput cols)'
 alias cproto='cproto -D__{x,y,value}='
 alias curl='curl -L -k'
 alias df='df -T -x tmpfs -x rootfs'

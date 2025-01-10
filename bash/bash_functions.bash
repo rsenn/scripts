@@ -729,8 +729,7 @@ cmdprint() {
   echo $OPTS "$O")
 }
 
-if [ "`type -t cols`" != alias ]; then
-  unalias cols
+if [ "`type -t cols`" = "" ]; then
   cols() {
     column -c $COLUMNS
   }
