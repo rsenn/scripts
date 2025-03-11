@@ -263,7 +263,7 @@ echo "ABR=$ABR" 1>&2
       R2=`size2ratio "$RES"`
       echo "Check ratio $(bce "$R2 / 100")" 1>&2
             
-      if [ "$R" -eq "$R2" ]; then
+      if [ "${R%%.*}" -eq "${R2%%.*}" ]; then
           SIZE="$RES"
           break
       fi

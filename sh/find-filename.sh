@@ -3,14 +3,14 @@
 : ${MYNAME=`basename "$0" .sh`}
 
 archives_EXTS="rar zip 7z cab cpio cpio.Z cpio.gz cpio.xz cpio.bz2 cpio.lzma tar tar.Z tar.gz tar.xz tar.bz2 tar.lzma tar.zst cpio cpio.Z cpio.gz cpio.xz cpio.bz2 cpio.lzma  cpio cpio.Z cpio.gz cpio.xz cpio.bz2 cpio.lzma tgz txz tbz2 tlzma zst"
-audio_EXTS="aif aiff flac m4a m4b mp2 mp3 mpc ogg raw rm wav wma"
+audio_EXTS="aif aiff flac m4a m4b mp2 mp3 mpc ogg raw rm wav wma opus"
 books_EXTS="pdf epub mobi azw3 djv djvu"
 documents_EXTS="cdr doc docx odf odg odp ods odt pdf ppt pptx rtf vsd xls xlsx html"
 fonts_EXTS="CompositeFont pcf ttc otf afm pfb fon ttf"
 grammar_EXTS="ebnf bnf g4 y l"
 images_EXTS="bmp cin cod dcx djvu emf fig gif ico im1 im24 im8 jin jpeg jpg lss miff opc pbm pcx pgm pgx png pnm ppm psd rle rmp sgi shx svg tga tif tiff wim xcf xpm xwd mng"
 incomplete_EXTS="*.part *.!?? INCOMPL*"
-music_EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669 mp4"
+music_EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669 mp4 opus"
 packages_EXTS="tgz txz rpm deb"
 scripts_EXTS="sh py rb bat cmd js jsx cjs mjs ts tsx"
 scripts_EXCL="d.js test.js d.ts test.ts test.d.ts"
