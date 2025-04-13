@@ -13,7 +13,7 @@ grep_filename() {
   fonts_EXTS="ttf otf bdf pcf fon"
   grammar_EXTS="ebnf bnf g4 y l"
   images_EXTS="bmp cin cod dcx djvu emf fig gif ico im1 im24 im8 jin jpeg jpg lss miff png pnm"
-  music_EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669 mp4 opus"
+  music_EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669 opus"
   packages_EXTS="txz tlzma tgz rpm deb"
   scripts_EXTS="sh py rb bat cmd"
   software_EXTS="rar zip 7z tar.gz tar.xz tar.lzma tar.bz2 tgz txz tlzma tbz2 exe msi msu cab vbox-extpack apk deb rpm iso daa dmg run pkg app bin iso daa nrg dmg exe sh tar.Z tar.gz zip AppImage"
