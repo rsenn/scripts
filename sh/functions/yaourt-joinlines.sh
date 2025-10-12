@@ -12,6 +12,6 @@ yaourt-joinlines() {
 	done
 
   EXPR="\\|^[^/ ]\\+/[^/ ]\\+\\s| { :lp; ${REMOVE_RATING}; ${REMOVE_NUM}; ${REMOVE_VER}; ${REMOVE_REPO}; N; /\\n\\s[^\\n]*$/ { s,\\n\\s\\+,${COLSEP- - },; b lp }; s,\\n\\s\\+, - ,g; :lp2; /\\n/ { s,[^[:print:]\\n],,g; ${NO_INSTALLED} P; D; b  lp2; }; b lp }"
-  exec sed -e "$EXPR" "$@")
+  exec sed -e "$EXPR" "$@" | sed -n "/./p")
 } 
 pacman-joinlines() { yaourt-joinlines "$@"; }
