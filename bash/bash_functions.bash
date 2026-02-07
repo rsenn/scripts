@@ -729,9 +729,12 @@ cmdprint() {
   echo $OPTS "$O")
 }
 
-if [ "`type -t cols`" = "" ]; then
-  unalias cols >&/dev/null
-  unset -f cols >&/dev/null
+case "`type -t cols`" in
+  "function") unset -f cols ;;
+  "alias") unalias cols ;;
+esac
+
+if [ -z "`type -t cols`" ]; then
   cols() {
     column -c $COLUMNS
   }
