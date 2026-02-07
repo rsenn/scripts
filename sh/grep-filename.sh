@@ -6,17 +6,17 @@ grep_filename() {
   BS="\\"
   FS="/"
   archives_EXTS="rar zip 7z cab cpio cpio.Z cpio.gz cpio.xz cpio.bz2 cpio.lzma tar tar.Z tar.gz tar.xz tar.lzma tar.bz2 tar.lzma tar.zst tgz txz tbz2 tlzma cpio zst"
-  audio_EXTS="mp3 mp2 m4a m4b wma rm ogg flac mpc wav aif aiff raw"
+  audio_EXTS="mp3 mp2 m4a m4b wma rm ogg flac mpc wav aif aiff raw opus"
   books_EXTS="pdf epub mobi azw3 djv djvu"
   documents_EXTS="cdr doc docx odf odg odp ods odt pdf ppt pptx rtf vsd xls xlsx"
   fonts_EXTS="otf ttf fon bdf pcf"
   fonts_EXTS="ttf otf bdf pcf fon"
   grammar_EXTS="ebnf bnf g4 y l"
   images_EXTS="bmp cin cod dcx djvu emf fig gif ico im1 im24 im8 jin jpeg jpg lss miff png pnm"
-  music_EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669 mp4"
+  music_EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669 opus"
   packages_EXTS="txz tlzma tgz rpm deb"
   scripts_EXTS="sh py rb bat cmd"
-  software_EXTS="rar zip 7z tar.gz tar.xz tar.lzma tar.bz2 tgz txz tlzma tbz2 exe msi msu cab vbox-extpack apk deb rpm iso daa dmg run pkg app bin iso daa nrg dmg exe sh tar.Z tar.gz zip"
+  software_EXTS="rar zip 7z tar.gz tar.xz tar.lzma tar.bz2 tgz txz tlzma tbz2 exe msi msu cab vbox-extpack apk deb rpm iso daa dmg run pkg app bin iso daa nrg dmg exe sh tar.Z tar.gz zip AppImage"
   software_EXTS="$software_EXTS 7z app bin daa deb dmg exe iso msi msu cab vbox-extpack apk nrg pkg rar rpm run sh tar.Z tar.bz2 tar.gz tar.xz tbz2 tgz txz tlzma zip"
     sources_EXTS="c cs cc cpp cxx h hh hpp hxx ipp mm r java rb py s asm inc pde ino"
     scripts_EXTS="lua moon py rb sh js coffee scss sass css jsx tcl pl awk m4 php"
@@ -104,8 +104,6 @@ CMD=
     esac
   fi
 
-
-  echo "FILTER='$FILTER'" 1>&2
   [ -n "$FILTER" ] && CMD="$CMD | ${SED-sed} \"\$FILTER\"" || CMD="exec $CMD"
   [ "$DEBUG" = true ] && eval "echo \"+ \$CMD\" 1>&2"
 

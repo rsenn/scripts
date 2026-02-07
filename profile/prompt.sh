@@ -1,4 +1,5 @@
 #SYSTEM=`cygpath -am /`; SYSTEM=${SYSTEM##*/}
+: ${SYSTEM:=`uname -o`}
 
 case $(uname -o) in
 *Linux*) ;;
@@ -35,6 +36,7 @@ colors_from_hostname() {
   C3="38;5;${C3#-}"
 }
 case "$SYSTEM" in
+Android*) C1="1;33" C3="0;32" ;;
 msys*) C1="1;35" C2="1;34" ;;
 cyg*) C1="0;32" C2="0;33" ;;
 *)
@@ -42,4 +44,7 @@ cyg*) C1="0;32" C2="0;33" ;;
   colors_from_hostname
   ;;
 esac
-PS1='\[\e[${C1}m\]'${USER}'\[\e[0m\]@\[\e[${C2}m\]'${HOSTNAME%%.*}'\[\e[0m\]:(\[\e[${C3}m\]$(homepath -a "$PWD")\[\e[0m\]) \$ '
+if [ "$HOSTNAME" = localhost ]; then
+  unset HOSTNAME
+fi
+PS1=${USER+'\[\e[${C1}m\]'${USER}'\[\e[0m\]@'}${HOSTNAME:+'\[\e[${C2}m\]'${HOSTNAME%%.*}'\[\e[0m\]:'}'(\[\e[${C3}m\]$(homepath -a "$PWD")\[\e[0m\]) \$ '

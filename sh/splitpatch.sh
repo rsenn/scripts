@@ -7,7 +7,7 @@
 ################################################################################
 
 # Name of this script.
-scriptname=`basename $_`
+scriptname=`basename -- "$0"`
 
 # The unified patch file being used as input.
 patchfile=""
@@ -138,6 +138,7 @@ if [ ! -f "$patchfile" ]; then
 	echo "Not a regular text file: $patchfile"
 	give_up
 fi
+  echo "patchfile='$patchfile'" 1>&2
 
 # IFS is reset to prevent read() from automatically trimming leading and
 # trailing whitespace. The || test bit captures the last line of files that
@@ -164,7 +165,7 @@ do
 			patchtarget="$patchline"
 		fi
 		filecount=`expr $filecount + 1`
-    outfile=`printf "%03d.%s.patch" $filecount "$(basename "$patchtarget")"`
+    outfile=`printf "%03d.%s.patch" $filecount "$(basename -- "$patchtarget")"`
 		# See if outfile already exists and handle it according to the command
 		# options if it does.
 		if [ -e "$outfile" ]; then

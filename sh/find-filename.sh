@@ -3,19 +3,20 @@
 : ${MYNAME=`basename "$0" .sh`}
 
 archives_EXTS="rar zip 7z cab cpio cpio.Z cpio.gz cpio.xz cpio.bz2 cpio.lzma tar tar.Z tar.gz tar.xz tar.bz2 tar.lzma tar.zst cpio cpio.Z cpio.gz cpio.xz cpio.bz2 cpio.lzma  cpio cpio.Z cpio.gz cpio.xz cpio.bz2 cpio.lzma tgz txz tbz2 tlzma zst"
-audio_EXTS="aif aiff flac m4a m4b mp2 mp3 mpc ogg raw rm wav wma"
+audio_EXTS="aif aiff flac m4a m4b mp2 mp3 mpc ogg raw rm wav wma opus"
 books_EXTS="pdf epub mobi azw3 djv djvu"
 documents_EXTS="cdr doc docx odf odg odp ods odt pdf ppt pptx rtf vsd xls xlsx html"
 fonts_EXTS="CompositeFont pcf ttc otf afm pfb fon ttf"
 grammar_EXTS="ebnf bnf g4 y l"
 images_EXTS="bmp cin cod dcx djvu emf fig gif ico im1 im24 im8 jin jpeg jpg lss miff opc pbm pcx pgm pgx png pnm ppm psd rle rmp sgi shx svg tga tif tiff wim xcf xpm xwd mng"
 incomplete_EXTS="*.part *.!?? INCOMPL*"
-music_EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669 mp4"
+music_EXTS="mp3 ogg flac mpc m4a m4b wma wav aif aiff mod s3m xm it 669 opus"
 packages_EXTS="tgz txz rpm deb"
-scripts_EXTS="sh py rb bat cmd"
-software_EXTS="*setup*.exe *install*.exe *.msi *.msu *.cab *.vbox-extpack *.apk *.run *.dmg *.app *.apk 7z app bin daa deb dmg exe iso msi msu cab vbox-extpack apk nrg pkg rar rpm run sh tar.Z tar.bz2 tar.gz tar.xz tbz2 tgz txz zip"
+scripts_EXTS="sh py rb bat cmd js jsx cjs mjs ts tsx"
+scripts_EXCL="d.js test.js d.ts test.ts test.d.ts"
+software_EXTS="*setup*.exe *install*.exe *.msi *.msu *.cab *.vbox-extpack *.apk *.run *.dmg *.app *.apk 7z app bin daa deb dmg exe iso msi msu cab vbox-extpack apk nrg pkg rar rpm run sh tar.Z tar.bz2 tar.gz tar.xz tbz2 tgz txz zip AppImage"
 sources_EXTS="c cs cc cpp cxx h hh hpp hxx ipp mm r java rb py s asm inc"
-scripts_EXTS="lua etlua moon py rb sh js jsx es es5 es6 es7 coffee scss sass css jsx tcl pl awk m4 php"
+scripts_EXTS="lua etlua moon py rb sh js jsx ts tsx es es5 es6 es7 coffee scss sass css jsx tcl pl awk m4 php"
 web_EXTS="js css htm html"
 videos_EXTS="3gp avi f4v flv m4v m2v mkv mov mp4 mpeg mpg ogm vob webm wmv"
 vmdisk_EXTS="vdi vmdk vhd qed qcow qcow2 vhdx hdd"
@@ -29,7 +30,8 @@ cad_EXTS="jscad stl nc"
 cam_EXTS="sts sol hpgl dri gpi 274 exc std"
 
 addexts() {
-eval "EXTS=\"\${EXTS:+\$EXTS }\${${1}_EXTS}\""
+  eval "EXTS=\"\${EXTS:+\$EXTS }\${${1}_EXTS}\""
+  eval "EXCL=\"\${EXCL:+\$EXCL }\${${1}_EXCL}\""
 }
 addexts ${MYNAME#find-}
 
@@ -61,6 +63,16 @@ find_filename()
        append CONDITIONS -name "*.$EXT${S}"
 		done
 
+    if [ -n "$EXCL" ]; then
+      EXCLUSIONS=
+      for EXT in $EXCL; do
+         [ "$EXCLUSIONS" ] && append EXCLUSIONS -or
+         append EXCLUSIONS -name "*.$EXT${S}"
+      done
+
+      CONDITIONS="${CONDITIONS:+$CONDITIONS${NL})${NL}-and${NL}}-not${NL}(${NL}$EXCLUSIONS"
+    fi
+
 		CONDITIONS="-type${NL}f${NL}-and${NL}(${NL}${CONDITIONS}${NL})" 
 		set "$@"  $CONDITIONS 
 
@@ -88,15 +100,11 @@ main() {
 
   ARGS="$*"
 
-  set -- ''
-
-  if ! ${COMPLETED-false}; then
-	set -- "$@" '*.part' '.!??'
+  if [ "${COMPLETED-false}" = true ]; then
+ 	   EXCL="${EXCL:+$EXCL${NL}}part${NL}!??${NL}crdownload"
   fi
 
-  for S; do
-	S="$S" find_filename $ARGS || return $?
-  done
+	find_filename "$@" || return $?
 }
 
 main "$@"
