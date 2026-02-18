@@ -68,7 +68,7 @@ filter_filesize() {
 	IFS=" "
 	CMD="test $*" 
 	CMD="IFS=''; while read -r LINE; do (IFS=' '; read -r MODE N USERID GROUPID FILESIZE DATETIME PATH <<<\"\$LINE\"; ($CMD) && echo \"\$LINE\"); done"
-		[ "$DEBUG" = true ] && echo "filter_filesize: CMD='$CMD'" 1>&9
+		[ "${DEBUG+set}" = set ] && echo "filter_filesize: CMD='$CMD'" 1>&9
 	eval "($CMD)"
   )
 }
@@ -83,7 +83,7 @@ cut_ls_l()
     done;
     IFS=" ";
     CMD="while read -r ${*:+$* }P; do echo \"\${P}\"; done";
-		[ "$DEBUG" = true ] && echo "cut_ls_l: CMD='$CMD'" 1>&9
+		[ "${DEBUG+set}" = set ] && echo "cut_ls_l: CMD='$CMD'" 1>&9
     eval "$CMD" )
 }
 
@@ -93,7 +93,7 @@ file_magic()
   IFS="|$IFS"
 	[ "$*" = ".*" ] && set -- 
 	[ $# -gt 0 ] && CMD="$CMD | ${GREP-grep${NL}-a${NL}--line-buffered${NL}--color=auto} -i -E \": .*($*)\""
-		[ "$DEBUG" = true ] && echo "file_magic: CMD='$CMD'" 1>&9
+		[ "${DEBUG+set}" = set ] && echo "file_magic: CMD='$CMD'" 1>&9
 	eval "$CMD")
 }
 
@@ -128,7 +128,7 @@ usage() {
 
 EXCLUDE_DIRS='.*/\.wine/drive.*/\.wine/drive'
 MIXED_PATH=true
-DEBUG=false 
+unset DEBUG
 
 while :; do
 	case "$1" in
@@ -325,7 +325,7 @@ fi
 #  esac
 #fi
 
-[ "$DEBUG" = true ] && echo "EXPR is $EXPR" 1>&2
+[ "${DEBUG+set}" = set ] && echo "EXPR is $EXPR" 1>&2
 
 CMD="grep \$GREP_ARGS -H -E \"\$EXPR\" $FILEARG"
 
@@ -377,7 +377,7 @@ if [ -n "$SIZE" ]; then
 		">"[0-9]*) SIZE="-gt ${SIZE#+}" ;;
 		"="[0-9]*) SIZE="-eq ${SIZE#=}" ;;
 	esac
-[ "$DEBUG" = true ] && echo "SIZE: $SIZE" 1>&9
+[ "${DEBUG+set}" = set ] && echo "SIZE: $SIZE" 1>&9
 
 	CMD="$CMD | filter_filesize $SIZE"
 fi
@@ -392,7 +392,7 @@ fi
 
 IFS=" $IFS"
 
-[ "$DEBUG" = true ] && eval "echo \"Command is ${CMD}\" 1>&2"
+[ "${DEBUG+set}" = set ] && eval "echo \"Command is ${CMD}\" 1>&2"
 
 CMD="$CMD${FILTERCMD:+ | $FILTERCMD}"
 

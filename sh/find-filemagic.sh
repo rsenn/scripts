@@ -51,9 +51,9 @@ find_filename()
 		CONDITIONS="-type${NL}f" #${NL}-and${NL}(${NL}${CONDITIONS}${NL})" 
 		set "$@"  $CONDITIONS 
 
-    ${DEBUG-false} && echo "+ $@" 1>&2
+    [ "${DEBUG+set}" = set ] && echo "+ $@" 1>&2
 
-    ([ "$DEBUG" = true ] && set -x; "$@" 2>/dev/null |xargs -n10 -d "$nl" file | ${GREP-grep
+    ([ "${DEBUG+set}" = set ] && set -x; "$@" 2>/dev/null |xargs -n10 -d "$nl" file | ${GREP-grep
 -a
 --line-buffered
 --color=auto} -i -E ":[ \t]+(${MASKS})"
@@ -78,7 +78,7 @@ main() {
 	esac
   done
 
-    #${DEBUG-false} && echo "MASKS='$MASKS'" 1>&2
+    #[ "${DEBUG+set}" = set ] && echo "MASKS='$MASKS'" 1>&2
     [ -z "$MASKS" ] && {
     echo "No type specified: use -t or --type" 1>&2
     exit 1

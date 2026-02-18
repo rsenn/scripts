@@ -76,7 +76,7 @@ find_filename()
 		CONDITIONS="-type${NL}f${NL}-and${NL}(${NL}${CONDITIONS}${NL})" 
 		set "$@"  $CONDITIONS 
 
-    ${DEBUG-false} && echo "+ $@" 1>&2
+    [ "${DEBUG+set}" = set ] && echo "+ $@" 1>&2
 
 		("$@" 2>/dev/null)  |${SED-sed} -u "$EXPR"
 	)
