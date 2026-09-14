@@ -3795,6 +3795,31 @@ join-lines() {
     }')
 }
 
+js-try-module()
+{ 
+    "$1" -e "globalThis.M = await import('${2}').catch(() => {});"' process.exit((!M)|0);'
+}
+
+node-try-module () 
+{ 
+    js-try-module 'node' "$@"
+}
+
+bun-try-module () 
+{ 
+    js-try-module 'bun' "$@"
+}
+
+qjs-try-module () 
+{ 
+    js-try-module 'qjs' "$@"
+}
+
+qjs-try-module () 
+{ 
+    js-try-module 'deno' "$@"
+}
+
 juce-mingw-build() { 
  (: ${MSYS_HOME="e:/msys64"}
   : ${MINGW_HOME="$MSYS_HOME/mingw64"}
@@ -5794,11 +5819,6 @@ neighbours()
         echo "$1" ${2+"$2"};
         shift;
     done
-}
-
-node-try-module()
-{ 
-    node -e "globalThis.M = await import('${1}').catch(() => {});"' process.exit((!M)|0);'
 }
 
 not-mounted-disks()
