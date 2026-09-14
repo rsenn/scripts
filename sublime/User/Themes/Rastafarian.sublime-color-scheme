@@ -1,0 +1,128 @@
+{
+    "name": "Rastafarian",
+    "author": "Roman Senn",
+    "variables": {
+        "black":         "#000000",
+        "bright_red":    "#FF5555",
+        "bright_green":  "#55FF55",
+        "bright_yellow": "#FFFF55",
+        "bright_cyan":   "#00FFFF",
+        "bright_magenta":"#FF55FF",
+        "js_method":     "#AA00FF",
+        "js_call":       "#6B44FF",
+        "js_param":      "#77FF11",
+        "gutter_gray":   "#555555",
+        "selection_bg":  "#1F3D1F",
+        "rainbow0":      "#FF5555",
+        "rainbow1":      "#FFFF55",
+        "rainbow2":      "#55FF55",
+        "rainbow3":      "#00FFFF",
+        "rainbow4":      "#FF55FF",
+        "rainbow5":      "#5599FF"
+    },
+    "globals": {
+        "background": "var(black)",
+        "foreground": "var(bright_yellow)",
+        "caret": "var(bright_yellow)",
+        "invisibles": "var(gutter_gray)",
+        "line_highlight": "#111111",
+        "selection": "var(selection_bg)",
+        "selection_border": "var(bright_green)",
+        "inactive_selection": "#1A1A1A",
+        "misspelling": "var(bright_red)",
+        "gutter_foreground": "var(gutter_gray)",
+        "brackets_options": "underline",
+        "brackets_foreground": "var(bright_yellow)",
+        "bracket_contents_options": "underline",
+        "bracket_contents_foreground": "var(bright_yellow)"
+    },
+    "rules": [
+        {
+            "name": "Comments",
+            "scope": "comment, comment.line, comment.block, punctuation.definition.comment",
+            "foreground": "var(bright_green)"
+        },
+        {
+            "name": "Preprocessor",
+            "scope": "meta.preprocessor, keyword.control.directive, keyword.control.import, punctuation.definition.preprocessor",
+            "foreground": "var(bright_green)"
+        },
+        {
+            "name": "Keywords and builtin (primitive) types",
+            "scope": "keyword - meta.preprocessor, keyword.control - meta.preprocessor, storage, storage.type, storage.modifier, constant.language",
+            "foreground": "var(bright_red)",
+            "font_style": ""
+        },
+        {
+            "name": "Word operators (sizeof, new, delete, ...)",
+            "scope": "keyword.operator.word - meta.preprocessor",
+            "foreground": "var(bright_red)"
+        },
+        {
+            "name": "Identifiers, macro names, function names, declared type names",
+            "scope": "variable, variable.other, variable.function, variable.parameter, variable.other.assumed-macro, entity.name.function, support.function, entity.name.type, entity.name.class, entity.other.inherited-class, support.type, support.class, entity.name.constant.preprocessor, entity.name.function.preprocessor, string.quoted.other.lt-gt.include",
+            "foreground": "var(bright_yellow)"
+        },
+        {
+            "name": "Everything else: strings, numbers, punctuation, symbolic operators",
+            "scope": "string - string.regexp, constant.numeric - string.regexp, constant.other - string.regexp, punctuation - string.regexp, punctuation.section - string.regexp, punctuation.accessor - string.regexp, punctuation.separator - string.regexp, punctuation.terminator - string.regexp, punctuation.definition.string - string.regexp, keyword.operator - string.regexp",
+            "foreground": "var(bright_cyan)",
+            "font_style": ""
+        },
+        {
+            "name": "Template strings and regex literals",
+            "scope": "string.quoted.other.js, string.regexp",
+            "foreground": "var(bright_magenta)"
+        },
+        {
+            "name": "Template string / regex delimiters",
+            "scope": "string.quoted.other.js punctuation.definition.string, string.regexp punctuation.definition.string",
+            "foreground": "var(bright_magenta)"
+        },
+        {
+            "name": "JS class method name (definition)",
+            "scope": "entity.name.method.js",
+            "foreground": "var(js_method)"
+        },
+        {
+            "name": "JS method/function call name",
+            "scope": "entity.name.function.js",
+            "foreground": "var(js_call)"
+        },
+        {
+            "name": "JS function/method parameter name",
+            "scope": "variable.parameter.function.js",
+            "foreground": "var(js_param)"
+        },
+        {
+            "name": "Rainbow brackets - level 0",
+            "scope": "rainbow.bracket.level0",
+            "foreground": "var(rainbow0)"
+        },
+        {
+            "name": "Rainbow brackets - level 1",
+            "scope": "rainbow.bracket.level1",
+            "foreground": "var(rainbow1)"
+        },
+        {
+            "name": "Rainbow brackets - level 2",
+            "scope": "rainbow.bracket.level2",
+            "foreground": "var(rainbow2)"
+        },
+        {
+            "name": "Rainbow brackets - level 3",
+            "scope": "rainbow.bracket.level3",
+            "foreground": "var(rainbow3)"
+        },
+        {
+            "name": "Rainbow brackets - level 4",
+            "scope": "rainbow.bracket.level4",
+            "foreground": "var(rainbow4)"
+        },
+        {
+            "name": "Rainbow brackets - level 5",
+            "scope": "rainbow.bracket.level5",
+            "foreground": "var(rainbow5)"
+        }
+    ]
+}

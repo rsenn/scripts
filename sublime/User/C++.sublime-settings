@@ -1,0 +1,3 @@
+{
+    "extensions": ["c", "h", "cc", "cpp", "cxx", "c++", "hh", "hpp", "hxx", "h++", "inl", "inc", "tcc"]
+}
