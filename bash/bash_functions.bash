@@ -3797,7 +3797,7 @@ join-lines() {
 
 js-try-module()
 { 
-    "$1" -e "globalThis.M = await import('${2}').catch(() => {});"' process.exit((!M)|0);'
+    $1 -e "globalThis.M = await import('${2}').catch(() => {});"' process.exit((!M)|0);'
 }
 
 node-try-module () 
@@ -3815,9 +3815,9 @@ qjs-try-module ()
     js-try-module 'qjs' "$@"
 }
 
-qjs-try-module () 
+deno-try-module () 
 { 
-    js-try-module 'deno' "$@"
+    deno eval "globalThis.M = await import('jsr:${1}').catch(() => {});"' process.exit((!M)|0);'
 }
 
 juce-mingw-build() { 
