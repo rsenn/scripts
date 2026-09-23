@@ -232,9 +232,12 @@ echo "ABR=$ABR" 1>&2
    DURATION=$(duration "$ARG")
    
    echo "duration='$DURATION'" 1>&2
-     : ${ABR:=$(abr "${AUDIO:-$ARG}")}
-     # lossless/huge source audio (PCM etc.) -> sane AAC default
-     if [ -z "$ABR" ] || [ "$ABR" -gt 256000 ]; then ABR=128000; fi
+     # unless given with -a:b: source rate, but never below 96k; 128k when
+     # unknown or 256k and higher (lossless/PCM etc.)
+     if [ -z "$ABR" ]; then
+       ABR=$(abr "${AUDIO:-$ARG}")
+       if [ -z "$ABR" ] || [ "$ABR" -lt 96000 ] || [ "$ABR" -ge 256000 ]; then ABR=128000; fi
+     fi
 
 
     if [ -n "$FILESIZE" ]; then 
