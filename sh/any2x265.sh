@@ -236,7 +236,7 @@ echo "ABR=$ABR" 1>&2
      # unknown or 256k and higher (lossless/PCM etc.)
      if [ -z "$ABR" ]; then
        ABR=$(abr "${AUDIO:-$ARG}")
-       if [ -z "$ABR" ] || [ "$ABR" -lt 96000 ] || [ "$ABR" -ge 256000 ]; then ABR=128000; fi
+       if [ -z "$ABR" ] || [ "$ABR" -lt 96000 ] || [ "$ABR" -ge 256000 ]; then ABR=131072; fi
      fi
 
 
