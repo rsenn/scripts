@@ -123,7 +123,9 @@ any2x264() {
 
   while :; do
       case "$1" in
-      -crf|-t|-to) pushv EXTRA_ARGS $1 "$2"; shift 2 ;;
+      -crf|--crf) CRF="$2"; shift 2 ;;
+      -F|--fps) RATE="$2"; shift 2 ;;
+      -to) pushv EXTRA_ARGS $1 "$2"; shift 2 ;;
       -abr=*|--abr=*) ABR=$(parse_num "${1#*=}"); shift ;;  -abr|--abr) ABR=$(parse_num "$2"); shift 2 ;;
       -ar=*|--ar=*) AR=$(parse_num "${1#*=}"); shift ;;  -ar|--ar) AR=$(parse_num "$2"); shift 2 ;;
       -p|-preset) PRESET="$2"; shift 2 ;;
@@ -136,22 +138,18 @@ any2x264() {
       -R|-res*|--res*) RESOLUTION="$2"; shift 2 ;;
 #      -s|-size|--size) SIZE="$2"; shift 2 ;; -s=*|-size=*|--size=*) SIZE=${1#*=}; shift ;;
       -S|--filesize|-size|--size) FILESIZE=$(parse_num "$2"); shift 2 ;; -S=*|--filesize=*) FILESIZE=$(parse_num ${1#*=}); shift ;; 
-      -t|-tune|--tune) TUNE="$2"; shift 2 ;;
+      -tune|--tune) TUNE="$2"; shift 2 ;;
       -x) DEBUG=true; shift ;;
       -P) PRINTCMD=true; shift ;;
       -a) A="$2"; shift 2 ;;
-      -c) A="${A:+-vf crop=$2}" shift 2 ;;
+      -c) A="${A:+$A }-vf crop=$2"; shift 2 ;;
+      -t) pushv EXTRA_ARGS -t "$2"; shift 2 ;;
       -ss=*) SS=${1#*=}; shift ;;
       -ss) SS=$2; shift 2 ;;
        *) break ;;
 
       esac
   done
-
-  
-  if [ -z "$FILESIZE$ABR$VBR" ]; then
-    NORATE=true
-  fi
 
 
 #  case $FILESIZE in
@@ -176,7 +174,6 @@ any2x264() {
 #  : ${VBR:=$((800 * 1024))}
 
 #  : ${ABR:=128000}
-  : ${AR:=44100}
 
 
   unset RESOLUTIONS
@@ -224,16 +221,37 @@ echo "ABR=$ABR" 1>&2
 #fi
 
 
+  # Audio files on the command line are muxed with the video file(s): one audio
+  # file is used for every video, otherwise the Nth audio goes with the Nth video.
+  VIDS=() AUDS=()
   for ARG; do
+    case "${ARG,,}" in
+      *.m4a|*.aac|*.mp3|*.flac|*.opus|*.ogg|*.oga|*.wav|*.wma|*.ac3|*.eac3|*.mka|*.ape|*.wv|*.aif|*.aiff) AUDS+=("$ARG") ;;
+      *) VIDS+=("$ARG") ;;
+    esac
+  done
+  if [ ${#AUDS[@]} -gt 0 ] && [ ${#VIDS[@]} -gt 0 ]; then
+    if [ ${#AUDS[@]} -ne 1 ] && [ ${#AUDS[@]} -ne ${#VIDS[@]} ]; then
+      echo "ERROR: got ${#AUDS[@]} audio and ${#VIDS[@]} video files; give one audio file or one per video" 1>&2
+      return 1
+    fi
+    set -- "${VIDS[@]}"
+  else
+    AUDS=()
+  fi
+
+  N=-1
+  for ARG; do
+   N=$((N + 1))
+   AUDIO="${AUDS[N]:-${AUDS[0]}}"
    ( 
    
    DURATION=$(duration "$ARG")
    
    echo "duration='$DURATION'" 1>&2
-     : ${VBR:=$(vbr "$ARG")}
-     : ${ABR:=$(abr "$ARG")}
-     
-     : ${RESOLUTION:=$(resolution "$ARG")}
+     : ${ABR:=$(abr "${AUDIO:-$ARG}")}
+     # lossless/huge source audio (PCM etc.) -> sane AAC default
+     if [ -z "$ABR" ] || [ "$ABR" -gt 256000 ]; then ABR=128000; fi
 
 
     if [ -n "$FILESIZE" ]; then 
@@ -251,32 +269,6 @@ echo "ABR=$ABR" 1>&2
 
    [ "$RESOLUTION" ] && SIZE="$RESOLUTION"
 
-      if [ -z "$SIZE" ]; then
-        WIDTH=`minfo "$ARG" |info_get Width`
-        HEIGHT=`minfo "$ARG" |info_get Height`
-        R=`size2ratio "${WIDTH}x${HEIGHT}"`
-        unset SIZE
-
-        #is16to9 $WIDTH $HEIGHT && ASPECT="16:9" #|| ASPECT="4:3"
-
-        while read RES; do
-      R2=`size2ratio "$RES"`
-      echo "Check ratio $(bce "$R2 / 100")" 1>&2
-            
-      if [ "${R%%.*}" -eq "${R2%%.*}" ]; then
-          SIZE="$RES"
-          break
-      fi
-        done <<<"$RESOLUTIONS"
-
-        if [ "$SIZE" ]; then
-       echo "Size is $SIZE" 1>&2
-         else
-       echo "WARNING: No appropriate size (ratio `bce "$R / 100"`) found!" 1>&2
-       fi
-       
-     fi
-
        if [ "$FILESIZE" ]; then
 
      VBR=$(bci "$FILESIZE / $(duration "$ARG") * 8  - $ABR  - 3000")
@@ -285,39 +277,30 @@ echo "ABR=$ABR" 1>&2
 
        fi
 
-           unset BITRATE_ARG
+           QUALITY_ARG="-crf ${CRF:-23}"
+           [ "$VBR" ] && QUALITY_ARG="-b:v $(format_num $VBR)"
 
-           if [ "$VBR" ]; then
-                      if  ${FFMPEG-ffmpeg}  -help 2>&1 |grep  -q '\-b:v'; then
-                                  BITRATE_ARG="-b:v $(format_num $VBR) -b:a $(format_num $ABR)"
-                       else
-                                  BITRATE_ARG="-b $(format_num $((VBR + ABR)))"
-                      fi
-              fi
-
-  RATE=29.97
+  # frame rate: keep the source's unless -F is given
   #METAOPTS="-map_metadata   -1"
      { IFS="$IFS "; #[ "$DEBUG" = true ] && 
       set  -x; set -- \
       "$FFMPEG" 2>&1  $FFMPEGOPTS $METAOPTS \
-        -strict -2 \
         -y \
         -i "$ARG" \
+        ${AUDIO:+-i "$AUDIO" -map 0:v:0 -map 1:a:0} \
         $A \
         ${RATE:+-r $RATE}  \
-        -f mp4 \
+        -f mp4 -movflags +faststart \
         ${SS:+-ss $SS} \
-        -vcodec ${VCODEC:-h264} \
-        ${ENCODER:+-c $ENCODER} \
-        ${PRESET:+-preset "$PRESET"} \
+        -c:v ${ENCODER:-${VCODEC:-libx264}} -pix_fmt yuv420p \
+        -preset ${PRESET:-medium} \
+        $QUALITY_ARG \
         $EXTRA_ARGS \
         ${ASPECT+-aspect "$ASPECT"} \
         ${TUNE+-tune "$TUNE"} \
         ${SIZE+-s "${SIZE// /}"}  \
-        $BITRATE_ARG \
-        -acodec ${ACODEC:-aac} \
-        $(: [ "$NORATE" != true ] && list -ab $(format_num "$ABR")) \
-        -ar "$AR" \
+        -c:a ${ACODEC:-aac} -b:a $(format_num "$ABR") \
+        ${AR:+-ar "$AR"} \
         -ac 2  "${OUTPUT%.*}.out.mp4"; [ "$PRINTCMD" =  true -o "$DEBUG" = true ] && shell_quote + "$@" 1>&2 ; [ "$PRINTCMD" = true ] || {  "$@" || exit $?; }; } && 
           { [ "$ARG" != "${OUTPUT%.???}.mp4" ] && mv -vf "${OUTPUT%.???}.out.mp4" "${OUTPUT%.???}.mp4"; [ "$REMOVE" = true ] && 
             rm  -vf "$ARG" \
