@@ -37,6 +37,7 @@ install-profile: $(PROFILE)
 	$(INSTALL) -m 644 $(PROFILE) $(DESTDIR)$(profiledir)/
 
 uninstall:
+	$(RM) $(DESTDIR)$(bindir)/any2hevc.sh
 	@for SCRIPT in $(SCRIPTS); do \
 	  FILE="$(DESTDIR)$(bindir)/$$SCRIPT"; test ! -e "$$FILE" || { $(ECHO) "$(RM) $$FILE" 1>&2; eval "$(RM) $$FILE"; }; \
 	done
@@ -147,6 +148,7 @@ install: all $(SCRIPTS)
 	    fi; \
 	  [ $$# -lt $$N ] && break; shift $$N; \
 	done
+	$(call symlink_script,any2x265.sh,$(DESTDIR)$(bindir)/any2hevc.sh)
 	$(INSTALL) -d $(DESTDIR)$(datadir)/compiletrace
 	$(INSTALL) -m 755 compiletrace/compiletrace.sh $(DESTDIR)$(datadir)/compiletrace
 	$(INSTALL) -d $(DESTDIR)$(datadir)/compiletrace/bin
