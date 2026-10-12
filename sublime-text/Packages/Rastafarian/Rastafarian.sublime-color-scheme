@@ -1,0 +1,519 @@
+{
+    "name": "Rastafarian",
+    "author": "roman",
+
+    // Standard 16-color terminal (xterm) palette
+    "variables": {
+        "black":          "#000000",
+        "red":            "#ff0000",
+        "green":          "#00ff00",
+        "yellow":         "#ffff00",
+        "blue":           "#0000ee",
+        "magenta":        "#ff00ff",
+        "cyan":           "#00ffff",
+        "white":          "#e5e5e5",
+
+        "light_black":    "#7f7f7f",
+        "light_red":      "#ff0000",
+        "light_green":    "#00ff00",
+        "light_yellow":   "#ffff00",
+        "light_blue":     "#2080ff",
+        "light_magenta":  "#ff00ff",
+        "light_cyan":     "#00ffff",
+        "light_white":    "#ffffff"
+    },
+
+    "globals": {
+        "foreground":           "var(white)",
+        "background":           "var(black)",
+        "caret":                "var(light_white)",
+        "invisibles":           "var(light_black)",
+        "line_highlight":       "color(var(light_black) alpha(0.20))",
+        "selection":            "color(var(light_white) alpha(0.25))",
+        "selection_border":     "var(light_black)",
+        "inactive_selection":   "color(var(light_black) alpha(0.30))",
+        "misspelling":          "var(light_red)",
+        "shadow":               "color(var(black) alpha(0.5))",
+        "find_highlight":       "color(var(light_magenta) alpha(0.50))",
+        "find_highlight_foreground": "var(light_white)",
+        "highlight":            "var(light_cyan)",
+        "accent":               "var(light_green)",
+        "gutter":               "var(black)",
+        "gutter_foreground":    "var(light_black)",
+        "bracket_contents_foreground": "var(light_cyan)",
+        "bracket_contents_options":    "underline",
+        "brackets_foreground":  "var(light_cyan)",
+        "brackets_options":     "underline",
+        "tags_foreground":      "var(light_red)",
+        "tags_options":         "stippled_underline"
+    },
+
+    "rules": [
+        {
+            "foreground": "#989898FF",
+            "background": "#181818FF",
+            "scope": "col_181818FF"
+        },
+        {
+            "foreground": "#CCCCCCFF",
+            "background": "#4C4C4CFF",
+            "scope": "col_4C4C4CFF"
+        },
+        {
+            "foreground": "#161616FF",
+            "background": "#969696FF",
+            "scope": "col_969696FF"
+        },
+        {
+            "foreground": "#323232FF",
+            "background": "#B2B2B2FF",
+            "scope": "col_B2B2B2FF"
+        },
+        {
+            "foreground": "#9D9D9DFF",
+            "background": "#1D1D1DFF",
+            "scope": "col_1D1D1DFF"
+        },
+        {
+            "foreground": "#383838FF",
+            "background": "#B8B8B8FF",
+            "scope": "col_B8B8B8FF"
+        },
+        {
+            "foreground": "#838383FF",
+            "background": "#030303FF",
+            "scope": "col_030303FF"
+        },
+        {
+            "foreground": "#4A4A4AFF",
+            "background": "#CACACAFF",
+            "scope": "col_CACACAFF"
+        },
+        {
+            "foreground": "#828282FF",
+            "background": "#020202FF",
+            "scope": "col_020202FF"
+        },
+        {
+            "foreground": "#9B9B9BFF",
+            "background": "#1B1B1BFF",
+            "scope": "col_1B1B1BFF"
+        },
+        {
+            "foreground": "#858585FF",
+            "background": "#050505FF",
+            "scope": "col_050505FF"
+        },
+        {
+            "foreground": "#F2F2F2FF",
+            "background": "#727272FF",
+            "scope": "col_727272FF"
+        },
+        {
+            "foreground": "#626262FF",
+            "background": "#E2E2E2FF",
+            "scope": "col_E2E2E2FF"
+        },
+        {
+            "foreground": "#CBCBCBFF",
+            "background": "#4B4B4BFF",
+            "scope": "col_4B4B4BFF"
+        },
+        {
+            "foreground": "#E9E9E9FF",
+            "background": "#696969FF",
+            "scope": "col_696969FF"
+        },
+        {
+            "foreground": "#333333FF",
+            "background": "#B3B3B3FF",
+            "scope": "col_B3B3B3FF"
+        },
+        {
+            "foreground": "#2D2D2DFF",
+            "background": "#ADADADFF",
+            "scope": "col_ADADADFF"
+        },
+        {
+            "foreground": "#020202FF",
+            "background": "#828282FF",
+            "scope": "col_828282FF"
+        },
+        {
+            "foreground": "#1D1D1DFF",
+            "background": "#9D9D9DFF",
+            "scope": "col_9D9D9DFF"
+        },
+        {
+            "foreground": "#030303FF",
+            "background": "#838383FF",
+            "scope": "col_838383FF"
+        },
+        {
+            "foreground": "#000000FF",
+            "background": "#808080FF",
+            "scope": "col_808080FF"
+        },
+        {
+            "foreground": "#E2E2E2FF",
+            "background": "#626262FF",
+            "scope": "col_626262FF"
+        },
+        {
+            "foreground": "#B2B2B2FF",
+            "background": "#323232FF",
+            "scope": "col_323232FF"
+        },
+        {
+            "foreground": "#E5E5E5FF",
+            "background": "#656565FF",
+            "scope": "col_656565FF"
+        },
+        {
+            "foreground": "#050505FF",
+            "background": "#858585FF",
+            "scope": "col_858585FF"
+        },
+        {
+            "foreground": "#4B4B4BFF",
+            "background": "#CBCBCBFF",
+            "scope": "col_CBCBCBFF"
+        },
+        {
+            "foreground": "#727272FF",
+            "background": "#F2F2F2FF",
+            "scope": "col_F2F2F2FF"
+        },
+        {
+            "foreground": "#4C4C4CFF",
+            "background": "#CCCCCCFF",
+            "scope": "col_CCCCCCFF"
+        },
+        {
+            "foreground": "#CACACAFF",
+            "background": "#4A4A4AFF",
+            "scope": "col_4A4A4AFF"
+        },
+        {
+            "foreground": "#010101FF",
+            "background": "#818181FF",
+            "scope": "col_818181FF"
+        },
+        {
+            "foreground": "#ADADADFF",
+            "background": "#2D2D2DFF",
+            "scope": "col_2D2D2DFF"
+        },
+        {
+            "foreground": "#1B1B1BFF",
+            "background": "#9B9B9BFF",
+            "scope": "col_9B9B9BFF"
+        },
+        {
+            "foreground": "#B8B8B8FF",
+            "background": "#383838FF",
+            "scope": "col_383838FF"
+        },
+        {
+            "foreground": "#696969FF",
+            "background": "#E9E9E9FF",
+            "scope": "col_E9E9E9FF"
+        },
+        {
+            "foreground": "#969696FF",
+            "background": "#161616FF",
+            "scope": "col_161616FF"
+        },
+        {
+            "foreground": "#B3B3B3FF",
+            "background": "#333333FF",
+            "scope": "col_333333FF"
+        },
+        {
+            "foreground": "#181818FF",
+            "background": "#989898FF",
+            "scope": "col_989898FF"
+        },
+        {
+            "foreground": "#808080FF",
+            "background": "#00000001",
+            "scope": "col_00000001"
+        },
+        {
+            "foreground": "#989898FF",
+            "background": "#EDB88320",
+            "scope": "col_EDB88320"
+        },
+        {
+            "foreground": "#838383FF",
+            "background": "#80000013",
+            "scope": "col_80000013"
+        },
+        {
+            "foreground": "#828282FF",
+            "background": "#A000000C",
+            "scope": "col_A000000C"
+        },
+        {
+            "foreground": "#323232FF",
+            "background": "#5FFF00FF",
+            "scope": "col_5FFF00FF"
+        },
+        {
+            "foreground": "#2D2D2DFF",
+            "background": "#FFA500FF",
+            "scope": "col_FFA500FF"
+        },
+        {
+            "foreground": "#383838FF",
+            "background": "#10FFFFFF",
+            "scope": "col_10FFFFFF"
+        },
+        {
+            "foreground": "#4A4A4AFF",
+            "background": "#FFD700FF",
+            "scope": "col_FFD700FF"
+        },
+        {
+            "foreground": "#858585FF",
+            "background": "#110000FF",
+            "scope": "col_110000FF"
+        },
+        {
+            "foreground": "#ffffff",
+            "background": "#000000",
+            "scope": "col_gutter"
+        },
+        {
+            "foreground": "#161616FF",
+            "background": "#00FF00FF",
+            "scope": "col_00FF00FF"
+        },
+        {
+            "foreground": "#333333FF",
+            "background": "#00FFFFFF",
+            "scope": "col_00FFFFFF"
+        },
+        {
+            "foreground": "#9D9D9DFF",
+            "background": "#0000FFFF",
+            "scope": "col_0000FFFF"
+        },
+        {
+            "foreground": "#FFFFFFFF",
+            "background": "#7F7F7FFF",
+            "scope": "col_7F7F7FFF"
+        },
+        {
+            "foreground": "#CCCCCCFF",
+            "background": "#FF0000FF",
+            "scope": "col_FF0000FF"
+        },
+        {
+            "foreground": "#333333FF",
+            "background": "#66CCFFFF",
+            "scope": "col_66CCFFFF"
+        },
+        {
+            "foreground": "#E9E9E9FF",
+            "background": "#FF00FFFF",
+            "scope": "col_FF00FFFF"
+        },
+        {
+            "foreground": "#9B9B9BFF",
+            "background": "#0000EEFF",
+            "scope": "col_0000EEFF"
+        },
+        {
+            "foreground": "#818181FF",
+            "background": "#010101FF",
+            "scope": "col_010101FF"
+        },
+        {
+            "foreground": "#7F7F7FFF",
+            "background": "#FFFFFFFF",
+            "scope": "col_FFFFFFFF"
+        },
+        {
+            "foreground": "#626262FF",
+            "background": "#FFFF00FF",
+            "scope": "col_FFFF00FF"
+        },
+        {
+            "foreground": "#656565FF",
+            "background": "#E5E5E5FF",
+            "scope": "col_E5E5E5FF"
+        },
+        {
+            "foreground": "#CBCBCBFF",
+            "background": "#008000FF",
+            "scope": "col_008000FF"
+        },
+        {
+            "foreground": "#F2F2F2FF",
+            "background": "#2080FFFF",
+            "scope": "col_2080FFFF"
+        },
+        // default for all C++ text; more specific rules below still win
+        { "name": "C++ default",
+          "scope": "source.c++,  entity.name.function.preprocessor.c++",
+          "foreground": "var(yellow)" },
+        { "name": "JS default/arguments/group/property",
+          "scope": "source.js, variable.language.global.js, meta.function-call.arguments.js, meta.group.js, meta.property.object.js",
+          "foreground": "var(yellow)" },
+        { "name": "C default/struct/block",
+          "scope": "source.c, meta.brackets.c, meta.preprocessor.c, meta.preprocessor.macro.c, source.c meta.preprocessor.macro.c, meta.struct.c, meta.block.c, meta.function.parameters.c, meta.group.c",
+          "foreground": "var(yellow)" },
+
+        // the meta.preprocessor forms outrank the "meta.preprocessor string/punctuation" (light green) rules
+        { "name": "C++ #include <...>",
+          "scope": "string.quoted.other.lt-gt.include.c++, meta.preprocessor string.quoted.other.lt-gt.include.c++, string.quoted.other.lt-gt.include.c, meta.preprocessor string.quoted.other.lt-gt.include.c",
+          "foreground": "var(yellow)" },
+        { "name": "CMake variable substitution",
+          "scope": "meta.text-substitution.cmake, punctuation.definition.variable.substitution.cmake, meta.text-substitution.cmake punctuation.definition.variable.substitution.cmake, punctuation.section.braces.begin.cmake, punctuation.section.braces.end.cmake, variable.other.readwrite.cmake, meta.text-substitution.cmake variable.other.readwrite.cmake",
+          "foreground": "var(light_magenta)" },
+        { "name": "CMake arguments and NOT",
+          "scope": "meta.function-call.arguments.cmake, meta.function-call.arguments, meta.string.unquoted",
+          "foreground": "var(yellow)" },
+        { "name": "CMake generic parameters",
+          "scope": "variable.parameter.generic.cmake",
+          "foreground": "var(light_red)" },
+        { "name": "CMake double-quoted strings",
+          "scope": "string.quoted.double.cmake, string.quoted.double.cmake, punctuation.definition.string.begin.cmake, punctuation.definition.string.end.cmake",
+          "foreground": "var(light_cyan)" },
+        { "name": "C++ dot accessor",
+          "scope": "punctuation.accessor.dot.c++, punctuation.section.brackets.begin.c++, punctuation.section.brackets.end.c++",
+          "foreground": "var(light_cyan)" },
+        { "name": "C octal numbers",
+          "scope": "constant.numeric.base.c, meta.number.integer.octal.c, constant.numeric.value.c, meta.number.integer.octal.c constant.numeric.value.c",
+          "foreground": "var(light_cyan)" },
+       
+        { "name": "C #include keyword",
+          "scope": "keyword.control.import.c, meta.preprocessor keyword.control.import.c",
+          "foreground": "var(light_green)" },
+
+        { "name": "C #include strings",
+          "scope": "string.quoted.double.include.c++, meta.preprocessor string.quoted.double.include.c++, string.quoted.double.include.c, punctuation.definition.string.begin.c, punctuation.definition.string.end.c, meta.preprocessor string.quoted.double.include.c, meta.preprocessor punctuation.definition.string.begin.c, meta.preprocessor punctuation.definition.string.end.c",
+          "foreground": "var(light_cyan)" },
+        { "name": "JSON double-quoted strings",
+          "scope": "string.quoted.double.json, punctuation.definition.string.begin.json, punctuation.definition.string.end.json",
+          "foreground": "var(light_cyan)" },
+        { "name": "JS arrow function",
+          "scope": "keyword.declaration.function.arrow.js",
+          "foreground": "var(light_cyan)" },
+        { "name": "C++ cast operators",
+          "scope": "keyword.operator.word.cast.c++",
+          "foreground": "var(light_red)" },
+        { "name": "JS new operator",
+          "scope": "keyword.operator.word.new.js, keyword.operator.js",
+          "foreground": "var(light_red)" },
+        { "name": "JS regex",
+          "scope": "string.regexp.js, string.regexp.js punctuation.definition.string.begin.js, string.regexp.js punctuation.definition.string.end.js, meta.group.regexp, constant.other.character-class.set.regexp, keyword.operator.negation.regexp",
+          "foreground": "var(light_magenta)" },
+        { "name": "Regex escapes and group delimiters",
+          "scope": "keyword.operator.or.regexp, constant.character.escape.backslash.regexp,punctuation.definition.group.begin.regexp, punctuation.definition.group.end.regexp",
+          "foreground": "var(light_magenta)" },
+        { "name": "JS strings",
+          "scope": "meta.string.js, string.quoted.single.js, meta.string.template.js string.quoted.other.js",
+          "foreground": "var(light_cyan)" },
+        { "name": "JS string quotes and interpolation",
+          "scope": "punctuation.section.interpolation.begin.js, punctuation.section.interpolation.end.js, punctuation.definition.string.begin.js, punctuation.definition.string.end.js",
+          "foreground": "var(light_blue)" },
+        { "name": "C double-quoted strings",
+          "scope": "string.quoted.double.c, string.quoted.single.c",
+          "foreground": "var(light_cyan)" },
+        { "name": "C++ string delimiters",
+          "scope": "punctuation.definition.string.begin.c++, punctuation.definition.string.end.c++",
+          "foreground": "var(light_cyan)" },
+        { "name": "C++ function/block/call/group",
+          "scope": "meta.brackets.c++, constant.other.variable.mac-classic.c, meta.brackets.c++ constant.other.variable.mac-classic.c,meta.function.c++, meta.block.c++, meta.function-call.c++, meta.group.c++",
+          "foreground": "var(yellow)" },
+        { "name": "Shell quoted strings",
+          "scope": "string.quoted.double.shell, string.quoted.single.shell",
+          "foreground": "var(light_cyan)" },
+
+        // default text / identifiers: yellow
+        { "name": "Identifiers",
+          "scope": "variable, entity.name, entity.other, support.function, support.class, support.type, support.constant, meta.function-call, variable.function, variable.parameter, variable.other, meta.path, meta.preprocessor.macro, keyword.control.import.cmake, meta.preprocessor.c++, meta.import-source.python, meta.generic-name.python, source.cmake meta.group.function.cmake meta.function-call.arguments.generic.cmake variable.parameter.generic.cmake",
+          "foreground": "var(yellow)" },
+   { "name": "Shell patterns ",
+           "scope": "meta.clause.patterns.shell, meta.string.glob.shell, string.unquoted.shell",
+     "foreground": "var(yellow)" }, 
+
+        // comments: light green
+        { "name": "Comments",
+          "scope": "comment, punctuation.definition.comment",
+          "foreground": "var(light_green)" },
+
+        // preprocessor: light green
+        { "name": "Preprocessor",
+          "scope": "meta.preprocessor, meta.preprocessor keyword, keyword.control.import, keyword.control.directive, keyword.directive, punctuation.definition.preprocessor, entity.name.function.preprocessor, meta.preprocessor string, meta.preprocessor constant.numeric, meta.preprocessor punctuation, meta.preprocessor keyword.operator, constant.language.shebang.shell",
+          "foreground": "var(light_green)" },
+
+        // keywords: light red
+        { "name": "Keywords",
+          "scope": "keyword, keyword.control, storage, storage.type, storage.modifier, constant.language, variable.language, variable.parameter.generic, keyword.operator.word, keyword.operator.iteration, meta.statement.import.python keyword.control.import, source.cmake keyword.operator.logical",
+                    "foreground": "var(light_red)" },
+        { "name": "CMake function arguments reserved identifiers",
+          "scope": "source.cmake keyword.operator.logical.AND.cmake, source.cmake meta.group.function.cmake meta.function-call.arguments.cmake variable.parameter.if, source.cmake meta.group.function.cmake meta.function-call.arguments.cmake variable.parameter.foreach",
+                    "foreground": "var(light_red)" },
+
+        // punctuation, numbers, parentheses/brackets, operators: light cyan
+        { "name": "Punctuation",
+          "scope": "punctuation, punctuation.separator, punctuation.terminator, punctuation.accessor, meta.number.integer.hexadecimal.c++ constant.numeric.base.c++",
+          "foreground": "var(light_cyan)" },
+        { "name": "Numbers",
+          "scope": "constant.numeric, constant.numeric punctuation, meta.preprocessor.macro.c++ constant.numeric.value.c++, meta.preprocessor.macro.c++ keyword.operator.arithmetic.c",
+          "foreground": "var(light_cyan)" },
+        { "name": "Parentheses / brackets",
+          "scope": "meta.group, meta.brackets, meta.braces, meta.parens, punctuation.section, punctuation.definition.group, punctuation.definition.parameters, punctuation.section.group, punctuation.section.parens, punctuation.section.brackets, punctuation.section.braces",
+          "foreground": "var(light_cyan)" },
+        { "name": "Operators",
+          "scope": "keyword.operator, punctuation.separator.continuation, keyword.operator.assignment, constant.other.wildcard.asterisk, variable.language.positional, meta.function.js keyword.declaration.generator.js",
+          "foreground": "var(light_cyan)" },
+
+        // regular expressions: light magenta
+        { "name": "Regex",
+          "scope": "string.regexp, string.regexp keyword, string.regexp punctuation, string.regexp constant, string.regexp variable, constant.character.escape.regexp, keyword.operator.quantifier.regexp, punctuation.definition.regexp, meta.regexp",
+          "foreground": "var(light_magenta)" },
+        { "name": "Template strings",
+          "scope": "meta.string.template.js string.quoted.other.js",
+          "foreground": "var(light_magenta)" },
+        
+        // strings (not specified): light blue
+        { "name": "Strings",
+          "scope": "string, punctuation.definition.string, meta.string.js string.quoted.single.js entity.name.function.js",
+          "foreground": "var(light_blue)" },
+        { "name": "Escapes",
+          "scope": "constant.character.escape, constant.other.placeholder",
+          "foreground": "var(light_blue)" },
+        { "name": "Markdown Bold",
+          "font_style": "bold",
+          "scope": "markup.list.unnumbered.markdown meta.paragraph.list.markdown markup.bold.markdown",
+          "foreground": "#ffff00" },
+        { "name": "Markdown Table", 
+          "scope": "meta.table.markdown-gfm markup.bold.markdown", 
+          "foreground": "var(light_magenta)" },
+        { "name": "Markdown Inline", 
+          "scope": "markup.bold.markdown, markup.raw.inline.markdown", 
+          "foreground": "#6cf" },
+
+        // misc
+        { "name": "Invalid",
+          "scope": "invalid, invalid.illegal",
+          "foreground": "var(light_white)",
+          "background": "var(red)" },
+        { "name": "Deprecated",
+          "scope": "invalid.deprecated",
+          "foreground": "var(yellow)",
+          "background": "var(light_red)" },
+
+        // diff / markup
+        { "name": "Diff inserted", "scope": "markup.inserted", "foreground": "var(light_green)" },
+        { "name": "Diff deleted",  "scope": "markup.deleted",  "foreground": "var(light_red)" },
+        { "name": "Diff changed",  "scope": "markup.changed",  "foreground": "var(light_yellow)" },
+        { "name": "Headings", "scope": "markup.heading, entity.name.section", "foreground": "var(light_red)", "font_style": "bold" },
+        { "name": "Bold",   "scope": "markup.bold",   "font_style": "bold" },
+        { "name": "Italic", "scope": "markup.italic", "font_style": "italic" }
+    ]
+}
