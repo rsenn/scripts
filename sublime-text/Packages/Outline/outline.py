@@ -39,7 +39,7 @@ class OutlineToggleSortCommand(TextCommand):
 				sym_view = v
 
 		symlist = self.view.get_symbols()
-		refresh_sym_view(sym_view, symlist, self.view.file_name())
+		refresh_sym_view(sym_view, symlist, self.view.file_name(), self.view)
 
 class OutlineEventHandler(EventListener):
 	def on_selection_modified(self, view):
@@ -104,7 +104,7 @@ class OutlineEventHandler(EventListener):
 			
 		symlist = view.get_symbols()
 
-		refresh_sym_view(sym_view, symlist, view.file_name())
+		refresh_sym_view(sym_view, symlist, view.file_name(), view)
 
 	def on_pre_save(self, view):
 		if u'𝌆' in view.name():
@@ -126,7 +126,7 @@ class OutlineEventHandler(EventListener):
 				sym_view.settings().set('current_file', view.file_name())
 			
 		symlist = view.get_symbols()
-		refresh_sym_view(sym_view, symlist, view.file_name())
+		refresh_sym_view(sym_view, symlist, view.file_name(), view)
 
 		# sync the outline view with current file location
 		if view.window() is None or not sym_view.settings().get('outline_sync'):

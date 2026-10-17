@@ -46,6 +46,9 @@
 
   // true: Enable alphabetical sort in output.
   // false: default because of losing parent dependences.
+  // how members of a class are labelled: "dot" (.advance), "qualified" (Body.advance) or "none" (advance)
+  "outline_member_style": "dot",
+
   "outline_alphabetical": false,
 
   // true: default, outline is in sync with current file position

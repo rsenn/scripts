@@ -127,10 +127,33 @@ def show(window, view_id=None, ignore_existing=False, single_pane=False, other_g
     
     refresh_sym_view(view, symlist, file_path)
 
-def refresh_sym_view(sym_view, symlist, path):
+def qualify_symbols(view, symlist, style):
+    """Label members by their nesting. Nesting comes from the source indentation: a symbol is a
+    member of the nearest preceding symbol indented less.
+    style 'qualified': Body.advance; 'dot': .advance (the class is the line above)."""
+    tab = view.settings().get('tab_size', 4)
+    stack = []  # (indent, name)
+    labels = []
+    for range, symbol in symlist:
+        line = view.substr(view.line(range.a))
+        indent = len(line[:len(line) - len(line.lstrip())].expandtabs(tab))
+        while stack and stack[-1][0] >= indent:
+            stack.pop()
+        names = [n for i, n in stack] + [symbol]
+        if style == 'dot':
+            labels.append('.' + '.'.join(names[1:]) if len(names) > 1 else symbol)
+        else:
+            labels.append('.'.join(names))
+        stack.append((indent, symbol))
+    return labels
+
+def refresh_sym_view(sym_view, symlist, path, view=None):
     l = [symbol for range, symbol in symlist]
     k = [(range.a, range.b) for range, symbol in symlist]
     if sym_view != None:
+        style = sym_view.settings().get('outline_member_style', 'dot')
+        if view is not None and style in ('dot', 'qualified'):
+            l = qualify_symbols(view, symlist, style)
         sym_view.settings().erase('symlist')
         sym_view.settings().erase('symkeys')
         sym_view.run_command('outline_refresh', {'symlist': l, 'symkeys': k, 'path': path})
@@ -146,7 +169,7 @@ def get_sidebar_views_groups(view):
         if 'outline.hidden-tmLanguage' in (v.settings().get('syntax') or ''):
             sym_view = v
             sym_group, i = window.get_view_index(sym_view)
-        if u'𝌆' in v.name() and v.id() != sym_view.id():
+        if u'𝌆' in v.name() and (sym_view is None or v.id() != sym_view.id()):
             fb_view = v
             if fb_view != None:
                 fb_group, j = window.get_view_index(fb_view)
