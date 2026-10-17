@@ -1,0 +1,72 @@
+{
+	// Open the debugger automatically when a project that is set up for debugging is opened.
+	"open_at_startup": true,
+
+	// Always keep the debugger panel visible
+	"always_keep_visible": false,
+
+	// Change the font size of the debugger ui. Defaults to the font size in your preferences.
+	"font_size": null,
+
+	// Expected values of around 0.95 to 1.05. Only change this if the text/images/content are not aligning correctly within the panels (could cause the last panel to be clipped).
+	"internal_font_scale": 1,
+
+	// Expected values of around 0 to -5. Only change this if the size of the panels is too large and the last panel is cropped off (adjust internal_font_scale first if text/images/content are not aligned correctly). Negative values make the panels smaller. Postive make them bigger.
+	"internal_width_modifier": 0,
+
+	// Which external terminal should be used when an adapter requests an external terminal
+	// "platform" (default) uses Terminal on MacOS, CMD (Not tested) on Windows, (Unimplemented) on Linux
+	// "terminus" Opens a new terminal view using terminus. The terminus package must be installed https://github.com/randy3k/Terminus
+	"external_terminal": "terminus",
+
+	// Controls the minimum height of the debugger output panels in lines
+	"console_minimum_height": 20,
+
+	// Limits the number of lines allowed in the console before lines are removed
+	"console_scrollback_limit": 2000,
+
+	// Limits the number of annotationed regions/phantoms (source locations, variables, etc) allowed in the console
+	"console_scrollback_annotation_limit": 100,
+
+	// Additional console logs and some new features are locked behind this flag
+	"development": false,
+
+	// Sets a specific path for node if not set adapters that require node to run will use whatever is in your path
+	"node": null,
+
+	// Output panels outside of the debugger can be integrated into the tabbed debugger interface (note: In some cases output panels may cause issues and not work correctly depending on who owns them)
+	// An example for interating the Diagnostics panel of LSP and a Terminus output panel.
+	// 
+	// "integrated_output_panels": {
+	// 	"diagnostics": {
+	// 		"name": "Diagnostics",
+	// 	},
+	// 	"Terminus": {
+	// 		"name": "Terminal",
+	// 		"position": "bottom",
+	// 	}
+	// }
+	"integrated_output_panels": {},
+
+	// Some debug adapters require certain packages to be installed via package control. If you have installed these package outside of package control then you can add them to this list and they will be treated as if they are installed.
+	"installed_packages": [],
+
+	// Global debugger configurations that are accessible from every project
+	"global_debugger_configurations": [],
+
+	// Global debugger tasks that are accessible from every project
+	"global_debugger_tasks": [],
+
+	// Global debugger compounds that are accessible from every project
+	"global_debugger_compounds": [],
+
+	// Personal access token used for github api requests. If you are testing installing adapters you may need to set this to have higher api limits if you are getting 429 errors.
+	"github_personal_access_token": null,
+
+	// Which lldb library to use
+	"lldb_library": null,
+
+	// Sets a specific path for dlv if not set go will use whatever is in your path
+	"go_dlv": null,
+
+}

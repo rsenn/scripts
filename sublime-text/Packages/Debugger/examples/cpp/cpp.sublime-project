@@ -1,0 +1,50 @@
+{
+	"folders": [
+		{
+			"path": ".",
+		},
+	],
+	"debugger_tasks": [
+		{
+			"name": "Compile",
+			"working_dir": "${project_path}",
+			"shell_cmd": "clang++ -std=c++14 -g main.cpp -o test",
+			"file_regex": "(..[^:]*):([0-9]+):([0-9]+)?:? error: (.*)",
+		},
+	],
+	"debugger_configurations": [
+		{
+			"name": "C++ (Console)",
+			"type": "lldb",
+			"request": "launch",
+			"pre_debug_task": "Compile",
+			"program": "${project_path}/test",
+			"cwd": "${project_path}",
+			"terminal": "console",
+		},
+		{
+			"name": "C++ (Integrated Terminal)",
+			"type": "lldb",
+			"request": "launch",
+			"pre_debug_task": "Compile",
+			"program": "${project_path}/test",
+			"cwd": "${project_path}",
+			"terminal": "integrated",
+		},
+		{
+			"name": "C++ (External Terminal)",
+			"type": "lldb",
+			"request": "launch",
+			"pre_debug_task": "Compile",
+			"program": "${project_path}/test",
+			"cwd": "${project_path}",
+			"terminal": "external",
+		},
+		{
+			"name": "C++ (Attach)",
+			"type": "lldb",
+			"request": "attach",
+			"pid": "${command_pick_process}" // sublime text 4 only
+		},
+	],
+}

@@ -1,0 +1,35 @@
+{
+	"folders": [
+		{
+			"path": "..",
+		},
+	],
+	"build_systems": [
+		{
+			"name": "Test",
+			"target": "test",
+			"arg": "${folder}"
+		}
+	],
+	// this is a private setting that says to include all the example projects as if they are part of this project
+	// this way we can run all the examples from here
+	"debugger_include_examples": true,
+	"debugger_configurations": [
+		/*{
+			"name": "Debugger",
+			"type": "sublime",
+			"request": "launch",
+			"args": [
+				"${project_path}/examples/go/go.sublime-project"
+			],
+			"entry": "Debugger.start",
+			"linked_packages": [
+				"Debugger",
+				// "sublime_plugin_debug",
+				"User/Adaptive.sublime-theme",
+				"User/Default (OSX).sublime-keymap",
+				"User/Preferences.sublime-settings",
+			]
+		},*/
+	],
+}

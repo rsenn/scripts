@@ -1,0 +1,45 @@
+{
+	"folders": [
+		{
+			"path": ".",
+		},
+	],
+	"debugger_configurations": [
+		{
+			"name": "Node",
+			"type": "node",
+			"request": "launch",
+			"cwd": "${project_path}",
+			"program": "${project_path}/main.js",
+		},
+		{
+			"name": "Chrome",
+			"type": "chrome",
+			"request": "launch",
+			"file": "${project_path}/index.html",
+		},
+		{
+			"name": "Firefox",
+			"request": "launch",
+			"type": "firefox",
+			"file": "${project_path}/index.html",
+		},
+
+		// not supported yet
+		{
+			"name": "Chrome (Future)",
+			"type": "pwa-chrome",
+			"request": "launch",
+			"file": "${project_path}/index.html",
+		},
+		{
+			"name": "Node (Future)",
+			"type": "pwa-node",
+			"request": "launch",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"program": "${project_path}/main.js",
+		},
+	],
+}

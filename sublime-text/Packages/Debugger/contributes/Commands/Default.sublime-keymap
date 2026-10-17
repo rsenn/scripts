@@ -1,0 +1,58 @@
+[
+	// Don't allow closing output panels that have focus with the escape key
+	{
+		"keys": [
+			"escape"
+		],
+		"command": "noop",
+		"context": [
+			{
+				"key": "debugger.always_keep_visible"
+			},
+			{
+				"key": "debugger.output"
+			},
+		]
+	},
+	// Switch to input mode when hitting enter with the console in focus
+	{
+		"keys": [
+			"enter"
+		],
+		"command": "debugger",
+		"args": {
+			"action": "callstack_toggle_input"
+		},
+		"context": [
+			{
+				"key": "debugger.output.console",
+			}
+		]
+	},
+	// Switch to input mode when hitting enter with the callstack in focus (command will switch to console panel)
+	{
+		"keys": [
+			"enter"
+		],
+		"command": "debugger",
+		"args": {
+			"action": "callstack_toggle_input"
+		},
+		"context": [
+			{
+				"key": "debugger.output.callstack",
+			}
+		]
+	},
+	{
+		"keys": [
+			"<character>"
+		],
+		"command": "debugger_memory_input",
+		"context": [
+			{
+				"key": "debugger.view.memory"
+			},
+		]
+	},
+]

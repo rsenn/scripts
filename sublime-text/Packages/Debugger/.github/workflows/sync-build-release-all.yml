@@ -1,0 +1,74 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * *"
+
+name: sync-build-release-all
+
+jobs:
+  vscode-js-debug:
+    uses: ./.github/workflows/sync-build-release.yml
+
+    with:
+      upstream: microsoft/vscode-js-debug
+      repository: vscode-js-debug
+      tag_prefix: v1
+
+      build: |
+        npm install --legacy-peer-deps
+        node_modules/.bin/gulp vsDebugServerBundle
+        mv dist extension
+        zip -r extension.vsix extension
+
+    secrets:
+      token: ${{ secrets.PUSH_TOKEN }}
+
+  firefox-js-debug:
+    uses: ./.github/workflows/sync-build-release.yml
+
+    with:
+      upstream: firefox-devtools/vscode-firefox-debug
+      repository: vscode-firefox-debug
+
+      build: |
+        npm install --legacy-peer-deps
+        npm run build
+        npm run package -- -o extension.vsix
+
+    secrets:
+      token: ${{ secrets.PUSH_TOKEN }}
+
+  vscode-elixir-ls:
+    uses: ./.github/workflows/sync-build-release.yml
+
+    with:
+      upstream: elixir-lsp/vscode-elixir-ls
+      repository: vscode-elixir-ls
+
+      build: |
+        sudo apt-get install erlang-dev
+        sudo apt-get install elixir
+        npm install
+
+        (cd elixir-ls && mix local.hex --force)
+        (cd elixir-ls && mix deps.get)
+
+        npx vsce package -o extension.vsix
+
+    secrets:
+      token: ${{ secrets.PUSH_TOKEN }}
+
+  local-lua-debugger-vscode:
+    uses: ./.github/workflows/sync-build-release.yml
+
+    with:
+      upstream: tomblind/local-lua-debugger-vscode
+      repository: local-lua-debugger-vscode
+
+      build: |
+        npm install
+        npm run build
+        npx vsce package -o extension.vsix
+
+    secrets:
+      token: ${{ secrets.PUSH_TOKEN }}

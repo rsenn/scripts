@@ -1,0 +1,12 @@
+{
+	"rules": [
+		{
+			"scope": "debugger.background",
+			"background": "hsla(100%, 100%, 100%, 0)",
+		},
+		{
+			"scope": "debugger.selection",
+			"background": "color(var(blue) alpha(0.2))"
+		},
+	]
+}
