@@ -2,7 +2,7 @@
   // watched expressions and variables in their own tab of another group (where the Outline is),
   // instead of the right half of the callstack panel; needs a window with more than one group.
   // variables_sidebar_group: group index, -1 = the last group
-  "variables_sidebar": true,
+  "variables_sidebar": false,
   "variables_sidebar_group": -1,
 
   "global_debugger_configurations": [
