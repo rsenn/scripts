@@ -1,0 +1,26 @@
+{
+  // run the current file with qjsm; errors like "    at fn (file.js:12:5)" are clickable
+  "selector": "source.js",
+  "cmd": ["qjsm", "$file"],
+  "working_dir": "$file_path",
+  "file_regex": "^\\s+at (?:.*? \\()?([^:()\\s]+):(\\d+)(?::(\\d+))?\\)?$",
+  "env": { "NO_COLOR": "1" },
+  "variants": [
+    {
+      "name": "Debugger GUI",
+      "cmd": ["qjsm-debugger", "-m", "gui", "$file"]
+    },
+    {
+      "name": "Debugger REPL (Terminus)",
+      "target": "terminus_open",
+      "cmd": ["qjsm-debugger", "$file"],
+      "cwd": "$file_path",
+      "title": "qjsm-debugger",
+      "auto_close": false
+    },
+    {
+      "name": "Debugger batch (plain output)",
+      "cmd": ["qjsm-debugger", "--batch", "--plain", "$file"]
+    }
+  ]
+}

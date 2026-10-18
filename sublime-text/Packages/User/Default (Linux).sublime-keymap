@@ -24,5 +24,16 @@
   { "keys": ["ctrl+alt+c"], "command": "convert_to_camel" },
   { "keys": ["ctrl+alt+p"], "command": "pretty_json" },
   { "keys": ["shift+alt+p"], "command": "pretty_json_lines" },
-  { "keys": ["ctrl+alt+k"], "command": "convert_ident_case", "args": {"case": "lower", "separator": "-"} }
+  { "keys": ["ctrl+alt+k"], "command": "convert_ident_case", "args": {"case": "lower", "separator": "-"} },
+  // Debugger package (qjs adapter in qjs_debugger_adapter.py),
+  { "keys": ["f5"], "command": "qjs_debugger_key", "args": {"action": "start"} },
+  { "keys": ["shift+f5"], "command": "qjs_debugger_key", "args": {"action": "stop"} },
+  { "keys": ["ctrl+f5"], "command": "qjs_debugger_key", "args": {"action": "start_no_debug"} },
+  { "keys": ["f9"], "command": "qjs_debugger_key", "args": {"action": "toggle_breakpoint"} },
+  { "keys": ["f10"], "command": "qjs_debugger_key", "args": {"action": "step_over"} },
+  { "keys": ["ctrl+f9"], "command": "qjs_debugger_key", "args": {"action": "continue"} },
+  { "keys": ["ctrl+shift+f9"], "command": "qjs_debugger_key", "args": {"action": "pause"} },
+  { "keys": ["f11"], "command": "qjs_debugger_key", "args": {"action": "step_in"} },
+  { "keys": ["shift+f11"], "command": "qjs_debugger_key", "args": {"action": "step_out"} },
+  { "keys": ["ctrl+f10"], "command": "qjs_debugger_key", "args": {"action": "run_to_current_line"} }
 ]

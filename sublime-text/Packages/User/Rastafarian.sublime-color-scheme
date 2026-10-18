@@ -1,0 +1,10 @@
+{
+  // Debugger package: console text is scoped region.<color>ish.debugger and the
+  // region fill takes the text colour; making the background transparent keeps it readable.
+  // Literal colours on purpose: variables of the base scheme are not reliably visible here.
+  "rules": [
+    { "scope": "debugger.background", "background": "hsla(100%, 100%, 100%, 0)" },
+    // current line while stopped (view region 'debugger.selection') and the column marker
+    { "scope": "region.bluish debugger.selection", "foreground": "#2080ff", "background": "#2080ff55" }
+  ]
+}
