@@ -17,6 +17,7 @@ from .watch import Watch
 
 from .output_panel_console import ConsoleOutputPanel
 from .output_panel_callstack import CallstackOutputPanel
+from .variables_sidebar import VariablesSidebar, wanted as variables_sidebar_wanted
 from .output_panel_terminus import TerminusOutputPanel
 from .output_panel import OutputPanel
 
@@ -125,6 +126,9 @@ class Debugger(core.Dispose, dap.Debugger):
 		self.console.on_navigate.add(self._on_navigate_to_source)
 
 		self.callstack = CallstackOutputPanel(self)
+
+		if variables_sidebar_wanted(window):
+			self.dispose_add(VariablesSidebar(self))
 
 		self.dispose_add(
 			[

@@ -12,6 +12,30 @@ if TYPE_CHECKING:
 
 import sublime
 
+def source_group(window: sublime.Window) -> int:
+	"""The group sources are shown in: `source_group` in Debugger.sublime-settings if set, else the group
+	of the editor (the active group if its view is a file, else the first group with a file view and
+	not holding the variables sidebar or an outline), else the first group (the package's old default)."""
+	configured = sublime.load_settings('Debugger.sublime-settings').get('source_group')
+	count = window.num_groups()
+	if isinstance(configured, int) and -count <= configured < count:
+		return configured % count
+
+	def is_editor(group: int) -> bool:
+		view = window.active_view_in_group(group)
+		return bool(view and view.file_name() and not view.settings().get('debugger.variables_sidebar'))
+
+	active = window.active_group()
+	if is_editor(active):
+		return active
+
+	for group in range(count):
+		if is_editor(group):
+			return group
+
+	return 0
+
+
 syntax_name_for_mime_type: dict[str | None, str] = {
 	'text/plain': 'text.plain',
 	'text/javascript': 'source.js',
@@ -134,7 +158,8 @@ class SourceNavigationProvider:
 				self.clear_generated_view()
 
 			view = self.generated_view or self.project.window.new_file()
-			self.project.window.set_view_index(view, 0, len(self.project.window.views_in_group(0)))
+			group = source_group(self.project.window)
+			self.project.window.set_view_index(view, group, len(self.project.window.views_in_group(group)))
 			self.generated_view = view
 			view.set_name(source.source.name or '')
 			view.set_read_only(False)
@@ -148,7 +173,7 @@ class SourceNavigationProvider:
 			view.set_read_only(True)
 			view.set_scratch(True)
 		elif source.source.path:
-			view = await core.sublime_open_file_async(self.project.window, source.source.path, group=0)
+			view = await core.sublime_open_file_async(self.project.window, source.source.path, group=source_group(self.project.window))
 		else:
 			raise dap.Error('source has no reference or path')
 

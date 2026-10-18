@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from . import core
 from . import ui
 from . import dap
+from . import variables_sidebar
 
 from .output_panel import OutputPanel
 
@@ -44,6 +45,9 @@ class CallstackOutputPanel(OutputPanel, core.Dispose):
 		self.debugger = debugger
 		self.callstack = CallStackTabbedView(self.debugger, self)
 
+		# watches and variables live in their own view when variables_sidebar is on (see variables_sidebar.py)
+		sidebar = variables_sidebar.wanted(debugger.window)
+
 		# the -30 dip is to account for the space between phantoms
 		width_additional_dip = -30
 
@@ -59,8 +63,11 @@ class CallstackOutputPanel(OutputPanel, core.Dispose):
 		with ui.Phantom(self.view, 3, name='Callstack') as phantom:
 			self.dispose_add(phantom)
 
-			with TabbedViewContainer(width_scale=0.5, width_additional=width_additional, width_additional_dip=width_additional_dip):
+			with TabbedViewContainer(width_scale=None if sidebar else 0.5, width_additional=width_additional, width_additional_dip=width_additional_dip):
 				self.callstack.append_stack()
+
+		if sidebar:
+			return
 
 		with ui.Phantom(self.view, 5, name='Variables') as phantom:
 			self.dispose_add(phantom)
