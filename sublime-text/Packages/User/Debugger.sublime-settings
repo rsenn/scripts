@@ -1,0 +1,14 @@
+{
+  // the "qjs" type is registered by User/qjs_debugger_adapter.py
+  "global_debugger_configurations": [
+    {
+      "type": "qjs",
+      "request": "launch",
+      "name": "Debug QuickJS Script",
+      "program": "${file}",
+      "cwd": "${folder}",
+      "interpreter": "qjsm",
+      "stopOnEntry": true
+    }
+  ]
+}

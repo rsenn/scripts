@@ -1,0 +1,20 @@
+{
+    "clients": {
+        "clangd": {
+            "command": ["clangd"],
+            "selector": "source.c | source.cpp",
+            "enabled": true,
+        },
+        "typescript-language-server": {
+            "command": ["/home/roman/.nvm/versions/node/v26.11.0/bin/typescript-language-server", "--stdio"],
+            "selector": "source.js | source.jsx | source.ts | source.tsx",
+            // typescript 7 (the global one) has no tsserver.js; use a 5.x install, see ~/.local/share/typescript-ls
+            "initializationOptions": {
+                "tsserver": {
+                    "path": "/home/roman/.local/share/typescript-ls/node_modules/typescript/lib/tsserver.js",
+                },
+            },
+            "enabled": true,
+        },
+    },
+}

@@ -1,0 +1,15 @@
+{
+	"ignored_packages":
+	[
+		"Vintage",
+	],
+	"font_face": "DejaVu Sans Mono",
+	"font_size": 11,
+	"color_scheme": "Packages/Rastafarian/Rastafarian.sublime-color-scheme",
+	"theme": "Default Dark.sublime-theme",
+	"index_files": true,
+	/*"font_size": 11,*/
+	"update_check": false,
+	"show_project_first": true,
+	"show_rel_path": true,
+}

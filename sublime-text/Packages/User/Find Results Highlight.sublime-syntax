@@ -1,0 +1,150 @@
+%YAML 1.2
+---
+name: Find Results (highlighted)
+scope: text.find-in-files
+hidden: true
+
+# Results are highlighted according to the file extension of the preceding
+# "path:" header. Each result line embeds the matching language on its own,
+# so multi-line constructs (block comments, template strings) do not carry over.
+
+contexts:
+  main:
+    - match: '^(?=[^ ].*:$)'
+      push: header
+    - include: common
+
+  common:
+    - match: '^    (ERROR:)'
+      captures:
+        1: constant.other.find-in-files
+    - match: '(\.\.\. )?<skipped [0-9]+ characters?>( \.\.\.)?'
+      scope: comment.other.skipped.find-in-files
+
+  header:
+    - match: '(?i)^([^ ].*\.(?:m?js|cjs|jsx|ts|json))(:)$'
+      captures:
+        1: entity.name.filename.find-in-files
+      set: lines-js
+    - match: '(?i)^([^ ].*\.(?:[ch]|cc|cpp|cxx|hpp|hh|inl))(:)$'
+      captures:
+        1: entity.name.filename.find-in-files
+      set: lines-c
+    - match: '(?i)^([^ ].*\.(?:py))(:)$'
+      captures:
+        1: entity.name.filename.find-in-files
+      set: lines-python
+    - match: '(?i)^([^ ].*\.(?:sh|bash))(:)$'
+      captures:
+        1: entity.name.filename.find-in-files
+      set: lines-shell
+    - match: '(?i)^([^ ].*(?:\.md|\.markdown))(:)$'
+      captures:
+        1: entity.name.filename.find-in-files
+      set: lines-markdown
+    - match: '(?i)^([^ ].*(?:CMakeLists\.txt|\.cmake))(:)$'
+      captures:
+        1: entity.name.filename.find-in-files
+      set: lines-cmake
+    - match: '^([^ ].*)(:)$'
+      captures:
+        1: entity.name.filename.find-in-files
+      set: lines-plain
+
+  lines-js:
+    - include: next-file
+    - match: '^ +([0-9]+)(:)  ?'
+      captures:
+        1: constant.numeric.line-number.match.find-in-files
+      embed: scope:source.js
+      escape: '$'
+    - match: '^ +([0-9]+)   ?'
+      captures:
+        1: constant.numeric.line-number.find-in-files
+      embed: scope:source.js
+      escape: '$'
+    - include: common
+
+  lines-c:
+    - include: next-file
+    - match: '^ +([0-9]+)(:)  ?'
+      captures:
+        1: constant.numeric.line-number.match.find-in-files
+      embed: scope:source.c++
+      escape: '$'
+    - match: '^ +([0-9]+)   ?'
+      captures:
+        1: constant.numeric.line-number.find-in-files
+      embed: scope:source.c++
+      escape: '$'
+    - include: common
+
+  lines-python:
+    - include: next-file
+    - match: '^ +([0-9]+)(:)  ?'
+      captures:
+        1: constant.numeric.line-number.match.find-in-files
+      embed: scope:source.python
+      escape: '$'
+    - match: '^ +([0-9]+)   ?'
+      captures:
+        1: constant.numeric.line-number.find-in-files
+      embed: scope:source.python
+      escape: '$'
+    - include: common
+
+  lines-shell:
+    - include: next-file
+    - match: '^ +([0-9]+)(:)  ?'
+      captures:
+        1: constant.numeric.line-number.match.find-in-files
+      embed: scope:source.shell.bash
+      escape: '$'
+    - match: '^ +([0-9]+)   ?'
+      captures:
+        1: constant.numeric.line-number.find-in-files
+      embed: scope:source.shell.bash
+      escape: '$'
+    - include: common
+
+  lines-markdown:
+    - include: next-file
+    - match: '^ +([0-9]+)(:)  ?'
+      captures:
+        1: constant.numeric.line-number.match.find-in-files
+      embed: scope:text.html.markdown
+      escape: '$'
+    - match: '^ +([0-9]+)   ?'
+      captures:
+        1: constant.numeric.line-number.find-in-files
+      embed: scope:text.html.markdown
+      escape: '$'
+    - include: common
+
+  lines-cmake:
+    - include: next-file
+    - match: '^ +([0-9]+)(:)  ?'
+      captures:
+        1: constant.numeric.line-number.match.find-in-files
+      embed: scope:source.cmake
+      escape: '$'
+    - match: '^ +([0-9]+)   ?'
+      captures:
+        1: constant.numeric.line-number.find-in-files
+      embed: scope:source.cmake
+      escape: '$'
+    - include: common
+
+  lines-plain:
+    - include: next-file
+    - match: '^ +([0-9]+)(:)'
+      captures:
+        1: constant.numeric.line-number.match.find-in-files
+    - match: '^ +([0-9]+) '
+      captures:
+        1: constant.numeric.line-number.find-in-files
+    - include: common
+
+  next-file:
+    - match: '^(?=[^ ].*:$)'
+      set: header

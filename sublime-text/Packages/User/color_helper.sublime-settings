@@ -1,0 +1,503 @@
+{
+    // Show debug logging
+    "debug": false,
+
+    //////////////////
+    // Graphic Rendering
+    //////////////////
+
+    // If the color picker is too big or too small, try playing with this.
+    // This is a coarse control which scales image size relative to the
+    // approximate line height. small (0.75x), medium (1x), and large (1.25x).
+    // (small | medium | large)
+    "graphic_size": "medium",
+
+    // Fine scaling of image sizes. Overrides `graphic_size`.
+    // Use an integer or floating point value. `null` disables fine scaling.
+    "graphic_scale": null,
+
+    // For Windows 10 HiDpi setups. This is a temporary workaround
+    // to help reduce abnormally large color previews and other images.
+    // This will be removed once the issue is fixed in Sublime Text 3.
+    "line_height_workaround": false,
+
+    // Adjust the size of inline image previews by the offset given.
+    // Please use either a positive or negative number.
+    "inline_preview_offset": 0,
+
+    // Override image border color. This is mainly for schemes that use a dramatically different
+    // background for popups vs code background. Color should be either an sRGB, HSL, HWB, or named CSS color.
+    "image_border_color": null,
+
+    //////////////////
+    // Tools
+    //////////////////
+
+    // Color picker and palette picker by default
+    // are accessed by clicking an icon on the color info panel.
+    // Click access for one of these can be moved to the color box
+    // (visual representation of the color).
+    // (none|color_picker|palette_picker|edit)
+    "click_color_box_to_pick": "none",
+
+    //////////////////
+    // Palettes
+    //////////////////
+
+    // Show global palettes in palette panel
+    "enable_global_user_palettes": true,
+
+    // Enable storing favorite colors to the favorite palette
+    "enable_favorite_palette": true,
+
+    // Enable project palettes in palette panel (Palettes stored in project file).
+    "enable_project_user_palettes": true,
+
+    //////////////////
+    // Color Picker
+    //////////////////
+
+    // Enable color picker option.  Will use native color picker
+    // unless "use_color_picker_package" is enabled and external
+    // package is installed.
+    "enable_color_picker": true,
+
+    // Use native, OS specific color pickers. Linux requires `kcolorchooser`.
+    "use_os_color_picker": false,
+
+    // Enable the preferred color picker options: `srgb`, `hsl`, `hsv`, `hwb`, `okhsl`, and `okhsv`
+    // If no valid spaces are specified, `srgb` will be used.
+    "enabled_color_picker_modes": ["srgb", "hsl", "hsv"],
+
+    // If the color is already in the space of an enabled mode, use that mode.
+    // If disabled, the "preferred" mode will be used.
+    "auto_color_picker_mode": true,
+
+    // If "auto" mode is disabled, or the "auto" mode could not determine a suitable picker,
+    // the preferred color picker space will be used. If the preferred is invalid, the
+    // first picker from `enabled_color_picker_modes` will be used, and if that is not valid,
+    // `srgb` will be used.
+    "preferred_color_picker_mode": "hsl",
+
+    //////////////////
+    // Preview
+    //////////////////
+
+    // Enables inline color previews found beside the identified color.
+    // Requires ST 3116+ and mdpopups 1.7.4
+    "inline_previews": true,
+
+    // Adjust the position of inline image previews.
+    // (left|right)
+    "inline_preview_position": "left",
+
+    // Only show color previews next to a color when the color region
+    // intersects the current selection(s). If a selection is empty
+    // (just a caret), if the caret is at the start or within the color
+    // region, a preview will also show.
+    "preview_on_select": false ,
+
+    // Controls whether previews will try to visually show an out of gamut
+    // color by using gamut mapping.
+    "show_out_of_gamut_preview": true,
+
+    // Define padding around sliding preview window
+    // Extend the range previews processed by ColorHelper.
+    // Value should be positive integers and represent the rows and columns
+    // to extend the range by. Padding is applied on both sides. So padding
+    // by 20 rows pads by 20 on the top and 20 on the bottom. Large padding
+    // could cause lag with typing or scrolling.
+    "preview_window_padding": [0, 0],
+
+    // The gamut space to render previews in.
+    // Supported spaces are: `srgb`, `display-p3`, `rec2020`,
+    //                       `a98-rgb`, and `prophoto-rgb`.
+    // If your display does not run with one of these gamuts,
+    // You should not change this.
+    "gamut_space": "srgb",
+
+    // Gamut mapping approach
+    // Supported methods are: `lch-chroma`, `oklch-chroma`, `oklch-raytrace`, and `clip` (default).
+    // `lch-chroma` was the original default before this was configurable.
+    "gamut_map": "clip",
+
+    //////////////////
+    // Color Rules
+    //////////////////
+
+    // This option requires a restart of Sublime Text.
+    // This allows a user to add NEW previously unincluded color spaces.
+    // This ensures that the new color space will work in palettes etc.
+    // Then, custom color classes can override the space for special, file
+    // specific formatting via the `class` attribute under `user_color_classes`.
+    "add_to_default_spaces": [
+        // "ColorHelper.lib.coloraide.spaces.aces2065_1.ACES20651",
+        // "ColorHelper.lib.coloraide.spaces.acescc.ACEScc",
+        // "ColorHelper.lib.coloraide.spaces.acescg.ACEScg",
+        // "ColorHelper.lib.coloraide.spaces.acescct.ACEScct",
+        // "ColorHelper.lib.coloraide.spaces.cam16_jmh.CAM16JMh",
+        // "ColorHelper.lib.coloraide.spaces.cam16_ucs.CAM16UCS",
+        // "ColorHelper.lib.coloraide.spaces.cam16_ucs.CAM16SCD",
+        // "ColorHelper.lib.coloraide.spaces.cam16_ucs.CAM16LCD",
+        // "ColorHelper.lib.coloraide.spaces.cmy.CMY",
+        // "ColorHelper.lib.coloraide.spaces.cmyk.CMYK",
+        // "ColorHelper.lib.coloraide.spaces.din99o.DIN99o",
+        // "ColorHelper.lib.coloraide.spaces.hct.HCT",
+        // "ColorHelper.lib.coloraide.spaces.hpluv.HPLuv",
+        // "ColorHelper.lib.coloraide.spaces.hsi.HSI",
+        // "ColorHelper.lib.coloraide.spaces.hunter_lab.HunterLab",
+        // "ColorHelper.lib.coloraide.spaces.ictcp.ICtCp",
+        // "ColorHelper.lib.coloraide.spaces.igtgpg.IgTgPg",
+        // "ColorHelper.lib.coloraide.spaces.ipt.IPT",
+        // "ColorHelper.lib.coloraide.spaces.jzazbz.Jzazbz",
+        // "ColorHelper.lib.coloraide.spaces.jzczhz.JzCzhz",
+        // "ColorHelper.lib.coloraide.spaces.lch99o.LCh99o",
+        // "ColorHelper.lib.coloraide.spaces.orgb.oRGB",
+        // "ColorHelper.lib.coloraide.spaces.prismatic.Prismatic",
+        // "ColorHelper.lib.coloraide.spaces.rec2100_hlg.Rec2100HLG",
+        // "ColorHelper.lib.coloraide.spaces.rec2100_pq.Rec2100PQ",
+        // "ColorHelper.lib.coloraide.spaces.rlab.RLAB",
+        // "ColorHelper.lib.coloraide.spaces.ryb.RYB",
+        // "ColorHelper.lib.coloraide.spaces.xyb.XYB",
+        // "ColorHelper.lib.coloraide.spaces.xyy.xyY",
+        "ColorHelper.lib.coloraide.spaces.hsluv.HSLuv",
+        "ColorHelper.lib.coloraide.spaces.lchuv.LChuv",
+        "ColorHelper.lib.coloraide.spaces.luv.Luv",
+        "ColorHelper.lib.coloraide.spaces.okhsl.Okhsl",
+        "ColorHelper.lib.coloraide.spaces.okhsv.Okhsv"
+    ],
+
+    // If a there is no rule for the current file, commands will assume
+    // the options specified here. This allows translate custom input color
+    // formats to our defaults and back out again. Here you can also filter
+    // which color spaces are generically supported and narrow the recognition
+    // by reducing the color triggers.
+    //
+    // Available options can be viewed in `color_rule`.
+    // All `color_rule` options apply except: `sytnax_files`, `syntax_filter`, `base_scopes`, `extensions`.
+    // This is because this simply applies to all views if not matched by other rules.
+    // Additionally, `color_class` only accepts a string defining a single color class.
+    "generic": {
+        "allow_scanning": false,
+        "scanning": ["-comment"],
+        "color_class": "css-level-4"
+    },
+
+    // Color classes used to translate and manipulate colors. Each color class should have a unique name.
+    //
+    // - `output`:         this can be used to specify the output options available when converting a color
+    //                     or inserting a color from the color picker or other tools. Specify the `space`
+    //                     from the color class to use, and the options to supply to the color class's
+    //                     `to_string` method. Defaults to:
+    //
+    //                     ```
+    //                     [
+    //                         {"space": "srgb", "format": {"hex": True}},
+    //                         {"space": "srgb", "format": {"comma": True, "precision": 3}},
+    //                         {"space": "hsl", "format": {"comma": True, "precision": 3}},
+    //                         {"space": "hwb", "format": {"comma": False, "precision": 3}},
+    //                         {"space": "lch", "format": {"comma": False, "precision": 3}},
+    //                         {"space": "lab", "format": {"comma": False, "precision": 3}},
+    //                         {"space": "xyz-d65", "format": {}}
+    //                     ]
+    //                     ```
+    //
+    // - `class`:          this allows a user to specify a custom color class derived from
+    //                     `ColorHelper.lib.coloraide.Color`. This could be used to to create a color class
+    //                     that can recognize different formats when scanning for colors. It also allows
+    //                     for color spaces to have different output formats that can be configured via
+    //                     `output_options`. Defaults to `ColorHelper.lib.coloraide.Color`.
+    //
+    // - `filters`:        A list that restricts color recognition to only the specified color spaces.
+    //                     Default is an empty list. Allowed color spaces are `srgb`, `hsl`, `hwb`, `hsv`,
+    //                     `lch`, `lab`, `xyz-d65`, `display-p3`, `rec2020`, `a98-rgb`, and `prophoto-rgb`.
+    //
+    // - `edit_mode`:      Optional parameter that controls the "edit" tool that is used in the info
+    //                     panel when you click the large color preview. The default value is `default`,
+    //                     but can also be be set to `st-colormod` to use an edit mode that mimics
+    //                     Sublimes `color-mod` implementation. The other edit command, along with the
+    //                     rest, are still available under tools menu item on the popups.
+    "color_classes": {
+        "css-level-4": {
+            "filters": [
+                "srgb", "hsl", "hwb", "lch", "lab", "display-p3", "rec2020",
+                "prophoto-rgb", "a98-rgb", "xyz-d65", "xyz-d50", "srgb-linear",
+                "oklab", "oklch"
+            ],
+            "output": [
+                {"space": "srgb", "format": {"hex": true}},
+                {"space": "srgb", "format": {"comma": true}},
+                {"space": "hsl", "format": {"comma": true}},
+                {"space": "hwb", "format": {"comma": false}},
+                {"space": "a98-rgb", "format": {}},
+                {"space": "display-p3", "format": {}},
+                {"space": "prophoto-rgb", "format": {}},
+                {"space": "rec2020", "format": {}},
+                {"space": "srgb-linear", "format": {}},
+                {"space": "xyz-d65", "format": {}},
+                {"space": "xyz-d50", "format": {}},
+                {"space": "lab", "format": {"comma": false}},
+                {"space": "lch", "format": {"comma": false}},
+                {"space": "oklab", "format": {"comma": false}},
+                {"space": "oklch", "format": {"comma": false}}
+            ]
+        },
+        "css-level-3": {
+            "filters": ["srgb", "hsl"],
+            "output": [
+                {"space": "srgb", "format": {"hex": true}},
+                {"space": "srgb", "format": {"comma": true, "precision": 3}},
+                {"space": "hsl", "format": {"comma": true, "precision": 3}}
+            ]
+        },
+        "sublime-colormod": {
+            "class": "ColorHelper.custom.st_colormod.Color",
+            "edit_mode": "st-colormod",
+            "filters": ["srgb", "hsl", "hwb"],
+            "output": [
+                {"space": "srgb", "format": {"hex": true}},
+                {"space": "srgb", "format": {"comma": true, "precision": 3}},
+                {"space": "hsl", "format": {"comma": true, "precision": 3}},
+                {"space": "hwb", "format": {"comma": true, "precision": 3}}
+            ]
+        },
+        "tmtheme": {
+            "class": "ColorHelper.custom.tmtheme.ColorSRGBX11",
+            "filters": ["srgb"],
+            "output": [
+                {"space": "srgb", "format": {}}
+            ]
+        },
+        "argb": {
+            "class": "ColorHelper.custom.ahex.ColorAlphaHex",
+            "filters": ["srgb"],
+            "output": [
+                {"space": "srgb", "format": {}}
+            ]
+        },
+        "0xhex": {
+            "class": "ColorHelper.custom.hex_0x.ColorHex",
+            "filters": ["srgb"],
+            "output": [
+                {"space": "srgb", "format": {}}
+            ]
+        },
+        "tmlanguage": {
+            "class": "Colorhelper.custom.tmlanguage",
+            "filters": ["srgb"],
+            "output": [
+                {"space": "srgb", "format": {"hex": true}}
+            ]
+        },
+        // for color codes like `&HAABBGGRR` and `&HBBGGRR`
+        "ass_abgr": {
+            "class": "ColorHelper.custom.ass_abgr.ColorAssABGR",
+            "filters": ["srgb"],
+            "output": [
+                {"space": "srgb", "format": {"upper": true}}
+            ]
+        }
+    },
+
+    // These are the color rules for a given view.
+    // Only one rule will apply to a given view.
+    //
+    // - `name`:           optional name that, if a user creates a rule in `user_color_rules`, and it
+    //                     it shares the same `name`, a shallow merge of the two rules will be made which
+    //                     will allow the user rule to override the values of top level keys.
+    //
+    // - `sytnax_files`:   target a view using a syntax from the given list. Defaults to an empty list.
+    //
+    // - `syntax_filter`:  specify whether `syntax_files` is an allowlist or blocklist. Can be either
+    //                     (blocklist|allowlist). Default's to `allowlist`.
+    //
+    // - `base_scopes`:    target a view whose base scope matches something from the list of scopes.
+    //                     Defaults to an empty list.
+    //
+    // - `extensions`:     target a view with an extension from the provided list. Defaults to an empty list.
+    //
+    // - `color_class`:    A string defining the name of a color class to use for the associated views. Color class
+    //                     name should be defined in `color_classes`.
+    //
+    //                     If needed, you can define multiple color classes with a list of dictionaries. Each
+    //                     dictionary in the list should contain a `class` and `scopes`:
+    //
+    //                     - `scopes`:    A string that defines a base scope that the color class applies to.
+    //
+    //                     - `class`:     The name of the color class profile to use (defined in `color_classes`).
+    //
+    // - `scanning`:       A list containing scopes that should be scanned for colors.
+    //
+    // - color_trigger`.   It is slow to test the entire buffer with the color class, so do a quick search for
+    //                     tokens that should trigger a color check. That way we only test in places where we
+    //                     think we might have a valid color. For instance, the color class can translate colors
+    //                     in the form `rgb(1 1 1 / 1)`, so we can specify `rgb(` as a color trigger. If we find `rgb(`,
+    //                     we will test that spot's scope and attempt to read in a color at that location.
+    //                     Defaults to "(?i)(?:\b(?<![-#&])(?:color|hsla?|lch|lab|hwb|rgba?)\(|\b(?<![-#&])[\w]{3,}(?!\()\b|(?<![&])#)"
+    //
+    // - `allow_scanning`: This is an easy way to disable just scanning within a certain ruleset. Defaults to `true`.
+    //
+    //.- `enable`:         This can be used to disable a color rule entirely. Defaults to `true`.
+    "color_rules": [
+        {
+            "name": "CSS3",
+            "base_scopes": [
+                "source.css"
+            ],
+            "syntax_files": [
+                "CSS3/CSS3"
+            ],
+            "color_class": "css-level-4",
+            "scanning": [
+                // https://packagecontrol.io/packages/CSS3
+                "support.constant.color.w3c-color-name.css",
+                "support.function.color-adjuster-rgb.css",
+                "constant.other.color.rgb-value.css",
+                "support.function.color.css",
+                "support.function.rgba.css",
+                "support.function.hsla.css",
+                "support.function.hwb.css",
+                "support.function.lab.css",
+                "support.function.lch.css"
+            ]
+        },
+        {
+            "name": "HTML/CSS",
+            "base_scopes": [
+                "source.css",
+                "source.sass",
+                "source.scss",
+                "text.html"
+            ],
+            "color_class": "css-level-4",
+            "scanning": [
+                // Sublime default CSS nand HTML. Covers SCSS, POSTCSS, and most of SASS
+                "support.constant.color.w3c.standard.css",
+                "support.constant.color.w3c.extended.css",
+                "support.function.color.css",
+                "constant.other.color.rgb-value.css, constant.other.color.rgba-value.css",
+                // https://packagecontrol.io/packages/SASS
+                "support.function.custom.sass"
+            ]
+        },
+        {
+            "name": "JavaScript/JSX",
+            "base_scopes": [
+                "source.js",
+                "source.jsx"
+            ],
+            "color_class": "css-level-4",
+            "scanning": [
+                // Covers single and double quoted strings, as well as template strings
+                "string.quoted"
+            ]
+        },
+        {
+            // Setting is experimental, set "enable" to false if false positives are problematic.
+            //
+            // GraphViz provides limited scoping that limits our ability to identify exactly
+            // where colors will and will not appear. It also uses deprecated attributes
+            // in HTML snippets that do not style the colors with the CSS syntax as HTML normally
+            // does.
+            //
+            // All of this "could" lead to false positives. We do our best to limit scoping as
+            // much as reasonable. HSV support is currently limited due to the fact the syntax
+            // is very non-specific (floats separated by commas or spaces) and is likely to cause
+            // the most false positives. If the GraphViz syntax were to scope colors with a
+            // special scope, or at least properties that are likely to contain colors, we
+            // could greatly reduce/eliminate false positives and add HSV support with more
+            // confidence.
+            "name": "Graphviz",
+            "base_scopes": [
+                "source.dot"
+            ],
+            "color_class": [
+                {"class": "tmtheme", "scopes": "meta.attributes.dot -text.html.basic"},
+                {"class": "css-level-4", "scopes": "text.html.basic"}
+            ],
+            "scanning": [
+                "source.dot meta.attributes.dot -text.html.basic",
+                "meta.attribute-with-value.html meta.string.html"
+            ]
+        },
+        {
+            "name": "PackageDev Sublime Schemes/Theme",
+            "syntax_files": [
+                "PackageDev/Package/Sublime Text Color Scheme/Sublime Text Color Scheme",
+                "PackageDev/Package/Sublime Text Theme/Sublime Text Theme"
+            ],
+            "color_class": "sublime-colormod",
+            "color_trigger": "(?i)(?:\\b(?<![-#&$])(?:color\\((?!\\s*-)|(?:hsla?|hwb|rgba?)\\()|\\b(?<![-#&$])[\\w]{3,}(?![(-])\\b|(?!<&)\\#)",
+            "scanning": [
+                "source.css-color -meta.function-call.var.sublime-color-scheme -meta.function-call.var.css",
+                "meta.css.sublime-color-scheme meta.property-value.css -comment -string.quoted.single.css -string.quoted.double.css"
+            ]
+        },
+        {
+            "name": "tmTheme",
+            "color_trigger": "(?i)(?:\\b(?<![-#&$])[\\w]{3,}(?![(-])\\b|(?!<&)\\#)",
+            "extensions": [".tmTheme"],
+            "base_scopes": ["text.xml"],
+            "color_class": "tmtheme",
+            "scanning": [
+                "text.xml -meta.tag.xml -comment -string, string.unquoted.cdata.xml"
+            ]
+        },
+        {
+            "name": "XML",
+            "base_scopes": ["text.xml"],
+            "color_class": "css-level-4",
+            "scanning": [
+                "text.xml -meta.tag.xml -comment -string, string.unquoted.cdata.xml"
+            ]
+        },
+        {
+            // Stylus (based on: https://github.com/billymoon/Stylus/blob/master/Stylus.tmLanguage)
+            "name": "Stylus",
+            "base_scopes": ["source.stylus"],
+            "color_class": "css-level-4",
+            "scanning": [
+                "constant.other.color.rgb-value.stylus",
+                "constant.color.w3c-standard-color-name.stylus",
+                "meta.property-value.stylus"
+            ]
+        },
+        {
+            "name": "Less",
+            "base_scopes": ["source.less"],
+            "color_class": "css-level-4",
+            "scanning": [
+                "constant.other.color.rgb-value.css",
+                "constant.color.w3c-standard-color-name.css",
+                "meta.property-value.css",
+                "support.function.color.css"
+            ]
+        },
+        {
+            // ASS (based on: https://packagecontrol.io/packages/Advanced%20Substation%20Alpha%20(ASS))
+            "name": "ASS",
+            "base_scopes": ["text.ass"],
+            "scanning": ["constant.other.color"],
+            "color_class": "ass_abgr",
+            "color_trigger": "(?:&H|(?<=\\\\[1-4]c)|(?<=\\\\c))[0-9a-fA-F]"
+        },
+        {
+            // INI (based on https://packagecontrol.io/packages/INI)
+            "name": "INI",
+            "syntax_files": ["INI/INI"],
+            "base_scopes": ["source.ini"],
+            "color_class": "css-level-4",
+            "scanning": ["meta.mapping.value.ini"]
+        }
+    ],
+
+    // User rules. These will be appended to the normal `color_rules` unless they
+    // share the same name. In that case, a shallow merge will be performed allowing
+    // the values of top level keys to be overridden and new keys to be added.
+    "user_color_rules": [],
+
+    // User color classes. These will be added to the normal `color_classes` unless they
+    // share the same name with an existing entry. In that case, a shallow merge will be performed allowing
+    // the values of top level keys to be overridden and new keys to be added.
+    "user_color_classes": {}
+}

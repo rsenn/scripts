@@ -1,0 +1,41 @@
+{
+	"auto_upgrade": false,
+	"bootstrapped": true,
+	"in_process_packages":
+	[
+	],
+	"installed_packages":
+	[
+		"Autotools",
+		"Case Conversion",
+		"CMake",
+		"CMakeFormat",
+		"Color Highlight",
+		"Color Highlighter",
+		"Color Scheme - Chromodynamics",
+		"Color Scheme - Sleeplessmind",
+		"ColorHelper",
+		"ColorHints",
+		"ColorSchemeEditor",
+		"ColorSchemeSelector",
+		"Colorsublime",
+		"Comments Aware Enter",
+		"Debugger",
+		"DeleteBlankLines",
+		"LSP",
+		"MarkdownEditing",
+		"Outline",
+		"Package Control",
+		"Path Tools",
+		"Pretty JSON",
+		"Prevent Duplicate Windows",
+		"ProjectManager",
+		"RainbowBrackets",
+		"SBNF",
+		"Terminus",
+	],
+	"repositories":
+	[
+		"https://github.com/zyxar/Sublime-CMakeLists.git"
+	],
+}

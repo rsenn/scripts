@@ -1,0 +1,5 @@
+{
+    "cmd": ["retext", "$file"],
+    "selector": "text.html.markdown",
+    "working_dir": "$file_path"
+}

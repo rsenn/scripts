@@ -1,0 +1,28 @@
+[
+  {
+    "command": "delete_blank_lines",
+    "args": { "surplus": true },
+    "keys": [
+      "ctrl+shift+b"
+    ]
+  },
+  {
+    "command": "delete_blank_lines",
+    "args": { "surplus": false },
+    "keys": [
+      "ctrl+alt+b"
+    ]
+  },
+  { "keys": ["ctrl+alt+r"], "command": "open_in_retext",
+    "context": [{ "key": "selector", "operator": "equal", "operand": "text.html.markdown" }] 
+  },
+  { "keys": ["ctrl+shift+7"], "command": "toggle_comment", "args": {"block": true} },
+  { "keys": ["ctrl+7"], "command": "toggle_comment", "args": {"block": false} },
+  { "keys": ["ctrl+alt+l"], "command": "lower_case" },
+  { "keys": ["ctrl+alt+u"], "command": "upper_case" },
+  { "keys": ["ctrl+alt+s"], "command": "convert_to_snake" },
+  { "keys": ["ctrl+alt+c"], "command": "convert_to_camel" },
+  { "keys": ["ctrl+alt+p"], "command": "pretty_json" },
+  { "keys": ["shift+alt+p"], "command": "pretty_json_lines" },
+  { "keys": ["ctrl+alt+k"], "command": "convert_ident_case", "args": {"case": "lower", "separator": "-"} }
+]
