@@ -56,11 +56,12 @@
   // "cursor": put the cursor at the end of the symbol line
   // "symbol": highlight the symbol in the main view
   // "block": highlight the entire block between the current symbol and next symbol
-  "outline_main_view_highlight_mode": "symbol",
+  //"outline_main_view_highlight_mode": "symbol",
+  "outline_main_view_highlight_mode": "block",
 
   // true: outline view will use the same color scheme as current file
   // false: outline will use its own color schemes (default or dark)
-  "outline_inherit_color_scheme": true,
+  "outline_inherit_color_scheme": false,
 
   // How should be positioned the Browse Mode view opened when jumping
   // "left": the default, open the view on the left
@@ -88,7 +89,7 @@
   // make FileBrowser views look more like a file browser than an editor
   // This plugin does not change font and font size, but it's
   // highly recommended to customize them in your user files.
-  "color_scheme": "Packages/Outline/outline-Dark.hidden-tmTheme",
+  "color_scheme": "Rastafarian.sublime-color-scheme",
   "line_numbers": false,
   "word_wrap": false,
   "spell_check": false,

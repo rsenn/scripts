@@ -7,7 +7,10 @@
 	"installed_packages":
 	[
 		"Autotools",
+		"BetterSwitchHeaderImplementation",
 		"Case Conversion",
+		"CComplete",
+		"ClangAutoComplete",
 		"CMake",
 		"CMakeFormat",
 		"Color Highlight",
@@ -22,8 +25,12 @@
 		"Comments Aware Enter",
 		"Debugger",
 		"DeleteBlankLines",
+		"DoxyDoxygen",
 		"LSP",
+		"LSP-clangd",
+		"Markdown Extended",
 		"MarkdownEditing",
+		"MarkdownPreview",
 		"Outline",
 		"Package Control",
 		"Path Tools",
@@ -32,7 +39,12 @@
 		"ProjectManager",
 		"RainbowBrackets",
 		"SBNF",
+		"SVG Preview",
+		"SVG Viewer",
 		"Terminus",
+		"UndoTree",
+		"Web Audio API Autocomplete",
+		"Web Inspector",
 	],
 	"repositories":
 	[

@@ -54,9 +54,11 @@ def set_view(view_id, window, ignore_existing, single_pane):
         view = window.new_file()
         view.set_syntax_file('Packages/Outline/outline.hidden-tmLanguage')
         view.set_scratch(True)
-        if view.settings().get('outline_inherit_color_scheme'):
+        outline_settings = sublime.load_settings('outline.sublime-settings')
+        if outline_settings.get('outline_inherit_color_scheme'):
             view.settings().set('color_scheme', active_view.settings().get('color_scheme'))
         else:
+            view.settings().set('color_scheme', outline_settings.get('color_scheme'))
             view.settings().add_on_change('color_scheme', lambda: set_proper_scheme(view))
         
         reset_sels = True
