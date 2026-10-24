@@ -60,7 +60,6 @@ def set_view(view_id, window, ignore_existing, single_pane):
             view.settings().set('color_scheme', active_view.settings().get('color_scheme'))
         else:
             view.settings().set('color_scheme', outline_settings.get('color_scheme'))
-            """view.settings().add_on_change('color_scheme', lambda: set_proper_scheme(view))"""
         
         reset_sels = True
     else:
@@ -126,11 +125,8 @@ def show(window, view_id=None, ignore_existing=False, single_pane=False, other_g
         else:
             window.set_view_index(v, 1, 0)
 
-
     window.focus_view(prev_focus)
-    print("prev_focus:", prev_focus)
-    print("file_path:", file_path
-        )
+
     refresh_sym_view(view, symlist, file_path, prev_focus)
 
 def qualify_symbols(view, symlist, style):
@@ -154,45 +150,65 @@ def qualify_symbols(view, symlist, style):
         stack.append((indent, symbol))
     return labels
 
-def refresh_sym_view(sym_view, symlist, path, view=None):
 
+def get_symbol_icon(scope):
+    """Return a symbol or emoji icon based on the syntax-highlighting scope."""
+    scope_lower = scope.lower()
+    if 'struct' in scope_lower:
+        return "🏗️"
+    elif 'class' in scope_lower:
+        return "🏫"
+    elif 'object' in scope_lower:
+        return "￼"
+    elif 'generator' in scope_lower or 'coroutine' in scope_lower:
+        return "♺"
+    elif 'lambda' in scope_lower or 'arrow' in scope_lower:
+        return "ƛ"
+    elif 'function' in scope_lower or 'method' in scope_lower:
+        return "⚡"
+    elif 'interface' in scope_lower or 'protocol' in scope_lower:
+        return "📜"
+    elif 'enum' in scope_lower:
+        return "🏷️"
+    elif 'constant' in scope_lower:
+        return "🔒"
+    elif 'property' in scope_lower or 'attribute' in scope_lower:
+        return "📌"
+    elif 'module' in scope_lower or 'namespace' in scope_lower:
+        return "📦"
+    else:
+        return "🔹 "  # Default fallback emoji
+
+
+def refresh_sym_view(sym_view, symlist, path, view=None):
     find_view = lambda path: next((v for v in sym_view.window().views() if v.file_name() == path), None)
  
     if sym_view is not None and sym_view.settings().get('outline_skip_all_upcase'):
         symlist = [(r, s) for r, s in symlist if not re.match(r'^[A-Z_]+$', s)]
 
     src_view = view or find_view(path)
-    if src_view is not None:
-        # assuming 'view' is the source text document and 'symlist' contains (range, symbol) pairs 
-        for r, symbol_name in symlist:
-
-            # extract the exact line of code from the source code view using the region """
-            line_range = src_view.line(r)
-            line = src_view.substr(line_range)
-
-            # extract highlighting scope
-            scope = src_view.scope_name(r.a)
-
-            #print("Symbol '{}'\n  range: {}\n  scope: '{}'\n  line: '{}'".format(symbol_name, r, scope, line))
-            print("{:<20} '{}'".format(symbol_name, scope))
-
-            #lr =src_view.line(r)
-            #line = src_view.substr(sublime.Region(lr.a-2, lr.b+10))
-            #print("Line:", line)
-
     if view is None:
         view = src_view
 
-    l = [symbol for range, symbol in symlist]
-    k = [(range.a, range.b) for range, symbol in symlist]
+    # Prepend icons based on the scope of each symbol
+    processed_symlist = []
+    use_icons = sym_view.settings().get('outline_use_icons')
+    for r, symbol in symlist:
+        scope = src_view.scope_name(r.a) if src_view is not None else ""
+        icon = get_symbol_icon(scope) if use_icons else ''
+        processed_symlist.append((r, icon + symbol))
+
+    l = [symbol for range, symbol in processed_symlist]
+    k = [(range.a, range.b) for range, symbol in processed_symlist]
 
     if sym_view != None:
         style = sym_view.settings().get('outline_member_style', 'dot')
         if view != None and style in ('dot', 'qualified'):
-            l = qualify_symbols(view, symlist, style)
+            l = qualify_symbols(view, processed_symlist, style)
         sym_view.settings().erase('symlist')
         sym_view.settings().erase('symkeys')
         sym_view.run_command('outline_refresh', {'symlist': l, 'symkeys': k, 'path': path})
+
 
 def get_sidebar_views_groups(view):
     window = view.window()
@@ -212,6 +228,7 @@ def get_sidebar_views_groups(view):
 
     return (sym_view, sym_group, fb_view, fb_group)
 
+
 def get_sidebar_status(view):
     sidebar_on = False
     for v in view.window().views():
@@ -219,6 +236,7 @@ def get_sidebar_status(view):
             sidebar_on = True
 
     return sidebar_on
+
 
 # given a sorted array, returns the location of x if inserted into the array
 def binary_search(array, x):

@@ -56,8 +56,6 @@ class OutlineEventHandler(EventListener):
 			return
 
 		(row, col) = sym_view.rowcol(sym_view.sel()[0].begin())
-
-		print('on_selection_modified')
 		
 		active_view = None
 		for group in range(window.num_groups()):

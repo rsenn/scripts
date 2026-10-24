@@ -5,5 +5,6 @@
   "outline_main_view_highlight_mode": "symbol",
   "outline_member_style": "dot",
   "outline_smart_jump": true,
-  "outline_skip_all_upcase": false
+  "outline_skip_all_upcase": false,
+  "outline_use_icons": false
 }
