@@ -174,7 +174,7 @@ def refresh_sym_view(sym_view, symlist, path, view=None):
             scope = src_view.scope_name(r.a)
 
             #print("Symbol '{}'\n  range: {}\n  scope: '{}'\n  line: '{}'".format(symbol_name, r, scope, line))
-            print("{:<30} '{}'".format(symbol_name, scope))
+            print("{:<20} '{}'".format(symbol_name, scope))
 
             #lr =src_view.line(r)
             #line = src_view.substr(sublime.Region(lr.a-2, lr.b+10))

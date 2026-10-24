@@ -3,7 +3,7 @@
   "outline_hijack_new_window": true,
   "outline_inherit_color_scheme": false,
   "outline_main_view_highlight_mode": "symbol",
-  "outline_member_style": "qualified",
+  "outline_member_style": "dot",
   "outline_smart_jump": true,
   "outline_skip_all_upcase": false
 }
