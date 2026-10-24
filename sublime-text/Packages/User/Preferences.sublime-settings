@@ -1,11 +1,12 @@
 {
 	"ignored_packages":
 	[
+		"CComplete",
 		"Vintage",
 	],
 	"font_face": "DejaVu Sans Mono",
 	"font_size": 13,
-	"color_scheme": "Rastafarian.sublime-color-scheme",
+	"color_scheme": "Packages/Rastafarian/Rastafarian.sublime-color-scheme",
 	"theme": "Default Dark.sublime-theme",
 	"index_files": true,
 	/*"font_size": 11,*/

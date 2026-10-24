@@ -26,6 +26,7 @@
 		"Debugger",
 		"DeleteBlankLines",
 		"DoxyDoxygen",
+		"ExpandSelectionToComments",
 		"LSP",
 		"LSP-clangd",
 		"Markdown Extended",

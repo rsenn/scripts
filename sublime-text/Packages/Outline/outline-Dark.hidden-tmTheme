@@ -12,7 +12,7 @@
 				<key>background</key>
 				<string>#272822</string>
 				<key>foreground</key>
-				<string>#222222</string>
+				<string>#ffffff</string>
 				<key>caret</key>
 				<string>#367cc055</string>
 				<key>lineHighlight</key>

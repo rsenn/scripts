@@ -116,7 +116,12 @@
     // default text / identifiers: light_yellow
     {
       "name": "Identifiers",
-      "scope": "variable, entity.name, entity.other, support.function, support.class, support.type, support.constant, meta.function-call, variable.function, variable.parameter, variable.other, meta.path, meta.preprocessor.macro, keyword.control.import.cmake, meta.preprocessor.c++, meta.import-source.python, meta.generic-name.python, source.cmake meta.group.function.cmake meta.function-call.arguments.generic.cmake variable.parameter.generic.cmake",
+      "scope": "variable, entity.name, entity.other, support.function, support.class, support.type, support.constant, meta.function-call, variable.function, variable.parameter, variable.other, meta.path, meta.preprocessor.macro, keyword.control.import.cmake, meta.preprocessor.c++, source.cmake meta.group.function.cmake meta.function-call.arguments.generic.cmake variable.parameter.generic.cmake",
+      "foreground": "var(light_yellow)"
+    },
+    {
+      "name": "Python identifiers",
+      "scope": "meta.import-source.python, meta.generic-name.python",
       "foreground": "var(light_yellow)"
     },
     {
@@ -154,7 +159,7 @@
     // keywords: light red
     {
       "name": "Keywords",
-      "scope": "keyword, keyword.control, storage, storage.type, storage.modifier, constant.language, variable.language, variable.parameter.generic, keyword.operator.word, keyword.operator.iteration, meta.statement.import.python keyword.control.import, source.cmake keyword.operator.logical",
+      "scope": "keyword, keyword.control, storage, storage.type, storage.modifier, constant.language, variable.language, variable.parameter.generic, keyword.operator.word, keyword.operator.iteration, source.cmake keyword.operator.logical",
       "foreground": "var(light_red)"
     },
     {
@@ -167,6 +172,12 @@
       "scope": "keyword.operator.word.new.js, keyword.operator.js",
       "foreground": "var(light_red)"
     },
+    {
+      "name": "Python keywords",
+      "scope": "meta.statement.import.python keyword.control.import",
+      "foreground": "var(light_red)"
+    },
+
     // punctuation, parentheses/brackets, operators, numbers: light cyan
     {
       "name": "Punctuation",
@@ -180,8 +191,13 @@
     },
     {
       "name": "Operators",
-      "scope": "keyword.operator, punctuation.separator.continuation, keyword.operator.assignment, constant.other.wildcard.asterisk, variable.language.positional, meta.function.js keyword.declaration.generator.js",
+      "scope": "punctuation.separator.continuation, keyword.operator.assignment, constant.other.wildcard.asterisk, variable.language.positional, meta.function.js keyword.declaration.generator.js",
       "foreground": "var(light_cyan)"
+    },
+    {
+      "name": "Python operators",
+      "scope": "source.python keyword.operator, source.python keyword.operator.logical.python",
+      "foreground": "var(light_red)"
     },
     // the meta.preprocessor forms outrank the "meta.preprocessor string/punctuation" (light green) rules
     {

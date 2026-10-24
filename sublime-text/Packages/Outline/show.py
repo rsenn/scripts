@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os
+import os, re
 import sublime
 from os.path import basename
+import traceback
 
 ST3 = int(sublime.version()) >= 3000
 
@@ -59,12 +60,12 @@ def set_view(view_id, window, ignore_existing, single_pane):
             view.settings().set('color_scheme', active_view.settings().get('color_scheme'))
         else:
             view.settings().set('color_scheme', outline_settings.get('color_scheme'))
-            view.settings().add_on_change('color_scheme', lambda: set_proper_scheme(view))
+            """view.settings().add_on_change('color_scheme', lambda: set_proper_scheme(view))"""
         
         reset_sels = True
     else:
-        reset_sels = path != view.settings().get('outline_path', '')
-
+        reset_sels = view.settings().get('current_file') != view.settings().get('outline_path', '')
+        
     return (view, reset_sels)
 
 
@@ -125,9 +126,12 @@ def show(window, view_id=None, ignore_existing=False, single_pane=False, other_g
         else:
             window.set_view_index(v, 1, 0)
 
+
     window.focus_view(prev_focus)
-    
-    refresh_sym_view(view, symlist, file_path)
+    print("prev_focus:", prev_focus)
+    print("file_path:", file_path
+        )
+    refresh_sym_view(view, symlist, file_path, prev_focus)
 
 def qualify_symbols(view, symlist, style):
     """Label members by their nesting. Nesting comes from the source indentation: a symbol is a
@@ -142,19 +146,49 @@ def qualify_symbols(view, symlist, style):
         while stack and stack[-1][0] >= indent:
             stack.pop()
         names = [n for i, n in stack] + [symbol]
-        if style == 'dot':
-            labels.append('.' + '.'.join(names[1:]) if len(names) > 1 else symbol)
-        else:
-            labels.append('.'.join(names))
+        if style != 'none':
+            if style == 'dot':
+                labels.append(' .' + '.'.join(names[1:]) if len(names) > 1 else symbol)
+            else:
+                labels.append('.'.join(names))
         stack.append((indent, symbol))
     return labels
 
 def refresh_sym_view(sym_view, symlist, path, view=None):
+
+    find_view = lambda path: next((v for v in sym_view.window().views() if v.file_name() == path), None)
+ 
+    if sym_view is not None and sym_view.settings().get('outline_skip_all_upcase'):
+        symlist = [(r, s) for r, s in symlist if not re.match(r'^[A-Z_]+$', s)]
+
+    src_view = view or find_view(path)
+    if src_view is not None:
+        # assuming 'view' is the source text document and 'symlist' contains (range, symbol) pairs 
+        for r, symbol_name in symlist:
+
+            # extract the exact line of code from the source code view using the region """
+            line_range = src_view.line(r)
+            line = src_view.substr(line_range)
+
+            # extract highlighting scope
+            scope = src_view.scope_name(r.a)
+
+            #print("Symbol '{}'\n  range: {}\n  scope: '{}'\n  line: '{}'".format(symbol_name, r, scope, line))
+            print("{:<30} '{}'".format(symbol_name, scope))
+
+            #lr =src_view.line(r)
+            #line = src_view.substr(sublime.Region(lr.a-2, lr.b+10))
+            #print("Line:", line)
+
+    if view is None:
+        view = src_view
+
     l = [symbol for range, symbol in symlist]
     k = [(range.a, range.b) for range, symbol in symlist]
+
     if sym_view != None:
         style = sym_view.settings().get('outline_member_style', 'dot')
-        if view is not None and style in ('dot', 'qualified'):
+        if view != None and style in ('dot', 'qualified'):
             l = qualify_symbols(view, symlist, style)
         sym_view.settings().erase('symlist')
         sym_view.settings().erase('symkeys')

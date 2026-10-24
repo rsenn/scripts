@@ -57,10 +57,13 @@ class OutlineEventHandler(EventListener):
 
 		(row, col) = sym_view.rowcol(sym_view.sel()[0].begin())
 
+		print('on_selection_modified')
+		
 		active_view = None
 		for group in range(window.num_groups()):
-			if group != sym_group and group != fb_group:
+			if group != fb_group: #and group != sym_group
 				active_view = window.active_view_in_group(group)
+		
 		if active_view != None:
 			symkeys = None
 			# get the symbol list
