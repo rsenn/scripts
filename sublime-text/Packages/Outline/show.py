@@ -77,7 +77,7 @@ def show(window, view_id=None, ignore_existing=False, single_pane=False, other_g
     prev_focus = None
     if other_group:
         prev_focus = window.active_view()
-        symlist = prev_focus.get_symbols()
+        symlist = get_symbols(prev_focus)
         file_path = prev_focus.file_name()
         # simulate 'toggle sidebar':
         if prev_focus and 'outline' in prev_focus.scope_name(0):
@@ -180,6 +180,32 @@ def get_symbol_icon(scope):
         return "🔹 "  # Default fallback emoji
 
 
+def get_symbols(view):
+    return clean_symbols(view, view.get_symbols())
+
+
+def clean_symbols(view, symlist):
+    """Reduce what get_symbols() returns to one plain name per declaration:
+    drop the argument list and body text, drop fragments (names starting with
+    punctuation, anonymous arrows) and keep the first symbol per source line."""
+    out = []
+    seen = set()
+    for r, name in symlist:
+        name = name.strip()
+        cut = re.search(r'[({]', name)
+        if cut:
+            name = name[:cut.start()].strip()
+        name = re.sub(r'^(?:(?:export|default|async|static|get|set|function\*?|class)\s+)+', '', name)
+        if not name or not re.match(r'[\w$#@~]', name) or re.match(r'^[\w$]+\s*=>', name):
+            continue
+        key = view.line(r.a).a
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append((r, name))
+    return out
+
+
 def refresh_sym_view(sym_view, symlist, path, view=None):
     find_view = lambda path: next((v for v in sym_view.window().views() if v.file_name() == path), None)
  
@@ -187,6 +213,8 @@ def refresh_sym_view(sym_view, symlist, path, view=None):
         symlist = [(r, s) for r, s in symlist if not re.match(r'^[A-Z_]+$', s)]
 
     src_view = view or find_view(path)
+    if src_view is not None:
+        symlist = clean_symbols(src_view, symlist)
     if view is None:
         view = src_view
 

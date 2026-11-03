@@ -1,7 +1,7 @@
 import sublime
 from sublime import Region
 from sublime_plugin import WindowCommand, TextCommand, EventListener
-from .show import show, refresh_sym_view, get_sidebar_views_groups, get_sidebar_status, binary_search
+from .show import get_symbols, show, refresh_sym_view, get_sidebar_views_groups, get_sidebar_status, binary_search
 
 class OutlineCommand(WindowCommand):
 	def run(self, immediate=False, single_pane=False, project=False, other_group=False, layout=0):
@@ -38,7 +38,7 @@ class OutlineToggleSortCommand(TextCommand):
 				v.settings().set('outline_alphabetical', not v.settings().get('outline_alphabetical'))
 				sym_view = v
 
-		symlist = self.view.get_symbols()
+		symlist = get_symbols(self.view)
 		refresh_sym_view(sym_view, symlist, self.view.file_name(), self.view)
 
 class OutlineEventHandler(EventListener):
@@ -65,7 +65,7 @@ class OutlineEventHandler(EventListener):
 		if active_view != None:
 			symkeys = None
 			# get the symbol list
-			symlist = active_view.get_symbols()
+			symlist = get_symbols(active_view)
 			# depending on setting, set different regions
 			if sym_view.settings().get('outline_main_view_highlight_mode') == 'cursor':
 				symbol_line_ends = [active_view.line(range.a).end() for range, symbol in symlist]
@@ -103,7 +103,7 @@ class OutlineEventHandler(EventListener):
 			else:
 				sym_view.settings().set('current_file', view.file_name())
 			
-		symlist = view.get_symbols()
+		symlist = get_symbols(view)
 
 		refresh_sym_view(sym_view, symlist, view.file_name(), view)
 
@@ -126,7 +126,7 @@ class OutlineEventHandler(EventListener):
 			if sym_view.settings().get('current_file') != view.file_name():
 				sym_view.settings().set('current_file', view.file_name())
 			
-		symlist = view.get_symbols()
+		symlist = get_symbols(view)
 		refresh_sym_view(sym_view, symlist, view.file_name(), view)
 
 		# sync the outline view with current file location
