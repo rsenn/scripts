@@ -5,7 +5,7 @@
 		"Vintage",
 	],
 	"font_face": "DejaVu Sans Mono",
-	"font_size": 13,
+	"font_size": 12,
 	"color_scheme": "Packages/Rastafarian/Rastafarian.sublime-color-scheme",
 	"theme": "Default Dark.sublime-theme",
 	"index_files": true,
