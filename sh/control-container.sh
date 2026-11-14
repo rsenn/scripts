@@ -25,6 +25,8 @@
 # troubleshooting
 #   fix-sshd             start sshd (docker exec, or namespaces if exec is broken)
 #   forward [on|off|status] [PORT]   host port -> container sshd (socat), default $SSH_PORT
+#   network [check|fix]  can the container reach the internet? checks route, forwarding,
+#                        NAT/forward rules, DNS; 'fix' repairs what is missing (default: check)
 #   usb-fix              create missing ttyACM*/ttyUSB* nodes inside the container
 #   rescue [CMD...]      root shell/command through a surviving process (exec broken)
 #   copy-out DIR [PATH]  docker cp PATH (default /home/coder) to DIR, works without exec
@@ -48,6 +50,7 @@
 #   SSH_PORT [22225]    host port -> container port 22 (empty = no publish)
 #   INIT_MODE [ssh]     initial init mode for 'create'
 #   RULES [c 166:* rmw, c 188:* rmw, c 189:* rmw]   ttyACM*, ttyUSB*, raw USB
+#   NET_PROBE [1.1.1.1] address pinged by 'network'; NET_DNS_PROBE [github.com] name it resolves
 #   EXTRA               extra arguments for 'docker create'   OLD [the latest]  USER_IN [coder]
 #   STATE_DIR [~/.local/state/control-container]
 #
@@ -430,6 +433,10 @@ cmd_investigate() {
     else bad "nothing listens on host port $hp"; fi
   else note "no host port was published for 22"; fi
 
+  if [ -n "$ip" ] && [ "$EXEC" != none ]; then
+    sudo -n true 2>/dev/null && { cnet_ping "${NET_PROBE:-1.1.1.1}" && yes_ "container reaches the internet (${NET_PROBE:-1.1.1.1})" || bad "container has no internet ($0 network fix)"; }
+  fi
+
   head_ "3. sshd"
   if [ -n "$ip" ]; then
     bn=$(banner "$ip" 22)
@@ -508,6 +515,98 @@ cmd_forward() {
       if [ -n "$pid" ]; then echo "forwarder on $port: pid $pid ($(ps -o args= -p "$pid"))"; else echo "no forwarder on $port"; fi ;;
     *) die "forward [on|off|status] [PORT]" ;;
   esac
+}
+
+# --- network ---------------------------------------------------------------------
+# Symptom: the container reaches the host and the LAN gateway but not the internet.
+# Causes seen: docker dropped the endpoint (default route gone), the docker firewall
+# rules were flushed (no MASQUERADE, FORWARD policy drop), ip_forward off, bad resolv.conf.
+# 'network fix' repairs these in place, without restarting docker or the container.
+NET_PROBE=${NET_PROBE:-1.1.1.1}
+NET_DNS_PROBE=${NET_DNS_PROBE:-github.com}
+NET_TAG=control-container
+
+net_pid() { exec_mode; if [ "$EXEC" = nsenter ]; then echo "$SURV"; else init_pid; fi; }
+cnet() { sudo -n nsenter -t "$(net_pid)" -n "$@"; }       # run in the container's network namespace
+cnet_ping() { cnet ping -c1 -W3 "$1" >/dev/null 2>&1; }
+
+cmd_network() {
+  local act=${1:-check} fix=0 net gw subnet br ip dev pingok dnsok n
+  case $act in check|status) ;; fix) fix=1 ;; *) die "network [check|fix]" ;; esac
+  target; running "$C" || die "$CN is not running"
+  sudo -n true 2>/dev/null || die "needs passwordless sudo (nsenter, iptables)"
+  FAILS=0; WARNS=0
+  head_ "network of $(fmt_name "$C")"
+
+  # which docker network, its gateway, subnet and bridge device
+  net=$(docker inspect -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}' "$C" | awk '{print $1}')
+  [ -n "$net" ] || net=$(docker inspect -f '{{.HostConfig.NetworkMode}}' "$C")
+  [ "$net" != default ] || net=bridge
+  gw=$(docker network inspect -f '{{range .IPAM.Config}}{{.Gateway}} {{end}}' "$net" 2>/dev/null | awk '{print $1}')
+  subnet=$(docker network inspect -f '{{range .IPAM.Config}}{{.Subnet}} {{end}}' "$net" 2>/dev/null | awk '{print $1}')
+  br=$(docker network inspect -f '{{index .Options "com.docker.network.bridge.name"}}' "$net" 2>/dev/null)
+  [ -n "$br" ] || { [ "$net" = bridge ] && br=docker0 || br=br-$(docker network inspect -f '{{.Id}}' "$net" | cut -c1-12); }
+  [ -n "$gw" ] && [ -n "$subnet" ] || die "cannot determine gateway/subnet of docker network '$net'"
+  echo "    docker network $net: gateway $gw, subnet $subnet, bridge $br"
+
+  # 1. address and default route inside the container
+  ip=$(container_ip)
+  if [ -n "$ip" ]; then yes_ "container address $ip"; else bad "container has no IPv4 address (docker network endpoint lost: recreate the container)"; summary; return 1; fi
+  if cnet ip route 2>/dev/null | grep -q "^default via $gw "; then yes_ "default route via $gw"
+  else
+    bad "no default route via $gw in the container"
+    if [ "$fix" = 1 ]; then run sudo -n nsenter -t "$(net_pid)" -n ip route replace default via "$gw" && yes_ "route restored"; fi
+  fi
+
+  # 2. host side: forwarding and bridge
+  [ "$(cat /proc/sys/net/ipv4/ip_forward)" = 1 ] && yes_ "host ip_forward=1" || {
+    bad "host ip_forward is 0"; [ "$fix" = 0 ] || run sudo -n sysctl -qw net.ipv4.ip_forward=1; }
+  ip link show "$br" >/dev/null 2>&1 && yes_ "bridge $br exists" || bad "bridge $br missing on the host (docker network broken: restart docker)"
+  cnet_ping "$gw" && yes_ "container reaches the gateway $gw" || bad "container cannot reach $gw (veth/bridge problem: restart docker)"
+
+  # 3. internet by address
+  if cnet_ping "$NET_PROBE"; then yes_ "container reaches $NET_PROBE"; pingok=1
+  else
+    pingok=0; bad "container cannot reach $NET_PROBE (the host can: $(ping -c1 -W2 "$NET_PROBE" >/dev/null 2>&1 && echo yes || echo no))"
+    if sudo -n iptables -t nat -S POSTROUTING 2>/dev/null | grep -q -- "-s $subnet.*MASQUERADE"; then yes_ "NAT: MASQUERADE for $subnet present"
+    else
+      bad "NAT: no MASQUERADE for $subnet (docker's firewall rules are gone, flushed by ufw/nftables/tailscale?)"
+      [ "$fix" = 0 ] || run sudo -n iptables -t nat -A POSTROUTING -s "$subnet" ! -o "$br" -m comment --comment "$NET_TAG" -j MASQUERADE
+    fi
+    if sudo -n iptables -S FORWARD 2>/dev/null | grep -q -E -- "-i $br .*-j ACCEPT|DOCKER-FORWARD"; then yes_ "FORWARD: traffic from $br accepted"
+    else
+      bad "FORWARD: policy $(sudo -n iptables -S FORWARD | awk '/^-P/{print $3}') and nothing accepts $br"
+      if [ "$fix" = 1 ]; then
+        run sudo -n iptables -I FORWARD -i "$br" -m comment --comment "$NET_TAG" -j ACCEPT
+        run sudo -n iptables -I FORWARD -o "$br" -m conntrack --ctstate RELATED,ESTABLISHED -m comment --comment "$NET_TAG" -j ACCEPT
+      fi
+    fi
+    if [ "$fix" = 1 ] && [ "$DRY" = 0 ]; then
+      sleep 1; if cnet_ping "$NET_PROBE"; then yes_ "now reaches $NET_PROBE"; pingok=1; FAILS=$((FAILS-1)); else bad "still no route to $NET_PROBE; try '$0 investigate' or restart the docker daemon"; fi
+    fi
+  fi
+
+  # 4. DNS
+  if [ "$pingok" = 1 ] && [ "$DRY" = 0 ] || [ "$fix" = 0 ]; then
+    exec_mode
+    if [ "$EXEC" = none ]; then warn "cannot enter the container to test DNS"
+    else
+      echo "    resolv.conf: $(cexec grep -E '^(nameserver|search)' /etc/resolv.conf 2>/dev/null | tr '\n' ' ')"
+      if cexec getent hosts "$NET_DNS_PROBE" >/dev/null 2>&1; then yes_ "DNS resolves $NET_DNS_PROBE"; dnsok=1
+      else
+        dnsok=0; bad "DNS cannot resolve $NET_DNS_PROBE"
+        if [ "$fix" = 1 ] && [ "$pingok" = 1 ]; then
+          # upstream resolvers of the host (not the 127.0.0.53 stub), then public ones
+          n=$(grep -h '^nameserver' /run/systemd/resolve/resolv.conf 2>/dev/null | grep -v '127\.' | head -n2; echo "nameserver 1.1.1.1")
+          echo "    writing resolv.conf: $(echo "$n" | tr '\n' ' ')"
+          [ "$DRY" = 1 ] || { echo "$n" | cexec sh -c 'cat >/etc/resolv.conf'; cexec getent hosts "$NET_DNS_PROBE" >/dev/null 2>&1 && { yes_ "DNS works now"; FAILS=$((FAILS-1)); }; }
+        fi
+      fi
+    fi
+  fi
+  [ "$fix" = 1 ] || [ "$FAILS" = 0 ] || echo "    repair with: $0 network fix"
+  [ "$fix" = 0 ] || echo "    rules added carry the comment '$NET_TAG'; docker restores its own rules on 'systemctl restart docker' (stops containers)"
+  summary
 }
 
 cmd_usb_fix() {
@@ -681,6 +780,7 @@ case ${1:-} in
   devices|usb)  cmd_devices ;;
   fix-sshd)     cmd_fix_sshd ;;
   forward)      shift; cmd_forward "$@" ;;
+  network|net)  shift; cmd_network "$@" ;;
   usb-fix)      cmd_usb_fix ;;
   rescue)       shift; cmd_rescue "$@" ;;
   copy-out)     shift; cmd_copy_out "$@" ;;
