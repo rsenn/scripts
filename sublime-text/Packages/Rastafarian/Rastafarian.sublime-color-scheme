@@ -52,6 +52,26 @@
   },
   "rules": [
     {
+      "scope": "col_DC143CFF",
+      "background": "#DC143CFF",
+      "foreground": "#D4D4D4FF"
+    },
+    {
+      "scope": "col_E6D9CAFF",
+      "background": "#E6D9CAFF",
+      "foreground": "#5B5B5BFF"
+    },
+    {
+      "scope": "col_7A1F2BFF",
+      "background": "#7A1F2BFF",
+      "foreground": "#BCBCBCFF"
+    },
+    {
+      "scope": "col_9C2B3CFF",
+      "background": "#9C2B3CFF",
+      "foreground": "#CFCFCFFF"
+    },
+    {
       "background": "#640000FF",
       "scope": "col_640000FF",
       "foreground": "#9E9E9EFF"
