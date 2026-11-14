@@ -8,6 +8,9 @@
 #   mingw32  mingw/mingw32  -> /usr/i686-w64-mingw32/sys*root/mingw    (tar root mingw32)
 #   msys     msys/x86_64    -> /usr/x86_64-pc-msys/sys*root/usr        (tar root usr)
 #   msys32   msys/i686      -> /usr/i686-pc-msys/sys*root/usr          (tar root usr)
+#   ucrt64   mingw/ucrt64   -> /usr/x86_64-w64-mingw32/sys*root/mingw  (tar root ucrt64)
+#   clang64  mingw/clang64  -> /usr/x86_64-w64-mingw32/sys*root/mingw  (tar root clang64)
+#   clang32  mingw/clang32  -> /usr/i686-w64-mingw32/sys*root/mingw    (tar root clang32)
 
 : ${CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/msys2-get"}
 : ${MIRROR=https://repo.msys2.org}
@@ -18,7 +21,8 @@ usage() {
   cat <<EOF 1>&2
 Usage: ${0##*/} [OPTIONS] PACKAGE...
 
-  -r, --repo REPO    mingw64 (default), mingw32, msys (msys64), msys32, or a host triplet.
+  -r, --repo REPO    mingw64 (default), mingw32, ucrt64, clang64, clang32, msys (msys64),
+                     msys32, or a host triplet.
                      Repeatable, also -rmsys32 -rmingw64 (so -r{msys,mingw}{32,64} works):
                      one run per repo, packages a repo lacks are skipped; not with -s
                      (x86_64-w64-mingw32, i686-w64-mingw32, x86_64-pc-msys, i686-pc-msys)
@@ -48,6 +52,11 @@ Usage: ${0##*/} [OPTIONS] PACKAGE...
   -w, --wine         also start installed .exe with --version under wine
   -h, --help
 
+PACKAGE may be qualified with its repo, the way it appears in the repo URL:
+clang32/mingw-w64-clang-i686-glew-2.2.0-3 (a full https://repo.msys2.org/... URL
+or a file name ending in .pkg.tar.zst works too). The repo selects the sysroot
+(clang32 -> /usr/i686-w64-mingw32/sysroot/mingw) and the version pins the package.
+
 PACKAGE is looked up loosely, first hit wins: the exact name with or without
 the mingw-w64-<arch>- prefix, a provided name, lowercase and with the lib
 prefix added or dropped, the alias table (lzma -> xz, magic -> file, pq ->
@@ -64,15 +73,41 @@ log() { echo "$*" 1>&2; }
 
 # several -r: run once per repo (msys and mingw package names differ, so a
 # name missing from one repo is skipped there, not an error)
-REPOS=() REST=()
+REPOS=() OPTS=() OPTS_I=() PLAIN=()
+declare -A QPKGS
 while [ $# -gt 0 ]; do
   case "$1" in
     -r | --repo) REPOS+=("$2"); shift 2 ;;
     --repo=*) REPOS+=("${1#--repo=}"); shift ;;
     -r?*) REPOS+=("${1#-r}"); shift ;;
-    *) REST+=("$1"); shift ;;
+    -i | --pkginfo) OPTS_I+=("$1" "$2"); shift 2 ;;
+    -s | --sysroot | -v | --version) OPTS+=("$1" "$2"); shift 2 ;;
+    --) shift; PLAIN+=("$@"); break ;;
+    -*) OPTS+=("$1"); shift ;;
+    *)
+      # REPO/NAME-VERSION-RELEASE, or the URL / file name of a package
+      if [[ $1 =~ ^(.*/)?(mingw/|msys/)?(mingw64|mingw32|ucrt64|clang64|clang32|clangarm64|msys|msys32|msys64|x86_64|i686)/([^/]+)$ ]]; then
+        Q=${BASH_REMATCH[4]%.pkg.tar.zst}; Q=${Q%-any}; Q=${Q%-x86_64}; Q=${Q%-i686}
+        QR=${BASH_REMATCH[3]}
+        case "${BASH_REMATCH[2]}$QR" in msys/x86_64) QR=msys ;; msys/i686) QR=msys32 ;; esac
+        QPKGS[$QR]="${QPKGS[$QR]:+${QPKGS[$QR]} }$Q"
+      else
+        PLAIN+=("$1")
+      fi
+      shift ;;
   esac
 done
+
+# qualified packages: the repo comes from the argument
+if [ ${#QPKGS[@]} -gt 1 ]; then die "qualified packages of several repos: ${!QPKGS[*]}"; fi
+for R in "${!QPKGS[@]}"; do
+  [ ${#REPOS[@]} -eq 0 ] || [ "${REPOS[0]}" = "$R" ] || die "--repo ${REPOS[0]} does not match $R/"
+  REPOS=("$R")
+  PLAIN+=(${QPKGS[$R]})
+done
+
+REST=("${OPTS[@]}" "${OPTS_I[@]}")
+[ ${#PLAIN[@]} -gt 0 ] && REST+=(-- "${PLAIN[@]}")
 
 if [ ${#REPOS[@]} -gt 1 ]; then
   for A in "${REST[@]}"; do
@@ -153,6 +188,9 @@ case "$REPO" in
   mingw32) URLDIR=mingw/mingw32 ROOT=mingw32 PFX=mingw-w64-i686- TRIPLET=i686-w64-mingw32 SUB=mingw ;;
   msys) URLDIR=msys/x86_64 ROOT=usr PFX= TRIPLET=x86_64-pc-msys SUB=usr ;;
   msys32) URLDIR=msys/i686 ROOT=usr PFX= TRIPLET=i686-pc-msys SUB=usr ;;
+  ucrt64) URLDIR=mingw/ucrt64 ROOT=ucrt64 PFX=mingw-w64-ucrt-x86_64- TRIPLET=x86_64-w64-mingw32 SUB=mingw ;;
+  clang64) URLDIR=mingw/clang64 ROOT=clang64 PFX=mingw-w64-clang-x86_64- TRIPLET=x86_64-w64-mingw32 SUB=mingw ;;
+  clang32) URLDIR=mingw/clang32 ROOT=clang32 PFX=mingw-w64-clang-i686- TRIPLET=i686-w64-mingw32 SUB=mingw ;;
   *) die "unknown repo $REPO" ;;
 esac
 
@@ -176,6 +214,21 @@ DB=$CACHE/$REPO
 INDEX=$DB/index.tsv
 mkdir -p "$DB/pkg" || die "cannot create the cache directory"
 
+# all package files in the repo directory, version sorted: listed once, then
+# every search runs on the cached file (list-ftp.sh, curl fallback)
+dir_files() {
+  local D=$DB/dir.txt
+  if [ ! -s "$D" ] || $UPDATE; then
+    log "listing $MIRROR/$URLDIR/"
+    if command -v list-ftp.sh >/dev/null; then
+      list-ftp.sh "$MIRROR/$URLDIR/"
+    else
+      curl -sfL "$MIRROR/$URLDIR/" | grep -o 'href="[^"]*"' | sed 's,href="\(.*\)",\1,'
+    fi | sed 's,.*/,,' | grep '\.pkg\.tar\.zst$' | sort -V >"$D.tmp" && mv "$D.tmp" "$D"
+  fi
+  cat "$D"
+}
+
 # index: name|filename|sha256|depends|makedepends|provides
 # (lists are space separated, version constraints stripped)
 update_db() {
@@ -183,6 +236,17 @@ update_db() {
   curl -sfL "$MIRROR/$URLDIR/$(db_name).db" -o "$DB/db.tar.zst" || die "download of the repo database failed"
   rm -rf "$DB/desc"; mkdir -p "$DB/desc"
   zstd -d -c "$DB/db.tar.zst" | tar -C "$DB/desc" -xf - || die "cannot unpack the database"
+  rm -f "$DB/dirmode"
+  # retired repo (clang32): the database is empty but the packages are still
+  # served, so index the directory listing; depends come from each .PKGINFO
+  if ! compgen -G "$DB/desc/*/desc" >/dev/null; then
+    log "database is empty, indexing the directory listing"
+    rm -f "$DB/dir.txt"
+    : >"$DB/dirmode"
+    dir_files | awk '{ n = $0; sub(/-[^-]+-[0-9]+-[^-]+\.pkg\.tar\.zst$/, "", n); F[n] = $0 }
+      END { for (n in F) printf "%s|%s|||||\n", n, F[n] }' >"$INDEX.tmp" && mv "$INDEX.tmp" "$INDEX"
+    return 0
+  fi
   awk '
     function flush() {
       if (name != "") printf "%s|%s|%s|%s|%s|%s\n", name, file, sha, dep, mdep, prov
@@ -206,7 +270,7 @@ update_db() {
 
 db_name() {
   case "$REPO" in
-    mingw64 | mingw32) echo "$REPO" ;;
+    mingw64 | mingw32 | ucrt64 | clang64 | clang32) echo "$REPO" ;;
     msys | msys32) echo msys ;;
   esac
 }
@@ -293,21 +357,6 @@ lookup() {
   echo "$R"
 }
 
-# all package files in the repo directory, version sorted: listed once, then
-# every search runs on the cached file (list-ftp.sh, curl fallback)
-dir_files() {
-  local D=$DB/dir.txt
-  if [ ! -s "$D" ] || $UPDATE; then
-    log "listing $MIRROR/$URLDIR/"
-    if command -v list-ftp.sh >/dev/null; then
-      list-ftp.sh "$MIRROR/$URLDIR/"
-    else
-      curl -sfL "$MIRROR/$URLDIR/" | grep -o 'href="[^"]*"' | sed 's,href="\(.*\)",\1,'
-    fi | sed 's,.*/,,' | grep '\.pkg\.tar\.zst$' | sort -V >"$D.tmp" && mv "$D.tmp" "$D"
-  fi
-  cat "$D"
-}
-
 # name of a package file: drop -version-release-arch.pkg.tar.zst
 file_name() { local B=${1%.pkg.tar.zst}; B=${B%-*}; B=${B%-*}; echo "${B%-*}"; }
 file_version() { local B=${1%.pkg.tar.zst}; B=${B%-*}; B=${B%-*}; echo "${B##*-}"; }
@@ -338,19 +387,26 @@ fi
 # resolve every argument to a package name once, here, in the main shell:
 # NAME, or NAME-VERSION / NAME-oldest / NAME-newest (version for that package only)
 declare -A PIN
-NAMES=()
+NAMES=() MISS=()
 for P in "${PKGS[@]}"; do
   V= R=$(lookup "$P" note)
+  # NAME-VERSION, NAME-VERSION-RELEASE, NAME-oldest, NAME-newest
+  if [ -z "$R" ] && [[ $P =~ ^(.+)-([0-9][^-]*)-[0-9]+$ ]]; then
+    V=${BASH_REMATCH[2]}
+    R=$(lookup "${BASH_REMATCH[1]}" note)
+  fi
   if [ -z "$R" ] && [[ $P =~ ^(.+)-([0-9][^-]*|oldest|newest)$ ]]; then
     V=${BASH_REMATCH[2]}
     R=$(lookup "${BASH_REMATCH[1]}" note)
   fi
-  if [ -z "$R" ]; then
-    [ -n "$MSYS2_GET_MULTI" ] && { log "skip      $P (not in $REPO)"; continue; }
-    die "package not found: $P"
-  fi
+  if [ -z "$R" ]; then MISS+=("$P"); continue; fi
   [ -n "$V" ] && PIN[$R]=$V
   NAMES+=("$R")
+done
+
+for P in "${MISS[@]}"; do
+  [ -n "$MSYS2_GET_MULTI" ] && { log "skip      $P (not in $REPO)"; continue; }
+  die "package not found: $P"
 done
 
 # msys packages keep headers, import libraries and .pc files in NAME-devel
@@ -405,6 +461,19 @@ fetch_pkg() {
   fi
 }
 
+# directory-listing index (no database): depends and makedepends of a package
+# are read from its own .PKGINFO, once
+declare -A DEPLOADED
+load_deps() {
+  local N=$1 I
+  [ -f "$DB/dirmode" ] && [ -z "${DEPLOADED[$N]}" ] || return 0
+  DEPLOADED[$N]=1
+  fetch_pkg "$N"
+  I=$(zstd -d -c "$DB/pkg/${FILE[$N]}" | tar -xOf - .PKGINFO)
+  DEP[$N]=$(sed -n 's/^depend = \([^<>=]*\).*/\1/p' <<<"$I" | tr '\n' ' ')
+  MDEP[$N]=$(sed -n 's/^makedepend = \([^<>=]*\).*/\1/p' <<<"$I" | tr '\n' ' ')
+}
+
 declare -A SEEN WHY
 ORDER=()
 MISSING=()
@@ -412,6 +481,7 @@ MISSING=()
 # post-order walk: dependencies are appended before their dependants
 visit() {
   local N=$1 D R
+  load_deps "$N"
   [ -n "${SEEN[$N]}" ] && return
   SEEN[$N]=1; WHY[$N]=$2
   if $DEPS; then
@@ -427,6 +497,7 @@ installed() { [ -f "$SYSROOT/.msys2-get/$1.files" ]; }
 
 for R in "${NAMES[@]}"; do
   pin_version "$R" || continue
+  load_deps "$R"
   visit "$R"
   if $BUILD; then
     for D in ${MDEP[$R]}; do
