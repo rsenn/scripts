@@ -21,7 +21,7 @@ alias wget='wget --content-disposition --no-check-certificate --no-use-server-ti
 alias xargs='xargs -d "\\n"'
 alias xclip='xclip -selection clipboard'
 if type sudo 2>/dev/null >/dev/null; then
-  alias s='sudo'
+  alias S='sudo'
   alias schR='sudo chown -R `id -u`:`id -g`'
   alias schr='sudo chown `id -u`:`id -g`'
   alias si='sudo -i'

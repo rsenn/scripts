@@ -34,9 +34,17 @@
 #   clean                remove stopped auto-named leftovers (never the latest), asks first
 #
 # lifecycle
-#   create [IMAGE]       create + start (restart policy, USB, ssh port), marks it latest
+#   build [ARGS]         build $IMAGE from $DOCKERFILE (self-contained, empty context);
+#                        ARGS go to docker build, e.g. --no-cache
+#   update               build (NO_BUILD=1 skips it), then replace the latest container by a
+#                        new one from $IMAGE under the same name: carries ssh host keys,
+#                        tailscale state and password hashes over, mounts $HOME_SRC as the
+#                        home, stops (never removes) the old one, then runs 'compare'
+#   compare [OLD]        old container (default: the one 'update' replaced) against the latest:
+#                        packages, users, sshd/sudo config, /usr/local/bin, docker settings
+#   create [IMAGE]       create + start (restart policy, USB, ssh port, home), marks it latest
 #   migrate              snapshot the latest container, start $NAME from the snapshot
-#   rollback             stop $NAME, start $OLD again
+#   rollback             undo 'update': stop the latest, start the replaced container again
 #   start|stop|restart   lifecycle
 #   shell [CMD...]       interactive shell (default: bash as $USER_IN, else sh)
 #   autostart [on|off]   start with the docker daemon (and enable docker at boot)
@@ -46,25 +54,34 @@
 #
 # environment (defaults in brackets):
 #   CONTAINER           target override (else the latest, else $NAME)
-#   NAME [meshtastic-work]  name given to a new container   IMAGE [meshtastic-coding-work:usb-pre2]
+#   NAME [meshtastic-work]  name given to a new container   IMAGE [meshtastic-coding-work:alpine]
+#   DOCKERFILE [~/Sources/meshtastic/alpine.Dockerfile]   what 'build' and 'update' build
+#   BUILD_ARGS []       extra arguments for docker build in 'update' (--no-cache --pull)
+#   HOME_SRC [/mnt/data/meshtastic-backup]   host dir mounted as /home/$USER_IN (empty = none)
 #   SSH_PORT [22225]    host port -> container port 22 (empty = no publish)
-#   INIT_MODE [ssh]     initial init mode for 'create'
+#   INIT_MODE []        init mode for 'create' (empty: the image default, runit; old images: ssh)
 #   RULES [c 166:* rmw, c 188:* rmw, c 189:* rmw]   ttyACM*, ttyUSB*, raw USB
 #   NET_PROBE [1.1.1.1] address pinged by 'network'; NET_DNS_PROBE [github.com] name it resolves
 #   EXTRA               extra arguments for 'docker create'   OLD [the latest]  USER_IN [coder]
 #   STATE_DIR [~/.local/state/control-container]
 #
-# init modes (script /usr/local/bin/container-init, the container entrypoint):
-#   ssh          sshd daemonizes itself, then PID 1 runs a shell      (default)
-#   runit        runsvdir supervises /etc/service, sshd is a service
-#   daemontools  svscan supervises /etc/service, sshd is a service
+# init modes (script /usr/local/bin/container-init, the container entrypoint; the image
+# built from $DOCKERFILE ships it, older images get it installed by 'create'):
+#   runit        PID 1 is runsvdir over /etc/service: sshd and tailscaled are services (default)
+#   ssh          sshd and tailscaled start directly, then PID 1 runs a shell
+#   daemontools  PID 1 is svscan over /etc/service (needs svscan in the image)
 set -eu
 shopt -s nullglob
 
+NAME_SET=${NAME:+1}
 NAME=${NAME:-meshtastic-work}
-IMAGE=${IMAGE:-${SNAP:-meshtastic-coding-work:usb-pre2}}
+IMAGE_SET=${IMAGE:+1}
+IMAGE=${IMAGE:-${SNAP:-meshtastic-coding-work:alpine}}
+DOCKERFILE=${DOCKERFILE:-$HOME/Sources/meshtastic/alpine.Dockerfile}
+HOME_SRC=${HOME_SRC-/mnt/data/meshtastic-backup}
 SSH_PORT=${SSH_PORT:-22225}
-INIT_MODE=${INIT_MODE:-ssh}
+INIT_MODE=${INIT_MODE:-}
+BUILD_ARGS=${BUILD_ARGS:-}
 RULES=${RULES:-c 166:* rmw, c 188:* rmw, c 189:* rmw}
 EXTRA=${EXTRA:-}
 USER_IN=${USER_IN:-coder}
@@ -72,6 +89,7 @@ INIT_PATH=/usr/local/bin/container-init
 MODE_FILE=/etc/container-init.mode
 STATE_DIR=${STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/control-container}
 LATEST_FILE=$STATE_DIR/latest
+PREV_FILE=$STATE_DIR/previous   # "<id> <name>" of the container the last 'update' replaced
 FAMILY=${FAMILY:-meshtastic-coding-work}   # image family of the containers considered by find/clean
 
 DRY=0
@@ -355,6 +373,7 @@ cmd_status() {
   cexec sh -c '
     echo "init:    $(cat '"$MODE_FILE"' 2>/dev/null || echo ssh)"
     for p in sshd runsvdir svscan tailscaled; do pgrep -x $p >/dev/null && echo "running: $p"; done
+    command -v sv >/dev/null && pgrep -x runsvdir >/dev/null && sv status /etc/service/* 2>/dev/null | sed "s/^/service: /"
     ls /dev/ttyACM* /dev/ttyUSB* 2>/dev/null | sed "s/^/device:  /"; true'
 }
 
@@ -682,19 +701,238 @@ cmd_create() {
   g=$(getent group dialout | cut -d: -f3 || true)
   [ -z "$g" ] || args+=(--group-add "$g")
   [ -z "$SSH_PORT" ] || args+=(-p "$SSH_PORT":22)
+  [ -z "$HOME_SRC" ] || [ ! -d "$HOME_SRC" ] || args+=(-v "$HOME_SRC:/home/$USER_IN")
   # shellcheck disable=SC2206
   args+=($EXTRA)
   run docker create "${args[@]}" "$IMAGE"
   CN=$NAME
-  if [ "$DRY" = 0 ]; then install_init; set_mode "$INIT_MODE"
-  else echo "+ (install $INIT_PATH, mode $INIT_MODE)"; fi
+  if image_has_init; then
+    [ -z "$INIT_MODE" ] || set_mode "$INIT_MODE"       # else the image's own default (runit)
+  elif [ "$DRY" = 0 ]; then install_init; set_mode "${INIT_MODE:-ssh}"
+  else echo "+ (install $INIT_PATH, mode ${INIT_MODE:-ssh})"; fi
+  [ -z "${CARRY_FROM:-}" ] || carry_state "$CARRY_FROM" "$NAME"
   run docker start "$NAME"
   [ "$DRY" = 1 ] || { C=$(fullid "$NAME"); set_mark "$NAME"; sleep 2; cmd_status; }
   echo "marked $NAME as latest; ssh -p ${SSH_PORT:-22} $USER_IN@<host>"
 }
 
+# image_has_init: does $IMAGE ship /usr/local/bin/container-init (label set by the Dockerfile)?
+image_has_init() {
+  [ "$(docker image inspect -f '{{index .Config.Labels "control-container.init"}}' "$IMAGE" 2>/dev/null)" = 1 ]
+}
+
+# cfile CONTAINER PATH: contents of one file through docker cp, which works in stopped
+# containers and when docker exec is broken
+cfile() { docker cp "$1:$2" - 2>/dev/null | tar -xO 2>/dev/null || true; }
+
+# ctar CONTAINER PATH: names inside a directory, one per line, sorted
+ctar() { docker cp "$1:$2" - 2>/dev/null | tar -t 2>/dev/null | sed 's|^[^/]*/||; /^$/d' | sort || true; }
+
+# carry_state OLD NEW: copy what must survive a rebuild from OLD into the created, not yet
+# started NEW: ssh host keys (clients keep trusting the host) and tailscale state (stays
+# logged in). tar streams keep owner and mode.
+carry_state() {
+  local old=$1 new=$2 k n=0
+  echo "carrying state from $(cname "$old")"
+  for k in ssh_host_rsa_key ssh_host_rsa_key.pub ssh_host_ed25519_key ssh_host_ed25519_key.pub \
+           ssh_host_ecdsa_key ssh_host_ecdsa_key.pub; do
+    [ -n "$(cfile "$old" "/etc/ssh/$k" | head -c1)" ] || continue
+    if [ "$DRY" = 1 ]; then echo "+ carry /etc/ssh/$k"; continue; fi
+    docker cp "$old:/etc/ssh/$k" - | docker cp - "$new:/etc/ssh/" && n=$((n+1))
+  done
+  echo "    $n ssh host key file(s)"
+  if [ -n "$(ctar "$old" /var/lib/tailscale)" ]; then
+    if [ "$DRY" = 1 ]; then echo "+ carry /var/lib/tailscale"
+    else docker cp "$old:/var/lib/tailscale" - | docker cp - "$new:/var/lib/" && echo "    tailscale state"; fi
+  else echo "    no tailscale state in the old container (log in with: tailscale up)"; fi
+}
+
+# carry_passwords OLD NEW: password hashes of the login users from the old shadow file into
+# the running NEW; never written to a file, never printed. The image keeps them locked.
+carry_passwords() {
+  local old=$1 new=$2 n filter='($1=="coder"||$1=="roman") && $2!~/^[!*]/ && $2!="" {print $1":"$2}'
+  n=$(cfile "$old" /etc/shadow | awk -F: "$filter" | wc -l)
+  [ "$n" -gt 0 ] || { echo "    no password hashes to carry"; return 0; }
+  if [ "$DRY" = 1 ]; then echo "+ carry $n password hash(es)"; return 0; fi
+  cfile "$old" /etc/shadow | awk -F: "$filter" | docker exec -i "$new" chpasswd -e && echo "    $n password hash(es)"
+}
+
+# --- build, update, compare --------------------------------------------------------
+# The Dockerfile is self-contained: it is fed on stdin with an empty build context
+# (the firmware checkout would be sent to the daemon otherwise).
+cmd_build() {
+  local ctx
+  [ -r "$DOCKERFILE" ] || die "no Dockerfile $DOCKERFILE (set DOCKERFILE=...)"
+  ctx=$(mktemp -d)
+  echo "+ docker build -f - -t $IMAGE $* <$DOCKERFILE   (empty context)"
+  if [ "$DRY" = 1 ]; then rmdir "$ctx"; return 0; fi
+  docker build -f - -t "$IMAGE" "$@" "$ctx" <"$DOCKERFILE" || { rmdir "$ctx"; die "build failed"; }
+  rmdir "$ctx"
+}
+
+# update_restore OLD OLDNAME: the update failed after the old container was stopped
+update_restore() {
+  local old=$1 oldname=$2
+  echo "update failed, going back to $oldname" >&2
+  if exists "$NAME" && [ "$(fullid "$NAME")" != "$(fullid "$old")" ]; then
+    docker rename "$NAME" "$NAME-failed-$(date +%Y%m%d-%H%M%S)" || true
+  fi
+  [ "$(cname "$old")" = "$oldname" ] || docker rename "$old" "$oldname" || true
+  docker update --restart unless-stopped "$old" >/dev/null || true
+  docker start "$old" >/dev/null && { docker exec -d "$old" /usr/sbin/sshd 2>/dev/null || true; }
+  set_mark "$old"
+}
+
+cmd_update() {
+  local old oldname stamp
+  target; old=$C; oldname=$CN
+  [ -r "$DOCKERFILE" ] || die "no Dockerfile $DOCKERFILE (set DOCKERFILE=...)"
+  if [ -n "$HOME_SRC" ]; then
+    [ -d "$HOME_SRC" ] || die "HOME_SRC $HOME_SRC does not exist; /home/$USER_IN of the old container is lost with it ($0 copy-out DIR first)"
+    [ -n "$(ls -A "$HOME_SRC" 2>/dev/null)" ] || die "HOME_SRC $HOME_SRC is empty"
+  fi
+  [ -n "$NAME_SET" ] || NAME=$oldname
+  echo "replacing $oldname ($(echo "$old" | cut -c1-12)) by $NAME from image $IMAGE; home ${HOME_SRC:-none}, ssh port ${SSH_PORT:-none}"
+
+  head_ "1. image"
+  # shellcheck disable=SC2086
+  if [ "${NO_BUILD:-0}" = 1 ]; then echo "NO_BUILD=1: using the existing image $IMAGE"; else cmd_build $BUILD_ARGS; fi
+  if [ "$DRY" = 0 ]; then
+    docker image inspect "$IMAGE" >/dev/null 2>&1 || die "no image $IMAGE"
+    image_has_init || die "image $IMAGE has no container-init (not built from $DOCKERFILE?)"
+  fi
+
+  head_ "2. stop the old container (kept, not removed)"
+  if running "$old"; then
+    run timeout 90 docker stop -t 10 "$old" || {
+      echo "docker stop failed or timed out, killing" >&2
+      run timeout 30 docker kill "$old" || die "cannot stop $oldname: docker is wedged ('sudo systemctl restart docker' stops all containers, then rerun)"; }
+  fi
+  run docker update --restart=no "$old"
+  stamp=$(date +%Y%m%d-%H%M%S)
+  [ "$NAME" != "$oldname" ] || run docker rename "$old" "$oldname-old-$stamp"
+  if [ -n "$SSH_PORT" ] && ss -ltn | grep -q ":$SSH_PORT "; then
+    echo "host port $SSH_PORT is busy (a '$0 forward' leftover?), trying to free it"
+    cmd_forward off "$SSH_PORT" || true; sleep 1
+    if ss -ltn | grep -q ":$SSH_PORT "; then
+      [ "$DRY" = 1 ] || { update_restore "$old" "$oldname"; die "host port $SSH_PORT is still busy"; }
+    fi
+  fi
+
+  head_ "3. create and start the new container"
+  if [ "$DRY" = 1 ]; then
+    echo "+ create $NAME from $IMAGE (home $HOME_SRC, port $SSH_PORT, device rules, /dev bind)"
+    echo "+ carry ssh host keys, tailscale state, password hashes from $oldname; compare; investigate"
+    return 0
+  fi
+  if ! CARRY_FROM=$old cmd_create; then update_restore "$old" "$oldname"; exit 1; fi
+  printf '%s %s\n' "$old" "$oldname" >"$PREV_FILE"
+  C=$(fullid "$NAME"); CN=$NAME
+  carry_passwords "$old" "$NAME" || echo "    password hashes not carried" >&2
+
+  head_ "4. does the new container match the old one?"
+  cmd_compare "$old" || true
+  head_ "5. does it work?"
+  cmd_investigate || true
+  echo
+  echo "old container: $(cname "$old") (stopped, restart policy off); '$0 rollback' brings it back, '$0 rm $(cname "$old")' removes it"
+}
+
+# cmp_sets LABEL OLDLIST NEWLIST: lines only in the old list are failures (lost), lines only
+# in the new list are listed as additions
+cmp_sets() {
+  local label=$1 lost added n
+  lost=$(comm -23 "$2" "$3"); added=$(comm -13 "$2" "$3")
+  n=$(wc -l <"$2")
+  if [ -z "$lost" ]; then yes_ "$label: all $n of the old container present"
+  else bad "$label: missing in the new container:"; echo "$lost" | sed 's/^/        /'; fi
+  [ -z "$added" ] || note "$label: $(echo "$added" | wc -l) added in the new one: $(echo "$added" | head -n 12 | tr '\n' ' ')"
+}
+
+cmd_compare() {
+  local old=${1:-${OLD:-}} new T k o nw
+  if [ -z "$old" ] && [ -r "$PREV_FILE" ]; then read -r old _ <"$PREV_FILE" || true; fi
+  [ -n "$old" ] || die "compare OLD-CONTAINER (or run '$0 update' first)"
+  exists "$old" || die "no container $old"
+  target; new=$C
+  [ "$(fullid "$old")" != "$new" ] || die "$old is the latest container itself; give the old one"
+  old=$(fullid "$old")
+  T=$(mktemp -d); FAILS=0; WARNS=0
+  head_ "old $(cname "$old") ($(echo "$old" | cut -c1-12)) against new $(cname "$new") ($(echo "$new" | cut -c1-12))"
+  note "files are read with docker cp; nothing needs a working docker exec"
+
+  echo "${B}packages${Z}"
+  cfile "$old" /etc/apk/world | sort -u >"$T/o"; cfile "$new" /etc/apk/world | sort -u >"$T/n"
+  [ -s "$T/o" ] || warn "no /etc/apk/world in the old container"
+  cmp_sets "requested (apk world)" "$T/o" "$T/n"
+  cfile "$old" /lib/apk/db/installed | awk '/^P:/{print substr($0,3)}' | sort -u >"$T/o"
+  cfile "$new" /lib/apk/db/installed | awk '/^P:/{print substr($0,3)}' | sort -u >"$T/n"
+  cmp_sets "installed packages" "$T/o" "$T/n"
+
+  echo "${B}users and groups${Z}"
+  cfile "$old" /etc/passwd | awk -F: 'NF>5{print $1":"$3":"$4":"$6":"$7}' | sort -u >"$T/o"
+  cfile "$new" /etc/passwd | awk -F: 'NF>5{print $1":"$3":"$4":"$6":"$7}' | sort -u >"$T/n"
+  cmp_sets "passwd (name:uid:gid:home:shell)" "$T/o" "$T/n"
+  cfile "$old" /etc/group | awk -F: 'NF>2{print $1":"$3}' | sort -u >"$T/o"
+  cfile "$new" /etc/group | awk -F: 'NF>2{print $1":"$3}' | sort -u >"$T/n"
+  cmp_sets "groups (name:gid)" "$T/o" "$T/n"
+  cfile "$old" /etc/group >"$T/go"; cfile "$new" /etc/group >"$T/gn"
+  k=$(awk -F: 'NR==FNR{m[$1]=","$4","; next} $4!="" {n=split($4,a,","); for(i=1;i<=n;i++) if (index(m[$1], ","a[i]",")==0) print $1": "a[i]}' "$T/gn" "$T/go")
+  if [ -z "$k" ]; then yes_ "group members: every old member is still in its group"
+  else bad "group members missing in the new container:"; echo "$k" | sed 's/^/        /'; fi
+  k=$(cfile "$old" /etc/shadow | awk -F: '($1=="coder"||$1=="roman") && $2!~/^[!*]/ && $2!=""{print $1}' | sort -u | tr '\n' ' ')
+  nw=$(cfile "$new" /etc/shadow | awk -F: '($1=="coder"||$1=="roman") && $2!~/^[!*]/ && $2!=""{print $1}' | sort -u | tr '\n' ' ')
+  if [ "$k" = "$nw" ]; then yes_ "password set for: ${k:-nobody}"; else warn "login passwords: old [$k] new [$nw] ($0 update carries them)"; fi
+
+  echo "${B}configuration${Z}"
+  eff() { grep -v '^[[:space:]]*#' | sed 's/[[:space:]]\+/ /g; s/^ //; s/ $//' | grep . | sort -u || true; }
+  cfile "$old" /etc/ssh/sshd_config | eff >"$T/o"; cfile "$new" /etc/ssh/sshd_config | eff >"$T/n"
+  cmp_sets "sshd_config (active lines)" "$T/o" "$T/n"
+  { cfile "$old" /etc/sudoers; cfile "$old" /etc/sudoers.d; } | eff >"$T/o"
+  { cfile "$new" /etc/sudoers; cfile "$new" /etc/sudoers.d; } | eff >"$T/n"
+  cmp_sets "sudoers (active lines)" "$T/o" "$T/n"
+  cfile "$old" /etc/shells | eff >"$T/o"; cfile "$new" /etc/shells | eff >"$T/n"
+  cmp_sets "/etc/shells" "$T/o" "$T/n"
+  ctar "$old" /usr/local/bin >"$T/o"; ctar "$new" /usr/local/bin >"$T/n"
+  cmp_sets "/usr/local/bin" "$T/o" "$T/n"
+  ctar "$old" /etc/udev/rules.d >"$T/o"; ctar "$new" /etc/udev/rules.d >"$T/n"
+  cmp_sets "/etc/udev/rules.d" "$T/o" "$T/n"
+  for k in /etc/udev/rules.d/99-platformio-udev.rules /etc/rsyncd.conf /etc/man_db.conf; do
+    o=$(cfile "$old" "$k" | sha256sum | cut -c1-16); nw=$(cfile "$new" "$k" | sha256sum | cut -c1-16)
+    if [ "$o" = "$nw" ]; then yes_ "$k identical"; else warn "$k differs"; fi
+  done
+  for k in glow yazi ya; do
+    o=$(docker cp "$old:/usr/local/bin/$k" - 2>/dev/null | tar -xO 2>/dev/null | sha256sum | cut -c1-12)
+    nw=$(docker cp "$new:/usr/local/bin/$k" - 2>/dev/null | tar -xO 2>/dev/null | sha256sum | cut -c1-12)
+    if [ "$o" = "$nw" ]; then yes_ "/usr/local/bin/$k identical"; else note "/usr/local/bin/$k differs (other build or version: fine if it is the pinned one)"; fi
+  done
+  for k in rsa ed25519 ecdsa; do
+    o=$(cfile "$old" /etc/ssh/ssh_host_${k}_key.pub | cut -d' ' -f1,2); nw=$(cfile "$new" /etc/ssh/ssh_host_${k}_key.pub | cut -d' ' -f1,2)
+    [ -n "$o" ] || continue
+    if [ "$o" = "$nw" ]; then yes_ "ssh host key $k carried over"; else warn "ssh host key $k differs: clients will see a changed host key"; fi
+  done
+
+  echo "${B}docker settings${Z} (old / new)"
+  for k in 'restart:{{.HostConfig.RestartPolicy.Name}}' \
+           'ports:{{range $p,$b := .HostConfig.PortBindings}}{{$p}}->{{(index $b 0).HostPort}} {{end}}' \
+           'cgroup rules:{{range .HostConfig.DeviceCgroupRules}}[{{.}}] {{end}}' \
+           'binds:{{range .Mounts}}{{.Source}}:{{.Destination}} {{end}}' \
+           'groups:{{range .HostConfig.GroupAdd}}{{.}} {{end}}' \
+           'entrypoint:{{range .Config.Entrypoint}}{{.}} {{end}}'; do
+    o=$(docker inspect -f "${k#*:}" "$old" 2>/dev/null); nw=$(docker inspect -f "${k#*:}" "$new" 2>/dev/null)
+    if [ "$o" = "$nw" ]; then yes_ "${k%%:*}: ${o:-(none)}"
+    elif [ -n "$o" ] && [ -z "$nw" ]; then warn "${k%%:*}: old [$o], new has none"
+    else note "${k%%:*}: [${o:-none}] / [${nw:-none}]"; fi
+  done
+  rm -rf "$T"
+  summary || true
+  FAILS=0; WARNS=0
+}
+
 cmd_migrate() {
   local OLD used_kb free_kb
+  [ -n "$IMAGE_SET" ] || IMAGE=${SNAP:-meshtastic-coding-work:usb-pre2}   # the snapshot, not the built image
+  HOME_SRC=                                                              # the snapshot contains the home
   OLD=${OLD:-$(latest_id || true)}
   [ -n "$OLD" ] || die "no latest container; set OLD=..."
   exists "$OLD" || die "no container $OLD"
@@ -720,13 +958,24 @@ cmd_migrate() {
 }
 
 cmd_rollback() {
-  local OLD=${OLD:-}
-  [ -n "$OLD" ] || die "rollback needs OLD=<previous container>"
-  docker update --restart=no "$NAME" >/dev/null 2>&1 || true
-  docker stop "$NAME" 2>/dev/null || true
-  run docker start "$OLD"; run docker exec -d "$OLD" /usr/sbin/sshd
-  exists "$OLD" && set_mark "$OLD"
-  echo "rolled back to $(cname "$OLD"), marked latest; sshd restarted (tmux, claude and other sessions must be started again)"
+  local old=${OLD:-} oldname="" cur stamp
+  if [ -z "$old" ] && [ -r "$PREV_FILE" ]; then read -r old oldname <"$PREV_FILE" || true; fi
+  [ -n "$old" ] || die "rollback needs OLD=<previous container> (or an earlier '$0 update')"
+  exists "$old" || die "no container $old"
+  oldname=${oldname:-$(cname "$old")}
+  cur=$(latest_id || true)
+  [ -n "$cur" ] || { exists "$NAME" && cur=$(fullid "$NAME") || true; }
+  stamp=$(date +%Y%m%d-%H%M%S)
+  if [ -n "$cur" ] && [ "$cur" != "$(fullid "$old")" ]; then
+    run docker update --restart=no "$cur"
+    run timeout 90 docker stop -t 10 "$cur" || run timeout 30 docker kill "$cur" || die "cannot stop $(cname "$cur")"
+    [ "$(cname "$cur")" != "$oldname" ] || run docker rename "$cur" "$oldname-rolledback-$stamp"
+  fi
+  [ "$(cname "$old")" = "$oldname" ] || run docker rename "$old" "$oldname"
+  run docker update --restart unless-stopped "$old"
+  run docker start "$old"
+  [ "$DRY" = 1 ] || { docker exec -d "$old" /usr/sbin/sshd 2>/dev/null || true; set_mark "$old"; }
+  echo "rolled back to $oldname, marked latest; sshd restarted (tmux, claude and other sessions must be started again)"
 }
 
 cmd_autostart() {
@@ -791,6 +1040,9 @@ case ${1:-} in
   logs)         shift; target; docker logs -f "$@" "$C" ;;
   clean)        cmd_clean ;;
   create)       shift; cmd_create "$@" ;;
+  build)        shift; cmd_build "$@" ;;
+  update)       cmd_update ;;
+  compare|diff) shift; cmd_compare "$@" ;;
   migrate)      cmd_migrate ;;
   rollback|--rollback) cmd_rollback ;;
   start)        target; run docker start "$C" ;;
